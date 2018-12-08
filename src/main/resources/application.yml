@@ -1,0 +1,4 @@
+spring:
+  data:
+    mongodb:
+      port: 0
