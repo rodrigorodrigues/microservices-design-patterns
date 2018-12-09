@@ -2,6 +2,7 @@ package com.learning.springboot.controller;
 
 import com.learning.springboot.dto.PersonDto;
 import com.learning.springboot.mapper.PersonMapper;
+import com.learning.springboot.model.Person;
 import com.learning.springboot.service.PersonService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -54,7 +55,8 @@ class PersonController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CREATE')")
     public ResponseEntity<PersonDto> create(@RequestBody @Valid @ApiParam(required = true) PersonDto person) {
         person.setPassword(passwordEncoder.encode(person.getPassword()));
-        personService.save(personMapper.dtoToEntity(person));
+        Person personModel = personService.save(personMapper.dtoToEntity(person));
+        person.setId(personModel.getId());
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/{id}")
                 .buildAndExpand(person.getId())
@@ -65,13 +67,13 @@ class PersonController {
     @ApiOperation(value = "Api for updating a person")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'SAVE')")
-    public ResponseEntity<Object> update(@RequestBody @Valid @ApiParam(required = true) PersonDto person,
-                                         @PathVariable @ApiParam(required = true) String id) {
+    public ResponseEntity<PersonDto> update(@RequestBody @Valid @ApiParam(required = true) PersonDto person,
+                                                   @PathVariable @ApiParam(required = true) String id) {
         return personService.findById(id)
                 .map(p -> {
                     person.setId(id);
                     personService.save(personMapper.dtoToEntity(person));
-                    return ResponseEntity.noContent().build();
+                    return ResponseEntity.ok(person);
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

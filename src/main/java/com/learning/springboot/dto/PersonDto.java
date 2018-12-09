@@ -1,6 +1,8 @@
 package com.learning.springboot.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -19,12 +21,14 @@ public class PersonDto {
     private String login;
     @NotEmpty
     private String password;
-    @NotEmpty
+    @NotEmpty @Valid
     private List<AuthorityDto> authorities;
     @Valid
     private List<ChildrenDto> children;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ChildrenDto {
         @NotEmpty
         private String name;
@@ -33,7 +37,10 @@ public class PersonDto {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class AuthorityDto {
+        @NotEmpty
         private String role;
     }
 }
