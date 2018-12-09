@@ -1,7 +1,7 @@
 package com.learning.java8;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.learning.springboot.model.Child;
+import com.learning.springboot.model.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -11,9 +11,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Streams {
     public static void main(String[] args) {
-        List<Person> persons = Arrays.asList(new Person(1, "Rodrigo Rodrigues", 35, Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2))),
-                new Person(2, "Juninho", 37, Arrays.asList(new Child("Dan", 5), new Child("Iam", 3))),
-                new Person(3, "Anonymous", 30, null));
+        List<Person> persons = new ArrayList<>();
+        Person personObj = new Person("Rodrigo Rodrigues", 35, "rod", "pass", Collections.emptyList());
+        personObj.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
+        persons.add(personObj);
+
+        personObj = new Person("Juninho", 37, "elias", "123", Collections.emptyList());
+        personObj.setChildren(Arrays.asList(new Child("Dan", 5), new Child("Iam", 3)));
+        persons.add(personObj);
+
+        personObj = new Person("Anonymous", 30, "test", "test", Collections.emptyList());
+        persons.add(personObj);
 
         //Old way
         //Sort by age
@@ -30,7 +38,7 @@ public class Streams {
         Person youngestPerson = null;
         Person oldestPerson = null;
         List<Person> personsWithoutChild = new ArrayList<>();
-        Map<Integer, String> mapPersonsNames = new HashMap<>();
+        Map<String, String> mapPersonsNames = new HashMap<>();
 
         for (Person person : persons) {
             if (youngestPerson == null && oldestPerson == null) {
@@ -83,19 +91,4 @@ public class Streams {
         log.debug("new way - mapPersonsNames: {}", mapPersonsNames);
     }
 
-    @Data
-    @AllArgsConstructor
-    static class Person {
-        private Integer id;
-        private String name;
-        private int age;
-        private List<Child> children;
-    }
-
-    @Data
-    @AllArgsConstructor
-    static class Child {
-        private String name;
-        private int age;
-    }
 }

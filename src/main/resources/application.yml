@@ -1,4 +1,9 @@
 spring:
+  profiles: default
   data:
     mongodb:
       port: 0
+
+---
+spring:
+  profiles: dev
