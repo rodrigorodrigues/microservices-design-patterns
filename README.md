@@ -31,3 +31,7 @@ test/test
 [Spring Guide](https://spring.io/guides)
 
 [Spring Boot](https://start.spring.io)
+
+[Spring WSDL Client](https://spring.io/guides/gs/consuming-web-service/)
+
+[WSDL Client](https://www.intertech.com/Blog/jaxb-tutorial-how-to-marshal-and-unmarshal-xml/)
