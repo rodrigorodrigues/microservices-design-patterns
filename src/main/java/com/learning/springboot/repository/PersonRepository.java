@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Repository
 public interface PersonRepository extends MongoRepository<Person, String> {
-    List<Person> findAllByNameStartingWith(String name);
-    List<Person> findByChildrenExists();
+    List<Person> findAllByNameIgnoreCaseStartingWith(String name);
+    List<Person> findByChildrenExists(boolean exists);
     Person findByLogin(String username);
 }

@@ -31,12 +31,12 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public List<Person> findAllByNameStartingWith(String name) {
-        return personRepository.findAllByNameStartingWith(name);
+        return personRepository.findAllByNameIgnoreCaseStartingWith(name);
     }
 
     @Override
     public List<Person> findByChildrenExists() {
-        return personRepository.findByChildrenExists();
+        return personRepository.findByChildrenExists(true);
     }
 
     @Override

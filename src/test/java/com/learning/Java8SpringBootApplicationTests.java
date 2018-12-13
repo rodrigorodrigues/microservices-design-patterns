@@ -5,7 +5,6 @@ import com.learning.wsdl.client.Asset;
 import com.learning.wsdl.client.AssetStatus;
 import com.learning.wsdl.client.CreateOrUpdateAsset;
 import com.learning.wsdl.client.ObjectFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,13 +14,14 @@ import org.springframework.xml.transform.StringResult;
 
 import javax.xml.bind.JAXBElement;
 
-@Slf4j
+import static org.assertj.core.api.Assertions.assertThat;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Java8SpringBootApplication.class)
 public class Java8SpringBootApplicationTests {
 
 	@Test
-	public void contextLoads() {
+	public void testWsdlClient() {
 		ObjectFactory objectFactory = new ObjectFactory();
 		CreateOrUpdateAsset createOrUpdateAsset = objectFactory.createCreateOrUpdateAsset();
 		Asset asset = objectFactory.createAsset();
@@ -37,7 +37,8 @@ public class Java8SpringBootApplicationTests {
 
 		StringResult result = new StringResult();
 		marshaller.marshal(jaxbElement, result);
-		log.info("Marshall: "+result.toString());
+
+		assertThat(result.toString()).isNotEmpty();
 	}
 
 }

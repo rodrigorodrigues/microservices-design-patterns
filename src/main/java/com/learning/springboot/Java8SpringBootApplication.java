@@ -7,6 +7,7 @@ import com.learning.springboot.repository.PersonRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,7 @@ public class Java8SpringBootApplication extends SpringBootServletInitializer {
 		SpringApplication.run(Java8SpringBootApplication.class, args);
 	}
 
+	@ConditionalOnBean(PasswordEncoder.class)
 	@Bean
 	CommandLineRunner runner(PersonRepository personRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
