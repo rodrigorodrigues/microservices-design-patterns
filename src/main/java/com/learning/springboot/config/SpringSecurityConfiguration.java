@@ -5,7 +5,6 @@ import com.learning.springboot.service.PersonService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -47,10 +45,18 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         DefaultLoginPageGeneratingFilter loginFilter = new DefaultLoginPageGeneratingFilter(new UsernamePasswordAuthenticationFilter());
         loginFilter.setAuthenticationUrl("/login");
+/*
+        CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+
+        loginFilter.setResolveHiddenInputs(request -> {
+            CsrfToken csrfToken = csrfTokenRepository.generateToken(new StandardMultipartHttpServletRequest());
+            return Collections.singletonMap(csrfToken.getHeaderName(), csrfToken.getToken());
+        });
+*/
 
         http
             .csrf().disable()
-                //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                //.csrfTokenRepository(csrfTokenRepository)
             //.and()
                 .addFilter(loginFilter)
             .exceptionHandling()
@@ -64,7 +70,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
+                //.successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                 .permitAll()
             .and()
                 .logout()
@@ -72,7 +78,6 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    @Profile("dev")
     public RequestCache refererRequestCache() {
         return new HttpSessionRequestCache() {
             @Override

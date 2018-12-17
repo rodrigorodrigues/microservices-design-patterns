@@ -55,7 +55,7 @@ class PersonList extends Component {
         <td>{address}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/api/persons/" + person.id}>Edit</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/persons/" + person.id}>Edit</Button>
             <Button size="sm" color="danger" onClick={() => this.remove(person.id)}>Delete</Button>
           </ButtonGroup>
         </td>
