@@ -3,7 +3,8 @@ spring:
   data:
     mongodb:
       port: 0
-
+  jackson:
+    default-property-inclusion: non_null
 ---
 spring:
   profiles: dev

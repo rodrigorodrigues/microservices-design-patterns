@@ -24,7 +24,7 @@ import java.util.List;
  */
 @RestController
 @Api(value = "persons", description = "Methods for managing persons")
-@RequestMapping("/persons")
+@RequestMapping("/api/persons")
 @AllArgsConstructor
 public
 class PersonController {

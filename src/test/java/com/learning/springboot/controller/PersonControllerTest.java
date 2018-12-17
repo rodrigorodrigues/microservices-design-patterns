@@ -58,7 +58,7 @@ public class PersonControllerTest {
         when(personService.findAll()).thenReturn(Arrays.asList(person, person2));
         when(personMapper.entityToDto(any(List.class))).thenReturn(Arrays.asList(person, person2));
 
-        mockMvc.perform(get("/persons"))
+        mockMvc.perform(get("/api/persons"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.[*].id").value(hasItems("100", "200")));
@@ -72,7 +72,7 @@ public class PersonControllerTest {
         when(personService.findById(anyString())).thenReturn(Optional.of(new Person()));
         when(personMapper.entityToDto(any(Person.class))).thenReturn(person);
 
-        mockMvc.perform(get("/persons/{id}", 100))
+        mockMvc.perform(get("/api/persons/{id}", 100))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value("100"));
@@ -86,7 +86,7 @@ public class PersonControllerTest {
         when(personMapper.dtoToEntity(any(PersonDto.class))).thenReturn(person);
         when(personService.save(any(Person.class))).thenReturn(person);
 
-        mockMvc.perform(post("/persons")
+        mockMvc.perform(post("/api/persons")
                 .content(convertToJson(personDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -103,7 +103,7 @@ public class PersonControllerTest {
         Person person = new PersonMapperImpl().dtoToEntity(personDto);
         when(personService.findById(anyString())).thenReturn(Optional.of(person));
 
-        mockMvc.perform(put("/persons/{id}", personDto.getId())
+        mockMvc.perform(put("/api/persons/{id}", personDto.getId())
                 .content(convertToJson(personDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ public class PersonControllerTest {
     public void whenCallDeleteShouldDeleteById() throws Exception {
         Person person = new Person();
 
-        mockMvc.perform(delete("/persons/{id}", person.getId()))
+        mockMvc.perform(delete("/api/persons/{id}", person.getId()))
                 .andExpect(status().is2xxSuccessful());
     }
 
