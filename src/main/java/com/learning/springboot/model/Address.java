@@ -8,19 +8,23 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data
 @RequiredArgsConstructor
-@Document(collection = "person_child")
 @NoArgsConstructor
-public class Child {
+@Document(collection = "person_address")
+public class Address {
     @Id
     private String id = UUID.randomUUID().toString();
-    @NonNull
-    @NotEmpty
-    private String name;
-    @NonNull @NotNull
-    private Integer age;
+    @NonNull @NotEmpty
+    private String address;
+    @NonNull @NotEmpty
+    private String city;
+    @NonNull @NotEmpty
+    private String stateOrProvince;
+    @NonNull @NotEmpty
+    private String country;
+    @NonNull @NotEmpty
+    private String postalCode;
 }

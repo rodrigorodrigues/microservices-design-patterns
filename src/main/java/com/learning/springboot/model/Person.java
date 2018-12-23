@@ -21,12 +21,12 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Document(collection = "persons")
+@Document(collection = "person_user")
 public class Person implements UserDetails {
     @Id
     private String id = UUID.randomUUID().toString();
     @NonNull
-    @NotNull
+    @NotEmpty
     @Size(min = 5, max = 100)
     private String name;
     @NonNull @NotNull
@@ -37,8 +37,10 @@ public class Person implements UserDetails {
     private String login;
     @NotEmpty @NonNull
     private String password;
-    @NotEmpty @NonNull
+    @NotEmpty @NonNull @Valid
     private List<Authority> authorities;
+    @NotNull @Valid
+    private Address address;
 
     @Override
     public Collection<Authority> getAuthorities() {

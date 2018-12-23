@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
 
@@ -53,12 +52,12 @@ class PersonController {
     @ApiOperation(value = "Api for creating a person")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'CREATE')")
-    public ResponseEntity<PersonDto> create(@RequestBody @Valid @ApiParam(required = true) PersonDto person) {
+    public ResponseEntity<PersonDto> create(@RequestBody @ApiParam(required = true) PersonDto person) {
         person.setPassword(passwordEncoder.encode(person.getPassword()));
         Person personModel = personService.save(personMapper.dtoToEntity(person));
         person.setId(personModel.getId());
 
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/{id}")
+        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{id}")
                 .buildAndExpand(person.getId())
                 .toUri();
         return ResponseEntity.created(location).body(person);
@@ -67,7 +66,7 @@ class PersonController {
     @ApiOperation(value = "Api for updating a person")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'SAVE')")
-    public ResponseEntity<PersonDto> update(@RequestBody @Valid @ApiParam(required = true) PersonDto person,
+    public ResponseEntity<PersonDto> update(@RequestBody @ApiParam(required = true) PersonDto person,
                                                    @PathVariable @ApiParam(required = true) String id) {
         return personService.findById(id)
                 .map(p -> {

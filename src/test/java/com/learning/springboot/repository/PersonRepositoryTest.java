@@ -1,5 +1,6 @@
 package com.learning.springboot.repository;
 
+import com.learning.springboot.model.Address;
 import com.learning.springboot.model.Authority;
 import com.learning.springboot.model.Child;
 import com.learning.springboot.model.Person;
@@ -12,26 +13,31 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@DataMongoTest
+@DataMongoTest(properties = {"initialLoad=false"})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;
 
     @Before
     public void setup() {
-        Person person = new Person("Rodrigo", 23, "rod", "123", Collections.emptyList());
+        Person person = new Person("Rodrigo", 23, "rod", "123", Arrays.asList(new Authority("USER")));
         person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
+        person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
         personRepository.save(person);
-        person = new Person("Anna", 25, "admin", "admin", Arrays.asList(new Authority("ADMIN")));
+
+        person = new Person("Anna Cio", 25, "admin", "admin", Arrays.asList(new Authority("ADMIN")));
+        person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
         personRepository.save(person);
-        personRepository.save(new Person("Anonymous", 30, "test", "test", Collections.emptyList()));
+
+        person = new Person("Anonymous", 30, "test", "test", Arrays.asList(new Authority("ANONYMOUS")));
+        person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
+        personRepository.save(person);
     }
 
     @After
@@ -45,7 +51,7 @@ public class PersonRepositoryTest {
 
         assertThat(persons.size()).isEqualTo(2);
         assertThat(persons.stream().map(Person::getName).collect(Collectors.toList()))
-                .containsExactlyInAnyOrder("Anna", "Anonymous");
+                .containsExactlyInAnyOrder("Anna Cio", "Anonymous");
     }
 
     @Test
@@ -61,7 +67,7 @@ public class PersonRepositoryTest {
         Person person = personRepository.findByLogin("admin");
 
         assertThat(person).isNotNull();
-        assertThat(person.getName()).isEqualTo("Anna");
+        assertThat(person.getName()).isEqualTo("Anna Cio");
     }
 
     @Test
