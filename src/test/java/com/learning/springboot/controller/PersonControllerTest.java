@@ -2,21 +2,29 @@ package com.learning.springboot.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.learning.springboot.config.Java8SpringConfigurationProperties;
+import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.PersonDto;
 import com.learning.springboot.mapper.PersonMapper;
 import com.learning.springboot.mapper.PersonMapperImpl;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.repository.PersonRepository;
 import com.learning.springboot.service.PersonService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +35,7 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,8 +43,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(PersonController.class)
 public class PersonControllerTest {
 
-    @Autowired
     MockMvc mockMvc;
+
+    @Autowired
+    WebApplicationContext context;
+
+    @Autowired
+    Java8SpringConfigurationProperties configurationProperties;
 
     @MockBean
     PersonService personService;
@@ -46,7 +60,23 @@ public class PersonControllerTest {
     @MockBean
     PersonRepository personRepository;
 
+    @MockBean
+    TokenProvider tokenProvider;
+
     final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Before
+    public void setup() {
+        Person person = new PersonMapperImpl().dtoToEntity(createPersonDto());
+        TokenProvider tokenProvider = new TokenProvider(configurationProperties);
+        tokenProvider.init();
+        String token = "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken(person, null, person.getAuthorities()), false);
+        mockMvc = MockMvcBuilders.webAppContextSetup(context)
+                .apply(springSecurity())
+                .defaultRequest(MockMvcRequestBuilders.get("/").header(HttpHeaders.AUTHORIZATION, token))
+                .build();
+        when(this.tokenProvider.validateToken(anyString())).thenReturn(true);
+    }
 
     @Test
     @WithMockUser(roles = "READ")

@@ -3,6 +3,7 @@ package com.learning;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learning.springboot.Java8SpringBootApplication;
+import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.mapper.PersonMapper;
 import com.learning.springboot.model.Address;
 import com.learning.springboot.model.Authority;
@@ -13,6 +14,7 @@ import com.learning.wsdl.client.AssetStatus;
 import com.learning.wsdl.client.CreateOrUpdateAsset;
 import com.learning.wsdl.client.ObjectFactory;
 import org.hamcrest.CustomMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -23,9 +25,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xml.transform.StringResult;
 
@@ -35,6 +40,7 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -42,19 +48,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = Java8SpringBootApplication.class,
 		properties = {"initialLoad=false", "debug=true"}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class Java8SpringBootApplicationTests {
+public class Java8SpringBootApplicationIntegrationTest {
 
 	@Autowired
 	WebApplicationContext context;
 
 	@Autowired
-	MockMvc mockMvc;
+	PersonMapper personMapper;
 
 	@Autowired
-	PersonMapper personMapper;
+	TokenProvider tokenProvider;
+
+	MockMvc mockMvc;
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
+
+	@Before
+	public void setup() {
+		Person person = createPerson();
+		String token = "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken(person, null, person.getAuthorities()), false);
+		mockMvc = MockMvcBuilders.webAppContextSetup(context)
+				.apply(springSecurity())
+				.defaultRequest(MockMvcRequestBuilders.get("/").header(HttpHeaders.AUTHORIZATION, token))
+				.build();
+	}
 
 	@Test
 	public void testWsdlClient() {

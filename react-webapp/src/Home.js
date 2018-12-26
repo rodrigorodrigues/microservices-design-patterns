@@ -21,7 +21,7 @@ class Home extends Component {
   }
 
   async componentDidMount() {
-    const response = await fetch('/api/user', {credentials: 'include'});
+    const response = await fetch('/api/authenticate', {credentials: 'include'});
     const body = await response.text();
     if (body === '') {
       this.setState(({isAuthenticated: false}))

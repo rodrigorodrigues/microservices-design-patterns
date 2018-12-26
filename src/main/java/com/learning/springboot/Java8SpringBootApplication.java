@@ -1,5 +1,6 @@
 package com.learning.springboot;
 
+import com.learning.springboot.config.Java8SpringConfigurationProperties;
 import com.learning.springboot.model.Address;
 import com.learning.springboot.model.Authority;
 import com.learning.springboot.model.Child;
@@ -10,6 +11,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
 @SpringBootApplication
 public class Java8SpringBootApplication extends SpringBootServletInitializer {
 
