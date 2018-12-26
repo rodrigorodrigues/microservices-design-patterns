@@ -7,6 +7,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+/**
+ * Configuration class.
+ */
 @Data
 @ConfigurationProperties(prefix = "configuration")
 public class Java8SpringConfigurationProperties {

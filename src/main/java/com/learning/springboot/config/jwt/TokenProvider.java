@@ -20,6 +20,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+/**
+ * Generate and validate JWT.
+ */
 @Component
 public class TokenProvider {
 
@@ -39,6 +42,9 @@ public class TokenProvider {
         this.configurationProperties = configurationProperties;
     }
 
+    /**
+     * Initiate jwt configuration.
+     */
     @PostConstruct
     public void init() {
         log.debug("Using a Base64-encoded JWT secret key");
@@ -51,6 +57,12 @@ public class TokenProvider {
                 .getTokenValidityInSecondsForRememberMe();
     }
 
+    /**
+     * Create a new token for authenticated user.
+     * @param authentication user
+     * @param rememberMe boolean
+     * @return jwt
+     */
     public String createToken(Authentication authentication, boolean rememberMe) {
         String authorities = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
@@ -72,6 +84,11 @@ public class TokenProvider {
             .compact();
     }
 
+    /**
+     * Convert JWT to Authentication.
+     * @param token JWT
+     * @return authentication
+     */
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser()
             .setSigningKey(key)
@@ -88,6 +105,11 @@ public class TokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
+    /**
+     * Check if token is valid.
+     * @param authToken JWT
+     * @return boolean
+     */
     public boolean validateToken(String authToken) {
         try {
             Jwts.parser().setSigningKey(key).parseClaimsJws(authToken);

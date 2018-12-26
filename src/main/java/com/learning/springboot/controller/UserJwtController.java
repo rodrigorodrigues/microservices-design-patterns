@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
+/**
+ * Controller for user authentication.
+ */
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/authenticate")

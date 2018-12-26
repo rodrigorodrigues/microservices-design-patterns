@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * Rest API
+ * Rest API for persons.
  */
 @RestController
 @Api(value = "persons", description = "Methods for managing persons")

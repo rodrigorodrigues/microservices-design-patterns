@@ -1,7 +1,7 @@
 package com.learning.springboot.config;
 
 
-import com.learning.springboot.config.jwt.JWTConfigurer;
+import com.learning.springboot.config.jwt.JwtConfigurer;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.service.PersonService;
 import lombok.AllArgsConstructor;
@@ -88,8 +88,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .apply(securityConfigurerAdapter());
     }
 
-    private JWTConfigurer securityConfigurerAdapter() {
-        return new JWTConfigurer(tokenProvider);
+    private JwtConfigurer securityConfigurerAdapter() {
+        return new JwtConfigurer(tokenProvider);
     }
 
     @Bean
