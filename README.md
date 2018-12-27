@@ -32,8 +32,4 @@ test/test
 
 [Spring Boot](https://start.spring.io)
 
-[Spring WSDL Client](https://spring.io/guides/gs/consuming-web-service/)
-
-[WSDL Client](https://www.intertech.com/Blog/jaxb-tutorial-how-to-marshal-and-unmarshal-xml/)
-
 [React ad Spring Boot](https://developer.okta.com/blog/2018/07/19/simple-crud-react-and-spring-boot)

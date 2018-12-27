@@ -9,10 +9,6 @@ import com.learning.springboot.model.Address;
 import com.learning.springboot.model.Authority;
 import com.learning.springboot.model.Child;
 import com.learning.springboot.model.Person;
-import com.learning.wsdl.client.Asset;
-import com.learning.wsdl.client.AssetStatus;
-import com.learning.wsdl.client.CreateOrUpdateAsset;
-import com.learning.wsdl.client.ObjectFactory;
 import org.hamcrest.CustomMatcher;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,7 +20,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,13 +27,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.xml.transform.StringResult;
 
 import javax.validation.ConstraintViolationException;
-import javax.xml.bind.JAXBElement;
 import java.util.Arrays;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -72,27 +64,6 @@ public class Java8SpringBootApplicationIntegrationTest {
 				.apply(springSecurity())
 				.defaultRequest(MockMvcRequestBuilders.get("/").header(HttpHeaders.AUTHORIZATION, token))
 				.build();
-	}
-
-	@Test
-	public void testWsdlClient() {
-		ObjectFactory objectFactory = new ObjectFactory();
-		CreateOrUpdateAsset createOrUpdateAsset = objectFactory.createCreateOrUpdateAsset();
-		Asset asset = objectFactory.createAsset();
-		AssetStatus assetStatus = objectFactory.createAssetStatus();
-		assetStatus.setAssetStatusId(111);
-		asset.setAssetStatus(assetStatus);
-		createOrUpdateAsset.setArg0(asset);
-
-		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-		marshaller.setContextPath("com.learning.wsdl.client");
-
-		JAXBElement<CreateOrUpdateAsset> jaxbElement = objectFactory.createCreateOrUpdateAsset(createOrUpdateAsset);
-
-		StringResult result = new StringResult();
-		marshaller.marshal(jaxbElement, result);
-
-		assertThat(result.toString()).isNotEmpty();
 	}
 
 	@Test

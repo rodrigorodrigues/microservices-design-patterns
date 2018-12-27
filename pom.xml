@@ -146,27 +146,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-
-			<plugin>
-				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.14.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<schemaLanguage>WSDL</schemaLanguage>
-					<schemaDirectory>${basedir}/src/main/resources/wsdl</schemaDirectory>
-					<generatePackage>com.learning.wsdl.client</generatePackage>
-					<schemaIncludes>
-						<include>asset.wsdl</include>
-					</schemaIncludes>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 
