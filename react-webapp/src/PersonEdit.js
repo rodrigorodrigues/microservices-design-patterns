@@ -3,13 +3,8 @@ import { Link, withRouter } from 'react-router-dom';
 import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from './AppNavbar';
 import { instanceOf } from 'prop-types';
-import { Cookies, withCookies } from 'react-cookie';
 
 class PersonEdit extends Component {
-  static propTypes = {
-    cookies: instanceOf(Cookies).isRequired
-  };
-
   emptyItem = {
     name: '',
     address: '',
@@ -21,10 +16,8 @@ class PersonEdit extends Component {
 
   constructor(props) {
     super(props);
-    const {cookies} = props;
     this.state = {
-      item: this.emptyItem,
-      csrfToken: cookies.get('XSRF-TOKEN')
+      item: this.emptyItem
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -52,12 +45,11 @@ class PersonEdit extends Component {
 
   async handleSubmit(event) {
     event.preventDefault();
-    const {item, csrfToken} = this.state;
+    const {item} = this.state;
 
     await fetch('/api/persons', {
       method: (item.id) ? 'PUT' : 'POST',
       headers: {
-        'X-XSRF-TOKEN': csrfToken,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
@@ -118,4 +110,4 @@ class PersonEdit extends Component {
   }
 }
 
-export default withCookies(withRouter(PersonEdit));
+export default withRouter(PersonEdit);

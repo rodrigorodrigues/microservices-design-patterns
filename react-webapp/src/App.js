@@ -4,6 +4,7 @@ import Home from './Home';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import PersonList from './PersonList';
 import PersonEdit from './PersonEdit';
+import Login from './Login';
 import { CookiesProvider } from 'react-cookie';
 
 class App extends Component {
@@ -13,6 +14,7 @@ class App extends Component {
         <Router>
           <Switch>
             <Route path='/' exact={true} component={Home}/>
+            <Route path='/login' exact={true} component={Login}/>
             <Route path='/persons' exact={true} component={PersonList}/>
             <Route path='/persons/:id' component={PersonEdit}/>
           </Switch>

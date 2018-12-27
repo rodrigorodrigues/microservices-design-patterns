@@ -1,9 +1,8 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './App.css';
 import AppNavbar from './AppNavbar';
-import { Link } from 'react-router-dom';
-import { Button, Container } from 'reactstrap';
-import { withCookies } from 'react-cookie';
+import {Link} from 'react-router-dom';
+import {Button, Container} from 'reactstrap';
 
 class Home extends Component {
   state = {
@@ -14,9 +13,6 @@ class Home extends Component {
 
   constructor(props) {
     super(props);
-    const {cookies} = props;
-    this.state.csrfToken = cookies.get('XSRF-TOKEN');
-    this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
   }
 
@@ -30,21 +26,12 @@ class Home extends Component {
     }
   }
 
-  login() {
+  logout() {
     let port = (window.location.port ? ':' + window.location.port : '');
     if (port === ':3000') {
       port = ':8080';
     }
-    window.location.href = '//' + window.location.hostname + port;
-  }
-
-  logout() {
-    fetch('/logout', {method: 'POST', credentials: 'include',
-      headers: {'X-XSRF-TOKEN': this.state.csrfToken}}).then(res => res.json())
-      .then(response => {
-        window.location.href = response.logoutUrl + "?id_token_hint=" +
-          response.idToken + "&post_logout_redirect_uri=" + window.location.origin;
-      });
+    window.location.href = '//' + window.location.hostname + port + '/logout';
   }
 
   render() {
@@ -58,7 +45,7 @@ class Home extends Component {
         <br/>
         <Button color="link" onClick={this.logout}>Logout</Button>
       </div> :
-      <Button color="primary" onClick={this.login}>Login</Button>;
+      <Button color="link"><Link to="/login">Login</Link></Button>;
 
     return (
       <div>
@@ -72,4 +59,4 @@ class Home extends Component {
   }
 }
 
-export default withCookies(Home);
+export default Home;

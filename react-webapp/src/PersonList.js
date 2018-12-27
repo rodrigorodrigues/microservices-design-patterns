@@ -2,18 +2,11 @@ import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
 import AppNavbar from './AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
-import { instanceOf } from 'prop-types';
-import { withCookies, Cookies } from 'react-cookie';
 
 class PersonList extends Component {
-  static propTypes = {
-    cookies: instanceOf(Cookies).isRequired
-  };
-
   constructor(props) {
     super(props);
-    const {cookies} = props;
-    this.state = {persons: [], csrfToken: cookies.get('XSRF-TOKEN'), isLoading: true};
+    this.state = {persons: [], isLoading: true};
     this.remove = this.remove.bind(this);
   }
 

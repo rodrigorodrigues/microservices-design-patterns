@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.LoginDto;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +33,7 @@ public class UserJwtController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping
-    public ResponseEntity<?> getUser(@Valid @RequestBody LoginDto loginDto) {
+    public ResponseEntity<?> authenticate(@Valid @RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
@@ -40,27 +42,18 @@ public class UserJwtController {
         String jwt = tokenProvider.createToken(authentication, loginDto.isRememberMe());
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
-        return new ResponseEntity<>(new JWTToken(jwt), httpHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(new JwtToken(jwt), httpHeaders, HttpStatus.OK);
     }
 
     /**
      * Object to return as body in JWT Authentication.
      */
-    static class JWTToken {
-
-        private String idToken;
-
-        JWTToken(String idToken) {
-            this.idToken = idToken;
-        }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class JwtToken {
 
         @JsonProperty("id_token")
-        String getIdToken() {
-            return idToken;
-        }
-
-        void setIdToken(String idToken) {
-            this.idToken = idToken;
-        }
+        private String idToken;
     }
 }

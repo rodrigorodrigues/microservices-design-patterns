@@ -8,7 +8,7 @@
 
 `mvn clean package`
 
-### Run
+### Run Spring Boot
 
 `mvn spring-boot:run` and access http://localhost:8080
 
@@ -20,6 +20,16 @@ admin/password
 master/password123
 
 test/test
+```
+
+### Run React Web app
+
+```
+cd react-webapp
+
+sudo npm install
+
+sudo npm start
 ```
 
 ### Swagger
