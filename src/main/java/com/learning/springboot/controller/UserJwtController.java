@@ -12,11 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -39,10 +37,19 @@ public class UserJwtController {
 
         Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.createToken(authentication, loginDto.isRememberMe());
+        String jwt = "Bearer " + tokenProvider.createToken(authentication, loginDto.isRememberMe());
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
-        return new ResponseEntity<>(new JwtToken(jwt), httpHeaders, HttpStatus.OK);
+        httpHeaders.add(HttpHeaders.AUTHORIZATION, jwt);
+        return new ResponseEntity<>(new JwtToken(jwt, authentication), httpHeaders, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getUser(@AuthenticationPrincipal Authentication user) {
+        if (user == null) {
+            return ResponseEntity.ok("");
+        } else {
+            return ResponseEntity.ok(user);
+        }
     }
 
     /**
@@ -55,5 +62,7 @@ public class UserJwtController {
 
         @JsonProperty("id_token")
         private String idToken;
+
+        private Authentication user;
     }
 }

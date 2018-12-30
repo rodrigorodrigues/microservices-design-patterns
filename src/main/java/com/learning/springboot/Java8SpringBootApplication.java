@@ -41,17 +41,17 @@ public class Java8SpringBootApplication extends SpringBootServletInitializer {
 	CommandLineRunner runner(PersonRepository personRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
 			if (personRepository.count() == 0) {
-				Person person = new Person("Rodrigo Rodrigues", 35, "admin", passwordEncoder.encode("password"), permissions("ROLE_ADMIN"));
+				Person person = new Person("Rodrigo Rodrigues", 35, "admin@gmail.com", "admin", passwordEncoder.encode("password"), permissions("ROLE_ADMIN"));
 				person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
 				person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
 				personRepository.save(person);
 
-				person = new Person("Juninho", 37, "master", passwordEncoder.encode("password123"), permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"));
+				person = new Person("Juninho", 37, "master@gmail.com", "master", passwordEncoder.encode("password123"), permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"));
 				person.setChildren(Arrays.asList(new Child("Dan", 5), new Child("Ian", 3)));
 				person.setAddress(new Address("100 Gardiner Street", "Dun Laoghaire", "Dublin", "Ireland", "000 65412"));
 				personRepository.save(person);
 
-				person = new Person("Anonymous", 30, "test", passwordEncoder.encode("test"), permissions("ROLE_CREATE"));
+				person = new Person("Anonymous", 30, "anonymous@gmail.com", "test", passwordEncoder.encode("test"), permissions("ROLE_CREATE"));
 				person.setAddress(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"));
 				personRepository.save(person);
 			}

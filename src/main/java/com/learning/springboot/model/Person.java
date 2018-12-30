@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -31,6 +32,8 @@ public class Person implements UserDetails {
     private String name;
     @NonNull @NotNull
     private Integer age;
+    @NonNull @Email
+    private String email;
     @Valid
     private List<Child> children;
     @NotEmpty @NonNull @Indexed

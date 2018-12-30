@@ -13,6 +13,7 @@ public class PersonDto {
     private Integer age;
     private String login;
     private String password;
+    private String email;
     private List<AuthorityDto> authorities;
     private List<ChildrenDto> children;
     private Address address;

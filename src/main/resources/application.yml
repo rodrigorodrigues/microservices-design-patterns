@@ -7,14 +7,6 @@ spring:
     default-property-inclusion: non_null
 
 configuration:
-  # CORS is only enabled by default with the "dev" profile, so BrowserSync can access the API
-  cors:
-    allowed-origins: "*"
-    allowed-methods: "*"
-    allowed-headers: "*"
-    exposed-headers: "Authorization,Link,X-Total-Count"
-    allow-credentials: true
-    max-age: 1800
   jwt:
     # This token must be encoded using Base64 (you can type `echo 'secret-key'|base64` on your command line)
     base64-secret: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=

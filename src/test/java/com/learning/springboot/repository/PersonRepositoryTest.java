@@ -26,16 +26,16 @@ public class PersonRepositoryTest {
 
     @Before
     public void setup() {
-        Person person = new Person("Rodrigo", 23, "rod", "123", Arrays.asList(new Authority("USER")));
+        Person person = new Person("Rodrigo", 23, "rod@gmail.com", "rod", "123", Arrays.asList(new Authority("USER")));
         person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
         person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
         personRepository.save(person);
 
-        person = new Person("Anna Cio", 25, "admin", "admin", Arrays.asList(new Authority("ADMIN")));
+        person = new Person("Anna Cio", 25, "admin@gmail.com", "admin", "admin", Arrays.asList(new Authority("ADMIN")));
         person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
         personRepository.save(person);
 
-        person = new Person("Anonymous", 30, "test", "test", Arrays.asList(new Authority("ANONYMOUS")));
+        person = new Person("Anonymous", 30, "anonymous@gmail.com", "test", "test", Arrays.asList(new Authority("ANONYMOUS")));
         person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
         personRepository.save(person);
     }

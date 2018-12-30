@@ -112,7 +112,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 	}
 
 	private Person createPerson() {
-		Person person = new Person("Rodrigo", 23, "admin", "123", Arrays.asList(new Authority("USER")));
+		Person person = new Person("Rodrigo", 23, "admin@gmail.com", "admin", "123", Arrays.asList(new Authority("USER")));
 		person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
 		person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
 		return person;

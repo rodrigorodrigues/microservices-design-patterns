@@ -12,15 +12,15 @@ import java.util.stream.Collectors;
 public class Streams {
     public static void main(String[] args) {
         List<Person> persons = new ArrayList<>();
-        Person personObj = new Person("Rodrigo Rodrigues", 35, "rod", "pass", Collections.emptyList());
+        Person personObj = new Person("Rodrigo Rodrigues", 35, "rod@gmail.com", "rod", "pass", Collections.emptyList());
         personObj.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
         persons.add(personObj);
 
-        personObj = new Person("Juninho", 37, "elias", "123", Collections.emptyList());
+        personObj = new Person("Juninho", 37, "elias@gmail.com", "elias", "123", Collections.emptyList());
         personObj.setChildren(Arrays.asList(new Child("Dan", 5), new Child("Iam", 3)));
         persons.add(personObj);
 
-        personObj = new Person("Anonymous", 30, "test", "test", Collections.emptyList());
+        personObj = new Person("Anonymous", 30, "anonymous@gmail.com", "test", "test", Collections.emptyList());
         persons.add(personObj);
 
         //Old way

@@ -2,7 +2,6 @@ package com.learning.springboot.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.web.cors.CorsConfiguration;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -18,8 +17,6 @@ public class Java8SpringConfigurationProperties {
      */
     @NotNull
     private Jwt jwt;
-
-    private CorsConfiguration cors;
 
     @Data
     public static class Jwt {

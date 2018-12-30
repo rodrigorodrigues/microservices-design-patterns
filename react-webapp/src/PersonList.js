@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
 import AppNavbar from './AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
+import ChildModal from "./ChildModal";
 
 class PersonList extends Component {
   constructor(props) {
@@ -11,19 +12,23 @@ class PersonList extends Component {
   }
 
   componentDidMount() {
-    this.setState({isLoading: true});
+    if (this.props.stateParent.jwt) {
+      this.setState({isLoading: true});
 
-    fetch('api/persons', {credentials: 'include'})
-      .then(response => response.json())
-      .then(data => this.setState({persons: data, isLoading: false}))
-      .catch(() => this.props.history.push('/'));
+      fetch('api/persons', {
+        headers: {'Authorization': this.props.stateParent.jwt}
+      })
+          .then(response => response.json())
+          .then(data => this.setState({persons: data, isLoading: false}))
+          .catch(() => this.props.history.push('/'));
+    }
   }
 
   async remove(id) {
     await fetch(`/api/persons/${id}`, {
       method: 'DELETE',
       headers: {
-        'X-XSRF-TOKEN': this.state.csrfToken,
+        'Authorization': this.props.stateParent.jwt,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
@@ -42,9 +47,12 @@ class PersonList extends Component {
     }
 
     const personList = persons.map(person => {
-      const address = `${person.address || ''} ${person.city || ''} ${person.stateOrProvince || ''}`;
+      const address = `${person.address.address || ''} ${person.address.city || ''} ${person.address.stateOrProvince || ''}`;
       return <tr key={person.id}>
         <td style={{whiteSpace: 'nowrap'}}>{person.name}</td>
+        <td>{person.login}</td>
+        <td>{person.age}</td>
+        <td>{person.children ? <ChildModal person={person} /> : 'No Child'}</td>
         <td>{address}</td>
         <td>
           <ButtonGroup>
@@ -62,13 +70,15 @@ class PersonList extends Component {
           <div className="float-right">
             <Button color="success" tag={Link} to="/persons/new">Add Person</Button>
           </div>
-          <h3>My JUG Tour</h3>
+          <h3>Persons</h3>
           <Table className="mt-4">
             <thead>
             <tr>
-              <th width="20%">Name</th>
-              <th width="20%">Location</th>
-              <th>Events</th>
+              <th width="10%">Name</th>
+              <th width="5%">Login</th>
+              <th width="5%">Age</th>
+              <th width="5%">Children List</th>
+              <th width="15%">Location</th>
               <th width="10%">Actions</th>
             </tr>
             </thead>
@@ -82,4 +92,4 @@ class PersonList extends Component {
   }
 }
 
-export default withCookies(withRouter(PersonList));
+export default withRouter(PersonList);
