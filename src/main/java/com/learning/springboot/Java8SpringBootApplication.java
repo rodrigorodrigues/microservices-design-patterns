@@ -10,13 +10,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.reactive.config.EnableWebFlux;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,13 +25,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
+@EnableWebFlux
 @SpringBootApplication
-public class Java8SpringBootApplication extends SpringBootServletInitializer {
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-		return application.sources(Java8SpringBootApplication.class);
-	}
+@EnableReactiveMongoRepositories(basePackageClasses = PersonRepository.class)
+public class Java8SpringBootApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Java8SpringBootApplication.class, args);
@@ -40,7 +38,7 @@ public class Java8SpringBootApplication extends SpringBootServletInitializer {
 	@Bean
 	CommandLineRunner runner(PersonRepository personRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
-			if (personRepository.count() == 0) {
+			if (personRepository.count().block() == 0) {
 				Person person = new Person("Rodrigo Rodrigues", 35, "admin@gmail.com", "admin", passwordEncoder.encode("password"), permissions("ROLE_ADMIN"));
 				person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
 				person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
@@ -57,7 +55,7 @@ public class Java8SpringBootApplication extends SpringBootServletInitializer {
 			}
 
 			personRepository.findAll()
-					.stream()
+					.toStream()
 					.forEach(System.out::println);
 		};
 	}
@@ -76,5 +74,10 @@ public class Java8SpringBootApplication extends SpringBootServletInitializer {
 	@Bean
 	public LocalValidatorFactoryBean validator() {
 		return new LocalValidatorFactoryBean();
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
 }

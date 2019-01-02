@@ -1,51 +1,50 @@
 package com.learning.springboot.service;
 
-import com.learning.springboot.model.Person;
-import org.springframework.security.core.userdetails.UserDetailsService;
-
-import java.util.List;
-import java.util.Optional;
+import com.learning.springboot.dto.PersonDto;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Service for Person.
  */
-public interface PersonService extends UserDetailsService {
+public interface PersonService extends ReactiveUserDetailsService {
     /**
      * Save a person.
-     * @param person
-     * @return person
+     * @param personDto
+     * @return personDto
      */
-    Person save(Person person);
+    Mono<PersonDto> save(PersonDto personDto);
 
     /**
      * Return a Person by id.
      * @param id id
-     * @return person
+     * @return personDto
      */
-    Optional<Person> findById(String id);
+    Mono<PersonDto> findById(String id);
 
     /**
      * Return list of persons.
      * @return list of persons
      */
-    List<Person> findAll();
+    Flux<PersonDto> findAll();
 
     /**
      * Return list of persons by name starting with
      * @param name starts with
      * @return list of persons
      */
-    List<Person> findAllByNameStartingWith(String name);
+    Flux<PersonDto> findAllByNameStartingWith(String name);
 
     /**
      * Return list of persons that have children.
      * @return list of persons
      */
-    List<Person> findByChildrenExists();
+    Flux<PersonDto> findByChildrenExists();
 
     /**
      * Delete a person by id.
      * @param id id
      */
-    void deleteById(String id);
+    Mono<Void> deleteById(String id);
 }

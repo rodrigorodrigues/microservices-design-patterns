@@ -51,9 +51,9 @@ class App extends Component {
       <Router>
         <Switch>
           <Route path='/' exact={true} component={() => <Home stateParent={this.state} removeAuthentication={this.removeAuthentication} />}/>
-          <Route path='/login' exact={true} stateParent={this.state} component={() => <Login setAuthentication={this.setAuthentication} stateParent={this.state} />}/>
-          <Route path='/persons' exact={true} stateParent={this.state} component={() => <PersonList stateParent={this.state} />}/>
-          <Route path='/persons/:id' stateParent={this.state} component={() => <PersonEdit stateParent={this.state} />}/>
+          <Route path='/login' exact={true} component={() => <Login setAuthentication={this.setAuthentication} stateParent={this.state} />}/>
+          <Route path='/persons' exact={true} component={() => <PersonList stateParent={this.state} />}/>
+          <Route path='/persons/:id' component={() => <PersonEdit stateParent={this.state} />}/>
         </Switch>
       </Router>
     )

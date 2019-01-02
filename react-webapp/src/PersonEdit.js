@@ -1,12 +1,22 @@
-import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
-import {Alert, Button, Container, Form, FormFeedback, FormGroup, Input, Label} from 'reactstrap';
+import React, {Component} from 'react';
+import {Link, withRouter} from 'react-router-dom';
+import {AvFeedback, AvForm, AvInput, AvGroup} from 'availity-reactstrap-validation';
+import {Alert, Button, Container, Label} from 'reactstrap';
 import AppNavbar from './AppNavbar';
 import ReactJson from 'react-json-view'
 
 class PersonEdit extends Component {
   emptyPerson = {
     name: '',
+    age: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
+    children: [{
+      name: '',
+      age: ''
+    }],
+    authorities: [],
     address: {
       address: '',
       city: '',
@@ -20,10 +30,7 @@ class PersonEdit extends Component {
     super(props);
     this.state = {
       person: this.emptyPerson,
-      displayError: null,
-      validate: {
-        emailState: '',
-      }
+      displayError: null
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -34,6 +41,7 @@ class PersonEdit extends Component {
       try {
         const person = await (await fetch(`/api/persons/${this.props.match.params.id}`,
             {headers: {'Authorization': this.props.stateParent.jwt}})).json();
+        person.authorities.forEach((authority, index) => {person.authorities[index] = authority.role});
         this.setState({person: person});
       } catch (error) {
         this.setState({displayError: error});
@@ -63,19 +71,17 @@ class PersonEdit extends Component {
       },
       body: JSON.stringify(person),
       credentials: 'include'
-    });
-    this.props.history.push('/persons');
-  }
-
-  validateEmail(e) {
-    const emailRex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const { validate } = this.state
-    if (emailRex.test(e.target.value)) {
-      validate.emailState = 'has-success'
-    } else {
-      validate.emailState = 'has-danger'
-    }
-    this.setState({ validate })
+    }).then(response => response.json())
+        .then(data => {
+          if (data.id) {
+            this.props.history.push('/persons');
+          } else {
+            this.setState({displayError: data});
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
   }
 
   render() {
@@ -93,62 +99,115 @@ class PersonEdit extends Component {
       <AppNavbar/>
       <Container>
         {title}
-        <Form onSubmit={this.handleSubmit}>
-          <FormGroup>
-            <Label for="name">Name</Label>
-            <Input type="text" name="name" id="name" value={person.name || ''}
-                   onChange={this.handleChange} placeholder="Full Name"/>
-          </FormGroup>
-          <FormGroup>
+        <AvForm onValidSubmit={this.handleSubmit}>
+          <AvGroup>
+            <Label for="name">Full Name</Label>
+            <AvInput type="text" name="name" id="name" value={person.name || ''}
+                   onChange={this.handleChange} placeholder="Full Name"
+                     required
+                     minLength="5"
+                     maxLength="100"
+                     pattern="^[A-Za-z0-9\s+]+$" />
+            <AvFeedback>
+              This field is invalid - Your Full Name must be between 5 and 100 characters.
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
             <Label for="age">Age</Label>
-            <Input type="text" name="age" id="age" value={person.age || ''}
-                   onChange={this.handleChange} placeholder="Age"/>
-          </FormGroup>
-          <FormGroup>
+            <AvInput type="number" name="age" id="age" value={person.age || ''}
+                   onChange={this.handleChange} placeholder="Age"
+                     required
+                     minLength="1"
+                     maxLength="3" />
+            <AvFeedback>
+              This field is invalid - Required
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
+            <Label for="username">Username</Label>
+            <AvInput type="text" name="username" id="username" value={person.username || ''}
+                     onChange={this.handleChange} placeholder="Username"
+                     required
+                     minLength="3"
+                     maxLength="30"
+                     pattern="^[A-Za-z0-9]+$" />
+            <AvFeedback>
+              This field is invalid - Your Username must be between 3 and 30 characters.
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
+            <Label for="password">Password</Label>
+            <AvInput type="password" name="password" id="password" value={person.password || ''}
+                     onChange={this.handleChange} placeholder="Password"
+                     required />
+            <AvFeedback>
+              This field is invalid - Required
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
+            <Label for="confirmPassword">Confirm Password</Label>
+            <AvInput type="password" name="confirmPassword" id="confirmPassword" value={person.confirmPassword || ''}
+                     onChange={this.handleChange} placeholder="Confirm Password"
+                     required />
+            <AvFeedback>
+              This field is invalid - Required
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
             <Label for="name">Email</Label>
-            <Input type="text" name="email" id="email" value={person.email || ''}
-                   invalid={ this.state.validate.emailState === 'has-danger' }
-                   onChange={ e => {
-                     this.validateEmail(e);
-                     this.handleChange(e);
-                   }} placeholder="your_email@email.com"/>
-            <FormFeedback>
-              Looks like there is an issue with your email. Please input a correct email.
-            </FormFeedback>
-          </FormGroup>
-          <FormGroup>
+            <AvInput type="email" name="email" id="email" value={person.email || ''}
+                     required
+                     onChange={this.handleChange} placeholder="your_email@email.com"/>
+            <AvFeedback>
+              This field is invalid - Please enter a correct email.
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
+            <Label for="authorities">Permissions</Label>
+            <AvInput type="select" name="authorities" id="authorities" value={person.authorities || ''}
+                     required
+                     multiple
+                     onChange={this.handleChange}>
+              {['ROLE_ADMIN', 'ROLE_CREATE', 'ROLE_READ', 'ROLE_SAVE', 'ROLE_DELETE']
+                  .map(role => <option value={role} key={role}>{role}</option>)}
+            </AvInput>
+            <AvFeedback>
+              This field is invalid - Please select at least one permission.
+            </AvFeedback>
+          </AvGroup>
+          <AvGroup>
             <Label for="address">Address</Label>
-            <Input type="text" name="address" id="address" value={person.address.address || ''}
+            <AvInput type="text" name="address" id="address" value={person.address.address || ''}
                    onChange={this.handleChange} placeholder="Address"/>
-          </FormGroup>
+          </AvGroup>
           <div className="row">
-            <FormGroup className="col-md-4 mb-3">
+            <AvGroup className="col-md-4 mb-3">
               <Label for="city">City</Label>
-              <Input type="text" name="city" id="city" value={person.address.city || ''}
+              <AvInput type="text" name="city" id="city" value={person.address.city || ''}
                      onChange={this.handleChange} placeholder="City"/>
-            </FormGroup>
-            <FormGroup className="col-md-4 mb-3">
+            </AvGroup>
+            <AvGroup className="col-md-4 mb-3">
               <Label for="stateOrProvince">State/Province</Label>
-              <Input type="text" name="stateOrProvince" id="stateOrProvince" value={person.address.stateOrProvince || ''}
+              <AvInput type="text" name="stateOrProvince" id="stateOrProvince" value={person.address.stateOrProvince || ''}
                      onChange={this.handleChange} placeholder="State/Province"/>
-            </FormGroup>
-            <FormGroup className="col-md-4 mb-3">
+            </AvGroup>
+            <AvGroup className="col-md-4 mb-3">
               <Label for="country">Country</Label>
-              <Input type="text" name="country" id="country" value={person.address.country || ''}
+              <AvInput type="text" name="country" id="country" value={person.address.country || ''}
                      onChange={this.handleChange} placeholder="Country"/>
-            </FormGroup>
-            <FormGroup className="col-md-4 mb-3">
+            </AvGroup>
+            <AvGroup className="col-md-4 mb-3">
               <Label for="country">Postal Code</Label>
-              <Input type="text" name="postalCode" id="postalCode" value={person.address.postalCode || ''}
+              <AvInput type="text" name="postalCode" id="postalCode" value={person.address.postalCode || ''}
                      onChange={this.handleChange} placeholder="Postal Code"/>
-            </FormGroup>
+            </AvGroup>
           </div>
-          <FormGroup>
-            <Button color="primary" type="submit">Save</Button>{' '}
+          <AvGroup>
+            <Button color="primary" type="submit">{person.id ? 'Save' : 'Create'}</Button>{' '}
             <Button color="secondary" tag={Link} to="/persons">Cancel</Button>
-          </FormGroup>
+          </AvGroup>
           {displayError}
-        </Form>
+        </AvForm>
       </Container>
     </div>
   }

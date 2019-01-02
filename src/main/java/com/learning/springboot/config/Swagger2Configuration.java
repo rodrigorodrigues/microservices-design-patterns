@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Swagger Configuration
  */
-@Configuration
+//@Configuration
 @EnableSwagger2
 public class Swagger2Configuration {
     @Bean

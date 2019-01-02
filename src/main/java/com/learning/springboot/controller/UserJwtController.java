@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 
@@ -28,19 +28,21 @@ public class UserJwtController {
 
     private final TokenProvider tokenProvider;
 
-    private final AuthenticationManager authenticationManager;
+    private final ReactiveAuthenticationManager authenticationManager;
 
     @PostMapping
-    public ResponseEntity<?> authenticate(@Valid @RequestBody LoginDto loginDto) {
+    public Mono<ResponseEntity<JwtToken>> authenticate(@Valid @RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
-        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = "Bearer " + tokenProvider.createToken(authentication, loginDto.isRememberMe());
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.AUTHORIZATION, jwt);
-        return new ResponseEntity<>(new JwtToken(jwt, authentication), httpHeaders, HttpStatus.OK);
+        return this.authenticationManager.authenticate(authenticationToken)
+                .map(a -> {
+                    //ReactiveSecurityContextHolder.getContext().setAuthentication(authentication);
+                    String jwt = "Bearer " + tokenProvider.createToken(a, loginDto.isRememberMe());
+                    HttpHeaders httpHeaders = new HttpHeaders();
+                    httpHeaders.add(HttpHeaders.AUTHORIZATION, jwt);
+                    return new ResponseEntity<>(new JwtToken(jwt, a), httpHeaders, HttpStatus.OK);
+                });
     }
 
     @GetMapping

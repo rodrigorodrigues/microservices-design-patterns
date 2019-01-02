@@ -1,55 +1,64 @@
 package com.learning.springboot.service;
 
+import com.learning.springboot.dto.PersonDto;
+import com.learning.springboot.mapper.PersonMapper;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.repository.PersonRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @AllArgsConstructor
 public class PersonServiceImpl implements PersonService {
     private final PersonRepository personRepository;
 
-    public Person save(Person person) {
-        return personRepository.save(person);
-    }
+    private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public Optional<Person> findById(String id) {
-        return personRepository.findById(id);
-    }
+    private final PersonMapper personMapper;
 
-    @Override
-    public List<Person> findAll() {
-        return personRepository.findAll();
-    }
-
-    @Override
-    public List<Person> findAllByNameStartingWith(String name) {
-        return personRepository.findAllByNameIgnoreCaseStartingWith(name);
-    }
-
-    @Override
-    public List<Person> findByChildrenExists() {
-        return personRepository.findByChildrenExists(true);
-    }
-
-    @Override
-    public void deleteById(String id) {
-        personRepository.deleteById(id);
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Person user = personRepository.findByLogin(username);
-        if (user == null) {
-            throw new UsernameNotFoundException(String.format("User(%s) not found!", username));
+    public Mono<PersonDto> save(PersonDto personDto) {
+        if (StringUtils.isBlank(personDto.getId())) {
+            personDto.setPassword(passwordEncoder.encode(personDto.getPassword()));
         }
-        return user;
+        Person person = personMapper.dtoToEntity(personDto);
+        return personMapper.entityToDto(personRepository.save(person));
+    }
+
+    @Override
+    public Mono<PersonDto> findById(String id) {
+        return personMapper.entityToDto(personRepository.findById(id));
+    }
+
+    @Override
+    public Flux<PersonDto> findAll() {
+        return personMapper.entityToDto(personRepository.findAll());
+    }
+
+    @Override
+    public Flux<PersonDto> findAllByNameStartingWith(String name) {
+        return personMapper.entityToDto(personRepository.findAllByNameIgnoreCaseStartingWith(name));
+    }
+
+    @Override
+    public Flux<PersonDto> findByChildrenExists() {
+        return personMapper.entityToDto(personRepository.findByChildrenExists(true));
+    }
+
+    @Override
+    public Mono<Void> deleteById(String id) {
+        return personRepository.deleteById(id);
+    }
+
+    @Override
+    public Mono<UserDetails> findByUsername(String username) throws UsernameNotFoundException {
+        return personRepository.findByUsername(username)
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException(String.format("User(%s) not found!", username))))
+                .map(p -> p);
     }
 }

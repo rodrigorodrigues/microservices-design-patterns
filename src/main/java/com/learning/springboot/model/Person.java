@@ -3,8 +3,6 @@ package com.learning.springboot.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -20,30 +18,38 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@RequiredArgsConstructor
 @NoArgsConstructor
 @Document(collection = "person_user")
 public class Person implements UserDetails {
     @Id
     private String id = UUID.randomUUID().toString();
-    @NonNull
     @NotEmpty
     @Size(min = 5, max = 100)
     private String name;
-    @NonNull @NotNull
+    @NotNull
     private Integer age;
-    @NonNull @Email
+    @Email
     private String email;
     @Valid
     private List<Child> children;
-    @NotEmpty @NonNull @Indexed
-    private String login;
-    @NotEmpty @NonNull
+    @NotEmpty @Indexed(unique = true)
+    @Size(min = 3, max = 30)
+    private String username;
+    @NotEmpty
     private String password;
-    @NotEmpty @NonNull @Valid
+    @NotEmpty @Valid
     private List<Authority> authorities;
     @NotNull @Valid
     private Address address;
+
+    public Person(String name, Integer age, String email, String username, String password, List<Authority> authorities) {
+        setName(name);
+        setAge(age);
+        setEmail(email);
+        setUsername(username);
+        setPassword(password);
+        setAuthorities(authorities);
+    }
 
     @Override
     public Collection<Authority> getAuthorities() {
@@ -52,7 +58,7 @@ public class Person implements UserDetails {
 
     @Override
     public String getUsername() {
-        return login;
+        return username;
     }
 
     @Override @JsonIgnore

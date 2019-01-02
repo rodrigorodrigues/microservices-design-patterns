@@ -1,4 +1,4 @@
-## Java 8 and Spring Boot
+## Java 8 + Spring Boot 2 + WebFlux + React
 
 ### Prerequisites
  * JDK 1.8
@@ -42,4 +42,6 @@ sudo npm start
 
 [Spring Boot](https://start.spring.io)
 
-[React ad Spring Boot](https://developer.okta.com/blog/2018/07/19/simple-crud-react-and-spring-boot)
+[React ad Spring WebFlux](https://developer.okta.com/blog/2018/09/25/spring-webflux-websockets-react)
+
+[Junit 5](https://medium.com/@GalletVictor/migration-from-junit-4-to-junit-5-d8fe38644abe)

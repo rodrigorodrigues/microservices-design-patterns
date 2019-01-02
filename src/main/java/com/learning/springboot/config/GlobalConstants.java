@@ -7,8 +7,7 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum GlobalConstants {
-    JWT("jwtSession"),
-    AUTHORIZATION_HEADER("Authorization");
+    JWT("jwtSession");
 
     private final String name;
 

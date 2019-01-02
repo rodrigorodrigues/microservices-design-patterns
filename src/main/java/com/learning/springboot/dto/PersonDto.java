@@ -11,7 +11,7 @@ public class PersonDto {
     private String id;
     private String name;
     private Integer age;
-    private String login;
+    private String username;
     private String password;
     private String email;
     private List<AuthorityDto> authorities;

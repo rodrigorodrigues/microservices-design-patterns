@@ -1,27 +1,29 @@
 package com.learning.springboot.service;
 
+import com.learning.springboot.dto.PersonDto;
+import com.learning.springboot.mapper.PersonMapper;
+import com.learning.springboot.mapper.PersonMapperImpl;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.repository.PersonRepository;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PersonServiceImplTest {
 
     PersonServiceImpl personService;
@@ -29,60 +31,61 @@ public class PersonServiceImplTest {
     @Mock
     PersonRepository personRepository;
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    @Mock
+    PasswordEncoder passwordEncoder;
 
-    @Before
+    PersonMapper personMapper = new PersonMapperImpl();
+
+    @BeforeEach
     public void setup() {
-        personService = new PersonServiceImpl(personRepository);
+        personService = new PersonServiceImpl(personRepository, passwordEncoder, personMapper);
     }
 
     @Test
     public void whenCallSaveShouldSavePerson() {
         Person person = new Person();
-        when(personRepository.save(any())).thenReturn(person);
+        when(personRepository.save(any())).thenReturn(Mono.just(person));
 
-        Person save = personService.save(new Person());
-
-        assertThat(save).isEqualTo(person);
+        StepVerifier.create(personService.save(new PersonDto()))
+                .expectNextCount(1)
+                .verifyComplete();
     }
 
     @Test
     public void whenCallFindByIdShouldFindPerson() {
-        Optional<Person> person = Optional.of(new Person());
+        Mono<Person> person = Mono.just(new Person());
         when(personRepository.findById(anyString())).thenReturn(person);
 
-        Optional<Person> optionalPerson = personService.findById(anyString());
-
-        assertThat(optionalPerson.isPresent()).isTrue();
-        assertThat(optionalPerson.get()).isEqualTo(person.get());
+        StepVerifier.create(personService.findById(anyString()))
+                .expectNextCount(1)
+                .verifyComplete();
     }
 
     @Test
     public void whenCallFindAllShouldReturnListOfPersons() {
-        when(personRepository.findAll()).thenReturn(Arrays.asList(new Person(), new Person(), new Person()));
+        when(personRepository.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person(), new Person())));
 
-        List<Person> persons = personService.findAll();
+        Flux<PersonDto> persons = personService.findAll();
 
-        assertThat(persons.size()).isEqualTo(3);
+        assertThat(persons.count().block()).isEqualTo(3);
     }
 
     @Test
     public void whenCallFindAllByNameStartingWithShouldReturnListOfPersons() {
-        when(personRepository.findAllByNameIgnoreCaseStartingWith(anyString())).thenReturn(Arrays.asList(new Person(), new Person()));
+        when(personRepository.findAllByNameIgnoreCaseStartingWith(anyString())).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person())));
 
-        List<Person> persons = personService.findAllByNameStartingWith(anyString());
+        Flux<PersonDto> persons = personService.findAllByNameStartingWith(anyString());
 
-        assertThat(persons.size()).isEqualTo(2);
+        assertThat(persons.count().block()).isEqualTo(2);
     }
 
     @Test
     public void whenCallFindByChildrenExistsShouldReturnListOfPersons() {
-        when(personRepository.findByChildrenExists(anyBoolean())).thenReturn(Arrays.asList(new Person(), new Person()));
+        when(personRepository.findByChildrenExists(anyBoolean())).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person())));
 
-        List<Person> persons = personService.findByChildrenExists();
+        Flux<PersonDto> persons = personService.findByChildrenExists();
 
-        assertThat(persons.size()).isEqualTo(2);
+        assertThat(persons.count().block()).isEqualTo(2);
     }
 
     @Test
@@ -95,18 +98,18 @@ public class PersonServiceImplTest {
     @Test
     public void whenCallLoadUserByUsernameShouldReturnPerson() {
         Person person = new Person();
-        when(personRepository.findByLogin(anyString())).thenReturn(person);
+        when(personRepository.findByUsername(anyString())).thenReturn(Mono.just(person));
 
-        UserDetails admin = personService.loadUserByUsername(anyString());
-
-        assertThat(admin).isEqualTo(person);
+        StepVerifier.create(personService.findByUsername(anyString()))
+                .expectNextCount(1)
+                .verifyComplete();
     }
 
     @Test
     public void whenCallLoadUserByUsernameWithInvalidUserShouldThrowException() {
-        expectedException.expect(UsernameNotFoundException.class);
-        expectedException.expectMessage("User(test) not found!");
+        when(personRepository.findByUsername(anyString())).thenReturn(Mono.empty());
 
-        personService.loadUserByUsername("test");
+        StepVerifier.create(personService.findByUsername("test"))
+                .verifyErrorMatches(t -> t instanceof UsernameNotFoundException && t.getLocalizedMessage().equals("User(test) not found!"));
     }
 }
