@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
-import AppNavbar from './AppNavbar';
+import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
-import ChildModal from "./ChildModal";
+import ChildModal from "../ChildModal";
 
 class PersonList extends Component {
   constructor(props) {

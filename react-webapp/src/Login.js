@@ -1,9 +1,10 @@
-import React, {Component} from 'react';
-import {withRouter} from 'react-router-dom';
-import {Button, Container, Form, FormGroup, Input, Label} from 'reactstrap';
-import AppNavbar from './AppNavbar';
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
+import AppNavbar from './home/AppNavbar';
 import { Alert } from 'reactstrap';
-import ReactJson from 'react-json-view'
+import ReactJson from 'react-json-view';
+import { post } from './services/ApiService';
 
 class Login extends Component {
   login = {
@@ -28,56 +29,49 @@ class Login extends Component {
 
   async handleSubmit(event) {
     event.preventDefault();
-    const {login} = this.state;
+    const { login } = this.state;
 
-    await fetch('/api/authenticate', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(login)
-    }).then(response => response.json())
-        .then(data => {
-          if (data.id_token) {
-            this.props.setAuthentication(data);
-            this.props.history.push('/');
-          } else {
-            this.setState({displayError: data});
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    try {
+      const data = await post('authenticate', login)
+      if (data.id_token) {
+        this.props.setAuthentication(data);
+        this.props.history.push('/');
+      } else {
+        this.setState({ displayError: data });
+      }
+    } catch (error) {
+      //TODO: display a message to the user
+      console.error(error)
+    }
   }
 
   handleChange(event) {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let login = {...this.state.login};
+    let login = { ...this.state.login };
     login[name] = value;
-    this.setState({login});
+    this.setState({ login });
   }
 
   render() {
     const displayError = this.state.displayError != null ?
-        <div>
-          <Alert color="danger">
-            <ReactJson enableClipboard={false} displayObjectSize={false} name={null} displayDataTypes={false} src={this.state.displayError} />
-          </Alert>
-        </div>: '';
+      <div>
+        <Alert color="danger">
+          <ReactJson enableClipboard={false} displayObjectSize={false} name={null} displayDataTypes={false} src={this.state.displayError} />
+        </Alert>
+      </div> : '';
 
-    const {login} = this.state;
+    const { login } = this.state;
 
     return <div>
-      <AppNavbar/>
+      <AppNavbar />
       <Container>
         <h2>Login</h2>
         <Form onSubmit={this.handleSubmit}>
           <FormGroup className="col-md-3 mb-3">
             <Label for="name">Username</Label>
-            <Input type="text" name="username" id="username" onChange={this.handleChange} value={login.username || ''}/>
+            <Input type="text" name="username" id="username" onChange={this.handleChange} value={login.username || ''} />
           </FormGroup>
           <FormGroup className="col-md-3 mb-3">
             <Label for="password">Password</Label>
@@ -85,8 +79,8 @@ class Login extends Component {
           </FormGroup>
           <FormGroup className="col-md-3 mb-3">
             <Button color="primary" block
-                    disabled={!this.validateForm}
-                    type="submit">Submit</Button>
+              disabled={!this.validateForm}
+              type="submit">Submit</Button>
           </FormGroup>
           {displayError}
         </Form>
