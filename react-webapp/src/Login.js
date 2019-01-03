@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from './home/AppNavbar';
-import { Alert } from 'reactstrap';
-import ReactJson from 'react-json-view';
 import { post } from './services/ApiService';
+import MessageAlert from './MessageAlert';
+import { errorMessage } from './common/Util';
 
 class Login extends Component {
   login = {
@@ -37,11 +37,10 @@ class Login extends Component {
         this.props.setAuthentication(data);
         this.props.history.push('/');
       } else {
-        this.setState({ displayError: data });
+        this.setState({ displayError: errorMessage(data)});
       }
     } catch (error) {
-      //TODO: display a message to the user
-      console.error(error)
+      this.setState({ displayError: errorMessage(error)});
     }
   }
 
@@ -55,14 +54,7 @@ class Login extends Component {
   }
 
   render() {
-    const displayError = this.state.displayError != null ?
-      <div>
-        <Alert color="danger">
-          <ReactJson enableClipboard={false} displayObjectSize={false} name={null} displayDataTypes={false} src={this.state.displayError} />
-        </Alert>
-      </div> : '';
-
-    const { login } = this.state;
+    const { login, displayError } = this.state;
 
     return <div>
       <AppNavbar />
@@ -82,7 +74,7 @@ class Login extends Component {
               disabled={!this.validateForm}
               type="submit">Submit</Button>
           </FormGroup>
-          {displayError}
+          <MessageAlert {...displayError}></MessageAlert>
         </Form>
       </Container>
     </div>

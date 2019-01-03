@@ -4,8 +4,7 @@ import AppNavbar from './AppNavbar';
 import { get } from '../services/ApiService';
 import HomeContent from './HomeContent';
 import MessageAlert from '../MessageAlert';
-
-
+import { errorMessage } from '../common/Util';
 class Home extends Component {
   constructor(props) {
     super(props);
@@ -23,8 +22,7 @@ class Home extends Component {
   displayMessage = () => {
     const { error } = this.props;
     if(error) {
-      const message = {type: 'danger', message: error}
-      return <MessageAlert {...message}></MessageAlert>
+      return <MessageAlert {... errorMessage(error)}></MessageAlert>
     }
     return ''
   }

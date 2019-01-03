@@ -21,7 +21,7 @@ export async function get(resource, isCredential) {
 
 export async function post(resource, payload) {
     try {
-        const response = await post(`${API_V1}/${resource}`, {
+        const response = await fetch(`${API_V1}/${resource}`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -29,13 +29,12 @@ export async function post(resource, payload) {
             },
             body: JSON.stringify(payload)
         })
-
         if (response.ok) {
             return response.json();
         }
         throw Error('Unsuccessful Api Call');
     } catch (error) {
-        throw Error({ message: 'Unsuccessful Api Call', error })
+        throw Error(error)
     }
 }
 
