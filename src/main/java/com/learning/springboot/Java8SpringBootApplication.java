@@ -17,7 +17,6 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.web.reactive.config.EnableWebFlux;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
-@EnableWebFlux
 @SpringBootApplication
 @EnableReactiveMongoRepositories(basePackageClasses = PersonRepository.class)
 public class Java8SpringBootApplication {
@@ -34,7 +32,7 @@ public class Java8SpringBootApplication {
 		SpringApplication.run(Java8SpringBootApplication.class, args);
 	}
 
-	@ConditionalOnProperty(name = "initialLoad", havingValue = "true", matchIfMissing = true)
+	@ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)
 	@Bean
 	CommandLineRunner runner(PersonRepository personRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
@@ -42,21 +40,21 @@ public class Java8SpringBootApplication {
 				Person person = new Person("Rodrigo Rodrigues", 35, "admin@gmail.com", "admin", passwordEncoder.encode("password"), permissions("ROLE_ADMIN"));
 				person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
 				person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
-				personRepository.save(person);
+				personRepository.save(person).block();
 
 				person = new Person("Juninho", 37, "master@gmail.com", "master", passwordEncoder.encode("password123"), permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"));
 				person.setChildren(Arrays.asList(new Child("Dan", 5), new Child("Ian", 3)));
 				person.setAddress(new Address("100 Gardiner Street", "Dun Laoghaire", "Dublin", "Ireland", "000 65412"));
-				personRepository.save(person);
+				personRepository.save(person).block();
 
 				person = new Person("Anonymous", 30, "anonymous@gmail.com", "test", passwordEncoder.encode("test"), permissions("ROLE_CREATE"));
 				person.setAddress(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"));
-				personRepository.save(person);
+				personRepository.save(person).block();
 			}
 
 			personRepository.findAll()
-					.toStream()
-					.forEach(System.out::println);
+					.doOnNext(System.out::println)
+					.blockLast();
 		};
 	}
 
@@ -80,4 +78,5 @@ public class Java8SpringBootApplication {
 	public PasswordEncoder passwordEncoder() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
+
 }

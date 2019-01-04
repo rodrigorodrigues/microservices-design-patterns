@@ -1,7 +1,6 @@
 package com.learning.springboot.config.jwt;
 
-import com.learning.springboot.config.GlobalConstants;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
@@ -12,6 +11,7 @@ import reactor.core.publisher.Mono;
  * Filters incoming requests and installs a Spring Security principal if a header corresponding to a valid user is
  * found.
  */
+@Slf4j
 public class JwtAuthenticationConverter implements ServerAuthenticationConverter {
     private final TokenProvider tokenProvider;
 
@@ -20,16 +20,10 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
     }
 
     private Mono<String> resolveToken(ServerWebExchange exchange) {
-        String jwt = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.isBlank(jwt)) {
-            jwt = exchange.getSession().block().getAttribute(GlobalConstants.JWT.toString());
-        }
-
-        if (StringUtils.isBlank(jwt) || !jwt.startsWith("Bearer ")) {
-            return Mono.empty();
-        }
-
-        return Mono.just(jwt.substring(7));
+        log.debug("servletPath: {}", exchange.getRequest().getPath());
+        return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                .filter(t -> t.startsWith("Bearer "))
+                .map(t -> t.substring(7));
     }
 
     @Override

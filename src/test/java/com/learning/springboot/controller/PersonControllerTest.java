@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
-@WebFluxTest(properties = {"initialLoad=false", "debug=true", "logging.level.org.springframework.security=debug"})
+@WebFluxTest(properties = {"configuration.initialLoad=false", "debug=true", "logging.level.org.springframework.security=debug"})
 @ContextConfiguration(classes = {SpringSecurityConfiguration.class, PersonController.class})
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
 public class PersonControllerTest {
@@ -131,6 +131,7 @@ public class PersonControllerTest {
         personDto.setId(UUID.randomUUID().toString());
         personDto.setName("New Name");
         when(personService.findById(anyString())).thenReturn(Mono.just(personDto));
+        when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
         client.put().uri("/api/persons/{id}", personDto.getId())
                 .contentType(MediaType.APPLICATION_JSON)

@@ -16,7 +16,7 @@ import reactor.test.StepVerifier;
 import java.util.Arrays;
 
 @ExtendWith(SpringExtension.class)
-@DataMongoTest(properties = {"initialLoad=false"})
+@DataMongoTest(properties = {"configuration.initialLoad=false"})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;

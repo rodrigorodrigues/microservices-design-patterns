@@ -3,32 +3,38 @@ package com.learning;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learning.springboot.Java8SpringBootApplication;
+import com.learning.springboot.dto.LoginDto;
 import com.learning.springboot.mapper.PersonMapper;
 import com.learning.springboot.model.Address;
 import com.learning.springboot.model.Authority;
 import com.learning.springboot.model.Child;
 import com.learning.springboot.model.Person;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Java8SpringBootApplication.class,
-		properties = {"initialLoad=false", "debug=true", "logging.level.org.springframework=debug"})
-@AutoConfigureWebTestClient
+		properties = {"configuration.swagger=false",
+				"debug=true",
+				"logging.level.org.springframework=debug",
+				"logging.level.com.learning=debug"})
 public class Java8SpringBootApplicationIntegrationTest {
 
 	@Autowired
@@ -37,15 +43,33 @@ public class Java8SpringBootApplicationIntegrationTest {
 	@Autowired
 	PersonMapper personMapper;
 
-	@Autowired
 	WebTestClient client;
 
+	private String authorizationHeader;
+
+	@BeforeEach
+	public void setup() {
+        client = WebTestClient.bindToApplicationContext(context)
+                .configureClient()
+                .build();
+
+		if (StringUtils.isBlank(authorizationHeader)) {
+			FluxExchangeResult<Map> mapFluxExchangeResult = client.post().uri("/api/authenticate")
+					.body(fromObject(new LoginDto("admin", "password", false)))
+					.exchange()
+					.expectStatus().is2xxSuccessful()
+					.returnResult(Map.class);
+
+			authorizationHeader = (String) mapFluxExchangeResult.getResponseBody().blockLast().get("id_token");
+		}
+	}
+
 	@Test
-	@WithMockUser(roles = "ADMIN")
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
 		Person person = createPerson();
 
 		client.post().uri("/api/persons")
+				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromObject(convertToJson(person)))
 				.exchange()
@@ -62,6 +86,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 		person.setName("");
 
 		client.post().uri("/api/persons")
+				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromObject(convertToJson(person)))
 				.exchange()
@@ -75,6 +100,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 		Person person = createPerson();
 
 		client.post().uri("/api/persons")
+				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromObject(convertToJson(person)))
 				.exchange()

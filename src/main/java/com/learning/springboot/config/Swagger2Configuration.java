@@ -1,5 +1,6 @@
 package com.learning.springboot.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +11,7 @@ import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import springfox.documentation.swagger2.annotations.EnableSwagger2WebFlux;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,8 +20,9 @@ import java.util.List;
 /**
  * Swagger Configuration
  */
-//@Configuration
-@EnableSwagger2
+@ConditionalOnProperty(prefix = "configuration", name = "swagger", havingValue = "true", matchIfMissing = true)
+@Configuration
+@EnableSwagger2WebFlux
 public class Swagger2Configuration {
     @Bean
     public Docket api() {

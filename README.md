@@ -44,4 +44,6 @@ sudo npm start
 
 [React ad Spring WebFlux](https://developer.okta.com/blog/2018/09/25/spring-webflux-websockets-react)
 
+[Spring WebFlux Security Jwt](https://github.com/raphaelDL/spring-webflux-security-jwt)
+
 [Junit 5](https://medium.com/@GalletVictor/migration-from-junit-4-to-junit-5-d8fe38644abe)
