@@ -34,3 +34,7 @@
 .container, .container-fluid {
   margin-top: 20px;
 }
+
+.disabled {
+  color: rgb(201, 198, 198)
+}

@@ -4,7 +4,7 @@ import Home from './home/Home';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import PersonList from './person/PersonList';
 import PersonEdit from './person/PersonEdit';
-import Login from './Login';
+import Login from './login/Login';
 import { get } from './services/ApiService';
 class App extends Component {
   state = {
