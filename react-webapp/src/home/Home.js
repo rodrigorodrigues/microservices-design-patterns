@@ -32,7 +32,7 @@ class Home extends Component {
       <div>
         <AppNavbar />
         {this.displayMessage()}
-        <HomeContent {...this.props}></HomeContent>
+        <HomeContent></HomeContent>
       </div>
     );
   }
