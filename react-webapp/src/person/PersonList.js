@@ -4,11 +4,13 @@ import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import MessageAlert from '../MessageAlert';
+import { errorMessage } from '../common/Util';
 
 class PersonList extends Component {
   constructor(props) {
     super(props);
-    this.state = {persons: [], isLoading: true};
+    this.state = {persons: [], isLoading: true, displayError: null};
     this.remove = this.remove.bind(this);
   }
 
@@ -31,15 +33,11 @@ class PersonList extends Component {
 
       this.eventSource.onerror = err => {
         console.log('EventSource error: ', err);
+        if (err.statusText) {
+          this.setState({displayError: errorMessage(err), isLoading: false});
+        }
         this.eventSource.close();
-        //this.props.history.push('/');
       };
-/*      fetch('api/persons', {
-        headers: {'Authorization': this.props.jwt}
-      })
-          .then(response => response.json())
-          .then(data => this.setState({persons: data, isLoading: false}))
-          .catch(() => this.props.history.push('/'));*/
     }
   }
 
@@ -59,7 +57,7 @@ class PersonList extends Component {
   }
 
   render() {
-    const {persons, isLoading} = this.state;
+    const {persons, isLoading, displayError} = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
@@ -105,6 +103,7 @@ class PersonList extends Component {
             {personList}
             </tbody>
           </Table>
+          <MessageAlert {...displayError}></MessageAlert>
         </Container>
       </div>
     );

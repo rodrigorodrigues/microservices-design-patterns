@@ -4,6 +4,8 @@ import {AvFeedback, AvForm, AvInput, AvGroup} from 'availity-reactstrap-validati
 import {Alert, Button, Container, Label} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import ReactJson from 'react-json-view'
+import MessageAlert from '../MessageAlert';
+import { errorMessage } from '../common/Util';
 
 class PersonEdit extends Component {
   emptyPerson = {
@@ -44,7 +46,7 @@ class PersonEdit extends Component {
         person.authorities.forEach((authority, index) => {person.authorities[index] = authority.role});
         this.setState({person: person});
       } catch (error) {
-        this.setState({displayError: error});
+        this.setState({ displayError: errorMessage(error)});
       }
     }
   }
@@ -76,7 +78,7 @@ class PersonEdit extends Component {
           if (data.id) {
             this.props.history.push('/persons');
           } else {
-            this.setState({displayError: data});
+            this.setState({ displayError: errorMessage(data)});
           }
         })
         .catch((error) => {
@@ -85,14 +87,7 @@ class PersonEdit extends Component {
   }
 
   render() {
-    const displayError = this.state.displayError != null ?
-        <div>
-          <Alert color="danger">
-            <ReactJson enableClipboard={false} displayObjectSize={false} name={null} displayDataTypes={false} src={this.state.displayError} />
-          </Alert>
-        </div>: '';
-
-    const {person} = this.state;
+    const {person, displayError} = this.state;
     const title = <h2>{person.id ? 'Edit Person' : 'Add Person'}</h2>;
 
     return <div>
@@ -206,7 +201,7 @@ class PersonEdit extends Component {
             <Button color="primary" type="submit">{person.id ? 'Save' : 'Create'}</Button>{' '}
             <Button color="secondary" tag={Link} to="/persons">Cancel</Button>
           </AvGroup>
-          {displayError}
+          <MessageAlert {...displayError}></MessageAlert>
         </AvForm>
       </Container>
     </div>
