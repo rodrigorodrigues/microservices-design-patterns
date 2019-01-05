@@ -30,7 +30,7 @@ class Login extends Component {
     const { setAuthentication, history } = this.props;
 
     try {
-      const data = await post('authenticate', login)
+      const data = await post('authenticate', login, false)
       if (data.id_token) {
         setAuthentication(data);
         history.push('/');

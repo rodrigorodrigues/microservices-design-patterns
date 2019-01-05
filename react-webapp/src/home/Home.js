@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import '../App.css';
 import AppNavbar from './AppNavbar';
-import { get } from '../services/ApiService';
 import HomeContent from './HomeContent';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
@@ -13,7 +12,6 @@ class Home extends Component {
 
   async logout() {
     try {
-      await get('/logout')
       this.props.removeAuthentication();
     } catch (error) {
       console.error(error);
@@ -32,7 +30,7 @@ class Home extends Component {
       <div>
         <AppNavbar />
         {this.displayMessage()}
-        <HomeContent {...this.props}></HomeContent>
+        <HomeContent logout={this.logout} {...this.props}></HomeContent>
       </div>
     );
   }

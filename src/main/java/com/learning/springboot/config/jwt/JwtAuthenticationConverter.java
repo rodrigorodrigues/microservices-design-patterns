@@ -8,8 +8,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * Filters incoming requests and installs a Spring Security principal if a header corresponding to a valid user is
- * found.
+ * Validate Authorization Header and if valid return Authentication.
  */
 @Slf4j
 public class JwtAuthenticationConverter implements ServerAuthenticationConverter {

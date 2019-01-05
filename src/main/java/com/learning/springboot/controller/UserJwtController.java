@@ -6,6 +6,7 @@ import com.learning.springboot.dto.LoginDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,14 +30,15 @@ public class UserJwtController {
     private final ReactiveAuthenticationManager authenticationManager;
 
     @PostMapping
-    public Mono<JwtToken> authenticate(@Valid @RequestBody LoginDto loginDto) {
+    public Mono<ResponseEntity<JwtToken>> authenticate(@Valid @RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
         return this.authenticationManager.authenticate(authenticationToken)
                 .map(a -> {
                     String jwt = "Bearer " + tokenProvider.createToken(a, loginDto.isRememberMe());
-                    return new JwtToken(jwt, a);
+                    return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
+                            .body(new JwtToken(jwt, a));
                 });
     }
 

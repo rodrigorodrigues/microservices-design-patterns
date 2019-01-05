@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
-import ChildModal from "../ChildModal";
+import ChildModal from "./child/ChildModal";
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 class PersonList extends Component {
   constructor(props) {
@@ -12,15 +13,33 @@ class PersonList extends Component {
   }
 
   componentDidMount() {
-    if (this.props.stateParent.jwt) {
-      this.setState({isLoading: true});
+    let jwt = this.props.jwt;
+    if (jwt) {
+      this.eventSource = new EventSourcePolyfill('api/persons', {
+        headers: {
+          'Authorization': jwt,
+          'Accept': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+      this.eventSource.onmessage = result => {
+        const data = JSON.parse(result.data);
+        this.state.persons.push(data);
+        this.setState({persons: this.state.persons, isLoading: false})
+      };
 
-      fetch('api/persons', {
-        headers: {'Authorization': this.props.stateParent.jwt}
+      this.eventSource.onerror = err => {
+        console.log('EventSource error: ', err);
+        this.eventSource.close();
+        //this.props.history.push('/');
+      };
+/*      fetch('api/persons', {
+        headers: {'Authorization': this.props.jwt}
       })
           .then(response => response.json())
           .then(data => this.setState({persons: data, isLoading: false}))
-          .catch(() => this.props.history.push('/'));
+          .catch(() => this.props.history.push('/'));*/
     }
   }
 
@@ -28,14 +47,14 @@ class PersonList extends Component {
     await fetch(`/api/persons/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': this.props.stateParent.jwt,
+        'Authorization': this.props.jwt,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
       credentials: 'include'
     }).then(() => {
-      let updatedGroups = [...this.state.persons].filter(i => i.id !== id);
-      this.setState({persons: updatedGroups});
+      let persons = [...this.state.persons].filter(i => i.id !== id);
+      this.setState({persons: persons});
     });
   }
 

@@ -10,10 +10,7 @@ export async function get(resource, isCredential) {
         } else {
             response = await fetch(`${API_V1}/${resource}`)
         }
-        if (response.ok) {
-            return await response.text();
-        }
-        throw Error('Unsuccessful Api Call');
+        return await response.text();
     } catch (error) {
         throw Error(error)
     }
@@ -29,10 +26,7 @@ export async function post(resource, payload) {
             },
             body: JSON.stringify(payload)
         })
-        if (response.ok) {
-            return response.json();
-        }
-        throw Error('Unsuccessful Api Call');
+        return response.json();
     } catch (error) {
         throw Error(error)
     }

@@ -3,10 +3,7 @@ export function errorMessage(message) {
         if(typeof message === 'string') {
             return { type: 'danger', message: { error: message } }
         } else  {
-            const text = message['message'] ? 
-                message['message'] :  
-                message['error'] 
-            return { type: 'danger', message: {error: text}  }
+            return { type: 'danger', message: {message}  }
         }
     }
 }

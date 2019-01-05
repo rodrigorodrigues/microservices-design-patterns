@@ -1,33 +1,24 @@
 package com.learning.springboot.config;
 
 
-import com.learning.springboot.config.jwt.AuthenticatedReactiveAuthorizationManager;
+import com.learning.springboot.config.jwt.CustomReactiveAuthenticationManager;
 import com.learning.springboot.config.jwt.JwtAuthenticationConverter;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.service.PersonService;
+import com.learning.springboot.util.HandleResponseError;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.authorization.AuthorizationWebFilter;
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
-import org.springframework.web.server.ResponseStatusException;
-import reactor.core.publisher.Mono;
 
 /**
  * Spring Security Configuration
@@ -42,17 +33,19 @@ public class SpringSecurityConfiguration {
 
     private final TokenProvider tokenProvider;
 
-    private static final String[] AUTH_WHITELIST = {
-            // -- swagger ui
-            "/v2/api-docs",
-            "/swagger-resources",
-            "/swagger-resources/**",
-            "/configuration/ui",
-            "/configuration/security",
-            "/swagger-ui.html",
-            "/webjars/**",
-            // other public endpoints of your API may be appended to this array
-            "/api/authenticate"
+    private final HandleResponseError handleResponseError;
+
+    private static final String[] WHITELIST = {
+        // -- swagger ui
+        "/v2/api-docs",
+        "/swagger-resources",
+        "/swagger-resources/**",
+        "/configuration/ui",
+        "/configuration/security",
+        "/swagger-ui.html",
+        "/webjars/**",
+        // other public endpoints of your API may be appended to this array
+        "/api/authenticate"
     };
 
     @Bean
@@ -65,52 +58,28 @@ public class SpringSecurityConfiguration {
                 .cache().disable()
             .and()
                 .authorizeExchange()
-                .pathMatchers(AUTH_WHITELIST).permitAll()
+                .pathMatchers(WHITELIST).permitAll()
                 .anyExchange().authenticated()
             .and()
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-                .addFilterAt(authorizationWebFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
-                .exceptionHandling().authenticationEntryPoint(unauthorized())
-            .and()
                 .httpBasic().disable()
                 .formLogin().disable()
+                .logout().disable()
                 .build();
     }
 
-    ServerAuthenticationEntryPoint unauthorized() {
-        return (exchange,e)-> Mono.fromRunnable(() -> {
-            log.error("Error on authenticate", e);
-            ServerHttpResponse response = exchange.getResponse();
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        });
-    }
-
-
-    private AuthorizationWebFilter authorizationWebFilter() {
-        return new AuthorizationWebFilter(new AuthenticatedReactiveAuthorizationManager());
-    }
-
-
     private AuthenticationWebFilter authenticationWebFilter() {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(authenticationManager());
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(reactiveAuthenticationManager());
         authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenProvider));
-        NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(AUTH_WHITELIST));
+        NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
-        authenticationWebFilter.setSecurityContextRepository(new WebSessionServerSecurityContextRepository());
-        authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, e) -> {
-            HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
-            if (e instanceof AuthenticationCredentialsNotFoundException) {
-                httpStatus = HttpStatus.FORBIDDEN;
-            }
-            throw new ResponseStatusException(httpStatus, ExceptionUtils.getMessage(e));
-
-        });
+        authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));
         return authenticationWebFilter;
     }
 
     @Bean
-    public ReactiveAuthenticationManager authenticationManager() {
-        return new UserDetailsRepositoryReactiveAuthenticationManager(personService);
+    public ReactiveAuthenticationManager reactiveAuthenticationManager() {
+        return new CustomReactiveAuthenticationManager(personService);
     }
 /*
     @Bean

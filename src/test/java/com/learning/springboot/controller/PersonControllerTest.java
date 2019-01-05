@@ -10,6 +10,7 @@ import com.learning.springboot.mapper.PersonMapperImpl;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.repository.PersonRepository;
 import com.learning.springboot.service.PersonService;
+import com.learning.springboot.util.HandleResponseError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {"configuration.initialLoad=false", "debug=true", "logging.level.org.springframework.security=debug"})
-@ContextConfiguration(classes = {SpringSecurityConfiguration.class, PersonController.class})
+@ContextConfiguration(classes = {SpringSecurityConfiguration.class, PersonController.class, HandleResponseError.class})
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
 public class PersonControllerTest {
 

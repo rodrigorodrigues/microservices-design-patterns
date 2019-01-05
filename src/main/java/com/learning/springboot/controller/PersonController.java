@@ -6,6 +6,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +21,16 @@ import java.net.URI;
 /**
  * Rest API for persons.
  */
+@Slf4j
 @RestController
 @Api(value = "persons", description = "Methods for managing persons")
 @RequestMapping("/api/persons")
 @AllArgsConstructor
-public
-class PersonController {
+public class PersonController {
     private final PersonService personService;
 
     @ApiOperation(value = "Api for return list of persons")
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = { MediaType.APPLICATION_STREAM_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE })
     @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
     public Flux<PersonDto> findAll() {
         return personService.findAll();
@@ -50,7 +51,6 @@ class PersonController {
         return personService.save(person)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/persons/%s", p.getId())))
                         .body(p));
-                //.doOnError(t -> Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getLocalizedMessage(), t)));
     }
 
     @ApiOperation(value = "Api for updating a person")
