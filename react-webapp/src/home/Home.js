@@ -12,7 +12,7 @@ class Home extends Component {
 
   async logout() {
     try {
-      this.props.removeAuthentication();
+      this.props.onRemoveAuthentication();
     } catch (error) {
       console.error(error);
     }
@@ -30,7 +30,7 @@ class Home extends Component {
       <div>
         <AppNavbar />
         {this.displayMessage()}
-        <HomeContent logout={this.logout} {...this.props}></HomeContent>
+        <HomeContent logout={this.logout}></HomeContent>
       </div>
     );
   }

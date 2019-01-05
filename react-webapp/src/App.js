@@ -6,6 +6,7 @@ import PersonList from './person/PersonList';
 import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
 import { get } from './services/ApiService';
+import UserContext from './UserContext';
 class App extends Component {
   state = {
     isLoading: true,
@@ -43,23 +44,24 @@ class App extends Component {
     localStorage.removeItem('stateParent');
     this.setState({ isAuthenticated: false, user: null, jwt: null });
   }
-
   render() {
     return (
-      <Router>
-        <Switch>
-          <Route path='/' exact={true} 
-            component={() => <Home {...this.state} 
-              removeAuthentication={this.removeAuthentication} />} />
-          <Route path='/login' exact={true} 
-            component={() => <Login {...this.state} 
-              setAuthentication={this.setAuthentication} />} />
-          <Route path='/persons' exact={true} 
-            component={() => <PersonList {...this.state} />} />
-          <Route path='/persons/:id' 
-            component={() => <PersonEdit {...this.state} />} />
-        </Switch>
-      </Router>
+      <UserContext.Provider value={this.state}>
+        <Router>
+          <Switch>
+            <Route path='/' exact={true} 
+              component={() =><Home error={this.state.error} 
+              onRemoveAuthentication={this.removeAuthentication}/>} />
+            <Route path='/login' exact={true} 
+              component={() => <Login {...this.state} 
+                setAuthentication={this.setAuthentication} />} />
+            <Route path='/persons' exact={true} 
+              component={() => <PersonList {...this.state} />} />
+            <Route path='/persons/:id' 
+              component={() => <PersonEdit {...this.state} />} />
+          </Switch>
+        </Router>
+      </UserContext.Provider>
     )
   }
 }
