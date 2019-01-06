@@ -6,10 +6,6 @@ import com.learning.springboot.Java8SpringBootApplication;
 import com.learning.springboot.dto.LoginDto;
 import com.learning.springboot.dto.PersonDto;
 import com.learning.springboot.mapper.PersonMapper;
-import com.learning.springboot.model.Address;
-import com.learning.springboot.model.Authority;
-import com.learning.springboot.model.Child;
-import com.learning.springboot.model.Person;
 import com.learning.springboot.repository.PersonRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -33,10 +30,8 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Java8SpringBootApplication.class,
-		properties = {"configuration.swagger=false",
-				"debug=true",
-				"logging.level.org.springframework=debug",
-				"logging.level.com.learning=debug"})
+		properties = "configuration.swagger=false")
+@ActiveProfiles("integration-tests")
 public class Java8SpringBootApplicationIntegrationTest {
 
 	@Autowired
@@ -71,7 +66,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 	@Test
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
 		String authorizationHeader = authenticate("master", "password123");
-		Person person = createPerson();
+		PersonDto person = createPerson();
 
 		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
@@ -88,7 +83,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws JsonProcessingException {
 		String authorizationHeader = authenticate("admin", "password");
 
-		Person person = createPerson();
+		PersonDto person = createPerson();
 		person.setName("");
 
 		client.post().uri("/api/persons")
@@ -104,7 +99,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 	public void shouldResponseForbiddenWhenCallApiWithoutRightPermission() throws Exception {
 		String authorizationHeader = authenticate("test", "test");
 
-		Person person = createPerson();
+		PersonDto person = createPerson();
 
 		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
@@ -124,15 +119,16 @@ public class Java8SpringBootApplicationIntegrationTest {
 		return (String) mapFluxExchangeResult.getResponseBody().blockLast().get("id_token");
 	}
 
-	private Person createPerson() {
-		Person person = new Person("Rodrigo", 23, "rod@gmail.com", "rod", "123", Arrays.asList(new Authority("ROLE_USER")));
-		person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
-		person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
+	private PersonDto createPerson() {
+		PersonDto person = new PersonDto("Rodrigo", 23, "rod@gmail.com", "rod", "123", Arrays.asList(new PersonDto.AuthorityDto("ROLE_USER")));
+		person.setChildren(Arrays.asList(new PersonDto.ChildrenDto("Daniel", 2), new PersonDto.ChildrenDto("Oliver", 2)));
+		person.setAddress(new PersonDto.Address(null, "50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
+		person.setConfirmPassword("123");
 		return person;
 	}
 
-	private String convertToJson(Person person) throws JsonProcessingException {
-		return new ObjectMapper().writeValueAsString(personMapper.map(person));
+	private String convertToJson(PersonDto person) throws JsonProcessingException {
+		return new ObjectMapper().writeValueAsString(person);
 	}
 
 	@AfterEach

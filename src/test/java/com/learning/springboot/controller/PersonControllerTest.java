@@ -19,8 +19,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +35,6 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -82,23 +83,26 @@ public class PersonControllerTest {
 
     @Test
     @WithMockUser(roles = "READ")
-    public void whenCallFindAllShouldReturnListOfPersons() throws Exception {
+    public void whenCallFindAllShouldReturnListOfPersons() {
         PersonDto person = new PersonDto();
         person.setId("100");
         PersonDto person2 = new PersonDto();
         person2.setId("200");
         when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
 
+        ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
+
         client.get().uri("/api/persons")
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .expectBody().jsonPath("$.[*].id").value(hasItems("100", "200"));
+                .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM_VALUE)
+                .expectBodyList(type)
+                .hasSize(2);
     }
 
     @Test
     @WithMockUser(roles = "READ")
-    public void whenCallFindByIdShouldReturnPerson() throws Exception {
+    public void whenCallFindByIdShouldReturnPerson() {
         PersonDto person = new PersonDto();
         person.setId("100");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
@@ -149,6 +153,7 @@ public class PersonControllerTest {
     public void whenCallDeleteShouldDeleteById() {
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());
         Person person = new Person();
+        person.setId("12345");
 
         client.delete().uri("/api/persons/{id}", person.getId())
                 .exchange()

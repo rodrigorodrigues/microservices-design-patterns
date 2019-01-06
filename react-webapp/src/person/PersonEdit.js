@@ -1,9 +1,8 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import {AvFeedback, AvForm, AvInput, AvGroup} from 'availity-reactstrap-validation';
-import {Alert, Button, Container, Label} from 'reactstrap';
+import {Button, Container, Label} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
-import ReactJson from 'react-json-view'
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 

@@ -21,6 +21,7 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
         HttpStatus status = handleResponseError.getHttpStatusError(error);
         errorAttributes.put("status", status.value());
         errorAttributes.put("message", ExceptionUtils.getMessage(error));
+        errorAttributes.put("error", status);
         return errorAttributes;
     }
 }

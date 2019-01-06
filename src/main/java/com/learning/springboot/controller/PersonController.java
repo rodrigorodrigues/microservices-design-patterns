@@ -7,9 +7,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,10 +32,15 @@ public class PersonController {
     private final PersonService personService;
 
     @ApiOperation(value = "Api for return list of persons")
-    @GetMapping(produces = { MediaType.APPLICATION_STREAM_JSON_VALUE, MediaType.TEXT_EVENT_STREAM_VALUE })
+    @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
-    public Flux<PersonDto> findAll() {
-        return personService.findAll();
+    public Flux<ServerSentEvent<PersonDto>> findAll(@RequestHeader(value = "Last-Event-ID", required = false) String lastEventId) {
+        return personService.findAll()
+                .map(p -> ServerSentEvent.<PersonDto>builder()
+                        .event("listOfPersons")
+                        .data(p)
+                        .id((StringUtils.isNoneBlank(lastEventId) ? lastEventId : "0"))
+                        .build());
     }
 
     @ApiOperation(value = "Api for return a person by id")

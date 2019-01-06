@@ -3,9 +3,9 @@ import { Button, ButtonGroup, Container, Table } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
-import { EventSourcePolyfill } from 'event-source-polyfill';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 class PersonList extends Component {
   constructor(props) {
@@ -20,24 +20,24 @@ class PersonList extends Component {
       this.eventSource = new EventSourcePolyfill('api/persons', {
         headers: {
           'Authorization': jwt,
-          'Accept': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Access-Control-Allow-Origin': '*'
+          'Accept': 'text/event-stream'
         }
       });
-      this.eventSource.onmessage = result => {
+      this.eventSource.addEventListener("listOfPersons", result => {
+        console.log('EventSource result: ', result);
         const data = JSON.parse(result.data);
         this.state.persons.push(data);
-        this.setState({persons: this.state.persons, isLoading: false})
-      };
+        this.setState({persons: this.state.persons, isLoading: false});
+      });
 
-      this.eventSource.onerror = err => {
+      this.eventSource.addEventListener("error", err => {
         console.log('EventSource error: ', err);
-        if (err.statusText) {
-          this.setState({displayError: errorMessage(err), isLoading: false});
+        this.setState({isLoading: false});
+        if (this.state.persons.length === 0) {
+          this.setState({displayError: errorMessage(err)});
         }
         this.eventSource.close();
-      };
+      });
     }
   }
 

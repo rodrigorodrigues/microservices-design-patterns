@@ -15,14 +15,13 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @Document(collection = "person_user")
 public class Person implements UserDetails {
     @Id
-    private String id = UUID.randomUUID().toString();
+    private String id;
     @NotEmpty
     @Size(min = 5, max = 100)
     private String name;

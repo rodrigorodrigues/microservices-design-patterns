@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 
 @Data
 @ToString(exclude = "password")
@@ -15,11 +14,9 @@ import javax.validation.constraints.Size;
 public class LoginDto {
 
     @NotEmpty
-    @Size(min = 1, max = 50)
     private String username;
 
     @NotEmpty
-    @Size(min = 4, max = 100)
     private String password;
 
     private boolean rememberMe;

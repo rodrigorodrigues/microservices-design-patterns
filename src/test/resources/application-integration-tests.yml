@@ -1,0 +1,8 @@
+logging:
+  level:
+    com.learning.springboot: debug
+    org.springframework: debug
+
+spring:
+  profiles:
+    include: default

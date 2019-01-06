@@ -15,8 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import javax.validation.Valid;
-
 /**
  * Controller for user authentication.
  */
@@ -30,7 +28,7 @@ public class UserJwtController {
     private final ReactiveAuthenticationManager authenticationManager;
 
     @PostMapping
-    public Mono<ResponseEntity<JwtToken>> authenticate(@Valid @RequestBody LoginDto loginDto) {
+    public Mono<ResponseEntity<JwtToken>> authenticate(@RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
