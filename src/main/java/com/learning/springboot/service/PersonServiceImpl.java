@@ -42,7 +42,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Flux<PersonDto> findAll() {
-        return personMapper.entityToDto(personRepository.findAll());
+        return personMapper.entityToDto(personRepository.findAllStream());
     }
 
     @Override

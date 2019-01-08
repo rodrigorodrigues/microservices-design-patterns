@@ -1,14 +1,15 @@
 import constants from '../constants/AppConstant';
 const { API_V1 } = constants
 
-export async function get(resource, isCredential) {
+export async function get(resource, isCredential, isWithoutApi) {
     try {
         let response;
+        let url = (isWithoutApi ? `${resource}` : `${API_V1}/${resource}`);
         if(isCredential) {
-            response = await fetch(`${API_V1}/${resource}`,
+            response = await fetch(url,
             { credentials: 'include' });
         } else {
-            response = await fetch(`${API_V1}/${resource}`)
+            response = await fetch(url)
         }
         return await response.text();
     } catch (error) {

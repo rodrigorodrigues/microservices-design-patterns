@@ -59,8 +59,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 		client.get().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.exchange()
-				.expectStatus().isOk()
-				.expectBodyList(PersonDto.class);
+				.expectStatus().isOk();
 	}
 
 	@Test

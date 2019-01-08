@@ -75,7 +75,7 @@ public class PersonServiceImplTest {
 
     @Test
     public void whenCallFindAllShouldReturnListOfPersons() {
-        when(personRepository.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person(), new Person())));
+        when(personRepository.findAllStream()).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person(), new Person())));
 
         Flux<PersonDto> persons = personService.findAll();
 

@@ -38,10 +38,9 @@ class PersonEdit extends Component {
   }
 
   async componentDidMount() {
-    if (this.props.match.params.id !== 'new' && this.props.jwt) {
+    if (this.props.match.params.id !== 'new') {
       try {
-        const person = await (await fetch(`/api/persons/${this.props.match.params.id}`,
-            {headers: {'Authorization': this.props.jwt}})).json();
+        const person = await (await fetch(`/api/persons/${this.props.match.params.id}`)).json();
         person.authorities.forEach((authority, index) => {person.authorities[index] = authority.role});
         this.setState({person: person});
       } catch (error) {
@@ -66,7 +65,6 @@ class PersonEdit extends Component {
     await fetch('/api/persons', {
       method: (person.id) ? 'PUT' : 'POST',
       headers: {
-        'Authorization': this.props.jwt,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
 @SpringBootApplication
-@EnableReactiveMongoRepositories(basePackageClasses = PersonRepository.class)
+@EnableReactiveMongoRepositories(basePackageClasses = PersonRepository.class, considerNestedRepositories = true)
 public class Java8SpringBootApplication {
 
 	public static void main(String[] args) {

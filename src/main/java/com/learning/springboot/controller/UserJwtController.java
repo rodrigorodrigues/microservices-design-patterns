@@ -3,6 +3,8 @@ package com.learning.springboot.controller;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.LoginDto;
+import com.learning.springboot.model.Person;
+import com.learning.springboot.service.PersonService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,17 +29,20 @@ public class UserJwtController {
 
     private final ReactiveAuthenticationManager authenticationManager;
 
+    private final PersonService personService;
+
     @PostMapping
     public Mono<ResponseEntity<JwtToken>> authenticate(@RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
         return this.authenticationManager.authenticate(authenticationToken)
-                .map(a -> {
-                    String jwt = "Bearer " + tokenProvider.createToken(a, loginDto.isRememberMe());
-                    return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
-                            .body(new JwtToken(jwt, a));
-                });
+                .flatMap(a -> personService.findByUsername(loginDto.getUsername())
+                        .map(u -> {
+                            String jwt = "Bearer " + tokenProvider.createToken(a, loginDto.isRememberMe());
+                            return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
+                                    .body(new JwtToken(jwt, ((Person) u).getName()));
+                        }));
     }
 
     @GetMapping
@@ -60,6 +65,6 @@ public class UserJwtController {
         @JsonProperty("id_token")
         private String idToken;
 
-        private Authentication user;
+        private String name;
     }
 }

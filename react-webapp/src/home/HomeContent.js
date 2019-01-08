@@ -8,7 +8,7 @@ function HomeContent({logout}) {
         if (isAuthenticated) {
             return <div>
                 <Button color="link">
-                    <Link to="/persons">Manage JUG Tour</Link>
+                    <Link to="/persons">Manage People</Link>
                 </Button>
                 <br />
                 <Button color="link" onClick={logout}>Logout</Button>
@@ -21,7 +21,7 @@ function HomeContent({logout}) {
     const displayMessage = (user) => {
         return user ?
             <h2>Welcome, {user.name}!</h2> :
-            <p>Please log in to manage your JUG Tour.</p>;
+            <p>Please log in to manage.</p>;
     }
     return <UserContext.Consumer >
         {({user, isAuthenticated}) => <Container fluid>

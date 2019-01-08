@@ -15,37 +15,43 @@ class PersonList extends Component {
   }
 
   componentDidMount() {
-    let jwt = this.props.jwt;
-    if (jwt) {
-      this.eventSource = new EventSourcePolyfill('api/persons', {
+/*
+      const eventSource = new EventSourcePolyfill('api/persons', {
         headers: {
-          'Authorization': jwt,
-          'Accept': 'text/event-stream'
         }
       });
-      this.eventSource.addEventListener("listOfPersons", result => {
+*/
+      const eventSource = new EventSource('api/persons', {withCredentials: true});
+
+      eventSource.addEventListener("open", result => {
+        console.log('EventSource open: ', result);
+        this.setState({isLoading: false});
+      });
+
+      eventSource.addEventListener("message", result => {
         console.log('EventSource result: ', result);
         const data = JSON.parse(result.data);
         this.state.persons.push(data);
-        this.setState({persons: this.state.persons, isLoading: false});
+        this.setState({persons: this.state.persons});
       });
 
-      this.eventSource.addEventListener("error", err => {
+      eventSource.addEventListener("error", err => {
         console.log('EventSource error: ', err);
-        this.setState({isLoading: false});
+        eventSource.close();
+        if (err.status === 401) {
+          this.props.onRemoveAuthentication();
+          this.props.history.push('/');
+        }
         if (this.state.persons.length === 0) {
           this.setState({displayError: errorMessage(err)});
         }
-        this.eventSource.close();
       });
-    }
   }
 
   async remove(id) {
     await fetch(`/api/persons/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': this.props.jwt,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },

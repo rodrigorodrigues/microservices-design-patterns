@@ -12,7 +12,6 @@ class App extends Component {
     isLoading: true,
     isAuthenticated: false,
     user: null,
-    jwt: null,
     error: null
   };
 
@@ -20,7 +19,7 @@ class App extends Component {
     const localStateParent = localStorage.getItem('stateParent');
     if (localStateParent) {
       this.state = JSON.parse(localStateParent);
-      this.setState({ isAuthenticated: this.state.isAuthenticated, user: this.state.user, jwt: this.state.jwt });
+      this.setState({ isAuthenticated: this.state.isAuthenticated, user: this.state.user });
     } else {
       try {
         const body = await get('authenticate', true);
@@ -36,7 +35,7 @@ class App extends Component {
   }
 
   setAuthentication = (data) => {
-    this.setState({ isAuthenticated: true, user: data.user, jwt: data.id_token });
+    this.setState({ isAuthenticated: true, user: data.name });
     localStorage.setItem('stateParent', JSON.stringify(this.state));
   }
 
@@ -56,7 +55,8 @@ class App extends Component {
               component={() => <Login {...this.state} 
                 setAuthentication={this.setAuthentication} />} />
             <Route path='/persons' exact={true} 
-              component={() => <PersonList {...this.state} />} />
+              component={() => <PersonList {...this.state}
+              onRemoveAuthentication={this.removeAuthentication}/>} />
             <Route path='/persons/:id' 
               component={() => <PersonEdit {...this.state} />} />
           </Switch>

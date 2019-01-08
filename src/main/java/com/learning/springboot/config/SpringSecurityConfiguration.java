@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -17,6 +19,11 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler;
+import org.springframework.security.web.server.authentication.logout.LogoutWebFilter;
+import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
@@ -35,6 +42,8 @@ public class SpringSecurityConfiguration {
 
     private final HandleResponseError handleResponseError;
 
+    private final WebSessionServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
+
     private static final String[] WHITELIST = {
         // -- swagger ui
         "/v2/api-docs",
@@ -52,20 +61,23 @@ public class SpringSecurityConfiguration {
     public SecurityWebFilterChain configure(ServerHttpSecurity http) {
         return http
             .csrf()
+                .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
                 .disable()
                 .headers()
                 .frameOptions().disable()
                 .cache().disable()
             .and()
+                .formLogin().disable()
+                .httpBasic().disable()
+                .logout().disable()
+                .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(WHITELIST).permitAll()
                 .anyExchange().authenticated()
             .and()
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-                .httpBasic().disable()
-                .formLogin().disable()
-                .logout().disable()
-                .build();
+                .addFilterAt(logoutWebFilter(), SecurityWebFiltersOrder.LOGOUT)
+            .build();
     }
 
     private AuthenticationWebFilter authenticationWebFilter() {
@@ -74,7 +86,21 @@ public class SpringSecurityConfiguration {
         NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
         authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));
+        authenticationWebFilter.setSecurityContextRepository(securityContextRepository);
         return authenticationWebFilter;
+    }
+
+    private LogoutWebFilter logoutWebFilter() {
+        LogoutWebFilter logoutWebFilter = new LogoutWebFilter();
+
+        SecurityContextServerLogoutHandler logoutHandler = new SecurityContextServerLogoutHandler();
+        logoutHandler.setSecurityContextRepository(securityContextRepository);
+
+        logoutWebFilter.setLogoutHandler(logoutHandler);
+        logoutWebFilter.setLogoutSuccessHandler(new HttpStatusReturningServerLogoutSuccessHandler(HttpStatus.OK));
+        logoutWebFilter.setRequiresLogoutMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout"));
+
+        return logoutWebFilter;
     }
 
     @Bean
