@@ -4,7 +4,7 @@ package com.learning.springboot.config;
 import com.learning.springboot.config.jwt.CustomReactiveAuthenticationManager;
 import com.learning.springboot.config.jwt.JwtAuthenticationConverter;
 import com.learning.springboot.config.jwt.TokenProvider;
-import com.learning.springboot.service.PersonService;
+import com.learning.springboot.service.UserService;
 import com.learning.springboot.util.HandleResponseError;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +17,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.LogoutWebFilter;
 import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
@@ -36,7 +38,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SpringSecurityConfiguration {
-    private final PersonService personService;
+    private final UserService userService;
 
     private final TokenProvider tokenProvider;
 
@@ -70,6 +72,9 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .logout().disable()
+                .exceptionHandling()
+                    .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
+            .and()
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(WHITELIST).permitAll()
@@ -87,25 +92,29 @@ public class SpringSecurityConfiguration {
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
         authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));
         authenticationWebFilter.setSecurityContextRepository(securityContextRepository);
+        authenticationWebFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
         return authenticationWebFilter;
     }
 
-    private LogoutWebFilter logoutWebFilter() {
-        LogoutWebFilter logoutWebFilter = new LogoutWebFilter();
+    private ServerAuthenticationSuccessHandler authenticationSuccessHandler() {
+        return (webFilterExchange, authentication) -> webFilterExchange.getChain().filter(webFilterExchange.getExchange())
+                .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication));
+    }
 
+    private LogoutWebFilter logoutWebFilter() {
         SecurityContextServerLogoutHandler logoutHandler = new SecurityContextServerLogoutHandler();
         logoutHandler.setSecurityContextRepository(securityContextRepository);
 
+        LogoutWebFilter logoutWebFilter = new LogoutWebFilter();
         logoutWebFilter.setLogoutHandler(logoutHandler);
         logoutWebFilter.setLogoutSuccessHandler(new HttpStatusReturningServerLogoutSuccessHandler(HttpStatus.OK));
         logoutWebFilter.setRequiresLogoutMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout"));
-
         return logoutWebFilter;
     }
 
     @Bean
     public ReactiveAuthenticationManager reactiveAuthenticationManager() {
-        return new CustomReactiveAuthenticationManager(personService);
+        return new CustomReactiveAuthenticationManager(userService);
     }
 /*
     @Bean

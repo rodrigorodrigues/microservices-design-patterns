@@ -1,16 +1,15 @@
 package com.learning.springboot.service;
 
 import com.learning.springboot.dto.PersonDto;
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * Service for Person.
  */
-public interface PersonService extends ReactiveUserDetailsService {
+public interface PersonService {
     /**
-     * Save a person.
+     * Save a user.
      * @param personDto
      * @return personDto
      */
@@ -24,26 +23,26 @@ public interface PersonService extends ReactiveUserDetailsService {
     Mono<PersonDto> findById(String id);
 
     /**
-     * Return list of persons.
-     * @return list of persons
+     * Return list of users.
+     * @return list of users
      */
     Flux<PersonDto> findAll();
 
     /**
-     * Return list of persons by name starting with
+     * Return list of users by name starting with
      * @param name starts with
-     * @return list of persons
+     * @return list of users
      */
     Flux<PersonDto> findAllByNameStartingWith(String name);
 
     /**
-     * Return list of persons that have children.
-     * @return list of persons
+     * Return list of users that have children.
+     * @return list of users
      */
     Flux<PersonDto> findByChildrenExists();
 
     /**
-     * Delete a person by id.
+     * Delete a user by id.
      * @param id id
      */
     Mono<Void> deleteById(String id);

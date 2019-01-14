@@ -10,14 +10,10 @@ class PersonEdit extends Component {
   emptyPerson = {
     name: '',
     age: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
     children: [{
       name: '',
       age: ''
     }],
-    authorities: [],
     address: {
       address: '',
       city: '',
@@ -42,7 +38,7 @@ class PersonEdit extends Component {
       try {
         const person = await (await fetch(`/api/persons/${this.props.match.params.id}`)).json();
         person.authorities.forEach((authority, index) => {person.authorities[index] = authority.role});
-        this.setState({person: person});
+        this.setState({user: person});
       } catch (error) {
         this.setState({ displayError: errorMessage(error)});
       }
@@ -53,16 +49,16 @@ class PersonEdit extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let person = {...this.state.person};
+    let person = {...this.state.user};
     person[name] = value;
-    this.setState({person: person});
+    this.setState({user: person});
   }
 
   async handleSubmit(event) {
     event.preventDefault();
     const {person} = this.state;
 
-    await fetch('/api/persons', {
+    await fetch('/api/users', {
       method: (person.id) ? 'PUT' : 'POST',
       headers: {
         'Accept': 'application/json',
@@ -73,7 +69,7 @@ class PersonEdit extends Component {
     }).then(response => response.json())
         .then(data => {
           if (data.id) {
-            this.props.history.push('/persons');
+            this.props.history.push('/users');
           } else {
             this.setState({ displayError: errorMessage(data)});
           }
@@ -113,58 +109,6 @@ class PersonEdit extends Component {
                      maxLength="3" />
             <AvFeedback>
               This field is invalid - Required
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Label for="username">Username</Label>
-            <AvInput type="text" name="username" id="username" value={person.username || ''}
-                     onChange={this.handleChange} placeholder="Username"
-                     required
-                     minLength="3"
-                     maxLength="30"
-                     pattern="^[A-Za-z0-9]+$" />
-            <AvFeedback>
-              This field is invalid - Your Username must be between 3 and 30 characters.
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Label for="password">Password</Label>
-            <AvInput type="password" name="password" id="password" value={person.password || ''}
-                     onChange={this.handleChange} placeholder="Password"
-                     required />
-            <AvFeedback>
-              This field is invalid - Required
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Label for="confirmPassword">Confirm Password</Label>
-            <AvInput type="password" name="confirmPassword" id="confirmPassword" value={person.confirmPassword || ''}
-                     onChange={this.handleChange} placeholder="Confirm Password"
-                     required />
-            <AvFeedback>
-              This field is invalid - Required
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Label for="name">Email</Label>
-            <AvInput type="email" name="email" id="email" value={person.email || ''}
-                     required
-                     onChange={this.handleChange} placeholder="your_email@email.com"/>
-            <AvFeedback>
-              This field is invalid - Please enter a correct email.
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Label for="authorities">Permissions</Label>
-            <AvInput type="select" name="authorities" id="authorities" value={person.authorities || ''}
-                     required
-                     multiple
-                     onChange={this.handleChange}>
-              {['ROLE_ADMIN', 'ROLE_CREATE', 'ROLE_READ', 'ROLE_SAVE', 'ROLE_DELETE']
-                  .map(role => <option value={role} key={role}>{role}</option>)}
-            </AvInput>
-            <AvFeedback>
-              This field is invalid - Please select at least one permission.
             </AvFeedback>
           </AvGroup>
           <AvGroup>

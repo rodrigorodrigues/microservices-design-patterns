@@ -35,6 +35,16 @@ sudo npm start
 ### Swagger
 [Swagger](http://localhost:8080/swagger-ui.html)
 
+### TODO List
+
+* [X] Java - Split Person and User in different entities
+* [ ] Java - Add Cloud Foundry for deploy
+* [ ] Java - Add Test for Users Classes
+* [X] React - Create User List
+* [ ] React - Create User Page
+* [ ] React - Create User Edit
+* [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
+
 ### References
 [What's new in Java 8](https://leanpub.com/whatsnewinjava8/read)
 

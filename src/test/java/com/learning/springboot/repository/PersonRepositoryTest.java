@@ -1,7 +1,7 @@
 package com.learning.springboot.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learning.springboot.model.Address;
-import com.learning.springboot.model.Authority;
 import com.learning.springboot.model.Child;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.util.ReactiveMongoMetadataUtil;
@@ -20,6 +20,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false"})
-@Import(ReactiveMongoMetadataUtil.class)
+@Import({ReactiveMongoMetadataUtil.class, ObjectMapper.class})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;
@@ -45,22 +46,25 @@ public class PersonRepositoryTest {
 
         StepVerifier.create(recreateCollection).expectNextCount(1).verifyComplete();
 
-        Person person = new Person("Rodrigo", 23, "rod@gmail.com", "rod", "123", Arrays.asList(new Authority("USER")));
-        person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
-        person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
-        personRepository.save(person).block();
+        personRepository.save(Person.builder().fullName("Rodrigo")
+                .dateOfBirth(LocalDate.now())
+                .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+                .children(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)))
+                .build()).block();
 
-        person = new Person("Anna Cio", 25, "admin@gmail.com", "admin", "admin", Arrays.asList(new Authority("ADMIN")));
-        person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
-        personRepository.save(person).block();
+        personRepository.save(Person.builder().fullName("Anna Cio")
+                .dateOfBirth(LocalDate.now().minusYears(25))
+                .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+                .build()).block();
 
-        person = new Person("Anonymous", 30, "anonymous@gmail.com", "test", "test", Arrays.asList(new Authority("ANONYMOUS")));
-        person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
-        personRepository.save(person).block();
+        personRepository.save(Person.builder().fullName("Anonymous")
+                .dateOfBirth(LocalDate.now().minusYears(30))
+                .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+                .build()).block();
     }
 
     @Test
-    @DisplayName("Return list of People")
+    @DisplayName("Test - Return list of People")
     public void findAllStream() {
         StepVerifier.create(personRepository.findAll())
                 .expectNextCount(3)
@@ -68,10 +72,11 @@ public class PersonRepositoryTest {
     }
 
     @Test
+    @DisplayName("Test - Find All People that name starts with 'a' ignore case")
     public void findAllByNameStartingWithShouldReturnPersonsThatNameStartsWithA() throws Exception {
         Queue<Person> people = new ConcurrentLinkedQueue<>();
 
-        Disposable disposable = personRepository.findAllByNameIgnoreCaseStartingWith("a")
+        Disposable disposable = personRepository.findAllByFullNameIgnoreCaseStartingWith("a")
                 .doOnNext(people::add)
                 .subscribe();
 
@@ -80,11 +85,12 @@ public class PersonRepositoryTest {
         disposable.dispose();
 
         assertThat(people.size()).isEqualTo(2);
-        assertThat(Stream.of(people.toArray(new Person[] {})).map(Person::getName))
+        assertThat(Stream.of(people.toArray(new Person[] {})).map(Person::getFullName))
                 .containsExactlyInAnyOrder("Anna Cio", "Anonymous");
     }
 
     @Test
+    @DisplayName("Test - Find All People that have kids.")
     public void findByChildrenExistsShouldReturnPersonsThatHasChild() throws InterruptedException {
         Queue<Person> people = new ConcurrentLinkedQueue<>();
 
@@ -97,20 +103,7 @@ public class PersonRepositoryTest {
         disposable.dispose();
 
         assertThat(people.size()).isEqualTo(1);
-        assertThat(people.peek().getName()).isEqualTo("Rodrigo");
+        assertThat(people.peek().getFullName()).isEqualTo("Rodrigo");
     }
 
-    @Test
-    public void findByLoginShouldReturnPerson() {
-        StepVerifier.create(personRepository.findByUsername("admin"))
-                .expectNextMatches(p -> p.getName().equals("Anna Cio"))
-                .verifyComplete();
-    }
-
-    @Test
-    public void findByLoginShouldNotReturnPersonWhenLoginIsNotFound() {
-        StepVerifier.create(personRepository.findByUsername("john"))
-                .expectNextCount(0)
-                .verifyComplete();
-    }
 }

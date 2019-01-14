@@ -1,33 +1,28 @@
 package com.learning.springboot.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.util.List;
 
+@Builder
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 public class PersonDto {
     private String id;
-    private String name;
-    private Integer age;
-    private String username;
-    private String password;
-    private String confirmPassword;
-    private String email;
-    private List<AuthorityDto> authorities;
+    private String fullName;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dateOfBirth;
     private List<ChildrenDto> children;
     private Address address;
-
-    public PersonDto(String name, Integer age, String email, String username, String password, List<AuthorityDto> authorities) {
-        setName(name);
-        setAge(age);
-        setEmail(email);
-        setUsername(username);
-        setPassword(password);
-        setAuthorities(authorities);
-    }
+    private CreatedByUser createdByUser;
 
     @Data
     @NoArgsConstructor
@@ -40,8 +35,9 @@ public class PersonDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class AuthorityDto {
-        private String role;
+    public static class CreatedByUser {
+        private String email;
+        private String fullName;
     }
 
     @Data

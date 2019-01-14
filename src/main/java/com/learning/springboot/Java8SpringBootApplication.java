@@ -1,11 +1,9 @@
 package com.learning.springboot;
 
 import com.learning.springboot.config.Java8SpringConfigurationProperties;
-import com.learning.springboot.model.Address;
-import com.learning.springboot.model.Authority;
-import com.learning.springboot.model.Child;
-import com.learning.springboot.model.Person;
+import com.learning.springboot.model.*;
 import com.learning.springboot.repository.PersonRepository;
+import com.learning.springboot.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,11 +11,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
-import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +23,6 @@ import java.util.stream.Stream;
 
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
 @SpringBootApplication
-@EnableReactiveMongoRepositories(basePackageClasses = PersonRepository.class, considerNestedRepositories = true)
 public class Java8SpringBootApplication {
 
 	public static void main(String[] args) {
@@ -34,22 +31,45 @@ public class Java8SpringBootApplication {
 
 	@ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)
 	@Bean
-	CommandLineRunner runner(PersonRepository personRepository, PasswordEncoder passwordEncoder) {
+	CommandLineRunner runner(PasswordEncoder passwordEncoder, UserRepository userRepository,
+                             PersonRepository personRepository) {
 		return args -> {
 			if (personRepository.count().block() == 0) {
-				Person person = new Person("Rodrigo Rodrigues", 35, "admin@gmail.com", "admin", passwordEncoder.encode("password"), permissions("ROLE_ADMIN"));
-				person.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
-				person.setAddress(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"));
-				personRepository.save(person).block();
+				userRepository.saveAll(Arrays.asList(User.builder().email("admin@gmail.com")
+						.password(passwordEncoder.encode("password"))
+						.authorities(permissions("ROLE_ADMIN"))
+						.fullName("Admin dos Santos")
+						.build(),
 
-				person = new Person("Juninho", 37, "master@gmail.com", "master", passwordEncoder.encode("password123"), permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"));
-				person.setChildren(Arrays.asList(new Child("Dan", 5), new Child("Ian", 3)));
-				person.setAddress(new Address("100 Gardiner Street", "Dun Laoghaire", "Dublin", "Ireland", "000 65412"));
-				personRepository.save(person).block();
+						User.builder().email("anonymous@gmail.com")
+								.password(passwordEncoder.encode("test"))
+								.authorities(permissions("ROLE_READ"))
+								.fullName("Anonymous Noname")
+								.build(),
 
-				person = new Person("Anonymous", 30, "anonymous@gmail.com", "test", passwordEncoder.encode("test"), permissions("ROLE_READ"));
-				person.setAddress(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"));
-				personRepository.save(person).block();
+						User.builder().email("master@gmail.com")
+								.password(passwordEncoder.encode("password123"))
+								.authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
+								.fullName("Master of something")
+								.build())).blockLast();
+
+				personRepository.save(Person.builder().fullName("Rodrigo Rodrigues")
+						.dateOfBirth(LocalDate.of(1983, 1, 5))
+						.children(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)))
+						.address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+						.build()).block();
+
+				personRepository.save(Person.builder().fullName("Juninho")
+						.dateOfBirth(LocalDate.of(1981, 5 , 25))
+						.children(Arrays.asList(new Child("Dan", 5), new Child("Ian", 3)))
+						.address(new Address("100 Gardiner Street", "Dun Laoghaire", "Dublin", "Ireland", "000 65412"))
+						.build()).block();
+
+
+				personRepository.save(Person.builder().fullName("Anonymous")
+						.dateOfBirth(LocalDate.of(1985, 1, 2))
+						.address(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"))
+						.build()).block();
 			}
 
 			personRepository.findAll()

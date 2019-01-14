@@ -6,31 +6,36 @@ import com.learning.springboot.config.Java8SpringConfigurationProperties;
 import com.learning.springboot.config.SpringSecurityConfiguration;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.PersonDto;
-import com.learning.springboot.mapper.PersonMapperImpl;
+import com.learning.springboot.model.Authority;
 import com.learning.springboot.model.Person;
-import com.learning.springboot.repository.PersonRepository;
+import com.learning.springboot.model.User;
 import com.learning.springboot.service.PersonService;
+import com.learning.springboot.service.UserService;
 import com.learning.springboot.util.HandleResponseError;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.error.ErrorWebFluxAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -41,11 +46,17 @@ import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
-@WebFluxTest(properties = {"configuration.initialLoad=false", "debug=true", "logging.level.org.springframework.security=debug"})
-@ContextConfiguration(classes = {SpringSecurityConfiguration.class, PersonController.class, HandleResponseError.class})
+@WebFluxTest(properties = {
+        "configuration.initialLoad=false",
+        "configuration.mongo=false",
+        "debug=true",
+        "logging.level.org.springframework=debug"},
+controllers = PersonController.class, excludeAutoConfiguration = MongoReactiveAutoConfiguration.class)
+@Import({SpringSecurityConfiguration.class, HandleResponseError.class, ErrorWebFluxAutoConfiguration.class})
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
 public class PersonControllerTest {
 
+    @Autowired
     WebTestClient client;
 
     @Autowired
@@ -58,30 +69,45 @@ public class PersonControllerTest {
     PersonService personService;
 
     @MockBean
-    PersonRepository personRepository;
-
-    @MockBean
     TokenProvider tokenProvider;
 
-    final ObjectMapper objectMapper = new ObjectMapper();
+    @MockBean
+    UserService userService;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @BeforeEach
     public void setup() {
-        Person person = new PersonMapperImpl().dtoToEntity(createPersonDto());
-        TokenProvider tokenProvider = new TokenProvider(configurationProperties);
-        tokenProvider.init();
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(person, "admin", person.getAuthorities());
-        String token = "Bearer " + tokenProvider.createToken(authentication, false);
-        client = WebTestClient.bindToApplicationContext(context)
-                .configureClient()
-                .defaultHeader(HttpHeaders.AUTHORIZATION, token)
+        User user = User.builder().email("admin@gmail.com")
+                .password("{noop}admin")
+                .authorities(Arrays.asList(new Authority("ROLE_ADMIN")))
                 .build();
-        when(this.tokenProvider.validateToken(anyString())).thenReturn(true);
-        when(this.tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
-        when(personService.findByUsername(anyString())).thenReturn(Mono.just(person));
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, "admin", user.getAuthorities());
+        when(tokenProvider.validateToken(anyString())).thenReturn(true);
+        when(tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
     }
 
     @Test
+    @DisplayName("Test - When Cal GET - /api/users without valid authorization the response should be 403 - Forbidden")
+    @WithMockUser(roles = "CREATE")
+    public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() {
+        client.get().uri("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    @DisplayName("Test - When Cal GET - /api/users without authorization the response should be 401 - Unauthorized")
+    public void whenCallFindAllShouldReturnUnauthorizedWhenDoesNotHavePermission() {
+        client.get().uri("/api/users")
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @DisplayName("Test - When Cal GET - /api/users with valid authorization the response should be a list of People - 200 - OK")
     @WithMockUser(roles = "READ")
     public void whenCallFindAllShouldReturnListOfPersons() {
         PersonDto person = new PersonDto();
@@ -92,7 +118,8 @@ public class PersonControllerTest {
 
         ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
 
-        client.get().uri("/api/persons")
+        client.get().uri("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -101,13 +128,15 @@ public class PersonControllerTest {
     }
 
     @Test
+    @DisplayName("Test - When Cal GET - /api/users/{id} with valid authorization the response should be user - 200 - OK")
     @WithMockUser(roles = "READ")
     public void whenCallFindByIdShouldReturnPerson() {
         PersonDto person = new PersonDto();
         person.setId("100");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
 
-        client.get().uri("/api/persons/{id}", 100)
+        client.get().uri("/api/users/{id}", 100)
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -115,12 +144,14 @@ public class PersonControllerTest {
     }
 
     @Test
+    @DisplayName("Test - When Cal POST - /api/users with valid authorization the response should be a user - 201 - Created")
     @WithMockUser(roles = "CREATE")
     public void whenCallCreateShouldSavePerson() throws Exception {
         PersonDto personDto = createPersonDto();
         when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
-        client.post().uri("/api/persons")
+        client.post().uri("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromObject(convertToJson(personDto)))
                 .exchange()
@@ -130,32 +161,52 @@ public class PersonControllerTest {
     }
 
     @Test
+    @DisplayName("Test - When Cal PUT - /api/users/{id} with valid authorization the response should be a user - 200 - OK")
     @WithMockUser(roles = "SAVE")
     public void whenCallUpdateShouldUpdatePerson() throws Exception {
         PersonDto personDto = createPersonDto();
         personDto.setId(UUID.randomUUID().toString());
-        personDto.setName("New Name");
+        personDto.setFullName("New Name");
         when(personService.findById(anyString())).thenReturn(Mono.just(personDto));
         when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
-        client.put().uri("/api/persons/{id}", personDto.getId())
+        client.put().uri("/api/users/{id}", personDto.getId())
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromObject(convertToJson(personDto)))
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody().jsonPath("$.id").value(equalTo(personDto.getId()))
-                .jsonPath("$.name").value(equalTo(personDto.getName()));
+                .jsonPath("$.fullName").value(equalTo(personDto.getFullName()));
     }
 
     @Test
+    @DisplayName("Test - When Cal PUT - /api/users/{id} with invalid id the response should 404 - Not Found")
+    @WithMockUser(roles = "SAVE")
+    public void whenCallUpdateShouldResponseNotFound() throws Exception {
+        PersonDto personDto = createPersonDto();
+        personDto.setId("999");
+        when(personService.findById(anyString())).thenReturn(Mono.empty());
+
+        client.put().uri("/api/users/{id}", personDto.getId())
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(fromObject(convertToJson(personDto)))
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    @DisplayName("Test - When Cal DELETE - /api/users/{id} with valid authorization the response should be 200 - OK")
     @WithMockUser(roles = "DELETE")
     public void whenCallDeleteShouldDeleteById() {
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());
         Person person = new Person();
         person.setId("12345");
 
-        client.delete().uri("/api/persons/{id}", person.getId())
+        client.delete().uri("/api/users/{id}", person.getId())
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();
     }
@@ -165,14 +216,10 @@ public class PersonControllerTest {
     }
 
     private PersonDto createPersonDto() {
-        PersonDto personDto = new PersonDto();
-        personDto.setId(UUID.randomUUID().toString());
-        personDto.setPassword("{noop}admin");
-        personDto.setAge(10);
-        personDto.setUsername("admin");
-        personDto.setName("Admin");
-        personDto.setAuthorities(Arrays.asList(new PersonDto.AuthorityDto("ROLE_ADMIN")));
-        personDto.setEmail("admin@gmail.com");
-        return personDto;
+        return PersonDto.builder()
+                .id(UUID.randomUUID().toString())
+                .dateOfBirth(LocalDate.now())
+                .fullName("Admin")
+                .build();
     }
 }

@@ -1,10 +1,14 @@
 export function errorMessage(message) {
     if (message !== null) {
-        message = JSON.stringify(message);
         if(typeof message === 'string') {
-            return { type: 'danger', message: {message} }
+            try {
+                message = JSON.parse(message);
+            } catch (e) {
+                console.log("Invalid json content: ", message);
+            }
+            return { type: 'danger', message: message }
         } else  {
-            return { type: 'danger', message: {message}  }
+            return { type: 'danger', message: message  }
         }
     }
 }

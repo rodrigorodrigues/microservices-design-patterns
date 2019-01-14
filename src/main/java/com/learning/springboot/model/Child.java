@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @RequiredArgsConstructor
-@Document(collection = "person_child")
+@Document(collection = "children")
 @NoArgsConstructor
 public class Child {
     @Id

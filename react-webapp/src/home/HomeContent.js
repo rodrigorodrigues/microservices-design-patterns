@@ -11,6 +11,10 @@ function HomeContent({logout}) {
                     <Link to="/persons">Manage People</Link>
                 </Button>
                 <br />
+                <Button color="link">
+                    <Link to="/users">Manage Users</Link>
+                </Button>
+                <br />
                 <Button color="link" onClick={logout}>Logout</Button>
             </div>
         }

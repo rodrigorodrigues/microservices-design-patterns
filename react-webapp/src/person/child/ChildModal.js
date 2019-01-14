@@ -18,7 +18,7 @@ class ChildModal extends React.Component {
     }
 
     render() {
-        const childrenList = this.props.person.children ? this.props.person.children.map((child, index) => {
+        const childrenList = this.props.user.children ? this.props.user.children.map((child, index) => {
             return <tr key={index}>
                 <td style={{whiteSpace: 'nowrap'}}>{child.name}</td>
                 <td>{child.age}</td>

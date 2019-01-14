@@ -5,7 +5,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -16,9 +15,19 @@ import reactor.core.publisher.Mono;
 import javax.validation.ConstraintViolationException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Handle http status according to type of Exception.
+ */
 @Slf4j
 @Component
 public class HandleResponseError {
+    /**
+     * Set http status according to Exception and print exception message when writeToResponse is true.
+     * @param exchange the current request
+     * @param ex the current exception
+     * @param writeToResponse print exception message to response when is true
+     * @return Mono<Void>
+     */
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex, boolean writeToResponse) {
         log.error("Error on calling api", ex);
         ServerHttpResponse response = exchange.getResponse();
@@ -33,11 +42,14 @@ public class HandleResponseError {
         }
     }
 
+    /**
+     * Return {@link HttpStatus} according to type of Exception.
+     * @param ex current exception
+     * @return httpStatus
+     */
     public HttpStatus getHttpStatusError(Throwable ex) {
         HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
-        if (ex instanceof AuthenticationCredentialsNotFoundException) {
-            httpStatus = HttpStatus.FORBIDDEN;
-        } else if (ex instanceof HttpStatusCodeException) {
+        if (ex instanceof HttpStatusCodeException) {
             httpStatus = ((HttpStatusCodeException) ex).getStatusCode();
         } else if (ex instanceof AuthenticationException) {
             httpStatus = HttpStatus.UNAUTHORIZED;

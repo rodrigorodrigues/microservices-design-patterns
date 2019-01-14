@@ -5,37 +5,27 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import PersonList from './person/PersonList';
 import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
-import { get } from './services/ApiService';
 import UserContext from './UserContext';
+import UserList from "./user/UserList";
 class App extends Component {
   state = {
     isLoading: true,
     isAuthenticated: false,
     user: null,
-    error: null
+    error: null,
+    jwt: null
   };
 
   async componentDidMount() {
     const localStateParent = localStorage.getItem('stateParent');
     if (localStateParent) {
       this.state = JSON.parse(localStateParent);
-      this.setState({ isAuthenticated: this.state.isAuthenticated, user: this.state.user });
-    } else {
-      try {
-        const body = await get('authenticate', true);
-        if (body === '') {
-          this.setState(({ isAuthenticated: false }))
-        } else {
-          this.setState({ isAuthenticated: true, user: JSON.parse(body) })
-        }
-      } catch (error) {
-        this.setState({error: error.message})
-      }
+      this.setState({ isAuthenticated: this.state.isAuthenticated, user: this.state.user, jwt: this.state.jwt });
     }
   }
 
   setAuthentication = (data) => {
-    this.setState({ isAuthenticated: true, user: data.name });
+    this.setState({ isAuthenticated: true, user: data.name, jwt: data.id_token });
     localStorage.setItem('stateParent', JSON.stringify(this.state));
   }
 
@@ -57,8 +47,13 @@ class App extends Component {
             <Route path='/persons' exact={true} 
               component={() => <PersonList {...this.state}
               onRemoveAuthentication={this.removeAuthentication}/>} />
-            <Route path='/persons/:id' 
+            <Route path='/persons/:id'
               component={() => <PersonEdit {...this.state} />} />
+            <Route path='/users' exact={true}
+                   component={() => <UserList {...this.state}
+                                                onRemoveAuthentication={this.removeAuthentication}/>} />
+            <Route path='/users/:id'
+                   component={() => <PersonEdit {...this.state} />} />
           </Switch>
         </Router>
       </UserContext.Provider>

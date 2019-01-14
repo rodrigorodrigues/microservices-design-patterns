@@ -11,8 +11,7 @@
     "react-scripts": "^2.1.0",
     "reactstrap": "6.5.0",
     "react-json-view": "1.19.1",
-    "availity-reactstrap-validation": "2.5.0",
-    "event-source-polyfill": "1.0.5"
+    "availity-reactstrap-validation": "2.5.0"
   },
   "scripts": {
     "start": "react-scripts start",

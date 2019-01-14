@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Document(collection = "person_address")
+@Document(collection = "address")
 public class Address {
     @Id
     private String id = UUID.randomUUID().toString();

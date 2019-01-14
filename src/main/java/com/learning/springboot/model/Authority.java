@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 
 @Data
-@Document(collection = "authority_permission")
+@Document(collection = "authorities")
 @NoArgsConstructor
 public class Authority implements GrantedAuthority {
     @Id @Indexed

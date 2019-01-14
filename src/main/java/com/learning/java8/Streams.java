@@ -5,6 +5,8 @@ import com.learning.springboot.model.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -12,16 +14,19 @@ import java.util.stream.Collectors;
 public class Streams {
     public static void main(String[] args) {
         List<Person> persons = new ArrayList<>();
-        Person personObj = new Person("Rodrigo Rodrigues", 35, "rod@gmail.com", "rod", "pass", Collections.emptyList());
-        personObj.setChildren(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)));
-        persons.add(personObj);
+        persons.add(Person.builder().fullName("Rodrigo Rodrigues")
+                .dateOfBirth(LocalDate.of(1983, 1, 1))
+                .children(Arrays.asList(new Child("Daniel", 2), new Child("Oliver", 2)))
+                .build());
 
-        personObj = new Person("Juninho", 37, "elias@gmail.com", "elias", "123", Collections.emptyList());
-        personObj.setChildren(Arrays.asList(new Child("Dan", 5), new Child("Iam", 3)));
-        persons.add(personObj);
+        persons.add(Person.builder().fullName("Juninho")
+                .dateOfBirth(LocalDate.of(1981, 5, 10))
+                .children(Arrays.asList(new Child("Dan", 5), new Child("Iam", 3)))
+                .build());
 
-        personObj = new Person("Anonymous", 30, "anonymous@gmail.com", "test", "test", Collections.emptyList());
-        persons.add(personObj);
+        persons.add(Person.builder().fullName("Anonymous")
+                .dateOfBirth(LocalDate.of(1985, 8, 25))
+                .build());
 
         //Old way
         //Sort by age
@@ -29,7 +34,7 @@ public class Streams {
         Collections.sort(copyPersons, new Comparator<Person>() {
             @Override
             public int compare(Person p, Person p1) {
-                return p.getAge() - p1.getAge();
+                return (int) (convertToTimestamp(p.getDateOfBirth()) - convertToTimestamp(p1.getDateOfBirth()));
             }
         });
 
@@ -44,9 +49,9 @@ public class Streams {
             if (youngestPerson == null && oldestPerson == null) {
                 youngestPerson = person;
                 oldestPerson = person;
-            } else if (person.getAge() <= youngestPerson.getAge()) {
+            } else if (person.getDateOfBirth().isBefore(youngestPerson.getDateOfBirth()) ||  person.getDateOfBirth().isEqual(youngestPerson.getDateOfBirth())) {
                 youngestPerson = person;
-            } else if (person.getAge() >= oldestPerson.getAge() ) {
+            } else if (person.getDateOfBirth().isAfter(oldestPerson.getDateOfBirth()) || person.getDateOfBirth().isEqual(oldestPerson.getDateOfBirth())) {
                 oldestPerson = person;
             }
 
@@ -54,7 +59,7 @@ public class Streams {
                 personsWithoutChild.add(person);
             }
 
-            mapPersonsNames.put(person.getId(), person.getName());
+            mapPersonsNames.put(person.getId(), person.getFullName());
         }
 
         log.debug("old way - youngestPerson: {}", youngestPerson);
@@ -66,14 +71,14 @@ public class Streams {
         //New way using Lambda + Streams
         //Sort by age
         copyPersons = new ArrayList<>(persons);
-        copyPersons.sort(Comparator.comparing(Person::getAge));
+        copyPersons.sort(Comparator.comparing(Person::getDateOfBirth));
 
         youngestPerson = persons.stream()
-                .min(Comparator.comparing(Person::getAge))
+                .min(Comparator.comparing(Person::getDateOfBirth))
                 .get();
 
         oldestPerson = persons.stream()
-                .max(Comparator.comparing(Person::getAge))
+                .max(Comparator.comparing(Person::getDateOfBirth))
                 .get();
 
         personsWithoutChild = persons.stream()
@@ -81,7 +86,7 @@ public class Streams {
                 .collect(Collectors.toList());
 
         mapPersonsNames = persons.stream()
-                .collect(Collectors.toMap(Person::getId, Person::getName));
+                .collect(Collectors.toMap(Person::getId, Person::getFullName));
 
         log.debug("--------------");
         log.debug("new way - sort by age: {}", copyPersons);
@@ -91,4 +96,10 @@ public class Streams {
         log.debug("new way - mapPersonsNames: {}", mapPersonsNames);
     }
 
+    private static long convertToTimestamp(LocalDate localDate) {
+        return Date.from(localDate.atStartOfDay()
+                .atZone(ZoneId.systemDefault())
+                .toInstant())
+                .getTime();
+    }
 }

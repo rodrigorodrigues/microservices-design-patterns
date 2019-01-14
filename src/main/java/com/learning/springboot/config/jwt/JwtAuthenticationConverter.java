@@ -2,10 +2,13 @@ package com.learning.springboot.config.jwt;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Optional;
 
 /**
  * Validate Authorization Header and if valid return Authentication.
@@ -19,8 +22,14 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
     }
 
     private Mono<String> resolveToken(ServerWebExchange exchange) {
-        log.debug("servletPath: {}", exchange.getRequest().getPath());
-        return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+        ServerHttpRequest request = exchange.getRequest();
+        log.debug("servletPath: {}", request.getPath());
+        String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        log.debug("authorizationHeader: {}", authorizationHeader);
+        return Mono.justOrEmpty(authorizationHeader)
+                .switchIfEmpty(Mono.justOrEmpty(Optional.ofNullable(request.getQueryParams())
+                        .map(r -> r.getFirst(HttpHeaders.AUTHORIZATION)))
+                )
                 .filter(t -> t.startsWith("Bearer "))
                 .map(t -> t.substring(7));
     }

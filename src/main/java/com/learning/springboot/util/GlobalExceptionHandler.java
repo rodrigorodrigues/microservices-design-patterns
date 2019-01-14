@@ -1,6 +1,5 @@
 package com.learning.springboot.util;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -15,7 +14,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.stream.Collectors;
 
-@Slf4j
+/**
+ * Custom Global Default Error Web Exception.
+ */
 @Component
 public class GlobalExceptionHandler extends DefaultErrorWebExceptionHandler {
     private final HandleResponseError handleResponseError;
@@ -26,7 +27,7 @@ public class GlobalExceptionHandler extends DefaultErrorWebExceptionHandler {
      * @param resourceProperties the resources configuration properties
      * @param serverProperties    the server configuration properties
      * @param applicationContext the current application context
-     * @param handleResponseError
+     * @param handleResponseError the custom handler response instance
      */
     public GlobalExceptionHandler(ErrorAttributes errorAttributes, ResourceProperties resourceProperties,
                                   ServerProperties serverProperties, ApplicationContext applicationContext,
@@ -40,11 +41,15 @@ public class GlobalExceptionHandler extends DefaultErrorWebExceptionHandler {
         this.handleResponseError = handleResponseError;
     }
 
+    /**
+     * Set http status according to exception.
+     * @param exchange the current request
+     * @param ex the current exception
+     * @return Mono<Void>
+     */
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-        log.debug("Error Response Before: {}", exchange.getResponse().getStatusCode());
-        handleResponseError.handle(exchange, ex, false);
-        log.debug("Error Response After: {}", exchange.getResponse().getStatusCode());
-        return super.handle(exchange, ex);
+        return handleResponseError.handle(exchange, ex, false)
+                .switchIfEmpty(super.handle(exchange, ex));
     }
 }

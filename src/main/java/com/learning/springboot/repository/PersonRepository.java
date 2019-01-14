@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.data.mongodb.repository.Tailable;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Repository for Person Object using MongoDB.
@@ -15,11 +14,10 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface PersonRepository extends ReactiveMongoRepository<Person, String> {
     @Tailable
-    Flux<Person> findAllByNameIgnoreCaseStartingWith(String name);
+    Flux<Person> findAllByFullNameIgnoreCaseStartingWith(String name);
+
     @Tailable
     Flux<Person> findByChildrenExists(boolean exists);
-
-    Mono<Person> findByUsername(String username);
 
     @Tailable
     @Query("{}")

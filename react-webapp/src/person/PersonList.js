@@ -5,23 +5,23 @@ import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
-import { EventSourcePolyfill } from 'event-source-polyfill';
 
 class PersonList extends Component {
   constructor(props) {
     super(props);
-    this.state = {persons: [], isLoading: true, displayError: null};
+    this.state = {persons: [], isLoading: true, jwt: props.jwt, displayError: null};
     this.remove = this.remove.bind(this);
   }
 
   componentDidMount() {
-/*
-      const eventSource = new EventSourcePolyfill('api/persons', {
+    console.log("JWT: ", this.state.jwt);
+    if (this.state.jwt) {
+      /*const eventSource = new EventSourcePolyfill('api/persons', {
         headers: {
+          'Authorization': this.state.jwt
         }
-      });
-*/
-      const eventSource = new EventSource('api/persons', {withCredentials: true});
+      });*/
+      const eventSource = new EventSource(`api/persons?Authorization=${this.state.jwt}`, {withCredentials: true});
 
       eventSource.addEventListener("open", result => {
         console.log('EventSource open: ', result);
@@ -38,7 +38,7 @@ class PersonList extends Component {
       eventSource.addEventListener("error", err => {
         console.log('EventSource error: ', err);
         eventSource.close();
-        if (err.status === 401) {
+        if (err.status === 401 || err.status === 403) {
           this.props.onRemoveAuthentication();
           this.props.history.push('/');
         }
@@ -46,6 +46,7 @@ class PersonList extends Component {
           this.setState({displayError: errorMessage(err)});
         }
       });
+    }
   }
 
   async remove(id) {
@@ -87,31 +88,31 @@ class PersonList extends Component {
     });
 
     return (
-      <div>
-        <AppNavbar/>
-        <Container fluid>
-          <div className="float-right">
-            <Button color="success" tag={Link} to="/persons/new">Add Person</Button>
-          </div>
-          <h3>Persons</h3>
-          <Table className="mt-4">
-            <thead>
-            <tr>
-              <th width="10%">Name</th>
-              <th width="5%">Login</th>
-              <th width="5%">Age</th>
-              <th width="5%">Children List</th>
-              <th width="15%">Location</th>
-              <th width="10%">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            {personList}
-            </tbody>
-          </Table>
-          <MessageAlert {...displayError}></MessageAlert>
-        </Container>
-      </div>
+        <div>
+          <AppNavbar/>
+          <Container fluid>
+            <div className="float-right">
+              <Button color="success" tag={Link} to="/persons/new">Add Person</Button>
+            </div>
+            <h3>Persons</h3>
+            <Table className="mt-4">
+              <thead>
+              <tr>
+                <th width="10%">Name</th>
+                <th width="5%">Login</th>
+                <th width="5%">Age</th>
+                <th width="5%">Children List</th>
+                <th width="15%">Location</th>
+                <th width="10%">Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              {personList}
+              </tbody>
+            </Table>
+            <MessageAlert {...displayError}></MessageAlert>
+          </Container>
+        </div>
     );
   }
 }
