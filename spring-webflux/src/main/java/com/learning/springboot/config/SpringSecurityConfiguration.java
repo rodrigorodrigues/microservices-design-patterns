@@ -1,6 +1,5 @@
 package com.learning.springboot.config;
 
-
 import com.learning.springboot.config.jwt.CustomReactiveAuthenticationManager;
 import com.learning.springboot.config.jwt.JwtAuthenticationConverter;
 import com.learning.springboot.config.jwt.TokenProvider;
@@ -28,6 +27,12 @@ import org.springframework.security.web.server.context.WebSessionServerSecurityC
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Spring Security Configuration
@@ -55,7 +60,9 @@ public class SpringSecurityConfiguration {
         "/configuration/security",
         "/swagger-ui.html",
         "/webjars/**",
-        "/null/**",
+        "/**/*.js",
+        "/**/*.css",
+        "/**/*.html",
         // other public endpoints of your API may be appended to this array
         "/api/authenticate"
     };
@@ -117,7 +124,8 @@ public class SpringSecurityConfiguration {
     public ReactiveAuthenticationManager reactiveAuthenticationManager() {
         return new CustomReactiveAuthenticationManager(userService);
     }
-/*
+
+    /**
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

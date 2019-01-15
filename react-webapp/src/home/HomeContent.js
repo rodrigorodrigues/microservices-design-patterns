@@ -9,9 +9,7 @@ function HomeContent({logout}) {
             return <div>
                 {displayButtonManagePeople(authorities)}
                 <br />
-                <Button color="link">
-                    <Link to="/users">Manage Users</Link>
-                </Button>
+                {displayButtonManageUsers(authorities)}
                 <br />
                 <Button color="link" onClick={logout}>Logout</Button>
             </div>
@@ -33,11 +31,20 @@ function HomeContent({logout}) {
     </UserContext.Consumer> 
 }
 function displayButtonManagePeople(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_READ')
-    const myClass = isAdmin ? 'disabled' : ''
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_READ')
+    const myClass = hasManageReadAccess ? '' : 'disabled';
     return <Button color="link" className={myClass}>
         <Link to="/persons">Manage People</Link>
     </Button>
+}
+
+function displayButtonManageUsers(authorities) {
+    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
+    const myClass = isAdmin ? '' : 'disabled';
+    return <Button color="link" className={myClass}>
+    <Link to="/users">Manage Users</Link>
+</Button>
+
 }
 
 export default HomeContent
