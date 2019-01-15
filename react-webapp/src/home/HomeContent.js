@@ -7,9 +7,7 @@ function HomeContent({logout}) {
     const displayButton = (isAuthenticated, authorities) => {
         if (isAuthenticated) {
             return <div>
-                <Button color="link" className={authorities.some('ROLE_ADMIN', 'ROLE_READ') ? '' : 'disabled'}>
-                    <Link to="/persons">Manage People</Link>
-                </Button>
+                {displayButtonManagePeople(authorities)}
                 <br />
                 <Button color="link">
                     <Link to="/users">Manage Users</Link>
@@ -33,9 +31,13 @@ function HomeContent({logout}) {
             {displayButton(isAuthenticated, authorities)}
         </Container>}
     </UserContext.Consumer> 
-        
-        
-            
+}
+function displayButtonManagePeople(authorities) {
+    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_READ')
+    const myClass = isAdmin ? 'disabled' : ''
+    return <Button color="link" className={myClass}>
+        <Link to="/persons">Manage People</Link>
+    </Button>
 }
 
 export default HomeContent
