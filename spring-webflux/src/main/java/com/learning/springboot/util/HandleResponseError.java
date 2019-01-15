@@ -30,6 +30,7 @@ public class HandleResponseError {
      */
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex, boolean writeToResponse) {
         log.error("Error on calling api", ex);
+        log.error("Error on calling api:request: {}", exchange.getRequest().getPath().value());
         ServerHttpResponse response = exchange.getResponse();
         HttpStatus httpStatus = getHttpStatusError(ex);
         response.setStatusCode(httpStatus);

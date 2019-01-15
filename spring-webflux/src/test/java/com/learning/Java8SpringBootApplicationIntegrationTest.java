@@ -30,7 +30,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Java8SpringBootApplication.class,
-		properties = "configuration.swagger=false")
+		properties = {"configuration.swagger=false", "debug=true"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 public class Java8SpringBootApplicationIntegrationTest {
@@ -51,10 +51,11 @@ public class Java8SpringBootApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
     @Test
+	@DisplayName("Test - When Cal GET - /api/users should return list of people and response 200 - OK")
 	public void shouldReturnListOfPersonsWhenCallApi() {
 		String authorizationHeader = authenticate("master@gmail.com", "password123");
 
-		client.get().uri("/api/users")
+		client.get().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.exchange()
 				.expectStatus().isOk();
@@ -66,14 +67,14 @@ public class Java8SpringBootApplicationIntegrationTest {
 		String authorizationHeader = authenticate("master@gmail.com", "password123");
 		PersonDto person = createPerson();
 
-		client.post().uri("/api/users")
+		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromObject(convertToJson(person)))
 				.exchange()
 				.expectStatus().isCreated()
 				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-				.expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
+				.expectHeader().value(HttpHeaders.LOCATION, containsString("/api/persons/"))
 				.expectBody()
                     .jsonPath("$.id").isNotEmpty()
                     .jsonPath("$.createdByUser.email").isEqualTo("master@gmail.com");
@@ -87,7 +88,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 		PersonDto person = createPerson();
 		person.setFullName("");
 
-		client.post().uri("/api/users")
+		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromObject(convertToJson(person)))
@@ -103,7 +104,7 @@ public class Java8SpringBootApplicationIntegrationTest {
 
 		PersonDto person = createPerson();
 
-		client.post().uri("/api/users")
+		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromObject(convertToJson(person)))

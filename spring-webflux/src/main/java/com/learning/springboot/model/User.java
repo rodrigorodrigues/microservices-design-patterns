@@ -20,7 +20,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users")
+@Document(collection = "users_login")
 public class User extends GenericModel implements UserDetails {
     @Id
     private String id;

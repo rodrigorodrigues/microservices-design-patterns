@@ -1,8 +1,5 @@
 spring:
   profiles: default
-  data:
-    mongodb:
-      port: 0
   jackson:
     default-property-inclusion: non_null
 

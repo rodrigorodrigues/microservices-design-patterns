@@ -20,18 +20,18 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 /**
- * Rest API for users.
+ * Rest API for persons.
  */
 @Slf4j
 @RestController
-@Api(value = "users", description = "Methods for managing users")
+@Api(value = "persons", description = "Methods for managing persons")
 @RequestMapping("/api/persons")
 @AllArgsConstructor
 public class PersonController {
     private final PersonService personService;
 
     /**
-    @ApiOperation(value = "Api for return list of users")
+    @ApiOperation(value = "Api for return list of persons")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
     public Flux<ServerSentEvent<PersonDto>> findAll(@RequestHeader(value = "Last-Event-ID", required = false) String lastEventIdHeader,
@@ -40,7 +40,7 @@ public class PersonController {
         Integer lastEventId = generateLastEventId(lastEventIdHeader, lastEventIdRequestParam);
         return personService.findAll()
                 .map(p -> {
-                    log.debug("findAll:user: {}", p);
+                    log.debug("findAll:person: {}", p);
                     ServerSentEvent<PersonDto> message = ServerSentEvent.<PersonDto>builder()
                             .event("message")
                             .data(p)
@@ -51,7 +51,7 @@ public class PersonController {
                 });
     }
 */
-    @ApiOperation(value = "Api for return list of users")
+    @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
     public Flux<PersonDto> findAll() {
@@ -72,7 +72,7 @@ public class PersonController {
         return lastEventId;
     }
 
-    @ApiOperation(value = "Api for return a user by id")
+    @ApiOperation(value = "Api for return a person by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
     public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id) {
@@ -80,16 +80,16 @@ public class PersonController {
             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
-    @ApiOperation(value = "Api for creating a user")
+    @ApiOperation(value = "Api for creating a person")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'CREATE')")
     public Mono<ResponseEntity<PersonDto>> create(@RequestBody @ApiParam(required = true) PersonDto person) {
         return personService.save(person)
-                .map(p -> ResponseEntity.created(URI.create(String.format("/api/users/%s", p.getId())))
+                .map(p -> ResponseEntity.created(URI.create(String.format("/api/persons/%s", p.getId())))
                         .body(p));
     }
 
-    @ApiOperation(value = "Api for updating a user")
+    @ApiOperation(value = "Api for updating a person")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'SAVE')")
     public Mono<PersonDto> update(@RequestBody @ApiParam(required = true) PersonDto person,
@@ -100,7 +100,7 @@ public class PersonController {
                 .flatMap(personService::save);
     }
 
-    @ApiOperation(value = "Api for deleting a user")
+    @ApiOperation(value = "Api for deleting a person")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'DELETE')")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {

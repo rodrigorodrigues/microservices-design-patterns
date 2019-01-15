@@ -92,7 +92,7 @@ public class PersonControllerTest {
     @DisplayName("Test - When Cal GET - /api/users without valid authorization the response should be 403 - Forbidden")
     @WithMockUser(roles = "CREATE")
     public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() {
-        client.get().uri("/api/users")
+        client.get().uri("/api/persons")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isForbidden();
@@ -101,7 +101,7 @@ public class PersonControllerTest {
     @Test
     @DisplayName("Test - When Cal GET - /api/users without authorization the response should be 401 - Unauthorized")
     public void whenCallFindAllShouldReturnUnauthorizedWhenDoesNotHavePermission() {
-        client.get().uri("/api/users")
+        client.get().uri("/api/persons")
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
@@ -118,7 +118,7 @@ public class PersonControllerTest {
 
         ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
 
-        client.get().uri("/api/users")
+        client.get().uri("/api/persons")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isOk()
@@ -135,7 +135,7 @@ public class PersonControllerTest {
         person.setId("100");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
 
-        client.get().uri("/api/users/{id}", 100)
+        client.get().uri("/api/persons/{id}", 100)
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isOk()
@@ -150,7 +150,7 @@ public class PersonControllerTest {
         PersonDto personDto = createPersonDto();
         when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
-        client.post().uri("/api/users")
+        client.post().uri("/api/persons")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromObject(convertToJson(personDto)))
@@ -170,7 +170,7 @@ public class PersonControllerTest {
         when(personService.findById(anyString())).thenReturn(Mono.just(personDto));
         when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
-        client.put().uri("/api/users/{id}", personDto.getId())
+        client.put().uri("/api/persons/{id}", personDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromObject(convertToJson(personDto)))
@@ -189,7 +189,7 @@ public class PersonControllerTest {
         personDto.setId("999");
         when(personService.findById(anyString())).thenReturn(Mono.empty());
 
-        client.put().uri("/api/users/{id}", personDto.getId())
+        client.put().uri("/api/persons/{id}", personDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromObject(convertToJson(personDto)))
@@ -205,7 +205,7 @@ public class PersonControllerTest {
         Person person = new Person();
         person.setId("12345");
 
-        client.delete().uri("/api/users/{id}", person.getId())
+        client.delete().uri("/api/persons/{id}", person.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();

@@ -55,6 +55,7 @@ public class SpringSecurityConfiguration {
         "/configuration/security",
         "/swagger-ui.html",
         "/webjars/**",
+        "/null/**",
         // other public endpoints of your API may be appended to this array
         "/api/authenticate"
     };
@@ -72,9 +73,6 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .logout().disable()
-                .exceptionHandling()
-                    .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
-            .and()
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(WHITELIST).permitAll()
@@ -82,7 +80,10 @@ public class SpringSecurityConfiguration {
             .and()
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
                 .addFilterAt(logoutWebFilter(), SecurityWebFiltersOrder.LOGOUT)
-            .build();
+                .exceptionHandling()
+                .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
+            .and()
+                .build();
     }
 
     private AuthenticationWebFilter authenticationWebFilter() {

@@ -38,7 +38,7 @@ class PersonEdit extends Component {
       try {
         const person = await (await fetch(`/api/persons/${this.props.match.params.id}`)).json();
         person.authorities.forEach((authority, index) => {person.authorities[index] = authority.role});
-        this.setState({user: person});
+        this.setState({person: person});
       } catch (error) {
         this.setState({ displayError: errorMessage(error)});
       }
@@ -49,9 +49,9 @@ class PersonEdit extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let person = {...this.state.user};
+    let person = {...this.state.person};
     person[name] = value;
-    this.setState({user: person});
+    this.setState({person: person});
   }
 
   async handleSubmit(event) {

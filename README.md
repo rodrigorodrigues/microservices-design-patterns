@@ -6,26 +6,30 @@
 
 ### Install
 
+On `spring-webflux` folder
+
 `mvn clean package`
 
 ### Run Spring Boot
+
+On `spring-webflux` folder
 
 `mvn spring-boot:run` and access http://localhost:8080
 
 Default users are:
 
 ```
-admin/password
+admin@gmail.com/password
 
-master/password123
+master@gmail.com/password123
 
-test/test
+anonymous@gmail.com/test
 ```
 
 ### Run React Web app
 
 ```
-cd react-webapp
+On `react-webapp`
 
 sudo npm install
 
@@ -38,6 +42,7 @@ sudo npm start
 ### TODO List
 
 * [X] Java - Split Person and User in different entities
+* [X] Java - Split back-end and front-end in two different projects
 * [ ] Java - Add Cloud Foundry for deploy
 * [ ] Java - Add Test for Users Classes
 * [X] React - Create User List
