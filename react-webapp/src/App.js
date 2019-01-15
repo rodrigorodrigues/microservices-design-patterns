@@ -7,13 +7,16 @@ import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
 import UserContext from './UserContext';
 import UserList from "./user/UserList";
+import jwt_decode from 'jwt-decode';
+
 class App extends Component {
   state = {
     isLoading: true,
     isAuthenticated: false,
     user: null,
     error: null,
-    jwt: null
+    jwt: null,
+    authorities: []
   };
 
   async componentDidMount() {
@@ -25,7 +28,9 @@ class App extends Component {
   }
 
   setAuthentication = (data) => {
-    this.setState({ isAuthenticated: true, user: data.name, jwt: data.id_token });
+    let jwtDecoded = jwt_decode(data.id_token);
+    console.log("JWT Decoded: ", jwtDecoded);
+    this.setState({ isAuthenticated: true, user: jwtDecoded.name, jwt: data.id_token, authorities: jwtDecoded.authorities });
     localStorage.setItem('stateParent', JSON.stringify(this.state));
   }
 

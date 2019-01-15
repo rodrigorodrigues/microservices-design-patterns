@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import UserContext from '../UserContext';
 
 function HomeContent({logout}) {
-    const displayButton = (isAuthenticated) => {
+    const displayButton = (isAuthenticated, authorities) => {
         if (isAuthenticated) {
             return <div>
-                <Button color="link">
+                <Button color="link" className={authorities.some('ROLE_ADMIN', 'ROLE_READ') ? '' : 'disabled'}>
                     <Link to="/persons">Manage People</Link>
                 </Button>
                 <br />
@@ -24,13 +24,13 @@ function HomeContent({logout}) {
     }
     const displayMessage = (user) => {
         return user ?
-            <h2>Welcome, {user.name}!</h2> :
+            <h2>Welcome, {user}!</h2> :
             <p>Please log in to manage.</p>;
     }
     return <UserContext.Consumer >
-        {({user, isAuthenticated}) => <Container fluid>
+        {({user, isAuthenticated, authorities}) => <Container fluid>
             {displayMessage(user)}
-            {displayButton(isAuthenticated)}
+            {displayButton(isAuthenticated, authorities)}
         </Container>}
     </UserContext.Consumer> 
         

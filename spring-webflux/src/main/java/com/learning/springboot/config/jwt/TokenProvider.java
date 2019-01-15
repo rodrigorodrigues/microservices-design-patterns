@@ -14,10 +14,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +25,9 @@ public class TokenProvider {
 
     private final Logger log = LoggerFactory.getLogger(TokenProvider.class);
 
-    private static final String AUTHORITIES_KEY = "auth";
+    private static final String AUTHORITIES_KEY = "authorities";
+
+    private static final String NAME_KEY = "name";
 
     private Key key;
 
@@ -63,10 +62,11 @@ public class TokenProvider {
      * @param rememberMe boolean
      * @return jwt
      */
-    public String createToken(Authentication authentication, boolean rememberMe) {
-        String authorities = authentication.getAuthorities().stream()
+    public String createToken(Authentication authentication, String fullName, boolean rememberMe) {
+        String[] authorities = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.joining(","));
+            .collect(Collectors.toList())
+            .toArray(new String[] {});
 
         long now = (new Date()).getTime();
         Date validity;
@@ -76,9 +76,13 @@ public class TokenProvider {
             validity = new Date(now + this.tokenValidityInMilliseconds);
         }
 
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(AUTHORITIES_KEY, authorities);
+        claims.put(NAME_KEY, fullName);
+
         return Jwts.builder()
             .setSubject(authentication.getName())
-            .claim(AUTHORITIES_KEY, authorities)
+            .addClaims(claims)
             .signWith(key, SignatureAlgorithm.HS512)
             .setExpiration(validity)
             .compact();
@@ -95,8 +99,10 @@ public class TokenProvider {
             .parseClaimsJws(token)
             .getBody();
 
+        List<String> authoritiesToken = claims.get(AUTHORITIES_KEY, List.class);
         Collection<? extends GrantedAuthority> authorities =
-            Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+            authoritiesToken
+                .stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 

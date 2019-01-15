@@ -46,9 +46,9 @@ public class AuthenticateController {
                 .flatMap(a -> userService.findByEmail(loginDto.getUsername())
                 .map(u -> {
                     springSecurityAuditorAware.setCurrentAuthenticatedUser(userMapper.dtoToEntity(u));
-                    String jwt = "Bearer " + tokenProvider.createToken(a, loginDto.isRememberMe());
+                    String jwt = "Bearer " + tokenProvider.createToken(a, u.getFullName(), loginDto.isRememberMe());
                     return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
-                            .body(new JwtToken(jwt, u.getFullName()));
+                            .body(new JwtToken(jwt));
                 }));
     }
 
@@ -59,10 +59,7 @@ public class AuthenticateController {
     @NoArgsConstructor
     @AllArgsConstructor
     static class JwtToken {
-
         @JsonProperty("id_token")
         private String idToken;
-
-        private String name;
     }
 }
