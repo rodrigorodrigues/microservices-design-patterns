@@ -11,11 +11,17 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
     default Mono<UserDto> entityToDto(Mono<User> person) {
-        return person.map(p -> map(p));
+        return person.map(p -> {
+            p.setPassword(null);
+            return map(p);
+        });
     }
 
     default Flux<UserDto> entityToDto(Flux<User> persons) {
-        return persons.map(p -> map(p));
+        return persons.map(p -> {
+            p.setPassword(null);
+            return map(p);
+        });
     }
 
     User dtoToEntity(UserDto userDto);

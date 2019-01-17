@@ -53,7 +53,7 @@ public class PersonController {
 */
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'READ', 'SAVE', 'DELETE', 'CREATE')")
     public Flux<PersonDto> findAll() {
         return personService.findAll();
     }
@@ -74,7 +74,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for return a person by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'READ', 'SAVE')")
     public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id) {
         return personService.findById(id)
             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));

@@ -90,7 +90,7 @@ public class PersonControllerTest {
 
     @Test
     @DisplayName("Test - When Cal GET - /api/users without valid authorization the response should be 403 - Forbidden")
-    @WithMockUser(roles = "CREATE")
+    @WithMockUser(roles = "INVALID_ROLE")
     public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() {
         client.get().uri("/api/persons")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")

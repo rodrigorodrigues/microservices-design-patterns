@@ -31,17 +31,16 @@ function HomeContent({logout}) {
     </UserContext.Consumer> 
 }
 function displayButtonManagePeople(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_READ')
-    const myClass = hasManageReadAccess ? '' : 'disabled';
-    return <Button color="link" className={myClass}>
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_READ' 
+    || item === 'ROLE_CREATE' || item === 'ROLE_SAVE' || item === 'ROLE_DELETE')
+    return <Button color="link" disabled={!hasManageReadAccess}>
         <Link to="/persons">Manage People</Link>
     </Button>
 }
 
 function displayButtonManageUsers(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    const myClass = isAdmin ? '' : 'disabled';
-    return <Button color="link" className={myClass}>
+    return <Button color="link" disabled={!isAdmin}>
     <Link to="/users">Manage Users</Link>
 </Button>
 

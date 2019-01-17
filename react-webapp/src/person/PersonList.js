@@ -9,7 +9,7 @@ import { errorMessage } from '../common/Util';
 class PersonList extends Component {
   constructor(props) {
     super(props);
-    this.state = {persons: [], isLoading: true, jwt: props.jwt, displayError: null};
+    this.state = {persons: [], isLoading: true, jwt: props.jwt, displayError: null, authorities: props.authorities};
     this.remove = this.remove.bind(this);
   }
 
@@ -64,24 +64,30 @@ class PersonList extends Component {
   }
 
   render() {
-    const {persons, isLoading, displayError} = this.state;
+    const {persons, isLoading, displayError, authorities} = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
     }
 
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CREATE');
+
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_SAVE');
+
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_DELETE');
+
     const personList = persons.map(person => {
       const address = `${person.address.address || ''} ${person.address.city || ''} ${person.address.stateOrProvince || ''}`;
       return <tr key={person.id}>
-        <td style={{whiteSpace: 'nowrap'}}>{person.name}</td>
-        <td>{person.login}</td>
-        <td>{person.age}</td>
+        <td style={{whiteSpace: 'nowrap'}}>{person.fullName}</td>
+        <td>{person.createdByUser}</td>
+        <td>{person.dateOfBirth}</td>
         <td>{person.children ? <ChildModal person={person} /> : 'No Child'}</td>
         <td>{address}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/persons/" + person.id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove(person.id)}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/persons/" + person.id} disabled={!hasSaveAccess}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove(person.id)} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -92,14 +98,14 @@ class PersonList extends Component {
           <AppNavbar/>
           <Container fluid>
             <div className="float-right">
-              <Button color="success" tag={Link} to="/persons/new">Add Person</Button>
+              <Button color="success" tag={Link} to="/persons/new" disabled={!hasCreateAccess}>Add Person</Button>
             </div>
             <h3>Persons</h3>
             <Table className="mt-4">
               <thead>
               <tr>
                 <th width="10%">Name</th>
-                <th width="5%">Login</th>
+                <th width="5%">Created By User</th>
                 <th width="5%">Age</th>
                 <th width="5%">Children List</th>
                 <th width="15%">Location</th>

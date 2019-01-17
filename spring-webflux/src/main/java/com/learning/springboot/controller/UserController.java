@@ -26,6 +26,7 @@ import java.net.URI;
 @Api(value = "users", description = "Methods for managing users")
 @RequestMapping("/api/users")
 @AllArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     private final UserService userService;
 
@@ -38,7 +39,6 @@ public class UserController {
 
     @ApiOperation(value = "Api for return a user by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
     public Mono<UserDto> findById(@ApiParam(required = true) @PathVariable String id) {
         return userService.findById(id)
             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
@@ -46,7 +46,6 @@ public class UserController {
 
     @ApiOperation(value = "Api for creating a user")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'CREATE')")
     public Mono<ResponseEntity<UserDto>> create(@RequestBody @ApiParam(required = true) UserDto user) {
         return userService.save(user)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/users/%s", p.getId())))
@@ -55,7 +54,6 @@ public class UserController {
 
     @ApiOperation(value = "Api for updating a user")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SAVE')")
     public Mono<UserDto> update(@RequestBody @ApiParam(required = true) UserDto user,
                                                    @PathVariable @ApiParam(required = true) String id) {
         user.setId(id);
@@ -66,7 +64,6 @@ public class UserController {
 
     @ApiOperation(value = "Api for deleting a user")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DELETE')")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
         return userService.deleteById(id);
     }

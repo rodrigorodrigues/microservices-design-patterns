@@ -33,7 +33,7 @@ public class User extends GenericModel implements UserDetails {
     @NotEmpty
     private String fullName;
 
-    @NotEmpty @JsonIgnore
+    @NotEmpty
     private String password;
 
     @NotEmpty @Valid
