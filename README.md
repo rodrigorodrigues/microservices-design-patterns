@@ -8,7 +8,7 @@
 
 On `spring-webflux` folder
 
-`mvn clean package`
+`mvn clean package docker:build`
 
 ### Run Spring Boot
 
