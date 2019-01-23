@@ -45,6 +45,10 @@ sudo npm start
 * [X] Java - Split back-end and front-end in two different projects
 * [ ] Java - Add Cloud Foundry for deploy
 * [ ] Java - Add Test for Users Classes
+* [ ] Java - Add Spring Cloud Config
+* [ ] Java - Add Service Discovery(Eureka)
+* [ ] Java - Add Zuul(Gateway)
+* [X] Java - Add Maven Docker Plugin
 * [X] React - Create User List
 * [ ] React - Create User Page
 * [ ] React - Create User Edit
