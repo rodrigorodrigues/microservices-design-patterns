@@ -1,0 +1,8 @@
+spring:
+    application:
+        name: person-service
+    cloud:
+        config:
+            discovery:
+                enabled: true
+                service-id: config-server

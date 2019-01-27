@@ -1,0 +1,8 @@
+spring:
+    application:
+        name: edge-server
+    cloud:
+        config:
+            discovery:
+                enabled: true
+                service-id: config-server

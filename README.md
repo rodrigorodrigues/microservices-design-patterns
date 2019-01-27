@@ -42,11 +42,13 @@ sudo npm start
 ### TODO List
 
 * [X] Java - Split Person and User in different entities
-* [X] Java - Split back-end and front-end in two different projects
-* [ ] Java - Add Cloud Foundry for deploy
+* [X] Java - Split back-end and front-end in two different folders
+* [X] Java - Split Java 8 Learning in another folder
+~~* [ ] Java - Add Cloud Foundry for deploy~~
+* [ ] Java - Add Heroku for deploy
 * [ ] Java - Add Test for Users Classes
-* [ ] Java - Add Spring Cloud Config
-* [ ] Java - Add Service Discovery(Eureka)
+* [X] Java - Add Spring Cloud Config
+* [X] Java - Add Service Discovery(Eureka)
 * [ ] Java - Add Zuul(Gateway)
 * [X] Java - Add Maven Docker Plugin
 * [X] React - Create User List
