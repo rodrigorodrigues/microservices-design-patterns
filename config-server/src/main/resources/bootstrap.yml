@@ -7,7 +7,7 @@ spring:
             server:
                 git:
                     uri: https://github.com/rodrigorodrigues/java8-springboot.git
-		    clone-on-start: true
-		    searchPaths: config-server
+                    clone-on-start: true
+                    searchPaths: config-server
     application:
         name: config-server
