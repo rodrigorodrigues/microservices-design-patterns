@@ -8,3 +8,8 @@ configuration:
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000
+
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}
