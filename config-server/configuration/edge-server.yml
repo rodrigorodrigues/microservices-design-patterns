@@ -1,0 +1,6 @@
+zuul:
+    routes:
+        users:
+            path: /api/users/**
+            serviceId: user-service
+
