@@ -1,6 +1,7 @@
 package com.learning.springboot.util;
 
-import com.learning.springboot.model.User;
+import com.learning.springboot.constants.DefaultUsers;
+import com.learning.springboot.model.Authentication;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,24 +40,24 @@ public class ReactiveMongoMetadataUtil {
     public void init() {
         log.debug("ReactiveMongoMetadataUtil:init: {}", this);
 
-        recreateCollection(User.class).block();
-        log.debug("Dropped Collection for entity: {}", User.class);
-        createCappedCollection(User.class)
+        recreateCollection(Authentication.class).block();
+        log.debug("Dropped Collection for entity: {}", Authentication.class);
+        createCappedCollection(Authentication.class)
             .subscribe(c -> insertSystemDefaultUser());
     }
 
     private void insertSystemDefaultUser() {
         log.debug("insertSystemDefaultUser:init");
-        User user = User.builder()
-                .email("default@admin.com")
+        Authentication authentication = Authentication.builder()
+                .email(DefaultUsers.SYSTEM_DEFAULT.getValue())
                 .password(passwordEncoder.encode("noPassword"))
-                .fullName("System User")
+                .fullName("System Authentication")
                 .enabled(false)
                 .id(UUID.randomUUID().toString())
                 .build();
-        log.debug("Creating default user: {}", user);
-        mongoTemplate.save(user, "users_login")
-                .subscribe(u -> log.debug("Created Default User: {}", u));
+        log.debug("Creating default authentication: {}", authentication);
+        mongoTemplate.save(authentication, "users_login")
+                .subscribe(u -> log.debug("Created Default Authentication: {}", u));
         log.debug("insertSystemDefaultUser:end");
     }
 }

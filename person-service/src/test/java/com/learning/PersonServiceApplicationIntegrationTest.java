@@ -6,11 +6,7 @@ import com.learning.springboot.PersonServiceApplication;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.PersonDto;
 import com.learning.springboot.mapper.PersonMapper;
-import com.learning.springboot.model.Authority;
-import com.learning.springboot.model.User;
 import com.learning.springboot.repository.PersonRepository;
-import com.learning.springboot.repository.UserRepository;
-import com.learning.springboot.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,32 +14,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
-		properties = {"configuration.swagger=false", "debug=true"})
+		properties = {"configuration.swagger=false", "logging.level.com.learning.springboot=debug"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
-@Import(PersonServiceApplicationIntegrationTest.UserMockConfiguration.class)
 public class PersonServiceApplicationIntegrationTest {
 
 	@Autowired
@@ -64,50 +57,20 @@ public class PersonServiceApplicationIntegrationTest {
 	@Autowired
 	TokenProvider tokenProvider;
 
-	@Autowired
-	UserService userService;
+	Map<String, List<GrantedAuthority>> users = new HashMap<>();
 
-	@Configuration
-    static class UserMockConfiguration {
-	    @Autowired
-        UserRepository userRepository;
-
-	    @Autowired
-        PasswordEncoder passwordEncoder;
-
-	    @PostConstruct
-        public void init() {
-            userRepository.save(User.builder().email("admin@gmail.com")
-                .password(passwordEncoder.encode("password"))
-                .authorities(permissions("ROLE_ADMIN"))
-                .fullName("Admin dos Santos")
-                .build()).subscribe(u -> System.out.println(String.format("Created Admin User: %s", u)));
-
-            userRepository.save(User.builder().email("anonymous@gmail.com")
-                .password(passwordEncoder.encode("test"))
-                .authorities(permissions("ROLE_READ"))
-                .fullName("Anonymous Noname")
-                .build()).subscribe(u -> System.out.println(String.format("Created Anonymous User: %s", u)));
-
-            userRepository.save(User.builder().email("master@gmail.com")
-                .password(passwordEncoder.encode("password123"))
-                .authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
-                .fullName("Master of something")
-                .build()).subscribe(u -> System.out.println(String.format("Created Master User: %s", u)));
-
-        }
-
-        private List<Authority> permissions(String ... permissions) {
-            return Stream.of(permissions)
-                .map(Authority::new)
-                .collect(Collectors.toList());
-        }
+    {
+        users.put("admin@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        users.put("anonymous@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_PERSON_READ")));
+        users.put("master@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_PERSON_CREATE"),
+            new SimpleGrantedAuthority("ROLE_PERSON_READ"),
+            new SimpleGrantedAuthority("ROLE_PERSON_SAVE")));
     }
 
     @Test
 	@DisplayName("Test - When Cal GET - /api/persons should return list of people and response 200 - OK")
 	public void shouldReturnListOfPersonsWhenCallApi() {
-		String authorizationHeader = authenticate("master@gmail.com", "password123");
+		String authorizationHeader = authenticate("master@gmail.com");
 
 		client.get().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
@@ -118,7 +81,7 @@ public class PersonServiceApplicationIntegrationTest {
 	@Test
     @DisplayName("Test - When Cal POST - /api/persons should create a new user and response 201 - Created")
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
-		String authorizationHeader = authenticate("master@gmail.com", "password123");
+		String authorizationHeader = authenticate("master@gmail.com");
 		PersonDto person = createPerson();
 
 		client.post().uri("/api/persons")
@@ -137,7 +100,7 @@ public class PersonServiceApplicationIntegrationTest {
 	@Test
     @DisplayName("Test - When Cal POST - /api/persons without mandatory field should response 400 - Bad Request")
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws JsonProcessingException {
-		String authorizationHeader = authenticate("admin@gmail.com", "password");
+		String authorizationHeader = authenticate("admin@gmail.com");
 
 		PersonDto person = createPerson();
 		person.setFullName("");
@@ -154,7 +117,7 @@ public class PersonServiceApplicationIntegrationTest {
 	@Test
     @DisplayName("Test - When Cal POST - /api/persons without valid authorization should response 403 - Forbidden")
 	public void shouldResponseForbiddenWhenCallApiWithoutRightPermission() throws Exception {
-		String authorizationHeader = authenticate("anonymous@gmail.com", "test");
+		String authorizationHeader = authenticate("anonymous@gmail.com");
 
 		PersonDto person = createPerson();
 
@@ -166,11 +129,12 @@ public class PersonServiceApplicationIntegrationTest {
 				.expectStatus().isForbidden();
 	}
 
-	private String authenticate(String user, String password) {
-		return userService.findByUsername(user)
-				.map(u -> tokenProvider.createToken(new UsernamePasswordAuthenticationToken(u, password, u.getAuthorities()), "Something", false))
-				.map(t -> "Bearer " + t)
-				.block();
+	private String authenticate(String user) {
+        if (users.containsKey(user)) {
+            return "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken(user, null, users.get(user)), "Something", false);
+        } else {
+            return null;
+        }
 	}
 
 	private PersonDto createPerson() {

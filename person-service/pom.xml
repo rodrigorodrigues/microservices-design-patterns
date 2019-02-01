@@ -28,58 +28,8 @@
 
 <dependencies>
     <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-swagger2</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-swagger-ui</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-spring-webflux</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-api</artifactId>
-        <version>0.10.5</version>
-    </dependency>
-
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-impl</artifactId>
-        <scope>runtime</scope>
-        <version>0.10.5</version>
-    </dependency>
-
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-jackson</artifactId>
-        <scope>runtime</scope>
-        <version>0.10.5</version>
-    </dependency>
-
-    <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-configuration-processor</artifactId>
-        <optional>true</optional>
-    </dependency>
-
-    <dependency>
-        <groupId>org.glassfish</groupId>
-        <artifactId>javax.el</artifactId>
-        <version>3.0.1-b11</version>
-    </dependency>
-
-    <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
+        <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
     </dependency>
 
     <dependency>

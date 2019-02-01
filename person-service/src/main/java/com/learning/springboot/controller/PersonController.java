@@ -33,7 +33,7 @@ public class PersonController {
     /**
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ')")
     public Flux<ServerSentEvent<PersonDto>> findAll(@RequestHeader(value = "Last-Event-ID", required = false) String lastEventIdHeader,
                                                     @RequestParam(value = "lastEventId", required = false) String lastEventIdRequestParam) {
         log.debug("findAll:lastEventIdHeader: {}\tlastEventIdRequestParam: {}", lastEventIdHeader, lastEventIdRequestParam);
@@ -53,7 +53,7 @@ public class PersonController {
 */
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ', 'SAVE', 'DELETE', 'CREATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE')")
     public Flux<PersonDto> findAll() {
         return personService.findAll();
     }
@@ -74,7 +74,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for return a person by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ', 'SAVE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE')")
     public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id) {
         return personService.findById(id)
             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
@@ -82,7 +82,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for creating a person")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'CREATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE')")
     public Mono<ResponseEntity<PersonDto>> create(@RequestBody @ApiParam(required = true) PersonDto person) {
         return personService.save(person)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/persons/%s", p.getId())))
@@ -91,7 +91,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for updating a person")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SAVE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_SAVE')")
     public Mono<PersonDto> update(@RequestBody @ApiParam(required = true) PersonDto person,
                                   @PathVariable @ApiParam(required = true) String id) {
         person.setId(id);
@@ -102,7 +102,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for deleting a person")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DELETE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE')")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
         return personService.deleteById(id);
     }

@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.learning.springboot.config.SpringSecurityAuditorAware;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.LoginDto;
-import com.learning.springboot.mapper.UserMapper;
-import com.learning.springboot.service.UserService;
+import com.learning.springboot.service.AuthenticationService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,21 +31,19 @@ public class AuthenticateController {
 
     private final ReactiveAuthenticationManager authenticationManager;
 
-    private final UserService userService;
+    private final AuthenticationService authenticationService;
 
     private final SpringSecurityAuditorAware springSecurityAuditorAware;
 
-    private final UserMapper userMapper;
-
-    @PostMapping
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<JwtToken>> authenticate(@RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
         return this.authenticationManager.authenticate(authenticationToken)
-                .flatMap(a -> userService.findByEmail(loginDto.getUsername())
+                .flatMap(a -> authenticationService.findByEmail(loginDto.getUsername())
                 .map(u -> {
-                    springSecurityAuditorAware.setCurrentAuthenticatedUser(userMapper.dtoToEntity(u));
+                    springSecurityAuditorAware.setCurrentAuthenticatedAuthentication(u);
                     String jwt = "Bearer " + tokenProvider.createToken(a, u.getFullName(), loginDto.isRememberMe());
                     return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
                             .body(new JwtToken(jwt));

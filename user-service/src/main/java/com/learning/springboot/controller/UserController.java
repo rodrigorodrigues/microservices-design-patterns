@@ -32,7 +32,6 @@ public class UserController {
 
     @ApiOperation(value = "Api for return list of users")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'READ')")
     public Flux<UserDto> findAll() {
         return userService.findAll();
     }

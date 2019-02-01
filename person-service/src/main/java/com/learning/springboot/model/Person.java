@@ -4,13 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "users")
-public class Person extends GenericModel {
+public class Person implements Serializable {
     @Id
     private String id;
 
@@ -35,4 +37,17 @@ public class Person extends GenericModel {
 
     @NotNull @Valid
     private Address address;
+
+    @CreatedBy
+    private String createdByUser;
+
+    @CreatedDate
+    private Instant createdDate = Instant.now();
+
+    @LastModifiedBy
+    private String lastModifiedByUser;
+
+    @LastModifiedDate
+    private Instant lastModifiedDate = Instant.now();
+
 }

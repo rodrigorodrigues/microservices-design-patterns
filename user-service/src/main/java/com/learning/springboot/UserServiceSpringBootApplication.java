@@ -40,13 +40,13 @@ public class UserServiceSpringBootApplication {
 
             userRepository.save(User.builder().email("anonymous@gmail.com")
                     .password(passwordEncoder.encode("test"))
-                    .authorities(permissions("ROLE_READ"))
+                    .authorities(permissions("ROLE_PERSON_READ"))
                     .fullName("Anonymous Noname")
                     .build()).subscribe(u -> log.debug("Created Anonymous User: {}", u));
 
             userRepository.save(User.builder().email("master@gmail.com")
                     .password(passwordEncoder.encode("password123"))
-                    .authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
+                    .authorities(permissions("ROLE_PERSON_CREATE", "ROLE_PERSON_READ", "ROLE_PERSON_SAVE"))
                     .fullName("Master of something")
                     .build()).subscribe(u -> log.debug("Created Master User: {}", u));
 

@@ -24,7 +24,7 @@ public class PersonDto {
     private LocalDate dateOfBirth;
     private List<ChildrenDto> children;
     private Address address;
-    private CreatedByUser createdByUser;
+    private String createdByUser;
 
     @Data
     @NoArgsConstructor
@@ -32,14 +32,6 @@ public class PersonDto {
     public static class ChildrenDto {
         private String name;
         private Integer age;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class CreatedByUser {
-        private String email;
-        private String fullName;
     }
 
     @Data

@@ -1,6 +1,6 @@
 package com.learning.springboot.config;
 
-import com.learning.springboot.repository.AuthenticationRepository;
+import com.learning.springboot.repository.PersonRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
@@ -9,6 +9,6 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
 @ConditionalOnProperty(prefix = "configuration", name = "mongo", havingValue = "true", matchIfMissing = true)
 @Configuration
 @EnableMongoAuditing
-@EnableReactiveMongoRepositories(basePackageClasses = AuthenticationRepository.class)
+@EnableReactiveMongoRepositories(basePackageClasses = PersonRepository.class)
 public class MongoConfiguration {
 }
