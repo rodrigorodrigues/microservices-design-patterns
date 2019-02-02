@@ -27,7 +27,7 @@ user-service
 
 ### Run Node.js app
 
-On `nodejs-service` folder and access by http://localhost:3000
+On `nodejs-service` folder run the following commands:
 
 ```
 sudo npm install
