@@ -70,11 +70,11 @@ class PersonList extends Component {
       return <p>Loading...</p>;
     }
 
-    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CREATE');
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE');
 
-    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_SAVE');
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_SAVE');
 
-    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_DELETE');
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_DELETE');
 
     const personList = persons.map(person => {
       const address = `${person.address.address || ''} ${person.address.city || ''} ${person.address.stateOrProvince || ''}`;

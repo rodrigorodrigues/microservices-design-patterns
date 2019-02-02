@@ -31,8 +31,8 @@ function HomeContent({logout}) {
     </UserContext.Consumer> 
 }
 function displayButtonManagePeople(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_READ' 
-    || item === 'ROLE_CREATE' || item === 'ROLE_SAVE' || item === 'ROLE_DELETE')
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
+    || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE')
     return <Button color="link" disabled={!hasManageReadAccess}>
         <Link to="/persons">Manage People</Link>
     </Button>

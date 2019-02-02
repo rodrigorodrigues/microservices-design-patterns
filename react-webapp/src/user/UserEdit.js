@@ -124,7 +124,7 @@ class UserEdit extends Component {
                      required
                      multiple
                      onChange={this.handleChange}>
-              {['ROLE_ADMIN', 'ROLE_CREATE', 'ROLE_READ', 'ROLE_SAVE', 'ROLE_DELETE']
+              {['ROLE_ADMIN', 'ROLE_PERSON_CREATE', 'ROLE_PERSON_READ', 'ROLE_PERSON_SAVE', 'ROLE_PERSON_DELETE']
                   .map(role => <option value={role} key={role}>{role}</option>)}
             </AvInput>
             <AvFeedback>
