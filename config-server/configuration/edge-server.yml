@@ -1,6 +1,6 @@
-zuul:
-    routes:
-        users:
-            path: /api/users/**
-            serviceId: user-service
-
+#zuul:
+#    routes:
+#        users:
+#            path: /api/users/**
+#            serviceId: user-service
+#
