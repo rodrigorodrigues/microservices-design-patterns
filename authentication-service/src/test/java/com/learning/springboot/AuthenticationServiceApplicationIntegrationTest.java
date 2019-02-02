@@ -41,7 +41,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
-		properties = {"configuration.swagger=false", "logging.level.com.learning.springboot=debug"})
+		properties = "configuration.swagger=false")
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 @Import(AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)

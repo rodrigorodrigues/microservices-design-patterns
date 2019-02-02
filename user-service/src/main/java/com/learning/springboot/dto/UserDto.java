@@ -19,6 +19,7 @@ public class UserDto {
     private String confirmPassword;
     private String email;
     private String fullName;
+    private String createdByUser;
 
     private List<AuthorityDto> authorities;
 

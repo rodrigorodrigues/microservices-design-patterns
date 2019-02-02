@@ -1,7 +1,6 @@
 package com.learning.springboot.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.learning.springboot.config.SpringSecurityAuditorAware;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.LoginDto;
 import com.learning.springboot.service.AuthenticationService;
@@ -33,8 +32,6 @@ public class AuthenticateController {
 
     private final AuthenticationService authenticationService;
 
-    private final SpringSecurityAuditorAware springSecurityAuditorAware;
-
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<JwtToken>> authenticate(@RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -43,7 +40,6 @@ public class AuthenticateController {
         return this.authenticationManager.authenticate(authenticationToken)
                 .flatMap(a -> authenticationService.findByEmail(loginDto.getUsername())
                 .map(u -> {
-                    springSecurityAuditorAware.setCurrentAuthenticatedAuthentication(u);
                     String jwt = "Bearer " + tokenProvider.createToken(a, u.getFullName(), loginDto.isRememberMe());
                     return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
                             .body(new JwtToken(jwt));

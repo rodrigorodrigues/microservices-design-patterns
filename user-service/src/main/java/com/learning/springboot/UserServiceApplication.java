@@ -22,9 +22,10 @@ import java.util.stream.Stream;
 @Slf4j
 @SpringBootApplication
 @EnableDiscoveryClient
-public class UserServiceSpringBootApplication {
+public class UserServiceApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(UserServiceSpringBootApplication.class, args);
+        SpringApplication.run(UserServiceApplication.class, args);
     }
 
     @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)

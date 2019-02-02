@@ -18,8 +18,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<dockerfile-maven-plugin.version>1.3.4</dockerfile-maven-plugin.version>
-        <docker.env.JAVA_OPTS>-Xmx512m</docker.env.JAVA_OPTS>
 	</properties>
 
 	<dependencies>

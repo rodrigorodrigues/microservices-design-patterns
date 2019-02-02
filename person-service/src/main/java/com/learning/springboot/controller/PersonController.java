@@ -1,5 +1,6 @@
 package com.learning.springboot.controller;
 
+import com.learning.springboot.config.SpringSecurityAuditorAware;
 import com.learning.springboot.dto.PersonDto;
 import com.learning.springboot.service.PersonService;
 import io.swagger.annotations.Api;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
@@ -29,6 +32,8 @@ import java.net.URI;
 @AllArgsConstructor
 public class PersonController {
     private final PersonService personService;
+
+    private final SpringSecurityAuditorAware springSecurityAuditorAware;
 
     /**
     @ApiOperation(value = "Api for return list of persons")
@@ -83,7 +88,9 @@ public class PersonController {
     @ApiOperation(value = "Api for creating a person")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE')")
-    public Mono<ResponseEntity<PersonDto>> create(@RequestBody @ApiParam(required = true) PersonDto person) {
+    public Mono<ResponseEntity<PersonDto>> create(@RequestBody @ApiParam(required = true) PersonDto person,
+                                                  @AuthenticationPrincipal Authentication authentication) {
+        springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         return personService.save(person)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/persons/%s", p.getId())))
                         .body(p));
@@ -93,7 +100,9 @@ public class PersonController {
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_SAVE')")
     public Mono<PersonDto> update(@RequestBody @ApiParam(required = true) PersonDto person,
-                                  @PathVariable @ApiParam(required = true) String id) {
+                                  @PathVariable @ApiParam(required = true) String id,
+                                  @AuthenticationPrincipal Authentication authentication) {
+        springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         person.setId(id);
         return personService.findById(id)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))

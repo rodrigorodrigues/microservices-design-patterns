@@ -6,27 +6,23 @@ import org.mapstruct.Mapper;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    default Mono<UserDto> entityToDto(Mono<User> person) {
-        return person.map(p -> {
+    default Mono<UserDto> entityToDto(Mono<User> users) {
+        return users.map(p -> {
             p.setPassword(null);
             return map(p);
         });
     }
 
-    default Flux<UserDto> entityToDto(Flux<User> persons) {
-        return persons.map(p -> {
+    default Flux<UserDto> entityToDto(Flux<User> users) {
+        return users.map(p -> {
             p.setPassword(null);
             return map(p);
         });
     }
 
     User dtoToEntity(UserDto userDto);
-
-    List<User> map(List<UserDto> users);
 
     UserDto map(User user);
 }

@@ -1,5 +1,6 @@
 package com.learning.springboot.controller;
 
+import com.learning.springboot.config.SpringSecurityAuditorAware;
 import com.learning.springboot.dto.UserDto;
 import com.learning.springboot.service.UserService;
 import io.swagger.annotations.Api;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
@@ -30,6 +33,8 @@ import java.net.URI;
 public class UserController {
     private final UserService userService;
 
+    private final SpringSecurityAuditorAware springSecurityAuditorAware;
+
     @ApiOperation(value = "Api for return list of users")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<UserDto> findAll() {
@@ -45,7 +50,9 @@ public class UserController {
 
     @ApiOperation(value = "Api for creating a user")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<UserDto>> create(@RequestBody @ApiParam(required = true) UserDto user) {
+    public Mono<ResponseEntity<UserDto>> create(@RequestBody @ApiParam(required = true) UserDto user,
+                                                @AuthenticationPrincipal Authentication authentication) {
+        springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         return userService.save(user)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/users/%s", p.getId())))
                         .body(p));
@@ -54,7 +61,9 @@ public class UserController {
     @ApiOperation(value = "Api for updating a user")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<UserDto> update(@RequestBody @ApiParam(required = true) UserDto user,
-                                                   @PathVariable @ApiParam(required = true) String id) {
+                                                   @PathVariable @ApiParam(required = true) String id,
+                                @AuthenticationPrincipal Authentication authentication) {
+        springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         user.setId(id);
         return userService.findById(id)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))

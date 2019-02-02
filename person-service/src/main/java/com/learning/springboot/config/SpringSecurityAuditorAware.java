@@ -1,9 +1,9 @@
 package com.learning.springboot.config;
 
 import com.learning.springboot.constants.DefaultUsers;
-import com.learning.springboot.model.Authentication;
 import lombok.Setter;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -15,7 +15,7 @@ import java.util.Optional;
 public class SpringSecurityAuditorAware implements AuditorAware<String> {
 
     @Setter
-    private Authentication currentAuthenticatedAuthentication;
+    private Authentication currentAuthenticatedUser;
 
     /**
      * Return current logged user or default.
@@ -24,9 +24,9 @@ public class SpringSecurityAuditorAware implements AuditorAware<String> {
      */
     @Override
     public Optional<String> getCurrentAuditor() {
-        if (currentAuthenticatedAuthentication != null) {
-            return Optional.of(currentAuthenticatedAuthentication)
-                .map(u -> u.getUsername() + " - " + u.getFullName());
+        if (currentAuthenticatedUser != null) {
+            return Optional.of(currentAuthenticatedUser)
+                .map(Authentication::getName);
         } else {
             return Optional.of(DefaultUsers.SYSTEM_DEFAULT.getValue());
         }

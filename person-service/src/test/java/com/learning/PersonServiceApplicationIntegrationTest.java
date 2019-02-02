@@ -5,15 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learning.springboot.PersonServiceApplication;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.PersonDto;
-import com.learning.springboot.mapper.PersonMapper;
-import com.learning.springboot.repository.PersonRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,19 +31,10 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
-		properties = {"configuration.swagger=false", "logging.level.com.learning.springboot=debug"})
+		properties = "configuration.swagger=false")
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 public class PersonServiceApplicationIntegrationTest {
-
-	@Autowired
-	ApplicationContext context;
-
-	@Autowired
-    PersonMapper personMapper;
-
-	@Autowired
-    PersonRepository personRepository;
 
 	@Autowired
 	WebTestClient client;
@@ -70,7 +58,7 @@ public class PersonServiceApplicationIntegrationTest {
     @Test
 	@DisplayName("Test - When Cal GET - /api/persons should return list of people and response 200 - OK")
 	public void shouldReturnListOfPersonsWhenCallApi() {
-		String authorizationHeader = authenticate("master@gmail.com");
+		String authorizationHeader = authorizationHeader("master@gmail.com");
 
 		client.get().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
@@ -79,9 +67,9 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
 	@Test
-    @DisplayName("Test - When Cal POST - /api/persons should create a new user and response 201 - Created")
+    @DisplayName("Test - When Cal POST - /api/persons should create a new person and response 201 - Created")
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
-		String authorizationHeader = authenticate("master@gmail.com");
+		String authorizationHeader = authorizationHeader("master@gmail.com");
 		PersonDto person = createPerson();
 
 		client.post().uri("/api/persons")
@@ -93,14 +81,14 @@ public class PersonServiceApplicationIntegrationTest {
 				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
 				.expectHeader().value(HttpHeaders.LOCATION, containsString("/api/persons/"))
 				.expectBody()
-                    .jsonPath("$.id").isNotEmpty();
-                    //.jsonPath("$.createdByUser.email").isEqualTo("master@gmail.com");
+                    .jsonPath("$.id").isNotEmpty()
+                    .jsonPath("$.createdByUser").isEqualTo("master@gmail.com");
 	}
 
 	@Test
     @DisplayName("Test - When Cal POST - /api/persons without mandatory field should response 400 - Bad Request")
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws JsonProcessingException {
-		String authorizationHeader = authenticate("admin@gmail.com");
+		String authorizationHeader = authorizationHeader("admin@gmail.com");
 
 		PersonDto person = createPerson();
 		person.setFullName("");
@@ -117,7 +105,7 @@ public class PersonServiceApplicationIntegrationTest {
 	@Test
     @DisplayName("Test - When Cal POST - /api/persons without valid authorization should response 403 - Forbidden")
 	public void shouldResponseForbiddenWhenCallApiWithoutRightPermission() throws Exception {
-		String authorizationHeader = authenticate("anonymous@gmail.com");
+		String authorizationHeader = authorizationHeader("anonymous@gmail.com");
 
 		PersonDto person = createPerson();
 
@@ -129,7 +117,7 @@ public class PersonServiceApplicationIntegrationTest {
 				.expectStatus().isForbidden();
 	}
 
-	private String authenticate(String user) {
+	private String authorizationHeader(String user) {
         if (users.containsKey(user)) {
             return "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken(user, null, users.get(user)), "Something", false);
         } else {

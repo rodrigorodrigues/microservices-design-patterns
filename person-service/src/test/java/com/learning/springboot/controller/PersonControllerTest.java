@@ -3,13 +3,13 @@ package com.learning.springboot.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learning.springboot.config.Java8SpringConfigurationProperties;
+import com.learning.springboot.config.SpringSecurityAuditorAware;
 import com.learning.springboot.config.SpringSecurityConfiguration;
 import com.learning.springboot.config.jwt.TokenProvider;
 import com.learning.springboot.dto.PersonDto;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.service.PersonService;
 import com.learning.springboot.util.HandleResponseError;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +24,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -45,9 +43,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {
         "configuration.initialLoad=false",
-        "configuration.mongo=false",
-        "debug=true",
-        "logging.level.org.springframework=debug"},
+        "configuration.mongo=false"},
 controllers = PersonController.class, excludeAutoConfiguration = MongoReactiveAutoConfiguration.class)
 @Import({SpringSecurityConfiguration.class, HandleResponseError.class, ErrorWebFluxAutoConfiguration.class})
 @EnableConfigurationProperties(Java8SpringConfigurationProperties.class)
@@ -65,15 +61,11 @@ public class PersonControllerTest {
     @MockBean
     TokenProvider tokenProvider;
 
+    @MockBean
+    SpringSecurityAuditorAware springSecurityAuditorAware;
+
     @Autowired
     ObjectMapper objectMapper;
-
-    @BeforeEach
-    public void setup() {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("admin@gmail.com", "admin", Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        when(tokenProvider.validateToken(anyString())).thenReturn(true);
-        when(tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
-    }
 
     @Test
     @DisplayName("Test - When Cal GET - /api/persons without valid authorization the response should be 403 - Forbidden")
@@ -115,7 +107,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/persons/{id} with valid authorization the response should be user - 200 - OK")
+    @DisplayName("Test - When Cal GET - /api/persons/{id} with valid authorization the response should be person - 200 - OK")
     @WithMockUser(roles = "PERSON_READ")
     public void whenCallFindByIdShouldReturnPerson() {
         PersonDto person = new PersonDto();
@@ -131,7 +123,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/persons with valid authorization the response should be a user - 201 - Created")
+    @DisplayName("Test - When Cal POST - /api/persons with valid authorization the response should be a person - 201 - Created")
     @WithMockUser(roles = "PERSON_CREATE")
     public void whenCallCreateShouldSavePerson() throws Exception {
         PersonDto personDto = createPersonDto();
@@ -148,7 +140,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal PUT - /api/persons/{id} with valid authorization the response should be a user - 200 - OK")
+    @DisplayName("Test - When Cal PUT - /api/persons/{id} with valid authorization the response should be a person - 200 - OK")
     @WithMockUser(roles = "PERSON_SAVE")
     public void whenCallUpdateShouldUpdatePerson() throws Exception {
         PersonDto personDto = createPersonDto();
@@ -169,7 +161,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal PUT - /api/persons/{id} with invalid id the response should 404 - Not Found")
+    @DisplayName("Test - When Cal PUT - /api/persons/{id} with invalid id the response should be 404 - Not Found")
     @WithMockUser(roles = "PERSON_SAVE")
     public void whenCallUpdateShouldResponseNotFound() throws Exception {
         PersonDto personDto = createPersonDto();
