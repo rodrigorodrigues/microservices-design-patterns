@@ -3,7 +3,7 @@ spring:
         config:
             server:
                 git:
-                    uri: https://github.com/rodrigorodrigues/java8-springboot.git
+                    uri: https://github.com/rodrigorodrigues/springboot2-cloud-webflux-node-react.git
                     clone-on-start: true
                     searchPaths: config-server/configuration
     application:
