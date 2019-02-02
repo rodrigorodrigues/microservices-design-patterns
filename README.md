@@ -1,4 +1,4 @@
-## Java 8 + Spring Boot 2 + WebFlux + React
+## Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js
 
 ### Prerequisites
  * JDK 1.8
@@ -6,17 +6,25 @@
 
 ### Install
 
-On `spring-webflux` folder
+On `root` folder
 
 `mvn clean package docker:build`
 
 ### Run Spring Boot
 
-On `spring-webflux` folder
+On `microservices folders` run `mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"`.
 
-`mvn spring-boot:run` and access http://localhost:8080
+### Run React Web app
 
-Default users are:
+On `react-webapp` folder and access by http://localhost:3000
+
+```
+sudo npm install
+
+sudo npm start
+```
+
+Following list of default users:
 
 ```
 admin@gmail.com/password
@@ -26,18 +34,8 @@ master@gmail.com/password123
 anonymous@gmail.com/test
 ```
 
-### Run React Web app
-
-```
-On `react-webapp`
-
-sudo npm install
-
-sudo npm start
-```
-
-### Swagger
-[Swagger](http://localhost:8080/swagger-ui.html)
+### Swagger UI for Person and User Services
+[Swagger UI](http://localhost:{PORT}/swagger-ui.html)
 
 ### TODO List
 
