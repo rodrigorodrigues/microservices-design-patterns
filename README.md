@@ -1,22 +1,33 @@
-## Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js
+## Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js + MongoDB
 
 ### Prerequisites
  * JDK 1.8
  * Maven
+ * Docker/Docker Compose
 
 ### Install
 
-On `root` folder
+On `root folder`
 
 `mvn clean package docker:build`
 
 ### Run Spring Boot
 
-On `microservices folders` run `mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"`.
+Run `mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"` in the following `Microservices folders`
 
-### Run React Web app
+```
+eureka-server
+config-server
+edge-server
+admin-server
+authentication-service
+person-service
+user-service
+```
 
-On `react-webapp` folder and access by http://localhost:3000
+### Run Node.js app
+
+On `nodejs-service` folder and access by http://localhost:3000
 
 ```
 sudo npm install
@@ -24,7 +35,19 @@ sudo npm install
 sudo npm start
 ```
 
-Following list of default users:
+### Run React Web app
+
+On `react-webapp` folder run the following commands:
+
+```
+sudo npm install
+
+sudo npm start
+```
+
+After that access the app by http://localhost:3000
+
+Following list of default users for login:
 
 ```
 admin@gmail.com/password
