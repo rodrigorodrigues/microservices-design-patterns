@@ -31,7 +31,6 @@
         <module>eureka-server</module>
         <module>config-server</module>
         <module>web-common</module>
-        <module>java8-learning</module>
         <module>authentication-service</module>
         <module>edge-server</module>
         <module>user-service</module>
