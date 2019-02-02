@@ -1,0 +1,35 @@
+{
+    "name": "express-test",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon --exec 'npm start'",
+        "test-func": "export NODE_ENV=test && mocha test/funcional/**/*.js",
+        "test": "mocha test/unit/**/*.js",
+        "test-watch": "nodemon --exec 'npm test-func'"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "cookie-parser": "1.4.3",
+        "express": "^4.16.3",
+        "lodash": "^4.17.10",
+        "mongodb": "^3.1.6",
+        "mongoose": "^5.2.15",
+        "multer": "1.2.0",
+        "q": "^1.4.1",
+        "jsonwebtoken": "8.4.0",
+        "cors": "2.8.5",
+        "eureka-js-client": "4.4.2"
+    },
+    "devDependencies": {
+        "chai": "3.5.0",
+        "expect": "^1.20.2",
+        "mocha": "3.1.2",
+        "supertest": "^2.0.1"
+    }
+}

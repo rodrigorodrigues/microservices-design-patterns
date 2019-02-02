@@ -1,0 +1,33 @@
+{
+    "recipes" : [
+        {
+            "name": "Veg",
+            "weekDay": 5,
+            "mainMeal": {
+                "value": "fish",
+                "label": "Fish",
+                "icon": "veg-4.png"
+            }
+        },
+        {
+            "name": "Cod",
+            "weekDay": 3,
+            "mainMeal": {
+                "value": "veg",
+                "label": "Veg",
+                "icon": "fish.png"
+            }
+        },
+        {
+            "name": "Chicken wings",
+            "weekDay": 6,
+            "mainMeal": {
+                "value": "chicken",
+                "label": "Chicken",
+                "icon": "chicken-3.png"
+            }
+        }
+    ]
+}
+
+
