@@ -5,6 +5,7 @@ zuul:
         users-service:
             path: /api/users/**
             serviceId: user-service
+            stripPrefix: false
             sensitiveHeaders:
         person-service:
             path: /api/persons/**
@@ -14,8 +15,10 @@ zuul:
         authentication-service:
             path: /api/authenticate
             serviceId: authentication-service
+            stripPrefix: false
             sensitiveHeaders:
         week-menu-api-service:
             path: /week-menu/**
             serviceId: week-menu-api
+            stripPrefix: false
             sensitiveHeaders:
