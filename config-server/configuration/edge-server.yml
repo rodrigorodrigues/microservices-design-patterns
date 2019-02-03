@@ -1,15 +1,14 @@
 zuul:
     ignoredServices: '*'
-    prefix: /api
     routes:
         users-service:
-            path: /users/**
+            path: /api/users/**
             serviceId: user-service
         person-service:
-            path: /persons/**
+            path: /api/persons/**
             serviceId: person-service
         authentication-service:
-            path: /authenticate
+            path: /api/authenticate
             serviceId: authentication-service
         week-menu-api-service:
             path: /week-menu/**
