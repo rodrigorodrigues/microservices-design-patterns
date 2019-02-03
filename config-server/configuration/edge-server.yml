@@ -9,6 +9,7 @@ zuul:
         person-service:
             path: /api/persons/**
             serviceId: person-service
+            stripPrefix: false
             sensitiveHeaders:
         authentication-service:
             path: /api/authenticate
