@@ -1,5 +1,6 @@
 zuul:
     ignoredServices: '*'
+    ignored-headers: Access-Control-Allow-Credentials, Access-Control-Allow-Origin
     routes:
         users-service:
             path: /api/users/**
