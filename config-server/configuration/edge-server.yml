@@ -1,6 +1,16 @@
-#zuul:
-#    routes:
-#        users:
-#            path: /api/users/**
-#            serviceId: user-service
-#
+zuul:
+    ignoredServices: '*'
+    prefix: /api
+    routes:
+        users-service:
+            path: /users/**
+            serviceId: user-service
+        person-service:
+            path: /persons/**
+            serviceId: person-service
+        authentication-service:
+            path: /authenticate
+            serviceId: authentication-service
+        week-menu-api-service:
+            path: /week-menu/**
+            serviceId: week-menu-api
