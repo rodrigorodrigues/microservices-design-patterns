@@ -15,8 +15,6 @@ const bodyParser = require('body-parser');
 
 const port = process.env.PORT;
 
-const secretKey = process.env.SECRET_KEY;
-
 //TODO security change this later
 const whiteList = ['localhost:8100', 'localhost:3000', 'localhost:3002', '109.255.172.3:8090'];
 
@@ -39,8 +37,9 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
 
-// example configuration
-const client = new Eureka({
+// Eureka configuration
+const eurekaClient = new Eureka({
+    filename: 'week-menu-api',
     // application instance information
     instance: {
       app: 'week-menu-api',
@@ -64,7 +63,20 @@ const client = new Eureka({
       servicePath: '/eureka/apps/'
     },
 });
-client.start();
+eurekaClient.start();
+
+// Spring Boot Actuator
+var actuator = require('express-actuator');
+app.use(actuator('/actuator'));
+
+// Spring Cloud Config
+const springCloudConfig = require('spring-cloud-config');
+let configOptions = {
+    configPath: __dirname + '/config',
+    activeProfiles: ['dev'],
+    level: 'debug'
+};
+let configProps = springCloudConfig.load(configOptions);
 
 app.use(bodyParser.json());
 // Create application/x-www-form-urlencoded parser
@@ -75,31 +87,35 @@ app.options('*', cors());
 
 app.use(function (req, res, next) {
 
-    try{
-        console.log("Path: ", req.path);
-        if (req.path.startsWith('/actuator/') || req.path === '/favicon.ico') {
-            res.sendStatus(200);
-        } else {
-            console.log("Headers", req.headers);
-            let token = req.headers.authorization;
-            if (!token) {
-                throw "Token Not found";
-            }
-            token = token.replace("Bearer ", "");
-            console.log("Token: ", token);
-            jwt.verify(token, new Buffer(secretKey, 'base64'));
+    configProps.then((config) => {
+        const secretKey = config.configuration.jwt['base64-secret'];
 
-            if ('OPTIONS' == req.method) {
+        try {
+            console.log("Path: ", req.path);
+            if (req.path.startsWith('/actuator/') || req.path === '/favicon.ico') {
                 res.sendStatus(200);
+            } else {
+                console.log("Headers", req.headers);
+                let token = req.headers.authorization;
+                if (!token) {
+                    throw err("Token Not found");
+                }
+                token = token.replace("Bearer ", "");
+                console.log("Token: ", token);
+                jwt.verify(token, new Buffer(secretKey, 'base64'));
+    
+                if ('OPTIONS' == req.method) {
+                    res.sendStatus(200);
+                }
+                else {
+                    next();
+                }
             }
-            else {
-                next();
-            }
+        } catch(e) {
+            console.log("Error validation JWT", e);
+            res.sendStatus(401);
         }
-    } catch(e) {
-        console.log("Error validation JWT", e);
-        res.sendStatus(401);
-    }
+    });
 
 });
 

@@ -24,7 +24,9 @@
         "q": "^1.4.1",
         "jsonwebtoken": "8.4.0",
         "cors": "2.8.5",
-        "eureka-js-client": "4.4.2"
+        "eureka-js-client": "4.4.2",
+        "express-actuator": "1.1.0",
+        "spring-cloud-config": "2.0.0"
     },
     "devDependencies": {
         "chai": "3.5.0",

@@ -16,6 +16,5 @@
         process.env.PORT = 3001;
         process.env.MONGODB_URI = 'mongodb://localhost:27017/week_menu_test';
     }
-    process.env.SECRET_KEY = 'YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=';
 
 })();

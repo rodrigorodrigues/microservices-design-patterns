@@ -1,0 +1,9 @@
+spring:
+    application:
+        name: week-meunu-api
+    cloud:
+        config:
+            enabled: true
+            discovery:
+                enabled: true
+                service-id: config-server
