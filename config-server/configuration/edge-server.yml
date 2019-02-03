@@ -1,16 +1,20 @@
 zuul:
     ignoredServices: '*'
     ignored-headers: Access-Control-Allow-Credentials, Access-Control-Allow-Origin
+    sensitiveHeaders: Cookie, Set-Cookie, Authorization
     routes:
         users-service:
             path: /api/users/**
             serviceId: user-service
+            sensitiveHeaders:
         person-service:
             path: /api/persons/**
             serviceId: person-service
+            sensitiveHeaders:
         authentication-service:
             path: /api/authenticate
             serviceId: authentication-service
         week-menu-api-service:
             path: /week-menu/**
             serviceId: week-menu-api
+            sensitiveHeaders:
