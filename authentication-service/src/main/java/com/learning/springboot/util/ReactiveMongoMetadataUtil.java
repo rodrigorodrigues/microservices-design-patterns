@@ -51,7 +51,7 @@ public class ReactiveMongoMetadataUtil {
         Authentication authentication = Authentication.builder()
                 .email(DefaultUsers.SYSTEM_DEFAULT.getValue())
                 .password(passwordEncoder.encode("noPassword"))
-                .fullName("System Authentication")
+                .fullName("System Administrator")
                 .enabled(false)
                 .id(UUID.randomUUID().toString())
                 .build();

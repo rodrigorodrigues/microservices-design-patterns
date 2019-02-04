@@ -4,6 +4,7 @@ import AppNavbar from '../home/AppNavbar';
 import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 class UserList extends Component {
   constructor(props) {
@@ -13,9 +14,15 @@ class UserList extends Component {
   }
 
   componentDidMount() {
-    console.log("JWT: ", this.state.jwt);
-    if (this.state.jwt) {
-     const eventSource = new EventSource(`api/users?Authorization=${this.state.jwt}`, {withCredentials: true});
+    let jwt = this.state.jwt;
+    console.log("JWT: ", jwt);
+    if (jwt) {
+     //const eventSource = new EventSource(`api/users?Authorization=${this.state.jwt}`, {withCredentials: true});
+      const eventSource = new EventSourcePolyfill('api/users', {
+        headers: {
+          'Authorization': jwt
+        }
+      });
 
       eventSource.addEventListener("open", result => {
         console.log('EventSource open: ', result);

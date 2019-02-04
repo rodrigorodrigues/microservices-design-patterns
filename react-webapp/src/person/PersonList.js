@@ -5,6 +5,7 @@ import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 class PersonList extends Component {
   constructor(props) {
@@ -14,14 +15,15 @@ class PersonList extends Component {
   }
 
   componentDidMount() {
-    console.log("JWT: ", this.state.jwt);
-    if (this.state.jwt) {
-      /*const eventSource = new EventSourcePolyfill('api/persons', {
+    let jwt = this.state.jwt;
+    console.log("JWT: ", jwt);
+    if (jwt) {
+      const eventSource = new EventSourcePolyfill('api/persons', {
         headers: {
-          'Authorization': this.state.jwt
+          'Authorization': jwt
         }
-      });*/
-      const eventSource = new EventSource(`api/persons?Authorization=${this.state.jwt}`, {withCredentials: true});
+      });
+      //const eventSource = new EventSource(`api/persons?Authorization=${this.state.jwt}`, {withCredentials: true});
 
       eventSource.addEventListener("open", result => {
         console.log('EventSource open: ', result);
@@ -50,11 +52,13 @@ class PersonList extends Component {
   }
 
   async remove(id) {
+    let jwt = this.state.jwt;
     await fetch(`/api/persons/${id}`, {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': jwt
       },
       credentials: 'include'
     }).then(() => {

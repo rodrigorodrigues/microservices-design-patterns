@@ -32,25 +32,26 @@ public class UserServiceApplication {
     @Bean
     CommandLineRunner runner(PasswordEncoder passwordEncoder, UserRepository userRepository) {
         return args -> {
-            log.debug("Creating default users");
-            userRepository.save(User.builder().email("admin@gmail.com")
-                    .password(passwordEncoder.encode("password"))
-                    .authorities(permissions("ROLE_ADMIN"))
-                    .fullName("Admin dos Santos")
-                    .build()).subscribe(u -> log.debug("Created Admin User: {}", u));
+            if (userRepository.count().block() >= 1) {
+                log.debug("Creating default users");
+                userRepository.save(User.builder().email("admin@gmail.com")
+                        .password(passwordEncoder.encode("password"))
+                        .authorities(permissions("ROLE_ADMIN"))
+                        .fullName("Admin dos Santos")
+                        .build()).subscribe(u -> log.debug("Created Admin User: {}", u));
 
-            userRepository.save(User.builder().email("anonymous@gmail.com")
-                    .password(passwordEncoder.encode("test"))
-                    .authorities(permissions("ROLE_PERSON_READ"))
-                    .fullName("Anonymous Noname")
-                    .build()).subscribe(u -> log.debug("Created Anonymous User: {}", u));
+                userRepository.save(User.builder().email("anonymous@gmail.com")
+                        .password(passwordEncoder.encode("test"))
+                        .authorities(permissions("ROLE_PERSON_READ"))
+                        .fullName("Anonymous Noname")
+                        .build()).subscribe(u -> log.debug("Created Anonymous User: {}", u));
 
-            userRepository.save(User.builder().email("master@gmail.com")
-                    .password(passwordEncoder.encode("password123"))
-                    .authorities(permissions("ROLE_PERSON_CREATE", "ROLE_PERSON_READ", "ROLE_PERSON_SAVE"))
-                    .fullName("Master of something")
-                    .build()).subscribe(u -> log.debug("Created Master User: {}", u));
-
+                userRepository.save(User.builder().email("master@gmail.com")
+                        .password(passwordEncoder.encode("password123"))
+                        .authorities(permissions("ROLE_PERSON_CREATE", "ROLE_PERSON_READ", "ROLE_PERSON_SAVE"))
+                        .fullName("Master of something")
+                        .build()).subscribe(u -> log.debug("Created Master User: {}", u));
+            }
         };
     }
 

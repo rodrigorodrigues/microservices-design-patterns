@@ -1,5 +1,35 @@
 ## Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js + MongoDB
 
+Example of using Microservices Architecture multiple languages(`Java, NodeJS, Kotlin, Scala`).
+
+The same approach could be applied for any language.
+
+Used `Spring Boot 2 with Webflux` for Reactive Programming.
+
+Used `Spring Cloud Netflix` for microservices patterns(`Service Discovery, Config Management and Monitoring`):
+
+Used `React` for Single Page Application.
+
+Following description of each folder.
+
+ * Service Discovery - eureka-server
+ * Config Management - config-server
+ * Gateway - edge-server
+ * Monitoring - admin-edger
+ 
+Exposed RestFul APIs:
+  * authentication-service - `POST - /api/authenticate`
+  * user-service - `CRUD - /api/users/**`
+  * person-service - `CRUD - /api/persons/**`
+  * nodejs-service - `CRUD - /v2/category`
+
+React App:
+ * react-webapp - React using Bootstrap
+
+### Microservice Diagram
+ 
+![Microservice Architecture](Microservice.png?raw=true "Microservice Architecture") 
+
 ### Prerequisites
  * JDK 1.8
  * Maven
@@ -16,18 +46,18 @@ On `root folder`
 Run `mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"` in the following `Microservices folders`
 
 ```
-eureka-server
-config-server
-edge-server
-admin-server
-authentication-service
-person-service
-user-service
+eureka-server - PORT=8761
+config-server - PORT=8888
+edge-server - PORT=9006
+admin-server - PORT=9000
+authentication-service - PORT=8081
+person-service - PORT=8082
+user-service - PORT=8083
 ```
 
-### Run Node.js app
+### Run Node.js service
 
-On `nodejs-service` folder run the following commands:
+On `nodejs-service folder` run the following commands:
 
 ```
 sudo npm install
@@ -37,7 +67,7 @@ sudo npm start
 
 ### Run React Web app
 
-On `react-webapp` folder run the following commands:
+On `react-webapp folder` run the following commands:
 
 ```
 sudo npm install
@@ -45,7 +75,7 @@ sudo npm install
 sudo npm start
 ```
 
-After that access the app by http://localhost:3000
+After that access the app by `http://localhost:3000`
 
 Following list of default users for login:
 
@@ -57,7 +87,9 @@ master@gmail.com/password123
 anonymous@gmail.com/test
 ```
 
-### Swagger UI for Person and User Services
+### Swagger UI
+
+Swagger UI is available for `Authentication, Person and User Services`
 [Swagger UI](http://localhost:{PORT}/swagger-ui.html)
 
 ### TODO List
@@ -78,6 +110,8 @@ anonymous@gmail.com/test
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
 
 ### References
+[Microservices Patterns](https://microservices.io)
+
 [What's new in Java 8](https://leanpub.com/whatsnewinjava8/read)
 
 [Spring Guide](https://spring.io/guides)

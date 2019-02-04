@@ -20,24 +20,30 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    const localStateParent = localStorage.getItem('stateParent');
-    if (localStateParent) {
-      this.state = JSON.parse(localStateParent);
-      this.setState({ isAuthenticated: this.state.isAuthenticated, user: this.state.user, jwt: this.state.jwt });
+    const localStorageJwt = localStorage.getItem('JWT');
+    if (localStorageJwt) {
+      this.decodeJwt(localStorageJwt);
     }
   }
 
   setAuthentication = (data) => {
-    let jwtDecoded = jwt_decode(data.id_token);
-    console.log("JWT Decoded: ", jwtDecoded);
-    this.setState({ isAuthenticated: true, user: jwtDecoded.name, jwt: data.id_token, authorities: jwtDecoded.authorities });
-    localStorage.setItem('stateParent', JSON.stringify(this.state));
+    let token = data.id_token;
+    this.decodeJwt(token);
+    localStorage.setItem('JWT', token);
   }
 
   removeAuthentication = () => {
-    localStorage.removeItem('stateParent');
+    localStorage.removeItem('JWT');
     this.setState({ isAuthenticated: false, user: null, jwt: null });
   }
+
+  decodeJwt(token) {
+    let jwtDecoded = jwt_decode(token);
+    console.log("JWT Decoded: ", jwtDecoded);
+    console.log("JWT Token: ", token);
+    this.setState({ isAuthenticated: true, user: jwtDecoded.name, jwt: token, authorities: jwtDecoded.authorities });
+  }
+
   render() {
     return (
       <UserContext.Provider value={this.state}>

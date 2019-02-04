@@ -12,7 +12,8 @@
     "reactstrap": "6.5.0",
     "react-json-view": "1.19.1",
     "availity-reactstrap-validation": "2.5.0",
-    "jwt-decode": "2.2.0"
+    "jwt-decode": "2.2.0",
+    "event-source-polyfill": "1.0.5"
   },
   "scripts": {
     "start": "react-scripts start",
