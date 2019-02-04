@@ -19,3 +19,10 @@ management:
 
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
+
+---
+spring:
+    profiles: heroku
+    data:
+        mongodb:
+            uri: mongodb://heroku_txtt2fq1:3re6gqpndtbtnjb8rr54d2cd45@ds113375.mlab.com:13375/heroku_txtt2fq1
