@@ -39,7 +39,7 @@ React App:
 
 On `root folder`
 
-`mvn clean package docker:build`
+`mvn clean install docker:build`
 
 ### Run Spring Boot
 
@@ -91,6 +91,14 @@ anonymous@gmail.com/test
 
 Swagger UI is available for `Authentication, Person and User Services`
 [Swagger UI](http://localhost:{PORT}/swagger-ui.html)
+
+### Run using Docker Compose
+
+You can run everything using docker-compose on `docker folder` just run the following command.
+
+```
+docker-compose up
+```
 
 ### TODO List
 

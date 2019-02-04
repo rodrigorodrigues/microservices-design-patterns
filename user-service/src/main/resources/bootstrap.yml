@@ -6,3 +6,8 @@ spring:
             discovery:
                 enabled: true
                 service-id: config-server
+
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}

@@ -1,5 +1,6 @@
 import constants from '../constants/AppConstant';
 const { API_V1 } = constants
+const baseUrl = process.env.GATEWAY_URL
 
 export async function get(resource, isCredential, isWithoutApi) {
     try {
@@ -19,7 +20,7 @@ export async function get(resource, isCredential, isWithoutApi) {
 
 export async function post(resource, payload) {
     try {
-        const response = await fetch(`http://localhost:9006/${API_V1}/${resource}`, {
+        const response = await fetch(`${baseUrl}/${API_V1}/${resource}`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',

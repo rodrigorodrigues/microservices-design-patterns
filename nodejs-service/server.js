@@ -15,9 +15,6 @@ const bodyParser = require('body-parser');
 
 const port = process.env.PORT;
 
-//TODO security change this later
-const whiteList = ['localhost:8100', 'localhost:3000', 'localhost:3002', '109.255.172.3:8090'];
-
 const logger = function (request, response, next) {
     log.logExceptOnTest("Request body: ", request.body);
     log.logExceptOnTest("Request METHOD: ", request.method);
@@ -46,6 +43,7 @@ const eurekaClient = new Eureka({
       hostName: '127.0.0.1',
       ipAddr: '127.0.0.1',
       statusPageUrl: 'http://127.0.0.1:3002/actuator/info',
+      healthCheckUrl: 'http://127.0.0.1:3002/healthcheck',
       port: {
         '$': 3002,
         '@enabled': 'true',

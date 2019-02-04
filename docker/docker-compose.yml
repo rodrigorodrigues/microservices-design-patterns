@@ -1,0 +1,108 @@
+version: '2'
+services:
+    service-discovery:
+        image: eureka-server
+        container_name: service-discovery
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=8761
+        ports:
+            - 8761:8761
+    config-management:
+        image: config-server
+        container_name: config-management
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=8888
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+          - service-discovery
+        ports:
+            - 8888:8888
+    gateway:
+        image: edge-server
+        container_name: gateway
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=9006
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+            - service-discovery
+        ports:
+            - 9006:9006
+    monitoring:
+        image: admin-server
+        container_name: monitoring
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=9000
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+          - service-discovery
+        ports:
+            - 9000:9000
+    week-menu-api:
+        build: ../nodejs-service/
+        container_name: week-menu-api
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=3002
+            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+            - SPRING_DATA_MONGODB_DATABASE=week_menu
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+            - service-discovery
+            - config-management
+        ports:
+            - 3002:3002
+    person-api:
+        image: person-service
+        container_name: person-api
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=8082
+            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+            - SPRING_DATA_MONGODB_DATABASE=person-service
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+            - service-discovery
+            - config-management
+            - mongodb-datasource
+        ports:
+            - 8082:8082
+    user-api:
+        image: user-service
+        container_name: user-api
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=8083
+            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+            - SPRING_DATA_MONGODB_DATABASE=user-service
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+            - service-discovery
+            - config-management
+            - mongodb-datasource
+        ports:
+            - 8083:8083
+    authentication-api:
+        image: authentication-service
+        container_name: authentication-api
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - PORT=8081
+            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+            - SPRING_DATA_MONGODB_DATABASE=authentication-service
+            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+        depends_on:
+            - service-discovery
+            - config-management
+            - mongodb-datasource
+            - user-api
+        ports:
+            - 8081:8081
+    mongodb-datasource:
+        image: mongo:3.4.10
+        container_name: mongodb-datasource
+        ports:
+            - 27018:27018
