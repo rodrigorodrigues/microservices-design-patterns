@@ -1,21 +1,21 @@
 ## Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js + MongoDB
 
-Example of using Microservices Architecture multiple languages(`Java, NodeJS, Kotlin, Scala`).
+Example of using Microservices Architecture with multiple languages(`Java, NodeJS, Kotlin, Scala`).
 
 The same approach could be applied for any language.
 
-Used `Spring Boot 2 with Webflux` for Reactive Programming.
+Used `Spring Cloud Netflix` for Microservices patterns(`Service Discovery, Config Management and Monitoring`):
 
-Used `Spring Cloud Netflix` for microservices patterns(`Service Discovery, Config Management and Monitoring`):
+Used `Spring Boot 2 Webflux` for Reactive Programming.
 
 Used `React` for Single Page Application.
 
-Following description of each folder.
+Following description for each folder.
 
- * Service Discovery - eureka-server
- * Config Management - config-server
- * Gateway - edge-server
- * Monitoring - admin-edger
+ * Service Discovery - `eureka-server`
+ * Config Management - `config-server`
+ * Gateway - `edge-server`
+ * Monitoring - `admin-edger`
  
 Exposed RestFul APIs:
   * authentication-service - `POST - /api/authenticate`
