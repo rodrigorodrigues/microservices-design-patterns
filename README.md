@@ -97,7 +97,7 @@ Swagger UI is available for `Authentication, Person and User Services`
 You can run everything using docker-compose on `docker folder` just run the following commands:
 
 ```
-docker-compose up service-discovery gateway config-management monitoring
+docker-compose up service-discovery config-management
 
 In another console
 docker-compose up
