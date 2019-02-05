@@ -3,11 +3,20 @@ spring:
         name: authentication-service
     cloud:
         config:
+            enabled: true
             discovery:
                 enabled: true
-                service-id: config-server
+                service-id: ${CONFIG_SERVER:config-server}
+            fail-fast: true
+                retry:
+                    # will retry for over 4 minutes (at 8, 16, 32, 64 & 128 seconds)
+                    initial-interval: 8000
+                    max-attempts: 6
+                    max-interval: 128000
+                    multiplier: 2
 
 eureka:
     client:
+        enabled: true
         serviceUrl:
             defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}
