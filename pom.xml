@@ -79,42 +79,6 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-<!-- 
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker-maven-plugin.version}</version>
-        <configuration>
-          <images>
-            <image>
-              <name>${docker.image.name}</name>
-              <build>
-                <from>${docker.from.image}</from>
-                <tags>
-                  <tag>${project.version}</tag>
-                  <tag>latest</tag>
-                </tags>
-                <entryPoint>
-                  <exec>
-                    <arg>sh</arg>
-                    <arg>-c</arg>
-                    <!-- @formatter:off -->
-                      <arg>java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /${project.build.finalName}.jar</arg>
-                      <!-- @formatter:on -->
-                  </exec>
-                </entryPoint>
-                <assembly>
-                  <targetDir>/</targetDir>
-                  <descriptorRef>artifact</descriptorRef>
-                </assembly>
-              </build>
-            </image>
-          </images>
-          <pushRegistry>${docker.server.id}</pushRegistry>
-          <pullRegistry>${docker.server.id}</pullRegistry>
-        </configuration>
-      </plugin>
--->	                   
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>

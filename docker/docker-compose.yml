@@ -5,7 +5,7 @@ services:
         container_name: service-discovery
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=8761
+            - SERVER_PORT=8761
         ports:
             - 8761:8761
     config-management:
@@ -13,7 +13,7 @@ services:
         container_name: config-management
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=8888
+            - SERVER_PORT=8888
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
         depends_on:
           - service-discovery
@@ -24,18 +24,24 @@ services:
         container_name: gateway
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=9006
+            - SERVER_PORT=9006
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
+            - COMPOSE_HTTP_TIMEOUT=300
         depends_on:
             - service-discovery
         ports:
             - 9006:9006
+#        entrypoint: /bin/sh
+#        command: >
+#            -c "
+#            while ! (nc -z config-management 8888); do sleep 60; echo 'Waiting for config-server services to start-up...' + date +'%d/%m/%Y %H:%M:%S:%3N'; done;
+#            "
     monitoring:
         image: admin-server
         container_name: monitoring
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=9000
+            - SERVER_PORT=9000
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
         depends_on:
           - service-discovery
@@ -46,7 +52,7 @@ services:
         container_name: week-menu-api
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=3002
+            - SERVER_PORT=3002
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=week_menu
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
@@ -60,7 +66,7 @@ services:
         container_name: person-api
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=8082
+            - SERVER_PORT=8082
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=person-service
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
@@ -75,7 +81,7 @@ services:
         container_name: user-api
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=8083
+            - SERVER_PORT=8083
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=user-service
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
@@ -90,7 +96,7 @@ services:
         container_name: authentication-api
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - PORT=8081
+            - SERVER_PORT=8081
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=authentication-service
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
