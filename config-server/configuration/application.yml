@@ -15,6 +15,10 @@ management:
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}
 ---
 spring:
     profiles: heroku
