@@ -1,6 +1,6 @@
 spring:
     application:
-        name: week-meunu-api
+        name: week-menu-api
     cloud:
         config:
             enabled: true
@@ -12,7 +12,3 @@ spring:
                 max-attempts: 6
                 max-interval: 128000
                 multiplier: 2
-eureka:
-    client:
-        serviceUrl:
-            defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}

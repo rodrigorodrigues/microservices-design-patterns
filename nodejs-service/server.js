@@ -34,35 +34,6 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
 
-// Eureka configuration
-const eurekaClient = new Eureka({
-    filename: 'week-menu-api',
-    // application instance information
-    instance: {
-      app: 'week-menu-api',
-      hostName: '127.0.0.1',
-      ipAddr: '127.0.0.1',
-      statusPageUrl: 'http://127.0.0.1:3002/actuator/info',
-      healthCheckUrl: 'http://127.0.0.1:3002/healthcheck',
-      port: {
-        '$': 3002,
-        '@enabled': 'true',
-      },
-      vipAddress: '127.0.0.1',
-      dataCenterInfo: {
-        '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-        name: 'MyOwn',
-      }
-    },
-    eureka: {
-      // eureka server host / port
-      host: '127.0.0.1',
-      port: 8761,
-      servicePath: '/eureka/apps/'
-    },
-});
-eurekaClient.start();
-
 // Spring Boot Actuator
 var actuator = require('express-actuator');
 app.use(actuator('/actuator'));
@@ -74,7 +45,6 @@ let configOptions = {
     activeProfiles: ['dev'],
     level: 'debug'
 };
-let configProps = springCloudConfig.load(configOptions);
 
 app.use(bodyParser.json());
 // Create application/x-www-form-urlencoded parser
@@ -85,7 +55,40 @@ app.options('*', cors());
 
 app.use(function (req, res, next) {
 
+    let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
+        const eurekaServer = config.eureka.client.serviceUrl.defaultZone; //TODO Need to fix this line variable is not replaced with parameter.
+        console.log("eurekaServer: ", eurekaServer);
+        // Eureka configuration
+        const eurekaClient = new Eureka({
+            filename: 'week-menu-api',
+            // application instance information
+            instance: {
+                app: 'week-menu-api',
+                hostName: '127.0.0.1',
+                ipAddr: '127.0.0.1',
+                statusPageUrl: 'http://127.0.0.1:3002/actuator/info',
+                healthCheckUrl: 'http://127.0.0.1:3002/healthcheck',
+                port: {
+                    '$': 3002,
+                    '@enabled': 'true',
+                },
+                vipAddress: '127.0.0.1',
+                dataCenterInfo: {
+                    '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
+                    name: 'MyOwn',
+                }
+            },
+            eureka: {
+                // eureka server host / port
+                host: eurekaServer,
+                port: 8761,
+                servicePath: '/eureka/apps/',
+                maxRetries: 10
+            }
+        });
+        eurekaClient.start();
+        
         const secretKey = config.configuration.jwt['base64-secret'];
 
         try {
