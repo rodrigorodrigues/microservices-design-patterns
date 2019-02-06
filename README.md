@@ -102,19 +102,23 @@ docker-compose up service-discovery config-management
 In another console
 docker-compose up
 ```
+PS: Not working for `nodejs-service` need to fix hardcoded configuration at `server.js`.
 
 ### TODO List
 
 * [X] Java - Split Person and User in different entities
 * [X] Java - Split back-end and front-end in two different folders
 * [X] Java - Split Java 8 Learning in another folder
-~~* [ ] Java - Add Cloud Foundry for deploy~~
+* [ ] ~~Java - Add Cloud Foundry for deploy~~
 * [ ] Java - Add Heroku for deploy
 * [ ] Java - Add Test for Users Classes
 * [X] Java - Add Spring Cloud Config
 * [X] Java - Add Service Discovery(Eureka)
 * [ ] Java - Add Zuul(Gateway)
 * [X] Java - Add Maven Docker Plugin
+* [ ] Kotlin - Add Service using Kotlin Language
+* [ ] Scala - Add Service using Scala Language
+* [ ] C# - Add Service using C# Language
 * [X] React - Create User List
 * [ ] React - Create User Page
 * [ ] React - Create User Edit
