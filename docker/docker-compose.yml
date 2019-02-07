@@ -51,6 +51,11 @@ services:
           - service-discovery
         ports:
             - 9000:9000
+    react-webapp:
+        build: ../react-webapp/
+        container_name: react-webapp
+        ports:
+            - 3000:3000
     week-menu-api:
         build: ../nodejs-service/
         container_name: week-menu-api
@@ -60,7 +65,7 @@ services:
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=3002
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=week_menu
+            - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
         depends_on:
             - service-discovery
@@ -76,7 +81,7 @@ services:
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8082
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=person-service
+            - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
         depends_on:
             - service-discovery
@@ -93,7 +98,7 @@ services:
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8083
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=user-service
+            - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
         depends_on:
             - service-discovery
@@ -110,7 +115,7 @@ services:
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8081
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=authentication-service
+            - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
         depends_on:
             - service-discovery

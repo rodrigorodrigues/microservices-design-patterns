@@ -33,6 +33,7 @@ const shoppingListRouter = require('./routes/shopping.list.route');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
+const argv = require('minimist')(process.argv.slice(2));
 
 // Spring Boot Actuator
 var actuator = require('express-actuator');
@@ -57,6 +58,7 @@ app.use(function (req, res, next) {
 
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
+        console.log("Argv: ", argv);
         const eurekaServer = config.eureka.client.serviceUrl.defaultZone; //TODO Need to fix this line variable is not replaced with parameter.
         console.log("eurekaServer: ", eurekaServer);
         // Eureka configuration

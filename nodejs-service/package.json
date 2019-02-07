@@ -26,7 +26,8 @@
         "cors": "2.8.5",
         "eureka-js-client": "4.4.2",
         "express-actuator": "1.1.0",
-        "spring-cloud-config": "2.0.0"
+        "spring-cloud-config": "2.0.0",
+        "minimist": "1.2.0"
     },
     "devDependencies": {
         "chai": "3.5.0",
