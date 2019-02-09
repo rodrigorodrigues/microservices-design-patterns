@@ -3,6 +3,7 @@ spring:
         name: week-menu-api
     cloud:
         config:
+            fail-fast: false
             enabled: true
             discovery:
                 enabled: true

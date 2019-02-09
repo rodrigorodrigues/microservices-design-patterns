@@ -4,6 +4,7 @@
  * *** npm run dev >>> runs nodemon to reload the file without restart the server
  */
 require('./config/config');
+require('dotenv').load();
 
 const log = require('./utils/log.message');
 
@@ -33,18 +34,56 @@ const shoppingListRouter = require('./routes/shopping.list.route');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
-const argv = require('minimist')(process.argv.slice(2));
 
 // Spring Boot Actuator
 var actuator = require('express-actuator');
 app.use(actuator('/actuator'));
 
+const eurekaServer = process.env.EUREKA_SERVER || '127.0.0.1';
+const eurekaServerPort = process.env.EUREKA_PORT || 8761;
+const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
+console.log("eurekaServer: ", eurekaServer);
+console.log("eurekaServerPort: ", eurekaServerPort);
+console.log("port: ", port);
+// Eureka configuration
+const eurekaClient = new Eureka({
+    // application instance information
+    instance: {
+        instanceId: 'WEEK-MENU-API',
+        app: 'WEEK-MENU-API',
+        hostName: 'localhost',
+        ipAddr: ipAddr,
+        statusPageUrl: `http://127.0.0.1:${port}/actuator/info`,
+        healthCheckUrl: `http://127.0.0.1:${port}/actuator/healthcheck`,
+        port: {
+            '$': port,
+            '@enabled': 'true',
+        },
+        vipAddress: 'WEEK-MENU-API',
+        dataCenterInfo: {
+            '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
+            name: 'MyOwn',
+        }
+    },
+    eureka: {
+        // eureka server host / port
+        host: eurekaServer,
+        port: eurekaServerPort,
+        servicePath: '/eureka/apps/',
+        maxRetries: 10
+    }
+});
+eurekaClient.start();
+
 // Spring Cloud Config
 const springCloudConfig = require('spring-cloud-config');
+const configServer = process.env.CONFIG_SERVER || 'http://localhost:8887';
+console.log("configServer: ", configServer);
 let configOptions = {
     configPath: __dirname + '/config',
     activeProfiles: ['dev'],
-    level: 'debug'
+    level: 'debug',
+    endpoint: configServer
 };
 
 app.use(bodyParser.json());
@@ -58,39 +97,6 @@ app.use(function (req, res, next) {
 
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
-        console.log("Argv: ", argv);
-        const eurekaServer = config.eureka.client.serviceUrl.defaultZone; //TODO Need to fix this line variable is not replaced with parameter.
-        console.log("eurekaServer: ", eurekaServer);
-        // Eureka configuration
-        const eurekaClient = new Eureka({
-            filename: 'week-menu-api',
-            // application instance information
-            instance: {
-                app: 'week-menu-api',
-                hostName: '127.0.0.1',
-                ipAddr: '127.0.0.1',
-                statusPageUrl: 'http://127.0.0.1:3002/actuator/info',
-                healthCheckUrl: 'http://127.0.0.1:3002/healthcheck',
-                port: {
-                    '$': 3002,
-                    '@enabled': 'true',
-                },
-                vipAddress: '127.0.0.1',
-                dataCenterInfo: {
-                    '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-                    name: 'MyOwn',
-                }
-            },
-            eureka: {
-                // eureka server host / port
-                host: eurekaServer,
-                port: 8761,
-                servicePath: '/eureka/apps/',
-                maxRetries: 10
-            }
-        });
-        eurekaClient.start();
-        
         const secretKey = config.configuration.jwt['base64-secret'];
 
         try {
@@ -115,8 +121,8 @@ app.use(function (req, res, next) {
                 }
             }
         } catch(e) {
-            console.log("Error validation JWT", e);
-            res.sendStatus(401);
+            console.log("Error validate JWT", e);
+            res.status(401).send("Error on validate JWT: "+e);
         }
     });
 
