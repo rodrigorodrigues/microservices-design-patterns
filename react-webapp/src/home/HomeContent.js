@@ -42,6 +42,7 @@ function displayButtonManageUsers(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
     return <Button color="link" disabled={!isAdmin}>
     <Link to="/users">Manage Users</Link>
+    <Link to="/categories">Manage Categories - Week Menu</Link>
 </Button>
 
 }

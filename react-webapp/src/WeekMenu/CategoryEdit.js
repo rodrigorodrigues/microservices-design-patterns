@@ -6,7 +6,7 @@ import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 
-class UserEdit extends Component {
+class CategoryEdit extends Component {
   emptyUser = {
     email: '',
     password: '',
@@ -133,7 +133,7 @@ class UserEdit extends Component {
           </AvGroup>
           <AvGroup>
             <Button color="primary" type="submit">{user.id ? 'Save' : 'Create'}</Button>{' '}
-            <Button color="secondary" tag={Link} to="/users">Cancel</Button>
+            <Button color="secondary" tag={Link} to="/categories">Cancel</Button>
           </AvGroup>
           <MessageAlert {...displayError}></MessageAlert>
         </AvForm>
@@ -142,4 +142,4 @@ class UserEdit extends Component {
   }
 }
 
-export default withRouter(UserEdit);
+export default withRouter(CategoryEdit);

@@ -1,9 +1,11 @@
 import constants from '../constants/AppConstant';
+
 const { API_V1 } = constants
-const baseUrl = process.env.GATEWAY_URL
+const gatewayUrl = process.env.REACT_APP_GATEWAY_URL
 
 export async function get(resource, isCredential, isWithoutApi) {
     try {
+        console.log("Gateway Url: ", gatewayUrl);
         let response;
         let url = (isWithoutApi ? `${resource}` : `${API_V1}/${resource}`);
         if(isCredential) {
@@ -20,7 +22,8 @@ export async function get(resource, isCredential, isWithoutApi) {
 
 export async function post(resource, payload) {
     try {
-        const response = await fetch(`${baseUrl}/${API_V1}/${resource}`, {
+        console.log("Gateway Url: ", gatewayUrl);
+        const response = await fetch(`${gatewayUrl}/${API_V1}/${resource}`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',

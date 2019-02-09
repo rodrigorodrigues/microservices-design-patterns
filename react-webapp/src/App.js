@@ -65,6 +65,11 @@ class App extends Component {
                                                 onRemoveAuthentication={this.removeAuthentication}/>} />
             <Route path='/users/:id'
                    component={() => <PersonEdit {...this.state} />} />
+            <Route path='/categories' exact={true}
+                   component={() => <UserList {...this.state}
+                                                onRemoveAuthentication={this.removeAuthentication}/>} />
+            <Route path='/categories/:id'
+                   component={() => <PersonEdit {...this.state} />} />
           </Switch>
         </Router>
       </UserContext.Provider>
