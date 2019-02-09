@@ -18,7 +18,7 @@ zuul:
             stripPrefix: false
             sensitiveHeaders:
         week-menu-api-service:
-            path: /week-menu/**
+            path: /api/week-menu/**
             serviceId: week-menu-api
-            stripPrefix: false
+            stripPrefix: true
             sensitiveHeaders:
