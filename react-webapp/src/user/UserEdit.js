@@ -40,9 +40,9 @@ class UserEdit extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let person = {...this.state.user};
-    person[name] = value;
-    this.setState({user: person});
+    let user = {...this.state.user};
+    user[name] = value;
+    this.setState({user: user});
   }
 
   async handleSubmit(event) {
@@ -55,7 +55,7 @@ class UserEdit extends Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(person),
+      body: JSON.stringify(user),
       credentials: 'include'
     }).then(response => response.json())
         .then(data => {

@@ -13,7 +13,6 @@ class Home extends Component {
 
   async logout() {
     try {
-      await get('/logout', true, true);
       this.props.onRemoveAuthentication();
     } catch (error) {
       console.error(error);

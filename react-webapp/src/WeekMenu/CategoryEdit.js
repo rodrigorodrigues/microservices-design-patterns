@@ -55,7 +55,7 @@ class CategoryEdit extends Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(person),
+      body: JSON.stringify(user),
       credentials: 'include'
     }).then(response => response.json())
         .then(data => {
