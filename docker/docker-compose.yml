@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
 services:
     service-discovery:
         image: eureka-server
@@ -8,6 +8,7 @@ services:
             - SERVER_PORT=8761
         ports:
             - 8761:8761
+
     config-management:
         image: config-server
         container_name: config-management
@@ -19,6 +20,10 @@ services:
           - service-discovery
         ports:
             - 8888:8888
+        volumes:
+            - ./docker-entrypoint.sh:/docker-entrypoint.sh
+        command: sh ./docker-entrypoint.sh service-discovery:8761
+
     gateway:
         image: edge-server
         container_name: gateway
@@ -31,13 +36,13 @@ services:
             - COMPOSE_HTTP_TIMEOUT=300
         depends_on:
             - service-discovery
+            - config-management
         ports:
             - 9006:9006
-#        entrypoint: /bin/sh
-#        command: >
-#            -c "
-#            while ! (nc -z config-management 8888); do sleep 60; echo 'Waiting for config-server services to start-up...' + date +'%d/%m/%Y %H:%M:%S:%3N'; done;
-#            "
+        volumes:
+            - ./docker-entrypoint.sh:/docker-entrypoint.sh
+        command: sh ./docker-entrypoint.sh config-management:8888
+
     monitoring:
         image: admin-server
         container_name: monitoring
@@ -51,27 +56,46 @@ services:
           - service-discovery
         ports:
             - 9000:9000
+
     react-webapp:
-        build: ../react-webapp/
+        build:
+            context: ../react-webapp
+            dockerfile: Dockerfile
         container_name: react-webapp
+        environment:
+            - REACT_APP_GATEWAY_URL=http://localhost:9006
         ports:
             - 3000:3000
+        links:
+          - gateway
+        volumes:
+            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+        command: sh /tmp/docker-entrypoint.sh gateway:9006
+
     week-menu-api:
-        build: ../nodejs-service/
+        build:
+            context: ../nodejs-service
+            dockerfile: Dockerfile
         container_name: week-menu-api
         environment:
             - SPRING_PROFILES_ACTIVE=dev
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=3002
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
+            - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
+            - EUREKA_SERVER=service-discovery
         depends_on:
             - service-discovery
             - config-management
+        links:
+          - service-discovery
+          - config-management
         ports:
             - 3002:3002
+        volumes:
+            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+        command: sh /tmp/docker-entrypoint.sh config-management:8888
+
     person-api:
         image: person-service
         container_name: person-api
@@ -89,6 +113,10 @@ services:
             - mongodb-datasource
         ports:
             - 8082:8082
+        volumes:
+            - ./docker-entrypoint.sh:/docker-entrypoint.sh
+        command: sh ./docker-entrypoint.sh config-management:8888
+
     user-api:
         image: user-service
         container_name: user-api
@@ -100,12 +128,14 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
-        depends_on:
-            - service-discovery
-            - config-management
-            - mongodb-datasource
+        links:
+          - authentication-api
         ports:
             - 8083:8083
+        volumes:
+            - ./docker-entrypoint.sh:/docker-entrypoint.sh
+        command: sh ./docker-entrypoint.sh authentication-api:8081
+
     authentication-api:
         image: authentication-service
         container_name: authentication-api
@@ -121,9 +151,12 @@ services:
             - service-discovery
             - config-management
             - mongodb-datasource
-            - user-api
         ports:
             - 8081:8081
+        volumes:
+            - ./docker-entrypoint.sh:/docker-entrypoint.sh
+        command: sh ./docker-entrypoint.sh config-management:8888
+
     mongodb-datasource:
         image: mongo:3.4.10
         command: mongod --port 27018
