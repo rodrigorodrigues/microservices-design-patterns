@@ -1,0 +1,230 @@
+{
+	"info": {
+		"_postman_id": "2936f3b5-3474-43f3-b624-db68bd98deba",
+		"name": "Spring Boot 2 + Webflux + NodeJS + React + MongoDB",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8080/api/persons",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjoxNTQ1OTQ0NDEyfQ.m2t4hSp9TQltCgSzv8Nl1ZAAIPt5tobwykTu4meyTkmwevPRps_Im28FAeiUItOg1Yw0SWBL3dDsK57w7lVZbA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/persons",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"persons"
+					]
+				},
+				"description": "GET Persons"
+			},
+			"response": []
+		},
+		{
+			"name": "http://109.255.172.3:8080/api/users",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkBnbWFpbC5jb20iLCJuYW1lIjoiQWRtaW4gZG9zIFNhbnRvcyIsImF1dGhvcml0aWVzIjpbIlJPTEVfQURNSU4iXSwiZXhwIjoxNTQ3NzY0NzcwfQ.jYI92he-ZIp3yqrxE9IsTYTXNSfOGoclS7W1yarNkA8He-6BZUaTidLBat8dzMZdHYDWtCyrhLKm_X5LU_efDw",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://109.255.172.3:8080/api/users",
+					"protocol": "http",
+					"host": [
+						"109",
+						"255",
+						"172",
+						"3"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/api/authenticate",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"username\": \"admin@gmail.com\",\n\"password\": \"password\"\n}"
+				},
+				"url": {
+					"raw": "http://109.255.172.3:8080/api/authenticate",
+					"protocol": "http",
+					"host": [
+						"109",
+						"255",
+						"172",
+						"3"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"authenticate"
+					]
+				},
+				"description": "Authentication"
+			},
+			"response": []
+		},
+		{
+			"name": "http://109.255.172.3:8080/api/authenticate",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"username\": \"admin@gmail.com\",\n\"password\": \"password\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9006/api/authenticate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9006",
+					"path": [
+						"api",
+						"authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:9006/api/week-menu/v2/category",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjoxNTQ5NDA0ODIyfQ.x8SrzdpgxV7ySeJ9zMxGcK8zk3fCxqYaUpN210-7EMmyFIHuciA03LQBhVmJvyAlL_I13fRIPmxKFnEtCNcQbA",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9006/api/week-menu/v2/category",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9006",
+					"path": [
+						"api",
+						"week-menu",
+						"v2",
+						"category"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3002/v2/category",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkBnbWFpbC5jb20iLCJuYW1lIjoiQWRtaW4gZG9zIFNhbnRvcyIsImF1dGhvcml0aWVzIjpbIlJPTEVfQURNSU4iXSwiZXhwIjoxNTQ5NzUyMjYwfQ.IlX4vOF0iyB0Nw18Ic4JIZOf_wRk4-S0xh4oS3oBCD7jqu2iru8fvVba2IZBdcQIeztN1h7RMGWsp_oZpRz_LA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:3002/v2/category",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3002",
+					"path": [
+						"v2",
+						"category"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:9006/api/week-menu/v2/category",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkBnbWFpbC5jb20iLCJuYW1lIjoiQWRtaW4gZG9zIFNhbnRvcyIsImF1dGhvcml0aWVzIjpbIlJPTEVfQURNSU4iXSwiZXhwIjoxNTQ5NzUyMjYwfQ.IlX4vOF0iyB0Nw18Ic4JIZOf_wRk4-S0xh4oS3oBCD7jqu2iru8fvVba2IZBdcQIeztN1h7RMGWsp_oZpRz_LA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9006/api/week-menu/v2/category",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9006",
+					"path": [
+						"api",
+						"week-menu",
+						"v2",
+						"category"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

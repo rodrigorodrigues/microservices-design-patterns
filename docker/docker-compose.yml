@@ -78,9 +78,8 @@ services:
             dockerfile: Dockerfile
         container_name: week-menu-api
         environment:
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_CLOUD_CONFIG_URI=http://localhost:8888
-            - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+            - SPRING_PROFILES_ACTIVE=docker
+            - CONFIG_SERVER=http://localhost:8888
             - SERVER_PORT=3002
             - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
             - EUREKA_SERVER=service-discovery

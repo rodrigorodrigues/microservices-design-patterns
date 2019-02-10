@@ -77,13 +77,13 @@ eurekaClient.start();
 
 // Spring Cloud Config
 const springCloudConfig = require('spring-cloud-config');
-const configServer = process.env.CONFIG_SERVER || 'http://localhost:8887';
-console.log("configServer: ", configServer);
+const springProfilesActive = [];
+springProfilesActive.push(process.env.SPRING_PROFILES_ACTIVE || 'dev');
+console.log("springProfilesActive: ", springProfilesActive);
 let configOptions = {
     configPath: __dirname + '/config',
-    activeProfiles: ['dev'],
-    level: 'debug',
-    endpoint: configServer
+    activeProfiles: springProfilesActive,
+    level: 'debug'
 };
 
 app.use(bodyParser.json());

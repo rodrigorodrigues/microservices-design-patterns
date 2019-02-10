@@ -13,3 +13,10 @@ spring:
                 max-attempts: 6
                 max-interval: 128000
                 multiplier: 2
+
+---
+spring:
+    profiles: docker
+    cloud:
+        config:
+            endpoint: http://config-management:8888
