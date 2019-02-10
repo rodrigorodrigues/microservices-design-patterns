@@ -16,7 +16,7 @@ The same approach could be applied for any language.
   6. [React App and Default Users](#react-app-and-default-users)
   6. [TODO-LIST](#todo-list)
   7. [References](#references)
-  10. ![Postman Collection](docs/postman_collection.json?raw=true)
+  10. [Postman Collection](docs/postman_collection.json?raw=true)
 
 Used `Spring Cloud Netflix` for Microservices patterns(`Service Discovery, Config Management and Monitoring`):
 
