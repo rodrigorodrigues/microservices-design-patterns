@@ -27,7 +27,8 @@
         "eureka-js-client": "4.4.2",
         "express-actuator": "1.1.0",
         "spring-cloud-config": "2.0.0",
-        "node-env-run": "3.0.2"
+        "node-env-run": "3.0.2",
+        "dotenv": "6.2.0"
     },
     "devDependencies": {
         "chai": "3.5.0",
