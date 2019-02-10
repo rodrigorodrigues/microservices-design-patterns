@@ -5,6 +5,7 @@ import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class CategoryList extends Component {
   constructor(props) {
@@ -17,7 +18,7 @@ class CategoryList extends Component {
     let jwt = this.state.jwt;
     console.log("JWT: ", jwt);
     if (jwt) {
-      const eventSource = new EventSourcePolyfill('api/week-menu/v2/category', {
+      const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/week-menu/v2/category`, {
         headers: {
           'Authorization': jwt
         }

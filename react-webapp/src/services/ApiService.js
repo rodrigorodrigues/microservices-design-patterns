@@ -1,7 +1,7 @@
 import constants from '../constants/AppConstant';
 
-const { API_V1 } = constants
-const gatewayUrl = process.env.REACT_APP_GATEWAY_URL
+const { API_V1 } = constants;
+const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 export async function get(resource, isCredential, isWithoutApi) {
     try {

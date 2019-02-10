@@ -5,6 +5,7 @@ import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class UserList extends Component {
   constructor(props) {
@@ -18,7 +19,7 @@ class UserList extends Component {
     console.log("JWT: ", jwt);
     if (jwt) {
      //const eventSource = new EventSource(`api/users?Authorization=${this.state.jwt}`, {withCredentials: true});
-      const eventSource = new EventSourcePolyfill('api/users', {
+      const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/users`, {
         headers: {
           'Authorization': jwt
         }

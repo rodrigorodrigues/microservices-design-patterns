@@ -7,6 +7,8 @@ import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
 import UserContext from './UserContext';
 import UserList from "./user/UserList";
+import CategoryList from "./WeekMenu/CategoryList";
+import CategoryEdit from "./WeekMenu/CategoryEdit";
 import jwt_decode from 'jwt-decode';
 
 class App extends Component {
@@ -65,11 +67,12 @@ class App extends Component {
                                                 onRemoveAuthentication={this.removeAuthentication}/>} />
             <Route path='/users/:id'
                    component={() => <PersonEdit {...this.state} />} />
+
             <Route path='/categories' exact={true}
-                   component={() => <UserList {...this.state}
+                   component={() => <CategoryList {...this.state}
                                                 onRemoveAuthentication={this.removeAuthentication}/>} />
             <Route path='/categories/:id'
-                   component={() => <PersonEdit {...this.state} />} />
+                   component={() => <CategoryEdit {...this.state} />} />
           </Switch>
         </Router>
       </UserContext.Provider>

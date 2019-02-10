@@ -6,6 +6,7 @@ import ChildModal from "./child/ChildModal";
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class PersonList extends Component {
   constructor(props) {
@@ -18,7 +19,7 @@ class PersonList extends Component {
     let jwt = this.state.jwt;
     console.log("JWT: ", jwt);
     if (jwt) {
-      const eventSource = new EventSourcePolyfill('api/persons', {
+      const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/persons`, {
         headers: {
           'Authorization': jwt
         }
