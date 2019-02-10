@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import '../App.css';
 import AppNavbar from './AppNavbar';
-import { get } from '../services/ApiService';
 import HomeContent from './HomeContent';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';

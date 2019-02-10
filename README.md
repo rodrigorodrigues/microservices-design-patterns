@@ -1,8 +1,21 @@
-## Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js + MongoDB
+# Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js + MongoDB
 
-Example of using Microservices Architecture with multiple languages(`Java, NodeJS, Kotlin, Scala`).
+Example of using `Microservices Architecture` with multiple languages(`Java, NodeJS, Kotlin`).
+
+Inspired from [Microservices Patterns Book](https://www.manning.com/books/microservices-patterns).
 
 The same approach could be applied for any language.
+
+## Table of Contents
+
+  1. [Introduction](#introduction)
+  2. [Prerequisites](#prerequisites)
+  3. [Microservice Diagram](#microservice-diagram)
+  4. [Manual Installation](#manual-installation)
+  5. [Using Docker and Docker Compose](#installation-using-docker-and-docker-compose)
+  6. [React App and Default Users](#react-app-and-default-users)
+  6. [TODO-LIST](#todo-list)
+  7. [References](#references)
 
 Used `Spring Cloud Netflix` for Microservices patterns(`Service Discovery, Config Management and Monitoring`):
 
@@ -26,16 +39,17 @@ Exposed RestFul APIs:
 React App:
  * react-webapp - React using Bootstrap
 
+### Prerequisites
+ * JDK 1.8
+ * Maven 3
+ * Docker 17.05.0-ce+
+ * Docker Compose 1.23.2
+
 ### Microservice Diagram
  
 ![Microservice Architecture](Microservice.png?raw=true "Microservice Architecture") 
 
-### Prerequisites
- * JDK 1.8
- * Maven
- * Docker/Docker Compose
-
-### Install
+### Manual Installation
 
 On `root folder`
 
@@ -75,24 +89,7 @@ sudo npm install
 sudo npm start
 ```
 
-After that access the app by `http://localhost:3000`
-
-Following list of default users for login:
-
-```
-admin@gmail.com/password
-
-master@gmail.com/password123
-
-anonymous@gmail.com/test
-```
-
-### Swagger UI
-
-Swagger UI is available for `Authentication, Person and User Services`
-[Swagger UI](http://localhost:{PORT}/swagger-ui.html)
-
-### Run using Docker Compose
+### Installation Using Docker and Docker Compose
 
 You can run everything using docker-compose on `docker folder` just run the following commands:
 
@@ -127,12 +124,33 @@ To stop and remove all containers:
 docker-compose down -v
 ```
 
-To stop/remove specific container:
+To restart/start/stop/remove specific container:
 
 ```bash
+docker-compose restart SERVICE_NAME
+docker-compose up SERVICE_NAME
 docker-compose stop SERVICE_NAME
 docker-compose rm SERVICE_NAME
 ```
+
+### React App and Default Users
+
+After that access the app by `http://localhost:3000`
+
+Following list of default users for login:
+
+```
+admin@gmail.com/password
+
+master@gmail.com/password123
+
+anonymous@gmail.com/test
+```
+
+### Swagger UI
+
+Swagger UI is available for `Authentication, Person and User Services`
+[Swagger UI](http://localhost:{PORT}/swagger-ui.html)
 
 ### TODO List
 

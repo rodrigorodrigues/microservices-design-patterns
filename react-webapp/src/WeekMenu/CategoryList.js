@@ -4,8 +4,7 @@ import AppNavbar from '../home/AppNavbar';
 import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
-import { EventSourcePolyfill } from 'event-source-polyfill';
-const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
+import {get} from "../services/ApiService";
 
 class CategoryList extends Component {
   constructor(props) {
@@ -14,39 +13,26 @@ class CategoryList extends Component {
     this.remove = this.remove.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     let jwt = this.state.jwt;
     console.log("JWT: ", jwt);
     if (jwt) {
-      const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/week-menu/v2/category`, {
-        headers: {
-          'Authorization': jwt
+      try {
+        const data = await get('week-menu/v2/category', true, false,
+            {'Authorization': jwt})
+        if (data) {
+          this.state.categories.push(data);
+          this.setState({isLoading: false, categories: this.state.categories});
+        } else {
+          this.setState({ displayError: errorMessage(data)});
         }
-      });
-
-      eventSource.addEventListener("open", result => {
-        console.log('EventSource open: ', result);
-        this.setState({isLoading: false});
-      });
-
-      eventSource.addEventListener("message", result => {
-        console.log('EventSource result: ', result);
-        const data = JSON.parse(result.data);
-        this.state.categories.push(data);
-        this.setState({categories: this.state.categories});
-      });
-
-      eventSource.addEventListener("error", err => {
-        console.log('EventSource error: ', err);
-        eventSource.close();
-        if (err.status === 401 || err.status === 403) {
+      } catch (error) {
+        if (error.status === 401 || error.status === 403) {
           this.props.onRemoveAuthentication();
           this.props.history.push('/');
         }
-        if (this.state.categories.length === 0) {
-          this.setState({displayError: errorMessage(err)});
-        }
-      });
+        this.setState({ displayError: errorMessage(error)});
+      }
     }
   }
 

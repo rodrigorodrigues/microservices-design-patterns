@@ -79,7 +79,7 @@ services:
         container_name: week-menu-api
         environment:
             - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+            - SPRING_CLOUD_CONFIG_URI=http://localhost:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=3002
             - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
