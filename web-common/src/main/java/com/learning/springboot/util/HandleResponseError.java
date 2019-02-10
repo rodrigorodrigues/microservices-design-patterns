@@ -1,5 +1,6 @@
 package com.learning.springboot.util;
 
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -52,7 +53,7 @@ public class HandleResponseError {
         HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
         if (ex instanceof HttpStatusCodeException) {
             httpStatus = ((HttpStatusCodeException) ex).getStatusCode();
-        } else if (ex instanceof AuthenticationException) {
+        } else if (ex instanceof AuthenticationException || ex instanceof SignatureException) {
             httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (ex instanceof ConstraintViolationException) {
             httpStatus = HttpStatus.BAD_REQUEST;

@@ -97,12 +97,42 @@ Swagger UI is available for `Authentication, Person and User Services`
 You can run everything using docker-compose on `docker folder` just run the following commands:
 
 ```
-docker-compose up service-discovery config-management
+#At once need to build nodejs and react separately, whenever change is made should rebuild the image
+docker-compose build week-menu-api react-webapp
 
-In another console
-docker-compose up
+#Then after start all services
+docker-compose up -d
 ```
-PS: Not working for `nodejs-service` need to fix hardcoded configuration at `server.js`.
+
+You can `start and build` NodeJS and React at the same time with the following command:
+``` 
+docker-compose up --build week-menu-api react-webapp
+```
+
+To see a log inside a docker container:
+
+```bash
+docker logs -f SERVICE_NAME
+```
+PS: Services Names are in `docker-compose.yml -> key container_name`
+
+To execute a command inside the container:
+
+```bash
+docker exec -it week-menu-api sh
+```
+
+To stop and remove all containers:
+```bash
+docker-compose down -v
+```
+
+To stop/remove specific container:
+
+```bash
+docker-compose stop SERVICE_NAME
+docker-compose rm SERVICE_NAME
+```
 
 ### TODO List
 

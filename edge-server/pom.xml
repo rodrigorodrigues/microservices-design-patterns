@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-config-client</artifactId>
+            <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
 
         <dependency>
@@ -64,6 +64,9 @@
                                 <assembly>
                                     <descriptorRef>artifact</descriptorRef>
                                 </assembly>
+                                <env>
+                                    <JAVA_CMD>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
+                                </env>
                                 <cmd>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
                             </build>
                         </image>

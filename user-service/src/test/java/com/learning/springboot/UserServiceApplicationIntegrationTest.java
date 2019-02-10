@@ -20,7 +20,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
@@ -30,7 +29,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
         properties = "configuration.swagger=false")
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
-class UserServiceApplicationTest {
+class UserServiceApplicationIntegrationTest {
     @Autowired
     WebTestClient client;
 
@@ -64,8 +63,8 @@ class UserServiceApplicationTest {
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
                 .expectBody()
-                .jsonPath("$.id").isNotEmpty();
-                //.jsonPath("$.createdByUser").isEqualTo("master@gmail.com");
+                .jsonPath("$.id").isNotEmpty()
+                .jsonPath("$.createdByUser").isEqualTo("master@gmail.com");
     }
 
     private String authorizationHeader(List<SimpleGrantedAuthority> permissions) {
@@ -78,10 +77,10 @@ class UserServiceApplicationTest {
 
     private UserDto createUserDto() {
         return UserDto.builder()
-                .id(UUID.randomUUID().toString())
                 .email("new_user@gmail.com")
                 .fullName("Admin")
-                .password("{noop}12345")
+                .password("12345")
+                .confirmPassword("12345")
                 .authorities(Arrays.asList(new UserDto.AuthorityDto("READ")))
                 .build();
     }

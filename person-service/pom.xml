@@ -97,6 +97,9 @@
                                 <assembly>
                                     <descriptorRef>artifact</descriptorRef>
                                 </assembly>
+                                <env>
+                                    <JAVA_CMD>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
+                                </env>
                                 <cmd>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
                             </build>
                         </image>

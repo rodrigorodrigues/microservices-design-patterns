@@ -3,6 +3,7 @@ spring:
         name: user-service
     cloud:
         config:
+            fail-fast: false
             discovery:
                 enabled: true
                 service-id: ${CONFIG_SERVER:config-server}

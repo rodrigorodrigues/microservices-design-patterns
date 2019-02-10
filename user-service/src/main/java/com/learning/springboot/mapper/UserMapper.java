@@ -9,16 +9,16 @@ import reactor.core.publisher.Mono;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
     default Mono<UserDto> entityToDto(Mono<User> users) {
-        return users.map(p -> {
-            p.setPassword(null);
-            return map(p);
+        return users.map(u -> {
+            u.setPassword(null);
+            return map(u);
         });
     }
 
     default Flux<UserDto> entityToDto(Flux<User> users) {
-        return users.map(p -> {
-            p.setPassword(null);
-            return map(p);
+        return users.map(u -> {
+            u.setPassword(null);
+            return map(u);
         });
     }
 
