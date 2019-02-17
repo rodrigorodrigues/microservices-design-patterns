@@ -13,9 +13,10 @@ The same approach could be applied for any language.
   3. [Microservice Diagram](#microservice-diagram)
   4. [Manual Installation](#manual-installation)
   5. [Using Docker and Docker Compose](#installation-using-docker-and-docker-compose)
-  6. [React App and Default Users](#react-app-and-default-users)
-  6. [TODO-LIST](#todo-list)
-  7. [References](#references)
+  6. [React App](#react-app)
+  7. [Default Users](#default-users)
+  8. [TODO-LIST](#todo-list)
+  9. [References](#references)
   10. [Postman Collection](docs/postman_collection.json?raw=true)
 
 Used `Spring Cloud Netflix` for Microservices patterns(`Service Discovery, Config Management and Monitoring`):
@@ -69,6 +70,8 @@ authentication-service - PORT=8081
 person-service - PORT=8082
 user-service - PORT=8083
 ```
+
+PS: To login at `Eureka/Config/Edge/Admin` need a user with role `ADMIN`. See at [Default Users](#default-users)
 
 ### Run Node.js service
 
@@ -134,18 +137,20 @@ docker-compose stop SERVICE_NAME
 docker-compose rm SERVICE_NAME
 ```
 
-### React App and Default Users
+### React App
 
 After that access the app by `http://localhost:3000`
 
-Following list of default users for login:
+### Default Users
+
+Following list of default users:
 
 ```
-admin@gmail.com/password
+admin@gmail.com/password - ROLE_ADMIN
 
-master@gmail.com/password123
+master@gmail.com/password123 - ROLE_PERSON_CREATE, ROLE_PERSON_READ, ROLE_PERSON_SAVE
 
-anonymous@gmail.com/test
+anonymous@gmail.com/test - ROLE_PERSON_READ
 ```
 
 ### Swagger UI
@@ -160,11 +165,14 @@ Swagger UI is available for `Authentication, Person and User Services`
 * [X] Java - Split Java 8 Learning in another folder
 * [ ] ~~Java - Add Cloud Foundry for deploy~~
 * [ ] Java - Add Heroku for deploy
-* [ ] Java - Add Test for Users Classes
+* [X] Java - Add Test for Users Classes
 * [X] Java - Add Spring Cloud Config
 * [X] Java - Add Service Discovery(Eureka)
-* [ ] Java - Add Zuul(Gateway)
+* [X] Java - Add Zuul(Gateway)
 * [X] Java - Add Maven Docker Plugin
+* [X] Java - Add Redis for Shared Session between applications
+* [X] Java - Add Authentication for all applications
+* [ ] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [ ] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language

@@ -45,21 +45,20 @@ const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
 console.log("eurekaServer: ", eurekaServer);
 console.log("eurekaServerPort: ", eurekaServerPort);
 console.log("port: ", port);
+console.log("ipAddr: ", ipAddr);
 // Eureka configuration
 const eurekaClient = new Eureka({
     // application instance information
     instance: {
-        instanceId: 'WEEK-MENU-API',
         app: 'WEEK-MENU-API',
-        hostName: 'localhost',
+        hostName: ipAddr,
         ipAddr: ipAddr,
-        statusPageUrl: `http://127.0.0.1:${port}/actuator/info`,
-        healthCheckUrl: `http://127.0.0.1:${port}/actuator/healthcheck`,
+        statusPageUrl: `http://localhost:${port}/actuator/info`,
         port: {
             '$': port,
             '@enabled': 'true',
         },
-        vipAddress: 'WEEK-MENU-API',
+        vipAddress: ipAddr,
         dataCenterInfo: {
             '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
             name: 'MyOwn',
@@ -78,7 +77,9 @@ eurekaClient.start();
 // Spring Cloud Config
 const springCloudConfig = require('spring-cloud-config');
 const springProfilesActive = [];
-springProfilesActive.push(process.env.SPRING_PROFILES_ACTIVE || 'dev');
+let profile = process.env.SPRING_PROFILES_ACTIVE || 'dev';
+profile = profile + '?X-Encrypt-Key=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53';
+springProfilesActive.push(profile);
 console.log("springProfilesActive: ", springProfilesActive);
 let configOptions = {
     configPath: __dirname + '/config',

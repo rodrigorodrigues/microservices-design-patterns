@@ -21,7 +21,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Mono<UserDetails> findByUsername(String username) throws UsernameNotFoundException {
         return authenticationRepository.findByEmail(username)
-                .switchIfEmpty(Mono.error(new UsernameNotFoundException(String.format("Authentication(%s) not found!", username))))
-                .map(p -> p);
+            .switchIfEmpty(Mono.error(new UsernameNotFoundException(String.format("Authentication(%s) not found!", username))))
+            .map(p -> p);
     }
 }

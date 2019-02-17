@@ -35,14 +35,14 @@ public class AuthenticateController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<JwtToken>> authenticate(@RequestBody LoginDto loginDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
+            new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
 
         return this.authenticationManager.authenticate(authenticationToken)
-                .flatMap(a -> authenticationService.findByEmail(loginDto.getUsername())
+            .flatMap(a -> authenticationService.findByEmail(loginDto.getUsername())
                 .map(u -> {
                     String jwt = "Bearer " + tokenProvider.createToken(a, u.getFullName(), loginDto.isRememberMe());
                     return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, jwt)
-                            .body(new JwtToken(jwt));
+                        .body(new JwtToken(jwt));
                 }));
     }
 

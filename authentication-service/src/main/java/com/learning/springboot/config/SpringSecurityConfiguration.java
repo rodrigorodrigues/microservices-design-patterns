@@ -58,23 +58,23 @@ public class SpringSecurityConfiguration {
     public SecurityWebFilterChain configure(ServerHttpSecurity http) {
         return http
             .csrf()
-                .disable()
-                .headers()
-                .frameOptions().disable()
-                .cache().disable()
+            .disable()
+            .headers()
+            .frameOptions().disable()
+            .cache().disable()
             .and()
-                .formLogin().disable()
-                .httpBasic().disable()
-                .logout().disable()
-                .authorizeExchange()
-                .pathMatchers(WHITELIST).permitAll()
-                .anyExchange().authenticated()
+            .formLogin().disable()
+            .httpBasic().disable()
+            .logout().disable()
+            .authorizeExchange()
+            .pathMatchers(WHITELIST).permitAll()
+            .anyExchange().authenticated()
             .and()
             .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-                .exceptionHandling()
-                .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
+            .exceptionHandling()
+            .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
             .and()
-                .build();
+            .build();
     }
 
     private AuthenticationWebFilter authenticationWebFilter() {

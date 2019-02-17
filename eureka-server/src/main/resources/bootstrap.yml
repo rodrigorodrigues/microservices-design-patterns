@@ -4,3 +4,8 @@ server:
 eureka:
     client:
         register-with-eureka: false
+spring:
+    application:
+        name: eureka-server
+    session:
+        store-type: redis

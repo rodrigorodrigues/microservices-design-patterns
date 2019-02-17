@@ -1,0 +1,2 @@
+rg.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.learning.autoconfigure.SharedMongoConfiguration

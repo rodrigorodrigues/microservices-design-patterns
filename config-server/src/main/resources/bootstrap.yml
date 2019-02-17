@@ -8,8 +8,21 @@ spring:
                     searchPaths: config-server/configuration
     application:
         name: config-server
+    session:
+        store-type: redis
 
 eureka:
     client:
         serviceUrl:
             defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}
+    instance:
+        metadata-map:
+            user: ${configuration.user}
+            password: ${configuration.password}
+
+configuration:
+    user: admin
+    password: "{cipher}b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53"
+
+encrypt:
+    key: 520326009ae66e5eeebeff2e5bba5a734cc09302c9b04f3c0ac445c30b76f36ada8fb965e99c6b7eb0f86d2deb7a6993cf1ec515450d3b19799c72aaa53b8a63

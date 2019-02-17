@@ -44,8 +44,8 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 		properties = "configuration.swagger=false")
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
-@Import(AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
-public class AuthenticationServiceApplicationIntegrationTest {
+@Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
+public class SharedAuthenticationServiceApplicationIntegrationTest {
 
 	@Autowired
 	ApplicationContext context;
