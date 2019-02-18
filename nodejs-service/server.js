@@ -53,7 +53,9 @@ const eurekaClient = new Eureka({
         app: 'WEEK-MENU-API',
         hostName: ipAddr,
         ipAddr: ipAddr,
-        statusPageUrl: `http://localhost:${port}/actuator/info`,
+        statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
+        healthCheckUrl: `http://${ipAddr}:${port}/actuator/health`,
+        homePageUrl: `http://${ipAddr}:${port}`,
         port: {
             '$': port,
             '@enabled': 'true',
@@ -77,9 +79,9 @@ eurekaClient.start();
 // Spring Cloud Config
 const springCloudConfig = require('spring-cloud-config');
 const springProfilesActive = [];
-let profile = process.env.SPRING_PROFILES_ACTIVE || 'dev';
-profile = profile + '?X-Encrypt-Key=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53';
+const profile = (process.env.SPRING_PROFILES_ACTIVE || 'dev');
 springProfilesActive.push(profile);
+springProfilesActive.push("?X-Encrypt-Key=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53");
 console.log("springProfilesActive: ", springProfilesActive);
 let configOptions = {
     configPath: __dirname + '/config',
