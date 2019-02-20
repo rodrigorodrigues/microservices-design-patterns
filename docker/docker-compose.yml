@@ -105,6 +105,8 @@ services:
             - SERVER_PORT=3002
             - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
             - EUREKA_SERVER=service-discovery
+            - DEBUG=*
+            - NODE_DEBUG=request
         depends_on:
             - service-discovery
             - config-management

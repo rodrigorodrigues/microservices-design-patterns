@@ -9,6 +9,7 @@ ARGUMENT=$1
 HOST="$(echo $ARGUMENT | cut -d ':' -f1)"
 PORT="$(echo $ARGUMENT | cut -d ':' -f2)"
 MAX_RETRY=7
+SECONDS_SLEEP=20
 
 echo "Testing connection to host $HOST and port $PORT."
 
@@ -19,15 +20,15 @@ do
     nc -z $HOST $PORT
     result=$?
     if [ $result -eq 0 ]; then
-        echo "Connection is available after $count second(s)."
+        echo "Connection is available after $(($count * $SECONDS_SLEEP)) second(s)."
         cmd="$JAVA_CMD"
 
         # run the command
         exec $cmd
         exit 0
     fi
-    echo "Retrying... $(date +'%d/%m/%Y %H:%M:%S:%3N')"
-    sleep 20
+    echo "Retrying for $SECONDS_SLEEP seconds... $(date +'%d/%m/%Y %H:%M:%S:%3N')"
+    sleep $SECONDS_SLEEP
 done
 
 >&2 echo "Timeout occurred after waiting $MAX_RETRY seconds for $HOST:$PORT."

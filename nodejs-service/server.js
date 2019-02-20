@@ -56,21 +56,21 @@ const eurekaClient = new Eureka({
     // application instance information
     instance: {
         app: 'WEEK-MENU-API',
-        instanceId: 'WEEKMENUAPI',
-        hostName: 'localhost',
+        instanceId: 'WEEK-MENU-API',
+        hostName: ipAddr,
         ipAddr: ipAddr,
+        homePageUrl: `http://${ipAddr}:${port}`,
         statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
+        healthCheckUrl: `http://${ipAddr}:${port}/actuator/health`,
         port: {
             '$': port,
             '@enabled': 'true',
         },
-        vipAddress: 'WEEKMENUAPI',
+        vipAddress: ipAddr,
         dataCenterInfo: {
             '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
             name: 'MyOwn',
-        },
-        registerWithEureka: true,
-        fetchRegistry: true
+        }
     },
     eureka: {
         // eureka server host / port
@@ -95,6 +95,8 @@ let configOptions = {
     level: 'debug'
 };
 
+let secretKey = null;
+
 app.use(bodyParser.json());
 // Create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -104,66 +106,11 @@ app.options('*', cors());
 
 app.use(function (req, res, next) {
 
-    let configProps = springCloudConfig.load(configOptions);
-    configProps.then((config) => {
-        const secretKey = config.configuration.jwt['base64-secret'];
-
-        try {
-            console.log("Path: ", req.path);
-            if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
-                if (req.path === '/actuator') {
-                    const jsonMessage = `{
-                        "_links": {
-                            "self": {
-                                "href": "http://${ipAddr}:${port}/actuator",
-                                "templated": false
-                            },
-                            "health": {
-                                "href": "http://${ipAddr}:${port}/actuator/health",
-                                "templated": false
-                            },
-                            "info": {
-                                "href": "http://${ipAddr}:${port}/actuator/info",
-                                "templated": false
-                            },
-                            "prometheus": {
-                                "href": "http://${ipAddr}:${port}/actuator/prometheus",
-                                "templated": false
-                            },
-                            "metrics": {
-                                "href": "http://${ipAddr}:${port}/actuator/metrics",
-                                "templated": false
-                            }
-                        }
-                    }`;
-                    res.status(200).send(JSON.parse(jsonMessage));
-                } else if (req.path == '/actuator/health') {
-                    res.status(200).send(JSON.parse('{"status": "UP"}'));
-                } else {
-                    res.sendStatus(200);
-                }
-            } else {
-                console.log("Headers", req.headers);
-                let token = req.headers.authorization;
-                if (!token) {
-                    throw err("Token Not found");
-                }
-                token = token.replace("Bearer ", "");
-                console.log("Token: ", token);
-                jwt.verify(token, new Buffer(secretKey, 'base64'));
-    
-                if ('OPTIONS' == req.method) {
-                    res.sendStatus(200);
-                }
-                else {
-                    next();
-                }
-            }
-        } catch(e) {
-            console.log("Error validate JWT", e);
-            res.status(401).send("Error on validate JWT: "+e);
-        }
-    });
+    if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
+        actuatorRoute(req, res);
+    } else {
+        validateJwt(req, res, next);
+    }
 
 });
 
@@ -194,7 +141,74 @@ db.connection.once('open', () => {
 
 app.listen(port, () => {
     log.logExceptOnTest("Application started. Listening on port:" + port);
+    loadSpringConfig();
 });
+
+function loadSpringConfig() {
+    let configProps = springCloudConfig.load(configOptions);
+    configProps.then((config) => {
+        secretKey = config.configuration.jwt['base64-secret'];
+        log.logExceptOnTest("SecretKey: ", secretKey);
+    });
+}
+
+function validateJwt(req, res, next) {
+    try {
+        console.log("Headers", req.headers);
+        let token = req.headers.authorization;
+        if (!token) {
+            throw err("Token Not found");
+        }
+        token = token.replace("Bearer ", "");
+        console.log("Token: ", token);
+        jwt.verify(token, new Buffer(secretKey, 'base64'));
+        if ('OPTIONS' == req.method) {
+            res.sendStatus(200);
+        }
+        else {
+            next();
+        }
+    } catch (e) {
+        console.log("Error validate JWT", e);
+        res.status(401).send("Error on validate JWT: " + e);
+    }
+}
+
+function actuatorRoute(req, res) {
+    if (req.path === '/actuator') {
+        const jsonMessage = `{
+                        "_links": {
+                            "self": {
+                                "href": "http://${ipAddr}:${port}/actuator",
+                                "templated": false
+                            },
+                            "health": {
+                                "href": "http://${ipAddr}:${port}/actuator/health",
+                                "templated": false
+                            },
+                            "info": {
+                                "href": "http://${ipAddr}:${port}/actuator/info",
+                                "templated": false
+                            },
+                            "prometheus": {
+                                "href": "http://${ipAddr}:${port}/actuator/prometheus",
+                                "templated": false
+                            },
+                            "metrics": {
+                                "href": "http://${ipAddr}:${port}/actuator/metrics",
+                                "templated": false
+                            }
+                        }
+                    }`;
+        res.status(200).send(JSON.parse(jsonMessage));
+    }
+    else if (req.path == '/actuator/health') {
+        res.status(200).send(JSON.parse('{"status": "UP"}'));
+    }
+    else {
+        res.sendStatus(200);
+    }
+}
 
 function errorHandle(err, req, res, next) {
     log.errorExceptOnTest('server.js', err.stack);
