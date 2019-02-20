@@ -39,6 +39,11 @@ const Eureka = require('eureka-js-client').Eureka;
 var actuator = require('express-actuator');
 app.use(actuator('/actuator'));
 
+// Prometheus
+const promBundle = require("express-prom-bundle");
+const metricsMiddleware = promBundle({includeMethod: true, metricsPath: '/actuator/prometheus'});
+app.use(metricsMiddleware);
+
 const eurekaServer = process.env.EUREKA_SERVER || '127.0.0.1';
 const eurekaServerPort = process.env.EUREKA_PORT || 8761;
 const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
@@ -51,20 +56,21 @@ const eurekaClient = new Eureka({
     // application instance information
     instance: {
         app: 'WEEK-MENU-API',
-        hostName: ipAddr,
+        instanceId: 'WEEKMENUAPI',
+        hostName: 'localhost',
         ipAddr: ipAddr,
         statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
-        healthCheckUrl: `http://${ipAddr}:${port}/actuator/health`,
-        homePageUrl: `http://${ipAddr}:${port}`,
         port: {
             '$': port,
             '@enabled': 'true',
         },
-        vipAddress: ipAddr,
+        vipAddress: 'WEEKMENUAPI',
         dataCenterInfo: {
             '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
             name: 'MyOwn',
-        }
+        },
+        registerWithEureka: true,
+        fetchRegistry: true
     },
     eureka: {
         // eureka server host / port
@@ -104,8 +110,38 @@ app.use(function (req, res, next) {
 
         try {
             console.log("Path: ", req.path);
-            if (req.path.startsWith('/actuator/') || req.path === '/favicon.ico') {
-                res.sendStatus(200);
+            if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
+                if (req.path === '/actuator') {
+                    const jsonMessage = `{
+                        "_links": {
+                            "self": {
+                                "href": "http://${ipAddr}:${port}/actuator",
+                                "templated": false
+                            },
+                            "health": {
+                                "href": "http://${ipAddr}:${port}/actuator/health",
+                                "templated": false
+                            },
+                            "info": {
+                                "href": "http://${ipAddr}:${port}/actuator/info",
+                                "templated": false
+                            },
+                            "prometheus": {
+                                "href": "http://${ipAddr}:${port}/actuator/prometheus",
+                                "templated": false
+                            },
+                            "metrics": {
+                                "href": "http://${ipAddr}:${port}/actuator/metrics",
+                                "templated": false
+                            }
+                        }
+                    }`;
+                    res.status(200).send(JSON.parse(jsonMessage));
+                } else if (req.path == '/actuator/health') {
+                    res.status(200).send(JSON.parse('{"status": "UP"}'));
+                } else {
+                    res.sendStatus(200);
+                }
             } else {
                 console.log("Headers", req.headers);
                 let token = req.headers.authorization;
