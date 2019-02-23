@@ -24,7 +24,7 @@ public class EurekaServerWebSecurityConfiguration extends WebSecurityConfigurerA
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
-            .antMatchers("/eureka/apps/**", "/logout").permitAll()
+            .antMatchers("/eureka/apps/**", "/logout", "/actuator/**", "/v1/agent/self").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
             .formLogin()

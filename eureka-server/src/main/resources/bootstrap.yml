@@ -1,11 +1,11 @@
 server:
   port: ${PORT:8761}
 
-eureka:
-    client:
-        register-with-eureka: false
 spring:
     application:
         name: eureka-server
     session:
         store-type: redis
+
+logging:
+    file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log

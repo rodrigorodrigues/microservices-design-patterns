@@ -30,7 +30,8 @@
         "node-env-run": "3.0.2",
         "dotenv": "6.2.0",
         "prom-client": "11.2.1",
-        "express-prom-bundle": "5.0.2"
+        "express-prom-bundle": "5.0.2",
+        "morgan": "1.9.1"
     },
     "devDependencies": {
         "chai": "3.5.0",

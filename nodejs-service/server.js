@@ -56,17 +56,14 @@ const eurekaClient = new Eureka({
     // application instance information
     instance: {
         app: 'WEEK-MENU-API',
-        instanceId: 'WEEK-MENU-API',
-        hostName: ipAddr,
+        hostName: 'localhost',
         ipAddr: ipAddr,
-        homePageUrl: `http://${ipAddr}:${port}`,
         statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
-        healthCheckUrl: `http://${ipAddr}:${port}/actuator/health`,
         port: {
             '$': port,
             '@enabled': 'true',
         },
-        vipAddress: ipAddr,
+        vipAddress: 'WEEK-MENU-API.heroku.com',
         dataCenterInfo: {
             '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
             name: 'MyOwn',
@@ -77,7 +74,9 @@ const eurekaClient = new Eureka({
         host: eurekaServer,
         port: eurekaServerPort,
         servicePath: '/eureka/apps/',
-        maxRetries: 10
+        maxRetries: 10,
+        registerWithEureka: true,
+        fetchRegistry: true
     }
 });
 eurekaClient.start();
@@ -94,6 +93,9 @@ let configOptions = {
     activeProfiles: springProfilesActive,
     level: 'debug'
 };
+
+//Spring Cloud Sleuth
+const morgan = require('morgan');
 
 let secretKey = null;
 
@@ -113,6 +115,17 @@ app.use(function (req, res, next) {
     }
 
 });
+
+app.use(morgan(function (tokens, req, res) {
+    return [
+        tokens.method(req, res),
+        '[TRACE-ID:' +req.header('X-B3-Traceid')+']',
+        tokens.url(req, res),
+        tokens.status(req, res),
+        tokens.res(req, res, 'content-length'), '-',
+        tokens['response-time'](req, res), 'ms'
+    ].join(' ')
+}));
 
 app.use(logger);
 

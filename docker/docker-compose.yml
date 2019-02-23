@@ -86,8 +86,9 @@ services:
         container_name: react-webapp
         environment:
             - REACT_APP_GATEWAY_URL=http://localhost:9006
+            - PORT=3001
         ports:
-            - 3000:3000
+            - 3001:3001
         links:
           - gateway
         volumes:
@@ -105,6 +106,7 @@ services:
             - SERVER_PORT=3002
             - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
             - EUREKA_SERVER=service-discovery
+            - EUREKA_PORT=8761
             - DEBUG=*
             - NODE_DEBUG=request
         depends_on:
@@ -196,3 +198,33 @@ services:
         command: redis-server --port 6380
         ports:
           - 6380:6380
+
+    prometheus:
+        image: prom/prometheus
+        container_name: prometheus
+        environment:
+          - EUREKA_SERVER=service-discovery
+          - EUREKA_PORT=8761
+        volumes:
+          - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        ports:
+          - 9090:9090
+        depends_on:
+          - service-discovery
+        links:
+          - service-discovery
+
+    grafana:
+      image: grafana/grafana
+      container_name: grafana
+      ports:
+        - 3000:3000
+
+    setup_grafana_datasource:
+        image: appropriate/curl
+        container_name: setup_grafana_datasource
+        depends_on:
+          - grafana
+        volumes:
+          - ./create-datasource-and-dashboard.sh:/create.sh:ro
+        command: /create.sh

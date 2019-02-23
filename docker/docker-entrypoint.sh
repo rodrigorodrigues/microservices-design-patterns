@@ -27,7 +27,7 @@ do
         exec $cmd
         exit 0
     fi
-    echo "Retrying for $SECONDS_SLEEP seconds... $(date +'%d/%m/%Y %H:%M:%S:%3N')"
+    echo "Retrying after $SECONDS_SLEEP seconds... $(date +'%d/%m/%Y %H:%M:%S:%3N')"
     sleep $SECONDS_SLEEP
 done
 
