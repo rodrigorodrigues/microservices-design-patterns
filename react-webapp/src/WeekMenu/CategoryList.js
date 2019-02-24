@@ -18,8 +18,7 @@ class CategoryList extends Component {
     console.log("JWT: ", jwt);
     if (jwt) {
       try {
-        const data = await get('week-menu/v2/category', true, false,
-            {'Authorization': jwt})
+        const data = await get('week-menu/v2/category', true, false, jwt)
         if (data) {
           this.state.categories.push(data);
           this.setState({isLoading: false, categories: this.state.categories});

@@ -115,6 +115,8 @@ services:
             - EUREKA_PORT=8761
             - DEBUG=*
             - NODE_DEBUG=request
+            - HOST_NAME=week-menu-api
+            - IP_ADDRESS=week-menu-api
         depends_on:
             - service-discovery
             - config-management

@@ -47,17 +47,19 @@ app.use(metricsMiddleware);
 const eurekaServer = process.env.EUREKA_SERVER || '127.0.0.1';
 const eurekaServerPort = process.env.EUREKA_PORT || 8761;
 const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
+const hostName = process.env.HOST_NAME || 'localhost';
 console.log("eurekaServer: ", eurekaServer);
 console.log("eurekaServerPort: ", eurekaServerPort);
 console.log("port: ", port);
 console.log("ipAddr: ", ipAddr);
+console.log("hostName: ", hostName);
 // Eureka configuration
 const eurekaClient = new Eureka({
     // application instance information
     instance: {
         app: 'WEEK-MENU-API',
         instanceId: 'WEEK-MENU-API',
-        hostName: 'localhost',
+        hostName: hostName,
         ipAddr: ipAddr,
         statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
         port: {

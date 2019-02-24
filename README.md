@@ -181,7 +181,7 @@ Swagger UI is available for `Authentication, Person and User Services`
 * [X] Java - Add Redis for Shared Session between applications
 * [X] Java - Add Authentication for all applications
 * [X] Java - Add Prometheus/Grafana for docker compose
-* [ ] Java - Fix Zuul/Edge Server for working with NodeJS Service
+* [X] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [ ] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
