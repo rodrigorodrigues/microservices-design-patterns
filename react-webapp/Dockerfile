@@ -1,4 +1,5 @@
 FROM node:9.11.1
+ARG SERVER_PORT
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -19,5 +20,8 @@ COPY . .
 
 ENV JAVA_CMD="npm start"
 
-EXPOSE 3000
+ENV PORT=$SERVER_PORT
+
+EXPOSE $SERVER_PORT
+
 CMD [ "npm", "start" ]

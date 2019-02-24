@@ -56,6 +56,7 @@ const eurekaClient = new Eureka({
     // application instance information
     instance: {
         app: 'WEEK-MENU-API',
+        instanceId: 'WEEK-MENU-API',
         hostName: 'localhost',
         ipAddr: ipAddr,
         statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
@@ -63,7 +64,7 @@ const eurekaClient = new Eureka({
             '$': port,
             '@enabled': 'true',
         },
-        vipAddress: 'WEEK-MENU-API.heroku.com',
+        vipAddress: 'WEEK-MENU-API',
         dataCenterInfo: {
             '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
             name: 'MyOwn',
