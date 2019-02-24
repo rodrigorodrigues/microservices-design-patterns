@@ -8,8 +8,8 @@ fi
 ARGUMENT=$1
 HOST="$(echo $ARGUMENT | cut -d ':' -f1)"
 PORT="$(echo $ARGUMENT | cut -d ':' -f2)"
-MAX_RETRY=7
-SECONDS_SLEEP=20
+MAX_RETRY=10
+SECONDS_SLEEP=30
 
 echo "Testing connection to host $HOST and port $PORT."
 

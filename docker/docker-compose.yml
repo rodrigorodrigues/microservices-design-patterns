@@ -10,6 +10,8 @@ services:
             - SERVER_PORT=8761
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
+            - DEBUG=true
+            - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
         depends_on:
           - redisdb
           - mongodb-datasource
@@ -81,12 +83,14 @@ services:
 
     react-webapp:
         build:
+            args:
+                - SERVER_PORT=3001
             context: ../react-webapp
             dockerfile: Dockerfile
         container_name: react-webapp
         environment:
             - REACT_APP_GATEWAY_URL=http://localhost:9006
-            - PORT=3001
+            - SERVER_PORT=3001
         ports:
             - 3001:3001
         links:
@@ -97,6 +101,8 @@ services:
 
     week-menu-api:
         build:
+            args:
+                - SERVER_PORT=3002
             context: ../nodejs-service
             dockerfile: Dockerfile
         container_name: week-menu-api
@@ -219,6 +225,9 @@ services:
       container_name: grafana
       ports:
         - 3000:3000
+      environment:
+        - GF_AUTH_ANONYMOUS_ENABLED=true
+        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
 
     setup_grafana_datasource:
         image: appropriate/curl

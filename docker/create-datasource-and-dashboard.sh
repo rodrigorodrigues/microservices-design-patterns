@@ -8,7 +8,7 @@ if ! curl --retry 5 --retry-connrefused --retry-delay 0 -sf http://grafana:3000/
          http://grafana:3000/api/datasources
 fi
 
-dashboard_id=1598
+dashboard_id=4701
 last_revision=$(curl -sf https://grafana.com/api/dashboards/${dashboard_id}/revisions | grep '"revision":' | sed 's/ *"revision": \([0-9]*\),/\1/' | sort -n | tail -1)
 
 echo '{"dashboard": ' > data.json

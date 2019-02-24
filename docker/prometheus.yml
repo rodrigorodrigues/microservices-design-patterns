@@ -20,10 +20,10 @@ rule_files:
 # Here it's Prometheus itself.
 scrape_configs:
   - job_name: 'overwritten-default'
-    metrics_path: '/management/prometheus'
+    metrics_path: '/actuator/prometheus'
 
     consul_sd_configs:
-    - server:   '127.0.0.1:8761'
+    - server:   'service-discovery:8761'
     #services: ['auth', 'api', 'load-balancer', 'postgres']
 
     relabel_configs:
