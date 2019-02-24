@@ -13,11 +13,12 @@ The same approach could be applied for any language.
   3. [Microservice Diagram](#microservice-diagram)
   4. [Manual Installation](#manual-installation)
   5. [Using Docker and Docker Compose](#installation-using-docker-and-docker-compose)
-  6. [React App](#react-app)
-  7. [Default Users](#default-users)
-  8. [TODO-LIST](#todo-list)
-  9. [References](#references)
-  10. [Postman Collection](docs/postman_collection.json?raw=true)
+  6. [Prometheus and Grafana with Docker Compose](#prometheus-and-grafana)
+  7. [React App](#react-app)
+  8. [Default Users](#default-users)
+  9. [TODO-LIST](#todo-list)
+  10. [References](#references)
+  11. [Postman Collection](docs/postman_collection.json?raw=true)
 
 Used `Spring Cloud Netflix` for Microservices patterns(`Service Discovery, Config Management and Monitoring`):
 
@@ -95,17 +96,14 @@ sudo npm start
 
 ### Installation Using Docker and Docker Compose
 
-You can run everything using docker-compose on `docker folder` just run the following commands:
+You can run everything using docker-compose on `docker folder` just run the following command:
 
 ```
-#At once need to build nodejs and react separately, whenever change is made should rebuild the image
-docker-compose build week-menu-api react-webapp
-
-#Then after start all services
 docker-compose up -d
 ```
 
-You can `start and build` NodeJS and React at the same time with the following command:
+PS: Whenever change is made it should rebuild the image using the following command:
+
 ``` 
 docker-compose up --build week-menu-api react-webapp
 ```
@@ -137,9 +135,19 @@ docker-compose stop SERVICE_NAME
 docker-compose rm SERVICE_NAME
 ```
 
+### Prometheus and Grafana
+
+`Prometheus` is a tool for monitoring applications and generating metrics.
+
+`Grafana` is a tool for communicate with Prometheus and display the data in dashboards.
+
+Spring Boot 2 by default uses [Micrometer](https://micrometer.io) for monitoring JVM/Microservices Applications.
+
+To access prometheus `http://localhost:9090` and grafana `http://localhost:3000`.
+
 ### React App
 
-After that access the app by `http://localhost:3000`
+After that access the app by `http://localhost:3001`
 
 ### Default Users
 
@@ -172,6 +180,7 @@ Swagger UI is available for `Authentication, Person and User Services`
 * [X] Java - Add Maven Docker Plugin
 * [X] Java - Add Redis for Shared Session between applications
 * [X] Java - Add Authentication for all applications
+* [X] Java - Add Prometheus/Grafana for docker compose
 * [ ] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [ ] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
