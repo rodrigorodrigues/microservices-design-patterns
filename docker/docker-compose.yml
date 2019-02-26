@@ -54,6 +54,7 @@ services:
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
+            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
         depends_on:
             - service-discovery
             - config-management
@@ -117,6 +118,8 @@ services:
             - NODE_DEBUG=request
             - HOST_NAME=week-menu-api
             - IP_ADDRESS=week-menu-api
+            - ZIPKIN_HOST=zipkin
+            - ZIPKIN_PORT=9411
         depends_on:
             - service-discovery
             - config-management
@@ -141,6 +144,7 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
+            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
         depends_on:
             - service-discovery
             - config-management
@@ -163,6 +167,7 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
+            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
         links:
           - authentication-api
         ports:
@@ -183,6 +188,7 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
+            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
         depends_on:
             - service-discovery
             - config-management
@@ -239,3 +245,55 @@ services:
         volumes:
           - ./create-datasource-and-dashboard.sh:/create.sh:ro
         command: /create.sh
+
+    zipkin-mysql:
+        image: openzipkin/zipkin-mysql
+        container_name: zipkin-mysql
+        # Uncomment to expose the storage port for testing
+        # ports:
+        #   - 3306:3306
+
+    # The zipkin process services the UI, and also exposes a POST endpoint that
+    # instrumentation can send trace data to. Scribe is disabled by default.
+    zipkin:
+        image: openzipkin/zipkin
+        container_name: zipkin
+        # Environment settings are defined here https://github.com/openzipkin/zipkin/tree/1.19.0/zipkin-server#environment-variables
+        environment:
+            - STORAGE_TYPE=mysql
+            # Point the zipkin at the storage backend
+            - MYSQL_HOST=zipkin-mysql
+            # Uncomment to enable scribe
+            # - SCRIBE_ENABLED=true
+            # Uncomment to enable self-tracing
+            # - SELF_TRACING_ENABLED=true
+            # Uncomment to enable debug logging
+            # - JAVA_OPTS=-Dlogging.level.zipkin=DEBUG -Dlogging.level.zipkin2=DEBUG
+        ports:
+            # Port used for the Zipkin UI and HTTP Api
+            - 9411:9411
+            # Uncomment if you set SCRIBE_ENABLED=true
+            # - 9410:9410
+        depends_on:
+            - zipkin-mysql
+
+    # Adds a cron to process spans since midnight every hour, and all spans each day
+    # This data is served by http://192.168.99.100:8080/dependency
+    #
+    # For more details, see https://github.com/openzipkin/docker-zipkin-dependencies
+    zipkin-dependencies:
+        image: openzipkin/zipkin-dependencies
+        container_name: zipkin-dependencies
+        entrypoint: crond -f
+        environment:
+            - STORAGE_TYPE=mysql
+            - MYSQL_HOST=zipkin-mysql
+            # Add the baked-in username and password for the zipkin-mysql image
+            - MYSQL_USER=zipkin
+            - MYSQL_PASS=zipkin
+            # Uncomment to see dependency processing logs
+            # - ZIPKIN_LOG_LEVEL=DEBUG
+            # Uncomment to adjust memory used by the dependencies job
+            - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
+        depends_on:
+            - zipkin-mysql

@@ -48,11 +48,16 @@ const eurekaServer = process.env.EUREKA_SERVER || '127.0.0.1';
 const eurekaServerPort = process.env.EUREKA_PORT || 8761;
 const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
 const hostName = process.env.HOST_NAME || 'localhost';
+const zipkinHost = process.env.ZIPKIN_HOST || 'localhost';
+const zipkinPort = process.env.ZIPKIN_PORT || 9411;
 console.log("eurekaServer: ", eurekaServer);
 console.log("eurekaServerPort: ", eurekaServerPort);
 console.log("port: ", port);
 console.log("ipAddr: ", ipAddr);
 console.log("hostName: ", hostName);
+console.log("zipkinHost: ", zipkinHost);
+console.log("zipkinPort: ", zipkinPort);
+
 // Eureka configuration
 const eurekaClient = new Eureka({
     // application instance information
@@ -62,6 +67,8 @@ const eurekaClient = new Eureka({
         hostName: hostName,
         ipAddr: ipAddr,
         statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
+        healthCheckUrl: `http://${ipAddr}:${port}/actuator/health`,
+        homePagekUrl: `http://${ipAddr}:${port}`,
         port: {
             '$': port,
             '@enabled': 'true',
@@ -99,6 +106,35 @@ let configOptions = {
 
 //Spring Cloud Sleuth
 const morgan = require('morgan');
+
+//Zipkin
+/* eslint-env browser */
+const {
+    BatchRecorder,
+    jsonEncoder: {JSON_V2}
+  } = require('zipkin');
+  const {HttpLogger} = require('zipkin-transport-http');
+  
+  // Send spans to Zipkin asynchronously over HTTP
+  const zipkinBaseUrl = `http://${zipkinHost}:${zipkinPort}`;
+  const recorder = new BatchRecorder({
+    logger: new HttpLogger({
+      endpoint: `${zipkinBaseUrl}/api/v2/spans`,
+      jsonEncoder: JSON_V2
+    })
+  });
+
+const CLSContext = require('zipkin-context-cls');
+const {Tracer} = require('zipkin');
+
+const ctxImpl = new CLSContext('zipkin');
+const localServiceName = 'weel-menu-api';
+const tracer = new Tracer({ctxImpl, recorder, localServiceName});
+
+// instrument the server
+const zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware;
+app.use(zipkinMiddleware({tracer}));
+
 
 let secretKey = null;
 

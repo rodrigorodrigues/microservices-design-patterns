@@ -14,6 +14,7 @@ The same approach could be applied for any language.
   4. [Manual Installation](#manual-installation)
   5. [Using Docker and Docker Compose](#installation-using-docker-and-docker-compose)
   6. [Prometheus and Grafana with Docker Compose](#prometheus-and-grafana)
+  7. [Zipkin Request Tracing with Docker Compose](#request-tracing-zipkin)
   7. [React App](#react-app)
   8. [Default Users](#default-users)
   9. [TODO-LIST](#todo-list)
@@ -144,6 +145,12 @@ docker-compose rm SERVICE_NAME
 Spring Boot 2 by default uses [Micrometer](https://micrometer.io) for monitoring JVM/Microservices Applications.
 
 To access prometheus `http://localhost:9090` and grafana `http://localhost:3000`.
+
+### Request Tracing Zipkin
+
+`Zipkin` is used for request tracing through the microservices.
+
+To access it `http://localhost:9411`.
 
 ### React App
 

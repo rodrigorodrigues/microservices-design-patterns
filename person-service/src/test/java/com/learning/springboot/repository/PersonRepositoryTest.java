@@ -5,8 +5,7 @@ import com.learning.springboot.model.Address;
 import com.learning.springboot.model.Child;
 import com.learning.springboot.model.Person;
 import com.learning.springboot.util.ReactiveMongoMetadataUtil;
-import com.mongodb.reactivestreams.client.MongoCollection;
-import org.bson.Document;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,10 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
@@ -30,7 +29,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@DataMongoTest(properties = {"configuration.initialLoad=false"})
+@DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.learning.springboot.util=debug"})
 @Import({ReactiveMongoMetadataUtil.class, ObjectMapper.class})
 public class PersonRepositoryTest {
     @Autowired
@@ -39,12 +38,13 @@ public class PersonRepositoryTest {
     @Autowired
     ReactiveMongoMetadataUtil reactiveMongoMetadataUtil;
 
+    @Autowired
+    ReactiveMongoTemplate mongoTemplate;
+
     @BeforeEach
     @Transactional
     public void setup() {
-        Mono<MongoCollection<Document>> recreateCollection = reactiveMongoMetadataUtil.recreateCollection(Person.class);
-
-        StepVerifier.create(recreateCollection).expectNextCount(1).verifyComplete();
+        reactiveMongoMetadataUtil.recreateCollection(Person.class);
 
         personRepository.save(Person.builder().fullName("Rodrigo")
                 .dateOfBirth(LocalDate.now())
@@ -106,4 +106,8 @@ public class PersonRepositoryTest {
         assertThat(people.peek().getFullName()).isEqualTo("Rodrigo");
     }
 
+    @AfterEach
+    public void tearDown() {
+        mongoTemplate.dropCollection(Person.class).block();
+    }
 }

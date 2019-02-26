@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -24,9 +25,16 @@ public class ReactiveMongoMetadataUtil {
 
     private final PasswordEncoder passwordEncoder;
 
-    public Mono<Void> recreateCollection(Class<? extends Serializable> entity) {
-        return mongoTemplate.collectionExists(entity)
-            .flatMap(m -> mongoTemplate.dropCollection(entity));
+    public void recreateCollection(Class<? extends Serializable> entity) {
+        mongoTemplate.findAll(entity)
+            .collectList()
+            .filter(List::isEmpty)
+            .subscribe(m -> {
+                log.debug("Dropping Collection for entity: {}", entity);
+                mongoTemplate.dropCollection(entity)
+                    .then(createCappedCollection(entity))
+                    .subscribe(c -> insertSystemDefaultUser());
+            });
     }
 
     private Mono<MongoCollection<Document>> createCappedCollection(Class<? extends Serializable> entity) {
@@ -40,10 +48,7 @@ public class ReactiveMongoMetadataUtil {
     public void init() {
         log.debug("ReactiveMongoMetadataUtil:init: {}", this);
 
-        recreateCollection(Authentication.class).block();
-        log.debug("Dropped Collection for entity: {}", Authentication.class);
-        createCappedCollection(Authentication.class)
-            .subscribe(c -> insertSystemDefaultUser());
+        recreateCollection(Authentication.class);
     }
 
     private void insertSystemDefaultUser() {
