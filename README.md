@@ -1,67 +1,79 @@
-# Spring Boot 2 + Spring Cloud + WebFlux + React SPA + Node.js + MongoDB
+# Microservice Architecture with Multiple Languages
 
-Example of using `Microservices Architecture` with multiple languages(`Java, NodeJS, Kotlin`).
+The main idea for this project is to apply `Microservice Architecture by Chris Richardson` using multiple languages.
 
-Inspired from [Microservices Patterns Book](https://www.manning.com/books/microservices-patterns).
+Most all services are made in `Java with Spring Boot 2 + Webflux` but one is in `NodeJS` and frontend in `React`. 
 
-The same approach could be applied for any language.
+Does not matter which language you peek this pattern could be applied for in any language.
 
-## Table of Contents
+Inspired from the book [Microservices Patterns](https://www.manning.com/books/microservices-patterns) by `Chris Richardson - @crichardson`.
 
-  1. [Introduction](#introduction)
+## Contents
+
+  1. [Microservice Patterns](#microservice-patterns)
   2. [Prerequisites](#prerequisites)
   3. [Microservice Diagram](#microservice-diagram)
-  4. [Manual Installation](#manual-installation)
-  5. [Using Docker and Docker Compose](#installation-using-docker-and-docker-compose)
-  6. [Prometheus and Grafana with Docker Compose](#prometheus-and-grafana)
-  7. [Zipkin Request Tracing with Docker Compose](#request-tracing-zipkin)
-  7. [React App](#react-app)
-  8. [Default Users](#default-users)
-  9. [TODO-LIST](#todo-list)
-  10. [References](#references)
-  11. [Postman Collection](docs/postman_collection.json?raw=true)
+  4. [Installing all services using Docker Compose](#installing-all-services-using-docker-compose)
+  5. [Docker Commands](#docker-commands)
+  6. [Monitoring - Spring Boot Admin](#monitoring---spring-boot-admin)
+  6. [Service Discovery - Eureka](#service-discovery---eureka)
+  6. [Externalized Configuration - Spring Config](#externalized-configuration---spring-cloud-config)
+  6. [Prometheus and Grafana](#prometheus-and-grafana)
+  7. [Zipkin Request Tracing](#request-tracing-zipkin)
+  8. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
+  9. [Accessing React Web App](#accessing-react-app)
+  10. [List of default users](#default-users)
+  11. [TODO-LIST](#todo-list)
+  12. [References](#references)
+  13. [Postman Collection](docs/postman_collection.json?raw=true)
 
-Used `Spring Cloud Netflix` for Microservices patterns(`Service Discovery, Config Management and Monitoring`):
+### Microservice Patterns
 
-Used `Spring Boot 2 Webflux` for Reactive Programming.
-
-Used `React` for Single Page Application.
-
-Following description for each folder.
-
- * Service Discovery - `eureka-server`
- * Config Management - `config-server`
- * Gateway - `edge-server`
- * Monitoring - `admin-edger`
+ * **Server-side service discovery** - `eureka-server`
  
-Exposed RestFul APIs:
-  * authentication-service - `POST - /api/authenticate`
-  * user-service - `CRUD - /api/users/**`
-  * person-service - `CRUD - /api/persons/**`
-  * nodejs-service - `CRUD - /v2/category`
+ * **Client-side service discovery** - All servers/services(`admin-server, user-service, person-service, etc`)
+ 
+ * **API Gateway** - `edge-server`
+ 
+ * **Externalized configuration** - `config-server`
+ 
+ * **Log aggregation** - `admin-server`
+ 
+ * **Access token** - [JSON Web Token](https://jwt.io) for `Authentication/Authorization` on services(`user-service, person-service, authentication-service, nodejs-service`)
+ 
+ * **Health Check API** - All Java services are using [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) - `<artifactId>spring-boot-starter-actuator</artifactId>` and NodeJS is using `express-actuator`
+ 
+ * **Distributed tracing** - All Java services are using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) `<artifactId>spring-cloud-starter-sleuth</artifactId>`, Zipkin `<artifactId>spring-cloud-starter-zipkin</artifactId>` and NodeJS is using `morgan, zipkin, zipkin-transport-http and zipkin-context-cls`
+ 
+ * **Application metrics** - All Java services are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and NodeJS is using `express-prom-bundle`
+ 
+ * **Database per service** - All services are using `MongoDB` as database
 
-React App:
- * react-webapp - React using Bootstrap
+To know more about each pattern find at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
 ### Prerequisites
  * JDK 1.8
  * Maven 3
- * Docker 17.05.0-ce+
- * Docker Compose 1.23.2
+ * Docker 17.05.0-ce+ - `Not necessary but recommended otherwise the services should run by command`
+ * Docker Compose 1.23.2 - `Not necessary but recommended otherwise the services should run by command`
 
 ### Microservice Diagram
  
-![Microservice Architecture](Microservice.png?raw=true "Microservice Architecture") 
+![Microservice Architecture](docs/Microservice.png "Microservice Architecture") 
 
-### Manual Installation
+### Manual Installation - NOT RECOMMENDED
 
-On `root folder`
+If for some reason you cannot install `docker/docker-compose` you can run all services manually.
+
+On `root folder` run the following command at once:
 
 `mvn clean install docker:build`
 
-### Run Spring Boot
+**Run Spring Boot**
 
-Run `mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"` in the following `Microservices folders`
+To run the services use the following command in each `Microservices folders`:
+
+`mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"`
 
 ```
 eureka-server - PORT=8761
@@ -75,7 +87,7 @@ user-service - PORT=8083
 
 PS: To login at `Eureka/Config/Edge/Admin` need a user with role `ADMIN`. See at [Default Users](#default-users)
 
-### Run Node.js service
+**Run Node.js service**
 
 On `nodejs-service folder` run the following commands:
 
@@ -85,7 +97,7 @@ sudo npm install
 sudo npm start
 ```
 
-### Run React Web app
+**Run React Web app**
 
 On `react-webapp folder` run the following commands:
 
@@ -95,7 +107,7 @@ sudo npm install
 sudo npm start
 ```
 
-### Installation Using Docker and Docker Compose
+### Installing All Services using Docker Compose
 
 You can run everything using docker-compose on `docker folder` just run the following command:
 
@@ -109,12 +121,14 @@ PS: Whenever change is made it should rebuild the image using the following comm
 docker-compose up --build week-menu-api react-webapp
 ```
 
+### Docker Commands
+
 To see a log inside a docker container:
 
 ```bash
 docker logs -f SERVICE_NAME
 ```
-PS: Services Names are in `docker-compose.yml -> key container_name`
+PS: Services Names are name of `container_name`
 
 To execute a command inside the container:
 
@@ -136,29 +150,69 @@ docker-compose stop SERVICE_NAME
 docker-compose rm SERVICE_NAME
 ```
 
+### Monitoring - Spring Boot Admin
+
+To see information related to `registered microservices` use [Spring Boot Admin](http://localhost:9000).
+
+![Spring Boot](docs/spring_boot_admin.png)
+
+PS: Need to login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
+
+### Service Discovery - Eureka
+
+To see `all registered microservices` to use [Eureka](http://localhost:8761).
+
+![Eureka](docs/eureka.png)
+
+PS: Need to login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
+
+### Externalized Configuration - Spring Cloud Config
+
+To see configuration related to specific service use [Spring Config](http://localhost:8888/edge-server/default).
+
+![Spring Config](docs/spring_config.png)
+
+PS: Need to login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
+
 ### Prometheus and Grafana
 
-`Prometheus` is a tool for monitoring applications and generating metrics.
+`Prometheus` is a tool for generating metrics from the requests.
 
-`Grafana` is a tool for communicate with Prometheus and display the data in dashboards.
+`Grafana` is a tool for communicate with `Prometheus` and display the data in dashboards.
 
-Spring Boot 2 by default uses [Micrometer](https://micrometer.io) for monitoring JVM/Microservices Applications.
+Spring Boot 2 by default uses [Micrometer](https://micrometer.io) for monitoring `JVM/Microservices Applications`.
 
-To access prometheus `http://localhost:9090` and grafana `http://localhost:3000`.
+To access [Prometheus UI](http://localhost:9090)
 
-### Request Tracing Zipkin
+![Prometheus](docs/prometheus.png) 
+ 
+To access [Grafana Dashboard](http://localhost:3000).
 
-`Zipkin` is used for request tracing through the microservices.
+![Grafana](docs/grafana.png)
 
-To access it `http://localhost:9411`.
+PS: It depends on docker.
 
-### React App
+### Sleuth and Zipkin
 
-After that access the app by `http://localhost:3001`
+`Sleuth` is used for creating a unique identifier(Span) and set to a request for all `microservices calls`.
+
+`Zipkin` is used for request tracing through `microservices`.
+
+To access [Zipkin UI](http://localhost:9411).
+
+![Zipkin1](docs/zipkin1.png)
+![Zipkin2](docs/zipkin2.png)
+
+### Accessing React App
+
+To access [React Web App](http://localhost:3001).
+
+![React1](docs/react1.png)
+![React2](docs/react2.png)
 
 ### Default Users
 
-Following list of default users:
+Following the list of default users:
 
 ```
 admin@gmail.com/password - ROLE_ADMIN
@@ -195,12 +249,12 @@ Swagger UI is available for `Authentication, Person and User Services`
 * [X] React - Create User List
 * [ ] React - Create User Page
 * [ ] React - Create User Edit
+* [ ] React - Fix User Create/Edit
+* [ ] React - Fix Person Create/Edit
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
 
 ### References
-[Microservices Patterns](https://microservices.io)
-
-[What's new in Java 8](https://leanpub.com/whatsnewinjava8/read)
+[Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
 [Spring Guide](https://spring.io/guides)
 

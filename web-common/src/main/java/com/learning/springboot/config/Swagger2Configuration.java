@@ -39,7 +39,7 @@ public class Swagger2Configuration {
     private ApiInfo apiEndPointsInfo() {
         return new ApiInfoBuilder().title("Java 8 Learning - Spring Boot 2")
                 .description("REST API")
-                .contact(new Contact("Rodrigo Santos", "https://github.com/rodrigorodrigues/java8-springboot.git", "rodrigorodriguesweb@gmail.com"))
+                .contact(new Contact("Rodrigo Santos", "https://github.com/rodrigorodrigues/springboot2-cloud-webflux-node-react.git", "rodrigorodriguesweb@gmail.com"))
                 .license("Apache 2.0")
                 .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
                 .version("1.0.0")
