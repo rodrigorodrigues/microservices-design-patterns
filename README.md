@@ -63,9 +63,12 @@ To know more about each pattern find at [Microservice Architecture](https://micr
 
 ### Installing All Services using Docker Compose
 
-You can run everything using docker-compose on `docker folder` just run the following command:
+You can run everything using docker-compose on `docker folder` just run the following commands:
 
 ```
+# at once for building the docker images
+mvn clean package docker:build
+
 docker-compose up -d
 ```
 
@@ -163,7 +166,7 @@ If for some reason you cannot install `docker/docker-compose` you can run all se
 
 On `root folder` run the following command at once:
 
-`mvn clean install docker:build`
+`mvn clean package docker:build`
 
 **Run Spring Boot**
 
