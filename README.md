@@ -16,16 +16,16 @@ Inspired from the book [Microservices Patterns](https://www.manning.com/books/mi
   4. [Installing all services using Docker Compose](#installing-all-services-using-docker-compose)
   5. [Docker Commands](#docker-commands)
   6. [Monitoring - Spring Boot Admin](#monitoring---spring-boot-admin)
-  6. [Service Discovery - Eureka](#service-discovery---eureka)
-  6. [Externalized Configuration - Spring Config](#externalized-configuration---spring-cloud-config)
-  6. [Prometheus and Grafana](#prometheus-and-grafana)
-  7. [Zipkin Request Tracing](#request-tracing-zipkin)
-  8. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
-  9. [Accessing React Web App](#accessing-react-app)
-  10. [List of default users](#default-users)
-  11. [TODO-LIST](#todo-list)
-  12. [References](#references)
-  13. [Postman Collection](docs/postman_collection.json?raw=true)
+  7. [Service Discovery - Eureka](#service-discovery---eureka)
+  8. [Externalized Configuration - Spring Config](#externalized-configuration---spring-cloud-config)
+  9. [Prometheus and Grafana](#prometheus-and-grafana)
+  10. [Zipkin Request Tracing](#request-tracing-zipkin)
+  11. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
+  12. [Accessing React Web App](#accessing-react-app)
+  13. [List of default users](#default-users)
+  14. [TODO-LIST](#todo-list)
+  15. [References](#references)
+  16. [Postman Collection](docs/postman_collection.json?raw=true)
 
 ### Microservice Patterns
 
@@ -60,52 +60,6 @@ To know more about each pattern find at [Microservice Architecture](https://micr
 ### Microservice Diagram
  
 ![Microservice Architecture](docs/Microservice.png "Microservice Architecture") 
-
-### Manual Installation - NOT RECOMMENDED
-
-If for some reason you cannot install `docker/docker-compose` you can run all services manually.
-
-On `root folder` run the following command at once:
-
-`mvn clean install docker:build`
-
-**Run Spring Boot**
-
-To run the services use the following command in each `Microservices folders`:
-
-`mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"`
-
-```
-eureka-server - PORT=8761
-config-server - PORT=8888
-edge-server - PORT=9006
-admin-server - PORT=9000
-authentication-service - PORT=8081
-person-service - PORT=8082
-user-service - PORT=8083
-```
-
-PS: To login at `Eureka/Config/Edge/Admin` need a user with role `ADMIN`. See at [Default Users](#default-users)
-
-**Run Node.js service**
-
-On `nodejs-service folder` run the following commands:
-
-```
-sudo npm install
-
-sudo npm start
-```
-
-**Run React Web app**
-
-On `react-webapp folder` run the following commands:
-
-```
-sudo npm install
-
-sudo npm start
-```
 
 ### Installing All Services using Docker Compose
 
@@ -202,6 +156,52 @@ To access [Zipkin UI](http://localhost:9411).
 
 ![Zipkin1](docs/zipkin1.png)
 ![Zipkin2](docs/zipkin2.png)
+
+### Manual Installation - NOT RECOMMENDED
+
+If for some reason you cannot install `docker/docker-compose` you can run all services manually.
+
+On `root folder` run the following command at once:
+
+`mvn clean install docker:build`
+
+**Run Spring Boot**
+
+To run the services use the following command in each `Microservices folders`:
+
+`mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"`
+
+```
+eureka-server - PORT=8761
+config-server - PORT=8888
+edge-server - PORT=9006
+admin-server - PORT=9000
+authentication-service - PORT=8081
+person-service - PORT=8082
+user-service - PORT=8083
+```
+
+PS: To login at `Eureka/Config/Edge/Admin` need a user with role `ADMIN`. See at [Default Users](#default-users)
+
+**Run Node.js service**
+
+On `nodejs-service folder` run the following commands:
+
+```
+sudo npm install
+
+sudo npm start
+```
+
+**Run React Web app**
+
+On `react-webapp folder` run the following commands:
+
+```
+sudo npm install
+
+sudo npm start
+```
 
 ### Accessing React App
 
