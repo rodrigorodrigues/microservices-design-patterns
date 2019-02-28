@@ -1,10 +1,10 @@
 # Microservice Architecture with Multiple Languages
 
-The main idea for this project is to apply `Microservice Architecture by Chris Richardson` using multiple languages.
+The main idea of this project is how to apply `Microservice Architecture by Chris Richardson` in multiple languages.
 
-Most all services are made in `Java with Spring Boot 2 + Webflux` but one is in `NodeJS` and frontend in `React`. 
+Most all services are made in `Java with Spring Boot 2 + Webflux(Reactive Programming) + MongoDB` but there is one in `NodeJS` and web app using `React`. 
 
-Does not matter which language you peek this pattern could be applied for in any language.
+Does not matter which language you peek this pattern could be applied for any language.
 
 Inspired from the book [Microservices Patterns](https://www.manning.com/books/microservices-patterns) by `Chris Richardson - @crichardson`.
 
@@ -29,25 +29,27 @@ Inspired from the book [Microservices Patterns](https://www.manning.com/books/mi
 
 ### Microservice Patterns
 
- * **Server-side service discovery** - `eureka-server`
+It is implemented so far the following list of patterns:
+
+ * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` folder
  
- * **Client-side service discovery** - All servers/services(`admin-server, user-service, person-service, etc`)
+ * **Client-side service discovery** - Used [Spring Cloud Eureka Client][https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html] and all servers/services(`admin-server, user-service, person-service, etc`) run as a client discovery
  
- * **API Gateway** - `edge-server`
+ * **API Gateway** - Used [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html) on `edge-server` folder
  
- * **Externalized configuration** - `config-server`
+ * **Externalized configuration** - Used [Spring Cloud Config Server](https://cloud.spring.io/spring-cloud-config/multi/multi__spring_cloud_config_server.html) on `config-server` folder, all yml files are on `configuration` folder 
  
- * **Log aggregation** - `admin-server`
+ * **Exception Tracking** - Used [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/) on `admin-server` folder
  
  * **Access token** - [JSON Web Token](https://jwt.io) for `Authentication/Authorization` on services(`user-service, person-service, authentication-service, nodejs-service`)
  
- * **Health Check API** - All Java services are using [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) - `<artifactId>spring-boot-starter-actuator</artifactId>` and NodeJS is using `express-actuator`
+ * **Health Check API** - All `Java microservices` are using [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) - `<artifactId>spring-boot-starter-actuator</artifactId>` and NodeJS is using `express-actuator`
  
- * **Distributed tracing** - All Java services are using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) `<artifactId>spring-cloud-starter-sleuth</artifactId>`, Zipkin `<artifactId>spring-cloud-starter-zipkin</artifactId>` and NodeJS is using `morgan, zipkin, zipkin-transport-http and zipkin-context-cls`
+ * **Distributed tracing** - All `Java microservices` are using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) `<artifactId>spring-cloud-starter-sleuth</artifactId>`, Zipkin `<artifactId>spring-cloud-starter-zipkin</artifactId>` and NodeJS is using `morgan, zipkin, zipkin-transport-http and zipkin-context-cls`
  
- * **Application metrics** - All Java services are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and NodeJS is using `express-prom-bundle`
+ * **Application metrics** - All `Java microservices` are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and NodeJS is using `express-prom-bundle`
  
- * **Database per service** - All services are using `MongoDB` as database
+ * **Database per service** - All services are using `MongoDB` as a separately database
 
 To know more about each pattern find at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
@@ -80,12 +82,12 @@ docker-compose up --build week-menu-api react-webapp
 
 ### Docker Commands
 
-To see a log inside a docker container:
+To see a log in a docker container:
 
 ```bash
 docker logs -f SERVICE_NAME
 ```
-PS: Services Names are name of `container_name`
+PS: Service names are on `docker-compose.yml -> container_name`
 
 To execute a command inside the container:
 
