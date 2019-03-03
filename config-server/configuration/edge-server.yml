@@ -22,3 +22,39 @@ zuul:
             serviceId: week-menu-api
             stripPrefix: true
             sensitiveHeaders:
+
+---
+spring:
+    profiles: heroku
+
+zuul:
+    routes:
+        eureka-server:
+            path: /eureka/**
+            serviceId: EUREKA-SERVER
+            stripPrefix: true
+            sensitiveHeaders:
+
+        config-server:
+            path: /config/**
+            serviceId: CONFIG-SERVER
+            stripPrefix: true
+            sensitiveHeaders:
+
+        admin-server:
+            path: /monitoring/**
+            url: ADMIN-SERVER
+            stripPrefix: true
+            sensitiveHeaders:
+
+        login:
+            path: /login
+            url: EUREKA-SERVER
+            stripPrefix: true
+            sensitiveHeaders:
+
+        logout:
+            path: /logout
+            url: EUREKA-SERVER
+            stripPrefix: true
+            sensitiveHeaders:

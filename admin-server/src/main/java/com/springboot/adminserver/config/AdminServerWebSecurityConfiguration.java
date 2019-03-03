@@ -24,6 +24,7 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
+            .antMatchers("/actuator/**").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
             .formLogin()

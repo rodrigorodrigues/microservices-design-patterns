@@ -1,6 +1,6 @@
 spring:
     application:
-        name: edge-server
+        name: admin-server
     cloud:
         config:
             fail-fast: false
@@ -17,6 +17,5 @@ spring:
 
 eureka:
     client:
-        register-with-eureka: false
         serviceUrl:
             defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}

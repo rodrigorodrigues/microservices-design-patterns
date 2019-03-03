@@ -4,7 +4,7 @@ The main idea of this project is how to apply `Microservice Architecture by Chri
 
 Most all services are made in `Java with Spring Boot 2 + Webflux(Reactive Programming) + MongoDB` but there is one in `NodeJS` and web app using `React`. 
 
-Does not matter which language you peek this pattern could be applied for any language.
+This pattern could be applied for any language.
 
 Inspired from the book [Microservices Patterns](https://www.manning.com/books/microservices-patterns) by `Chris Richardson - @crichardson`.
 
@@ -33,7 +33,7 @@ It is implemented so far the following list of patterns:
 
  * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` folder
  
- * **Client-side service discovery** - Used [Spring Cloud Eureka Client][https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html] and all servers/services(`admin-server, user-service, person-service, etc`) run as a client discovery
+ * **Client-side service discovery** - Used [Spring Cloud Eureka Client][https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html] and all microservices(`admin-server, user-service, person-service, etc`) are running as a client service discovery
  
  * **API Gateway** - Used [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html) on `edge-server` folder
  
@@ -50,6 +50,8 @@ It is implemented so far the following list of patterns:
  * **Application metrics** - All `Java microservices` are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and NodeJS is using `express-prom-bundle`
  
  * **Database per service** - All services are using `MongoDB` as a separately database
+ 
+ * **Shared database** - `Redis` is used for sharing database session for services `Eureka Server, Config Server, Edge Server and Spring Boot`, login depends on users registered on `MongoDB` database
 
 To know more about each pattern find at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
@@ -65,7 +67,7 @@ To know more about each pattern find at [Microservice Architecture](https://micr
 
 ### Installing All Services using Docker Compose
 
-You can run everything using docker-compose on `docker folder` just run the following commands:
+The easier wat to run all microservices is using `docker-compose` on `docker folder` just run the following commands:
 
 ```
 # at once for building the docker images
@@ -74,7 +76,7 @@ mvn clean package docker:build
 docker-compose up -d
 ```
 
-PS: Whenever change is made it should rebuild the image using the following command:
+PS: Whenever change is made on the source code it is necessary to rebuild the image, you can use the following command:
 
 ``` 
 docker-compose up --build week-menu-api react-webapp
@@ -82,7 +84,7 @@ docker-compose up --build week-menu-api react-webapp
 
 ### Docker Commands
 
-To see a log in a docker container:
+To see logs in a docker container:
 
 ```bash
 docker logs -f SERVICE_NAME
@@ -111,33 +113,33 @@ docker-compose rm SERVICE_NAME
 
 ### Monitoring - Spring Boot Admin
 
-To see information related to `registered microservices` use [Spring Boot Admin](http://localhost:9000).
+To see information(environment, instances, logs, etc) related to `all microservices registered with Eureka` use [Spring Boot Admin](http://localhost:9000) - `http://localhost:9000`.
 
 ![Spring Boot](docs/spring_boot_admin.png)
 
-PS: Need to login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
+PS: Need login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
 
 ### Service Discovery - Eureka
 
-To see `all registered microservices` to use [Eureka](http://localhost:8761).
+To see `all microservices registered with Eureka` use http://localhost:8761.
 
 ![Eureka](docs/eureka.png)
 
-PS: Need to login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
+PS: Need login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
 
 ### Externalized Configuration - Spring Cloud Config
 
-To see configuration related to specific service use [Spring Config](http://localhost:8888/edge-server/default).
+To see configuration related to specific service use [Spring Config](http://localhost:8888/edge-server/default) `http://localhost:8888/${SERVICE_NAME}/${SPRING_PROFILE}`.
 
 ![Spring Config](docs/spring_config.png)
 
-PS: Need to login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
+PS: Need login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
 
 ### Prometheus and Grafana
 
 `Prometheus` is a tool for generating metrics from the requests.
 
-`Grafana` is a tool for communicate with `Prometheus` and display the data in dashboards.
+`Grafana` is a tool for communicate with `Prometheus` and display the data with dashboards.
 
 Spring Boot 2 by default uses [Micrometer](https://micrometer.io) for monitoring `JVM/Microservices Applications`.
 
@@ -230,7 +232,8 @@ anonymous@gmail.com/test - ROLE_PERSON_READ
 ### Swagger UI
 
 Swagger UI is available for `Authentication, Person and User Services`
-[Swagger UI](http://localhost:{PORT}/swagger-ui.html)
+
+Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http://localhost:{SERVICE_PORT}/swagger-ui.html`
 
 ### TODO List
 
