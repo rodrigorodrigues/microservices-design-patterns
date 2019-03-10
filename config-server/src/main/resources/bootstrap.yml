@@ -6,6 +6,7 @@ spring:
                     uri: https://github.com/rodrigorodrigues/springboot2-cloud-webflux-node-react.git
                     clone-on-start: true
                     searchPaths: config-server/configuration
+                    timeout: 60
     application:
         name: config-server
     session:

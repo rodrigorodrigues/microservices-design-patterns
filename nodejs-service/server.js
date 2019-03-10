@@ -27,6 +27,7 @@ const logger = function (request, response, next) {
 const recipeRouter = require('./routes/recipe.route');
 const ingredientRouter = require('./routes/ingredient.route');
 const categoryRouter = require('./routes/category.route');
+const restoreBackup = require("./services/restoreBackup");
 const productRouter = require('./routes/product.route');
 const category2Router = require('./routes/category2.route');
 const recipe2Router = require('./routes/recipe2.route');
@@ -41,7 +42,7 @@ loadActuator();
 // Prometheus
 loadPrometheus();
 
-const { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort } = loadEnvVariables();
+const { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb } = loadEnvVariables();
 
 // Eureka configuration
 loadEureka();
@@ -97,6 +98,11 @@ db.connection.on('error', () => {
 
 db.connection.once('open', () => {
     log.logExceptOnTest("MongoDB successful connected");
+    if (restoreMongoDb) {
+        console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_CONNECTION);
+
+        restoreBackup();
+    }
 });
 
 app.listen(port, () => {
@@ -136,6 +142,7 @@ function loadEnvVariables() {
     const hostName = process.env.HOST_NAME || 'localhost';
     const zipkinHost = process.env.ZIPKIN_HOST || 'localhost';
     const zipkinPort = process.env.ZIPKIN_PORT || 9411;
+    const restoreMongoDb = process.env.RESTORE_MONGODB || true;
     console.log("eurekaServer: ", eurekaServer);
     console.log("eurekaServerPort: ", eurekaServerPort);
     console.log("port: ", port);
@@ -143,7 +150,8 @@ function loadEnvVariables() {
     console.log("hostName: ", hostName);
     console.log("zipkinHost: ", zipkinHost);
     console.log("zipkinPort: ", zipkinPort);
-    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort };
+    console.log("restoreMongoDb: ", restoreMongoDb);
+    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb };
 }
 
 function loadSpringCloudConfig() {

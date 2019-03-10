@@ -9,6 +9,7 @@ import UserContext from './UserContext';
 import UserList from "./user/UserList";
 import CategoryList from "./WeekMenu/CategoryList";
 import CategoryEdit from "./WeekMenu/CategoryEdit";
+import RecipeList from "./WeekMenu/RecipeList";
 import jwt_decode from 'jwt-decode';
 
 class App extends Component {
@@ -73,6 +74,10 @@ class App extends Component {
                                                 onRemoveAuthentication={this.removeAuthentication}/>} />
             <Route path='/categories/:id'
                    component={() => <CategoryEdit {...this.state} />} />
+
+            <Route path='/recipes' exact={true}
+                   component={() => <RecipeList {...this.state}
+                                                onRemoveAuthentication={this.removeAuthentication}/>} />
           </Switch>
         </Router>
       </UserContext.Provider>

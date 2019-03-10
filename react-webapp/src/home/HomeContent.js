@@ -13,6 +13,8 @@ function HomeContent({logout}) {
                 <br />
                 {displayButtonManageCategories(authorities)}
                 <br />
+                {displayButtonManageRecipes(authorities)}
+                <br />
                 <Button color="link" onClick={logout}>Logout</Button>
             </div>
         }
@@ -51,9 +53,15 @@ function displayButtonManageUsers(authorities) {
 function displayButtonManageCategories(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
     return <Button color="link" disabled={!isAdmin}>
-    <Link to="/categories">Manage Categories - Week Menu</Link>
+    <Link to="/categories">Manage Categories</Link>
     </Button>
+}
 
+function displayButtonManageRecipes(authorities) {
+    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
+    return <Button color="link" disabled={!isAdmin}>
+    <Link to="/recipes">Manage Recipes</Link>
+    </Button>
 }
 
 export default HomeContent

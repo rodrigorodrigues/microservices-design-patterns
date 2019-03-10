@@ -31,7 +31,7 @@ Inspired from the book [Microservices Patterns](https://www.manning.com/books/mi
 
 It is implemented so far the following list of patterns:
 
- * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` folder
+ * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` folder, Added `<artifactId>eureka-consul-adapter</artifactId>` for `scraping data for Prometheus`
  
  * **Client-side service discovery** - Used [Spring Cloud Eureka Client][https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html] and all microservices(`admin-server, user-service, person-service, etc`) are running as a client service discovery
  
@@ -257,6 +257,8 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] React - Create User List
 * [ ] React - Create User Page
 * [ ] React - Create User Edit
+* [ ] React - Create Categories Edit
+* [ ] React - Create Recipes Edit
 * [ ] React - Fix User Create/Edit
 * [ ] React - Fix Person Create/Edit
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.

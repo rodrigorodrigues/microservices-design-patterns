@@ -51,6 +51,19 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <dependency>
+            <groupId>de.flapdoodle.embed</groupId>
+            <artifactId>de.flapdoodle.embed.mongo</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ai.grakn</groupId>
+            <artifactId>redis-mock</artifactId>
+            <version>0.1.6</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
     <build>
