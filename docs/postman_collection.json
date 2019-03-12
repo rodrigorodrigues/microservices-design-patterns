@@ -179,13 +179,15 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:3002/v2/category",
+					"raw": "http://localhost:9006/api/week-menu/v2/category",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "3002",
+					"port": "9006",
 					"path": [
+						"api",
+						"week-menu",
 						"v2",
 						"category"
 					]
@@ -200,7 +202,7 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkBnbWFpbC5jb20iLCJuYW1lIjoiQWRtaW4gZG9zIFNhbnRvcyIsImF1dGhvcml0aWVzIjpbIlJPTEVfQURNSU4iXSwiZXhwIjoxNTUwMDA2MjQ0fQ.0A18-1gGXuGNkt9be4vZk2ocL1qSS3GuA9_hwY6AmkKcsAomHydskYyfinhh_9nBTozoq-ihl8gv3ELkLD8i4A",
+						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtYXN0ZXJAZ21haWwuY29tIiwibmFtZSI6Ik1hc3RlciBvZiBzb21ldGhpbmciLCJhdXRob3JpdGllcyI6WyJST0xFX1BFUlNPTl9DUkVBVEUiLCJST0xFX1BFUlNPTl9SRUFEIiwiUk9MRV9QRVJTT05fU0FWRSJdLCJleHAiOjE1NTMwMzIwODB9.DFPE73Plipgm2iCU4T-Uc_mRmO06ItpEn72LbxObYZHyYv1Cenlt5XxUcDobGb1vFwAgopMFG2YQDK-2JrfKCQ",
 						"type": "text"
 					}
 				],
@@ -209,7 +211,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9006/api/week-menu/v2/category",
+					"raw": "http://localhost:9006/api/week-menu/v2/recipe",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -219,7 +221,7 @@
 						"api",
 						"week-menu",
 						"v2",
-						"category"
+						"recipe"
 					]
 				}
 			},

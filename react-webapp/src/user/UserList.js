@@ -5,6 +5,8 @@ import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import HomeContent from '../home/HomeContent';
+
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class UserList extends Component {
@@ -40,12 +42,13 @@ class UserList extends Component {
       eventSource.addEventListener("error", err => {
         console.log('EventSource error: ', err);
         eventSource.close();
+        this.setState({isLoading: false});
         if (err.status === 401 || err.status === 403) {
           this.props.onRemoveAuthentication();
           this.props.history.push('/');
         }
         if (this.state.users.length === 0) {
-          this.setState({displayError: errorMessage(err)});
+          this.setState({displayError: errorMessage(JSON.stringify(err))});
         }
       });
     }
@@ -92,12 +95,16 @@ class UserList extends Component {
           <div className="float-right">
             <Button color="success" tag={Link} to="/users/new">Add User</Button>
           </div>
+          <div className="float-left">
+            <HomeContent notDisplayMessage={true} logout={this.logout}></HomeContent>
+          </div>
+          <div className="float-right">
           <h3>Users</h3>
           <Table className="mt-4">
             <thead>
             <tr>
-              <th width="20%">Email</th>
-              <th width="80%">Full Name</th>
+              <th width="30%">Email</th>
+              <th width="62%">Full Name</th>
             </tr>
             </thead>
             <tbody>
@@ -105,6 +112,7 @@ class UserList extends Component {
             </tbody>
           </Table>
           <MessageAlert {...displayError}></MessageAlert>
+          </div>
         </Container>
       </div>
     );

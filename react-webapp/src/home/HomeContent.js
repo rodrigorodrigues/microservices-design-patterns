@@ -3,7 +3,7 @@ import { Button, Container } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import UserContext from '../UserContext';
 
-function HomeContent({logout}) {
+function HomeContent({logout, notDisplayMessage}) {
     const displayButton = (isAuthenticated, authorities) => {
         if (isAuthenticated) {
             return <div>
@@ -23,6 +23,9 @@ function HomeContent({logout}) {
         </Button>;
     }
     const displayMessage = (user) => {
+        if (notDisplayMessage) {
+            return "";
+        }
         return user ?
             <h2>Welcome, {user}!</h2> :
             <p>Please log in to manage.</p>;

@@ -5,6 +5,7 @@ import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import {get} from "../services/ApiService";
+import HomeContent from '../home/HomeContent';
 
 class CategoryList extends Component {
   constructor(props) {
@@ -44,7 +45,7 @@ class CategoryList extends Component {
       },
       credentials: 'include'
     }).then(() => {
-      let categories = [...this.state.categories].filter(i => i.id !== id);
+      let categories = [...this.state.categories].filter(i => i._id !== id);
       this.setState({categories: categories});
     });
   }
@@ -59,14 +60,14 @@ class CategoryList extends Component {
     const categoryList = categories.map(category => {
       const productName = category.products.map(product => product.name).join(", ");
       const productQuantities = category.products.map(product => ({name: product.name, quantity: product.quantity}));
-      return <tr key={category.id}>
+      return <tr key={category._id}>
         <td style={{whiteSpace: 'nowrap'}}>{category.name}</td>
         <td style={{whiteSpace: 'nowrap'}}>{productName}</td>
         <td>{productQuantities}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/categories/" + category.id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove(category.id)}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/categories/" + category._id}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove(category._id)}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -79,13 +80,17 @@ class CategoryList extends Component {
           <div className="float-right">
             <Button color="success" tag={Link} to="/categories/new">Add Category</Button>
           </div>
+          <div className="float-left">
+          <HomeContent notDisplayMessage={true} logout={this.logout}></HomeContent>
+          </div>
+          <div className="float-right">
           <h3>Categories</h3>
           <Table className="mt-4">
             <thead>
             <tr>
               <th width="40%">Name</th>
               <th width="40%">Products</th>
-              <th width="20%">Quantities</th>
+              <th width="12%">Quantities</th>
             </tr>
             </thead>
             <tbody>
@@ -93,6 +98,7 @@ class CategoryList extends Component {
             </tbody>
           </Table>
           <MessageAlert {...displayError}></MessageAlert>
+          </div>
         </Container>
       </div>
     );

@@ -5,6 +5,7 @@ import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import {get} from "../services/ApiService";
+import HomeContent from '../home/HomeContent';
 
 class RecipeList extends Component {
   constructor(props) {
@@ -23,15 +24,23 @@ class RecipeList extends Component {
           let jsonData = JSON.parse(data);
           this.setState({isLoading: false, recipes: jsonData});
         } else {
-          this.setState({ displayError: errorMessage(data)});
+          this.setState({isLoading: false, displayError: errorMessage(data)});
         }
       } catch (error) {
         if (error.status === 401 || error.status === 403) {
           this.props.onRemoveAuthentication();
           this.props.history.push('/');
         }
-        this.setState({ displayError: errorMessage(error)});
+        this.setState({isLoading: false, displayError: errorMessage(error)});
       }
+    }
+  }
+
+  async logout() {
+    try {
+      this.props.onRemoveAuthentication();
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -77,12 +86,16 @@ class RecipeList extends Component {
           <div className="float-right">
             <Button color="success" tag={Link} to="/recipes/new">Add Recipe</Button>
           </div>
+          <div className="float-left">
+          <HomeContent notDisplayMessage={true} logout={this.logout}></HomeContent>
+          </div>
+          <div className="float-right">
           <h3>Recipes</h3>
           <Table className="mt-4">
             <thead>
             <tr>
               <th width="30%">Name</th>
-              <th width="60%">Categories</th>
+              <th width="62%">Categories</th>
             </tr>
             </thead>
             <tbody>
@@ -90,6 +103,7 @@ class RecipeList extends Component {
             </tbody>
           </Table>
           <MessageAlert {...displayError}></MessageAlert>
+          </div>
         </Container>
       </div>
     );

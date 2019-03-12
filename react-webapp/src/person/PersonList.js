@@ -6,6 +6,8 @@ import ChildModal from "./child/ChildModal";
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import HomeContent from '../home/HomeContent';
+
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class PersonList extends Component {
@@ -24,7 +26,6 @@ class PersonList extends Component {
           'Authorization': jwt
         }
       });
-      //const eventSource = new EventSource(`api/persons?Authorization=${this.state.jwt}`, {withCredentials: true});
 
       eventSource.addEventListener("open", result => {
         console.log('EventSource open: ', result);
@@ -41,12 +42,13 @@ class PersonList extends Component {
       eventSource.addEventListener("error", err => {
         console.log('EventSource error: ', err);
         eventSource.close();
+        this.setState({isLoading: false});
         if (err.status === 401 || err.status === 403) {
           this.props.onRemoveAuthentication();
           this.props.history.push('/');
         }
         if (this.state.persons.length === 0) {
-          this.setState({displayError: errorMessage(err)});
+          this.setState({displayError: errorMessage(JSON.stringify(err))});
         }
       });
     }
@@ -105,15 +107,19 @@ class PersonList extends Component {
             <div className="float-right">
               <Button color="success" tag={Link} to="/persons/new" disabled={!hasCreateAccess}>Add Person</Button>
             </div>
+            <div className="float-left">
+              <HomeContent notDisplayMessage={true} logout={this.logout}></HomeContent>
+            </div>
+            <div className="float-right">
             <h3>Persons</h3>
             <Table className="mt-4">
               <thead>
               <tr>
-                <th width="10%">Name</th>
-                <th width="5%">Created By User</th>
-                <th width="5%">Age</th>
-                <th width="5%">Children List</th>
-                <th width="15%">Location</th>
+                <th width="30%">Name</th>
+                <th width="30%">Created By User</th>
+                <th width="10%">Age</th>
+                <th width="10%">Children List</th>
+                <th width="14%">Location</th>
                 <th width="10%">Actions</th>
               </tr>
               </thead>
@@ -122,6 +128,7 @@ class PersonList extends Component {
               </tbody>
             </Table>
             <MessageAlert {...displayError}></MessageAlert>
+            </div>
           </Container>
         </div>
     );

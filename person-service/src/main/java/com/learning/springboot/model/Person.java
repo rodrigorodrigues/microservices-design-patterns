@@ -20,7 +20,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users")
+@Document(collection = "persons")
 public class Person implements Serializable {
     @Id
     private String id;

@@ -4,6 +4,7 @@ const ingredFile = require('../db_backup/ingredients.json');
 const recipeFile = require('../db_backup/recipes.json');
 const attrsFile = require('../db_backup/attributes.json');
 const { Recipe2 } = require('../models/recipe2.model');
+const { Category } = require('../models/category.model');
 
 function restoreBackup() {
     const recipes = JSON.parse(JSON.stringify(recipeFile));
@@ -14,7 +15,7 @@ function restoreBackup() {
         // RECIPES
         recipes.forEach(rec => {
             let cats = [];
-            console.log('-----------------------------', rec.name);
+            console.log('-----------------------------Recipe: ', rec.name);
             rec.attributes.forEach(id => {
                 const attr = getAttr(id.$oid);
                 const prod = getIngredient(attr.ingredientId.$oid);
@@ -45,12 +46,20 @@ function restoreBackup() {
                 categories: categories
             });
             recipeModel.save();
-            //    categories.forEach( c => {
-            //     console.log(c.name)
-            //     console.log(c.products)
-            //    })
         });
+    }).then(() => {
+        console.log("cats: ", cats);
+        cats.forEach(c => {
+            console.log('-----------------------------Category: ', c.name);
+            const categoryModel = new Category({
+                name: c.name,
+                insertDate: new Date()
+            });
+            categoryModel.save();
+        });
+
     });
+
     function getAttr(id) {
         return attrs.find(attr => {
             //console.log('attr ************ '+(attr._id.$oid === id), attr._id.$oid, id)

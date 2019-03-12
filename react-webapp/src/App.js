@@ -19,7 +19,8 @@ class App extends Component {
     user: null,
     error: null,
     jwt: null,
-    authorities: []
+    authorities: [],
+    notDisplayMessage: false
   };
 
   async componentDidMount() {

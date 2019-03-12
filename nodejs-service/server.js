@@ -100,7 +100,7 @@ db.connection.once('open', () => {
     log.logExceptOnTest("MongoDB successful connected");
     if (restoreMongoDb) {
         console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_CONNECTION);
-
+        db.connection.db.dropDatabase();
         restoreBackup();
     }
 });
