@@ -4,7 +4,9 @@
  * TO be deleted ****************************
  */
 const router = require('express').Router();
-
+var guard = require('express-jwt-permissions')({
+    permissionsProperty: 'authorities'
+});
 const log = require('../utils/log.message');
 
 const { Category } = require('../models/category.model');
@@ -20,6 +22,7 @@ const attrsFile = require('../db_backup/attributes.json')
 const { Recipe2 } = require('../models/recipe2.model');
 const restoreBackup = require("../services/restoreBackup");
 
+const checkPermissionRoute = require('./checkPermissionRoute');
 
 router.get("/category/migration/cat/23", (request, response, next) => {
     Category.remove({}).then(() => {
@@ -61,7 +64,7 @@ router.get("/category/migration/rec/24", (request, response, next) => {
     handleResponse(response, "ok *** *** **", 200);
 });
 
-router.get("/category", (request, response, next) => {
+router.get("/category", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
     Category.find()
         .populate('ingredients')
         .sort({ 'name': 1 })
@@ -71,7 +74,7 @@ router.get("/category", (request, response, next) => {
 
 // ###### improved above 
 
-router.get("/category/check/:recipeId", (request, response) => {
+router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ']), (request, response) => {
 
     //TODO write test for different/strong test case because it's really hard to improve this function at the moment
     //read /recipe/category comments
@@ -152,7 +155,7 @@ router.get("/category/check/:recipeId", (request, response) => {
             }).catch(reason => wmHandleError(response, reason));
     }
 });
-router.get("/category/week/shopping", (request, response, next) => {
+router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ']), (request, response, next) => {
 
     Category.find()
         .sort({ name: 1 })
@@ -195,7 +198,7 @@ router.get("/category/week/shopping", (request, response, next) => {
         });
 });
 
-router.get("/category/:id", (req, res, next) => {
+router.get("/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE']), (req, res, next) => {
 
     log.logExceptOnTest("category name", req.params.id);
 
@@ -208,7 +211,7 @@ router.get("/category/:id", (req, res, next) => {
 
 });
 
-router.post('/category', (req, res, next) => {
+router.post('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE']), (req, res, next) => {
 
     const request = req.body;
 
@@ -249,7 +252,7 @@ router.post('/category', (req, res, next) => {
 
 });
 
-router.put('/category', (req, res, next) => {
+router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), (req, res, next) => {
     // ** Concept status ** use 204 No Content to indicate to the client that
     //... it doesn't need to change its current "document view".
 
@@ -292,7 +295,7 @@ router.put('/category', (req, res, next) => {
         });
 });
 
-router.delete('/category', (req, res, next) => {
+router.delete('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_DELETE']), (req, res, next) => {
 
     Category.findByIdAndRemove(req.body._id)
         .then((doc) => {
@@ -301,6 +304,8 @@ router.delete('/category', (req, res, next) => {
             wmHandleError(res, reason);
         });
 });
+
+checkPermissionRoute(router);
 
 function handleResponse(response, doc, status) {
 

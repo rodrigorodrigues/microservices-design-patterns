@@ -241,8 +241,10 @@ function validateJwt(req, res, next) {
             throw err("Token Not found");
         }
         token = token.replace("Bearer ", "");
-        console.log("Token: ", token);
-        jwt.verify(token, new Buffer(secretKey, 'base64'));
+        jwt.verify(token, new Buffer(secretKey, 'base64'), function(err, decoded) {
+            req.user = decoded;
+        });
+
         if ('OPTIONS' == req.method) {
             res.sendStatus(200);
         }

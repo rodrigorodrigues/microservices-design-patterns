@@ -1,7 +1,11 @@
 const router = require('express').Router();
+var guard = require('express-jwt-permissions')({
+    permissionsProperty: 'authorities'
+});
 const responseHandlerService = require('../services/response.handler.service');
 const RecipeService = require('../services/recipe.service');
 const { STATUS } = require('../constants/status.code');
+const checkPermissionRoute = require('./checkPermissionRoute');
 
 function get(request, response) {
     RecipeService
@@ -28,10 +32,11 @@ function update(request, response) {
         .catch(reason => responseHandlerService.error(response, reason));
 }
 
-router.get("/recipe", get);
-router.get("/recipe/:id", getOne);
-router.post("/recipe", save);
-router.put("/recipe", update);
+router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE']), get);
+router.get("/recipe/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']), getOne);
+router.post("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']), save);
+router.put("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']), update);
 
+checkPermissionRoute(router);
 
 module.exports = router;

@@ -35,7 +35,8 @@
         "zipkin": "0.16.2",
         "zipkin-instrumentation-express": "0.16.2",
         "zipkin-context-cls": "0.16.0",
-        "zipkin-transport-http": "0.16.2"
+        "zipkin-transport-http": "0.16.2",
+        "express-jwt-permissions": "1.2.3"
     },
     "devDependencies": {
         "chai": "3.5.0",

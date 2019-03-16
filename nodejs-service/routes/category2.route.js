@@ -1,7 +1,11 @@
 const router = require('express').Router();
+var guard = require('express-jwt-permissions')({
+    permissionsProperty: 'authorities'
+});
 const responseHandlerService = require('../services/response.handler.service');
 const CategoryService = require('../services/category.service');
 const {STATUS} = require('../constants/status.code');
+const checkPermissionRoute = require('./checkPermissionRoute');
 
 function getCategoryRoute(request, response) {
     CategoryService
@@ -22,8 +26,10 @@ function update(request, response) {
         .catch(reason => responseHandlerService.error(response, reason));
 }
 
-router.get('/category', getCategoryRoute);
-router.post('/category', save);
-router.put('/category', update);
+router.get('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), getCategoryRoute);
+router.post('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE']), save);
+router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), update);
+
+checkPermissionRoute(router);
 
 module.exports = router;

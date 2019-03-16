@@ -4,6 +4,9 @@
  * TO be deleted ****************************
  */
 const router = require('express').Router();
+var guard = require('express-jwt-permissions')({
+    permissionsProperty: 'authorities'
+});
 const Q = require('q');
 
 const log = require('../utils/log.message');
@@ -14,8 +17,9 @@ const {IngredientRecipeAttributes} = require('../models/ingredient.recipe.attrib
 const {Recipe} = require('../models/recipe.model');
 const {_} = require('lodash');
 const {STATUS} = require('../constants/status.code');
+const checkPermissionRoute = require('./checkPermissionRoute');
 
-router.get("/ingredient", (request, response, next) => {
+router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
 
     Ingredient.find()
         .sort({'name': 1})
@@ -27,7 +31,7 @@ router.get("/ingredient", (request, response, next) => {
 
 });
 
-router.get("/ingredient/:id", (request, res, next) => {
+router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logExceptOnTest("ingredient name", request.params.id);
 
@@ -41,7 +45,7 @@ router.get("/ingredient/:id", (request, res, next) => {
 
 });
 
-router.get("/ingredient/recipe/:ingredientId/:recipeId", (request, res, next) => {
+router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logExceptOnTest("params", request.params.ingredientId);
     log.logExceptOnTest("params", request.params.recipeId);
@@ -59,7 +63,7 @@ router.get("/ingredient/recipe/:ingredientId/:recipeId", (request, res, next) =>
 });
 
 //FIXME deprecated ??
-router.get("/ingredient/recipe/:recipeId", (request, res, next) => {
+router.get("/ingredient/recipe/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logExceptOnTest("params", request.params.recipeId);
 
@@ -73,7 +77,7 @@ router.get("/ingredient/recipe/:recipeId", (request, res, next) => {
         });
 });
 
-router.post('/ingredient', (request, res, next) => {
+router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE']), (request, res, next) => {
 
     let recipeId = null;
     if(_.has(request, 'body.ingredientRecipeAttributes.recipeId')) {
@@ -214,7 +218,7 @@ router.post('/ingredient', (request, res, next) => {
 
 });
 
-router.put('/ingredient', (request, res, next) => {
+router.put('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
     // ** Concept status ** use 204 No Content to indicate to the client that
     //... it doesn't need to change its current "document view".
     let ingredientCommand = request.body;
@@ -297,7 +301,7 @@ router.put('/ingredient', (request, res, next) => {
 
 });
 
-router.put('/ingredient/attribute', (request, response, next) => {
+router.put('/ingredient/attribute', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, response, next) => {
 
     let attributeUpdate = request.body;
 
@@ -307,7 +311,7 @@ router.put('/ingredient/attribute', (request, response, next) => {
         }).catch(reason => wmHandleError(res, reason));
 });
 
-router.put('/ingredient/attribute/many', (request, response, next) => {
+router.put('/ingredient/attribute/many', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, response, next) => {
 
     let attributeList = request.body;
 
@@ -331,7 +335,7 @@ router.put('/ingredient/attribute/many', (request, response, next) => {
 
 });
 
-router.delete('/ingredient', (request, res, next) => {
+router.delete('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_DELETE']), (request, res, next) => {
 
     Ingredient.findByIdAndRemove(request.body._id)
         .then((doc) => {
@@ -340,6 +344,8 @@ router.delete('/ingredient', (request, res, next) => {
             wmHandleError(res, reason);
         });
 });
+
+checkPermissionRoute(router);
 
 function getAttribute(attributesRequest, ingredientId, recipeName) {
 
