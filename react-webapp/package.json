@@ -13,7 +13,9 @@
     "react-json-view": "1.19.1",
     "availity-reactstrap-validation": "2.5.0",
     "jwt-decode": "2.2.0",
-    "event-source-polyfill": "1.0.5"
+    "event-source-polyfill": "1.0.5",
+    "react-datepicker": "2.2.0",
+    "reactstrap-confirm": "1.0.4"
   },
   "scripts": {
     "start": "PORT=$SERVER_PORT react-scripts start",

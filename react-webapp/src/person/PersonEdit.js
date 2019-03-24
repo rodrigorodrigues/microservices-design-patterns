@@ -5,14 +5,17 @@ import {Button, Container, Label} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
+import DatePicker from "react-datepicker";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 class PersonEdit extends Component {
   emptyPerson = {
-    name: '',
-    age: '',
+    fullName: '',
+    dateOfBirth: '',
     children: [{
       name: '',
-      age: ''
+      dateOfBirth: ''
     }],
     address: {
       address: '',
@@ -27,20 +30,27 @@ class PersonEdit extends Component {
     super(props);
     this.state = {
       person: this.emptyPerson,
-      displayError: null
+      displayError: null,
+      jwt: props.jwt
     };
     this.handleChange = this.handleChange.bind(this);
+    this.handleDateChange = this.handleDateChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   async componentDidMount() {
-    if (this.props.match.params.id !== 'new') {
-      try {
-        const person = await (await fetch(`/api/persons/${this.props.match.params.id}`)).json();
-        person.authorities.forEach((authority, index) => {person.authorities[index] = authority.role});
-        this.setState({person: person});
-      } catch (error) {
-        this.setState({ displayError: errorMessage(error)});
+    let jwt = this.state.jwt;
+    if (jwt) {
+      if (this.props.match.params.id !== 'new') {
+        try {
+          const person = await (await fetch(`/api/persons/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            'Content-Type': 'application/json',
+            'Authorization': jwt
+          }})).json();
+          this.setState({person: person});
+        } catch (error) {
+          this.setState({ displayError: errorMessage(error)});
+        }
       }
     }
   }
@@ -54,22 +64,30 @@ class PersonEdit extends Component {
     this.setState({person: person});
   }
 
+  handleDateChange(date) {
+    let person = {...this.state.person};
+    person.dateOfBirth = date;
+    this.setState({
+      person: person
+    });
+  }
+
   async handleSubmit(event) {
     event.preventDefault();
-    const {person} = this.state;
+    const {person, jwt} = this.state;
 
-    await fetch('/api/users', {
+    await fetch('/api/persons', {
       method: (person.id) ? 'PUT' : 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': jwt
       },
       body: JSON.stringify(person),
       credentials: 'include'
     }).then(response => response.json())
         .then(data => {
           if (data.id) {
-            this.props.history.push('/users');
+            this.props.history.push('/persons');
           } else {
             this.setState({ displayError: errorMessage(data)});
           }
@@ -89,27 +107,24 @@ class PersonEdit extends Component {
         {title}
         <AvForm onValidSubmit={this.handleSubmit}>
           <AvGroup>
-            <Label for="name">Full Name</Label>
-            <AvInput type="text" name="name" id="name" value={person.name || ''}
+            <Label for="fullName">Full Name</Label>
+            <AvInput type="text" name="fullName" id="fullName" value={person.fullName || ''}
                    onChange={this.handleChange} placeholder="Full Name"
                      required
                      minLength="5"
-                     maxLength="100"
+                     maxLength="200"
                      pattern="^[A-Za-z0-9\s+]+$" />
             <AvFeedback>
               This field is invalid - Your Full Name must be between 5 and 100 characters.
             </AvFeedback>
           </AvGroup>
           <AvGroup>
-            <Label for="age">Age</Label>
-            <AvInput type="number" name="age" id="age" value={person.age || ''}
-                   onChange={this.handleChange} placeholder="Age"
-                     required
-                     minLength="1"
-                     maxLength="3" />
-            <AvFeedback>
-              This field is invalid - Required
-            </AvFeedback>
+            <Label for="dateOfBirth">Date Of Birth</Label>
+            <DatePicker
+              selected={person.dateOfBirth}
+              onChange={this.handleDateChange}
+              required
+            />
           </AvGroup>
           <AvGroup>
             <Label for="address">Address</Label>

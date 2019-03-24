@@ -7,6 +7,7 @@ import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
 import UserContext from './UserContext';
 import UserList from "./user/UserList";
+import UserEdit from "./user/UserEdit";
 import CategoryList from "./WeekMenu/CategoryList";
 import CategoryEdit from "./WeekMenu/CategoryEdit";
 import RecipeList from "./WeekMenu/RecipeList";
@@ -68,7 +69,7 @@ class App extends Component {
                    component={() => <UserList {...this.state}
                                                 onRemoveAuthentication={this.removeAuthentication}/>} />
             <Route path='/users/:id'
-                   component={() => <PersonEdit {...this.state} />} />
+                   component={() => <UserEdit {...this.state} />} />
 
             <Route path='/categories' exact={true}
                    component={() => <CategoryList {...this.state}

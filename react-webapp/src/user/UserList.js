@@ -6,6 +6,7 @@ import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import HomeContent from '../home/HomeContent';
+import { confirmDialog } from '../common/ConfirmDialog';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
@@ -18,9 +19,7 @@ class UserList extends Component {
 
   componentDidMount() {
     let jwt = this.state.jwt;
-    console.log("JWT: ", jwt);
     if (jwt) {
-     //const eventSource = new EventSource(`api/users?Authorization=${this.state.jwt}`, {withCredentials: true});
       const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/users`, {
         headers: {
           'Authorization': jwt
@@ -33,7 +32,6 @@ class UserList extends Component {
       });
 
       eventSource.addEventListener("message", result => {
-        console.log('EventSource result: ', result);
         const data = JSON.parse(result.data);
         this.state.users.push(data);
         this.setState({users: this.state.users});
@@ -43,10 +41,6 @@ class UserList extends Component {
         console.log('EventSource error: ', err);
         eventSource.close();
         this.setState({isLoading: false});
-        if (err.status === 401 || err.status === 403) {
-          this.props.onRemoveAuthentication();
-          this.props.history.push('/');
-        }
         if (this.state.users.length === 0) {
           this.setState({displayError: errorMessage(JSON.stringify(err))});
         }
@@ -54,18 +48,26 @@ class UserList extends Component {
     }
   }
 
-  async remove(id) {
-    await fetch(`/api/users/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include'
-    }).then(() => {
-      let users = [...this.state.users].filter(i => i.id !== id);
-      this.setState({users: users});
-    });
+  async remove(user) {
+    let confirm = await confirmDialog(`Delete User ${user.name}`, "Are you sure you want to delete this?", "Delete User");
+    if (confirm) {
+      let id = user.id;
+      let jwt = this.state.jwt;
+      await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': jwt
+        },
+        credentials: 'include'
+      }).then((err) => {
+        if (err.status !== 200) {
+          this.setState({displayError: errorMessage(err)});
+        } else {
+          let users = [...this.state.users].filter(i => i.id !== id);
+          this.setState({users: users});
+        }
+      });
+    }
   }
 
   render() {
@@ -82,7 +84,7 @@ class UserList extends Component {
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/users/" + user.id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove(user.id)}>Delete</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': user.id, 'name': user.fullName})}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>

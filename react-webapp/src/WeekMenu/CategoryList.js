@@ -6,6 +6,7 @@ import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import {get} from "../services/ApiService";
 import HomeContent from '../home/HomeContent';
+import { confirmDialog } from '../common/ConfirmDialog';
 
 class CategoryList extends Component {
   constructor(props) {
@@ -16,38 +17,43 @@ class CategoryList extends Component {
 
   async componentDidMount() {
     let jwt = this.state.jwt;
-    console.log("JWT: ", jwt);
     if (jwt) {
       try {
-        const data = await get('week-menu/v2/category', true, false, jwt)
+        let data = await get('week-menu/v2/category', true, false, jwt)
         if (data) {
-          let jsonData = JSON.parse(data);
-          this.setState({isLoading: false, categories: jsonData});
-        } else {
-          this.setState({ displayError: errorMessage(data)});
+          data = JSON.parse(data);
+          if (Array.isArray(data)) {
+            this.setState({isLoading: false, categories: data});
+          } else {
+            this.setState({isLoading: false, displayError: errorMessage(data)});
+          }
         }
       } catch (error) {
-        if (error.status === 401 || error.status === 403) {
-          this.props.onRemoveAuthentication();
-          this.props.history.push('/');
-        }
         this.setState({ displayError: errorMessage(error)});
       }
     }
   }
 
-  async remove(id) {
-    await fetch(`/api/week-menu/v2/categories/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include'
-    }).then(() => {
-      let categories = [...this.state.categories].filter(i => i._id !== id);
-      this.setState({categories: categories});
-    });
+  async remove(category) {
+    let confirm = await confirmDialog(`Delete Category ${category.name}`, "Are you sure you want to delete this?", "Delete Category");
+    if (confirm) {
+      let id = category.id;
+      let jwt = this.state.jwt;
+      await fetch(`/api/week-menu/v2/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': jwt
+        },
+        credentials: 'include'
+      }).then((err) => {
+        if (err.status !== 200) {
+          this.setState({displayError: errorMessage(err)});
+        } else {
+          let categories = [...this.state.categories].filter(i => i._id !== id);
+          this.setState({categories: categories});
+        }
+      });
+    }
   }
 
   render() {
@@ -67,7 +73,7 @@ class CategoryList extends Component {
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/categories/" + category._id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove(category._id)}>Delete</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': category._id, 'name': category.name})}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>

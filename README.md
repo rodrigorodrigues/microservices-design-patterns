@@ -67,28 +67,35 @@ To know more about each pattern find at [Microservice Architecture](https://micr
 
 ### Installing All Services using Docker Compose
 
-The easier wat to run all microservices is using `docker-compose` on `docker folder` just run the following commands:
+The easiest way to run all microservices is using `docker-compose`, run the following commands:
 
-```
+On `root folder` first need to generate the docker images.
+
+```bash
 # at once for building the docker images
 mvn clean package docker:build
+```
 
+Then on `docker folder` run all microservices using
+
+```bash
 docker-compose up -d
 ```
 
 PS: Whenever change is made on the source code it is necessary to rebuild the image, you can use the following command:
 
-``` 
+```bash
 docker-compose up --build week-menu-api react-webapp
 ```
 
 ### Docker Commands
 
-To see logs in a docker container:
+To see logs for a specific docker container:
 
 ```bash
 docker logs -f SERVICE_NAME
 ```
+
 PS: Service names are on `docker-compose.yml -> container_name`
 
 To execute a command inside the container:

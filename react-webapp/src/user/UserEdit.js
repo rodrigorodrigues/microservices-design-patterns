@@ -18,18 +18,37 @@ class UserEdit extends Component {
     super(props);
     this.state = {
       user: this.emptyUser,
-      displayError: null
+      displayError: null,
+      permissions: [],
+      jwt: props.jwt
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   async componentDidMount() {
-    if (this.props.match.params.id !== 'new') {
+    let jwt = this.state.jwt;
+    if (jwt) {
+      if (this.props.match.params.id !== 'new') {
+        try {
+          const user = await (await fetch(`/api/users/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            'Content-Type': 'application/json',
+            'Authorization': jwt
+          }})).json();
+          if (Array.isArray(user.authorities)) {
+            user.authorities.forEach((authority, index) => {user.authorities[index] = authority.role});
+          }
+          this.setState({user: user});
+        } catch (error) {
+          this.setState({ displayError: errorMessage(error)});
+        }
+      }
       try {
-        const user = await (await fetch(`/api/users/${this.props.match.params.id}`)).json();
-        user.authorities.forEach((authority, index) => {user.authorities[index] = authority.role});
-        this.setState({user: user});
+        const permissions = await (await fetch('/api/users/permissions', {      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': jwt
+        }})).json();
+        this.setState({permissions: permissions});
       } catch (error) {
         this.setState({ displayError: errorMessage(error)});
       }
@@ -52,8 +71,8 @@ class UserEdit extends Component {
     await fetch('/api/users', {
       method: (user.id) ? 'PUT' : 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': this.state.jwt
       },
       body: JSON.stringify(user),
       credentials: 'include'
@@ -71,7 +90,7 @@ class UserEdit extends Component {
   }
 
   render() {
-    const {user, displayError} = this.state;
+    const {user, displayError, permissions} = this.state;
     const title = <h2>{user.id ? 'Edit User' : 'Add User'}</h2>;
 
     return <div>
@@ -80,8 +99,8 @@ class UserEdit extends Component {
         {title}
         <AvForm onValidSubmit={this.handleSubmit}>
           <AvGroup>
-            <Label for="name">Full Name</Label>
-            <AvInput type="text" name="name" id="name" value={user.name || ''}
+            <Label for="fullName">Full Name</Label>
+            <AvInput type="text" name="fullName" id="fullName" value={user.fullName || ''}
                    onChange={this.handleChange} placeholder="Full Name"
                      required
                      minLength="5"
@@ -124,8 +143,7 @@ class UserEdit extends Component {
                      required
                      multiple
                      onChange={this.handleChange}>
-              {['ROLE_ADMIN', 'ROLE_PERSON_CREATE', 'ROLE_PERSON_READ', 'ROLE_PERSON_SAVE', 'ROLE_PERSON_DELETE']
-                  .map(role => <option value={role} key={role}>{role}</option>)}
+              {permissions.map(role => <option value={role} key={role}>{role}</option>)}
             </AvInput>
             <AvFeedback>
               This field is invalid - Please select at least one permission.

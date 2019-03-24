@@ -21,6 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -128,7 +129,7 @@ public class PersonServiceApplicationIntegrationTest {
 	private PersonDto createPerson() {
 		return PersonDto.builder().fullName("Rodrigo")
 			.dateOfBirth(LocalDate.of(1988, 1, 1))
-			.children(Arrays.asList(new PersonDto.ChildrenDto("Daniel", 2), new PersonDto.ChildrenDto("Oliver", 2)))
+			.children(Arrays.asList(new PersonDto.ChildrenDto("Daniel", LocalDate.of(2017, Month.JANUARY, 1)), new PersonDto.ChildrenDto("Oliver", LocalDate.of(2017, Month.JANUARY, 1))))
 			.address(new PersonDto.Address(null, "50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
 			.build();
 	}

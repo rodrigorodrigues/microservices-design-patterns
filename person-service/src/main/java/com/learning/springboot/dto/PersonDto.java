@@ -31,7 +31,9 @@ public class PersonDto {
     @AllArgsConstructor
     public static class ChildrenDto {
         private String name;
-        private Integer age;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate dateOfBirth;
     }
 
     @Data

@@ -28,7 +28,6 @@ export async function post(resource, payload) {
         const response = await fetch(`${gatewayUrl}/${API_V1}/${resource}`, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)

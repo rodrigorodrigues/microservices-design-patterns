@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -22,5 +23,5 @@ public class Child {
     @NotEmpty
     private String name;
     @NonNull @NotNull
-    private Integer age;
+    private LocalDate dateOfBirth;
 }
