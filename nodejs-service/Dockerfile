@@ -1,4 +1,4 @@
-FROM node:9.11.1
+FROM node:10.15.3-slim
 ARG SERVER_PORT
 
 # Create app directory

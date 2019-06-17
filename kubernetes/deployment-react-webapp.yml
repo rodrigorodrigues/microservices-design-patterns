@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-webapp
+  labels:
+    app: react-webapp
+spec:
+  ports:
+    - name: http
+      port: 3001
+  selector:
+    app: react-webapp
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: react-webapp
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: react-webapp
+        version: v1
+    spec:
+      containers:
+        - name: react-webapp
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:1.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+          env:
+            - name: JAVA_OPTS
+              value: -Xmx256m -Xms512m -XX:MaxPermSize=512m
+            - name: SERVER_PORT
+              value: "3001"
+            - name: REACT_APP_GATEWAY_URL
+              value: http://localhost:9006
+          ports:
+            - containerPort: 3001

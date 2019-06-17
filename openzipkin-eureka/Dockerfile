@@ -3,7 +3,7 @@ FROM maven:3.6.0-jdk-8-alpine
 COPY pom.xml ./
 
 # get normal zipkin server
-RUN curl -sSL https://zipkin.io/quickstart.sh -o zipkin.sh
+RUN curl -sSL https://zipkin.apache.org/quickstart.sh -o zipkin.sh
 
 # remove --check flag does not work for some reason
 RUN sed -i 's/--check//g' zipkin.sh
