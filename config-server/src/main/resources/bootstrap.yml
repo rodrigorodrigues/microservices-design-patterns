@@ -3,7 +3,7 @@ spring:
         config:
             server:
                 git:
-                    uri: https://github.com/rodrigorodrigues/springboot2-cloud-webflux-node-react.git
+                    uri: https://github.com/rodrigorodrigues/microservices-design-patterns.git
                     clone-on-start: true
                     searchPaths: config-server/configuration
                     timeout: 60
