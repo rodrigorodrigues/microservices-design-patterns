@@ -2,3 +2,24 @@ spring:
   cloud:
     config:
       name: week-menu-api
+
+---
+spring:
+  profiles: google
+  cloud:
+    config:
+      endpoint: http://config-server:8888
+
+---
+spring:
+  profiles: docker
+  cloud:
+    config:
+      endpoint: http://config-management:8888
+
+---
+spring:
+  profiles: google-env
+  cloud:
+    config:
+      endpoint: ${SPRING_CLOUD_CONFIG_URL:http://config-server:8888}

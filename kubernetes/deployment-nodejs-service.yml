@@ -10,6 +10,7 @@ spec:
       port: 3002
   selector:
     app: nodejs-service
+  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -38,7 +39,7 @@ spec:
             - name: SERVER_PORT
               value: "3002"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev,docker
+              value: google
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -47,7 +48,7 @@ spec:
               value: redis
             - name: EUREKA_SERVER
               value: eureka-server
-            - name: SPRING_CLOUD_CONFIG_URI
+            - name: SPRING_CLOUD_CONFIG_URL
               value: http://config-server:8888
             - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
               value: "false"
@@ -57,6 +58,8 @@ spec:
               value: nodejs-service
             - name: NODE_DEBUG
               value: request
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
           ports:
             - containerPort: 3002
           livenessProbe:

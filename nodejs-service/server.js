@@ -17,9 +17,9 @@ const bodyParser = require('body-parser');
 const port = process.env.PORT;
 
 const logger = function (request, response, next) {
-    log.logExceptOnTest("Request body: ", request.body);
-    log.logExceptOnTest("Request METHOD: ", request.method);
-    log.logExceptOnTest("Request resource: ", request.path);
+    console.log("Request body: ", request.body);
+    console.log("Request METHOD: ", request.method);
+    console.log("Request resource: ", request.path);
 
     next();
 }
@@ -97,7 +97,7 @@ db.connection.on('error', () => {
 });
 
 db.connection.once('open', () => {
-    log.logExceptOnTest("MongoDB successful connected");
+    console.log("MongoDB successful connected");
     if (restoreMongoDb) {
         console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_CONNECTION);
         db.connection.db.dropDatabase();
@@ -106,7 +106,7 @@ db.connection.once('open', () => {
 });
 
 app.listen(port, () => {
-    log.logExceptOnTest("Application started. Listening on port:" + port);
+    console.log("Application started. Listening on port:" + port);
     loadSecretKey();
 });
 
@@ -229,7 +229,7 @@ function loadSecretKey() {
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
         secretKey = config.configuration.jwt['base64-secret'];
-        log.logExceptOnTest("SecretKey: ", secretKey);
+        console.log("SecretKey: ", secretKey);
     });
 }
 

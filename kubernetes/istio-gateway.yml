@@ -1,57 +1,39 @@
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
+apiVersion: extensions/v1beta1
+kind: Ingress
 metadata:
-  name: istio-gateway
+  name: gateway
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  selector:
-    istio: ingressgateway # use Istio default gateway implementation
-  servers:
-    - port:
-        name: http
-        number: 80
-        protocol: HTTP
-      hosts:
-        - '*'
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: eureka-server
-spec:
-  hosts:
-    - "*"
-  gateways:
-    - istio-gateway
-  http:
-    - match:
-        - uri:
-            prefix: /service-discovery
-      route:
-        - destination:
-            port:
-              number: 8761
-            host: eureka-server
-    - match:
-        - uri:
-            prefix: /monitoring
-      route:
-        - destination:
-            port:
-              number: 9000
-            host: admin-server
-    - match:
-        - uri:
-            prefix: /config-server
-      route:
-        - destination:
-            port:
-              number: 8888
-            host: config-server
-    - match:
-        - uri:
-            prefix: /
-      route:
-        - destination:
-            port:
-              number: 3001
-            host: react-webapp
+  rules:
+    - http:
+        paths:
+          - path: /api/
+            backend:
+              serviceName: edge-server
+              servicePort: 9006
+    - http:
+        paths:
+          - path: /monitoring/
+            backend:
+              serviceName: admin-server
+              servicePort: 9000
+    - http:
+        paths:
+          - path: /config-server/
+            backend:
+              serviceName: config-server
+              servicePort: 8888
+    - http:
+        paths:
+          - path: /eureka-server/
+            backend:
+              serviceName: eureka-server
+              servicePort: 8761
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: react-webapp
+              servicePort: 3001

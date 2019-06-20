@@ -10,6 +10,7 @@ spec:
       port: 8888
   selector:
     app: config-server
+  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -47,6 +48,8 @@ spec:
               value: redis
             - name: EUREKA_SERVER
               value: http://eureka-server:8761/eureka/
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
           ports:
             - containerPort: 8888
           livenessProbe:

@@ -1,32 +1,32 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: person-service
+  name: edge-server
   labels:
-    app: person-service
+    app: edge-server
 spec:
   ports:
     - name: http
-      port: 8082
+      port: 9006
   selector:
-    app: person-service
+    app: edge-server
   type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: person-service
+  name: edge-server
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: person-service
+        app: edge-server
         version: v1
     spec:
       containers:
-        - name: person-service
-          image: eu.gcr.io/spring-boot-gke-243520/person-service:1.0
+        - name: edge-server
+          image: eu.gcr.io/spring-boot-gke-243520/edge-server:1.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -37,7 +37,7 @@ spec:
             - name: JAVA_OPTS
               value: -Xmx256m -Xms512m -XX:MaxPermSize=512m
             - name: SERVER_PORT
-              value: "8082"
+              value: "9006"
             - name: SPRING_PROFILES_ACTIVE
               value: dev
             - name: SPRING_DATA_MONGODB_URI
@@ -54,13 +54,17 @@ spec:
               value: "false"
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+            - name: DEBUG
+              value: "true"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+              value: "true"
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
           ports:
-            - containerPort: 8082
+            - containerPort: 9006
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8082
+              port: 9006
             initialDelaySeconds: 200
             periodSeconds: 5

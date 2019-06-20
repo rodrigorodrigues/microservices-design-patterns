@@ -10,6 +10,7 @@ spec:
       port: 8761
   selector:
     app: eureka-server
+  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -45,6 +46,10 @@ spec:
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
+            - name: DEBUG
+              value: "true"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+              value: "true"
           ports:
             - containerPort: 8761
           livenessProbe:

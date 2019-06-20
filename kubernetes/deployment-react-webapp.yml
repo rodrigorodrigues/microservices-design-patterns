@@ -10,6 +10,7 @@ spec:
       port: 3001
   selector:
     app: react-webapp
+  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -38,6 +39,6 @@ spec:
             - name: SERVER_PORT
               value: "3001"
             - name: REACT_APP_GATEWAY_URL
-              value: http://localhost:9006
+              value: http://34.77.119.99
           ports:
             - containerPort: 3001

@@ -23,7 +23,7 @@ Inspired from the book [Microservices Patterns](https://www.manning.com/books/mi
   11. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
   12. [Accessing React Web App](#accessing-react-app)
   13. [List of default users](#default-users)
-  14, [Kubernetes](#kubernetes)
+  14, [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
   15. [TODO-LIST](#todo-list)
   16. [References](#references)
   17. [Postman Collection](docs/postman_collection.json?raw=true)
@@ -237,9 +237,17 @@ master@gmail.com/password123 - ROLE_PERSON_CREATE, ROLE_PERSON_READ, ROLE_PERSON
 anonymous@gmail.com/test - ROLE_PERSON_READ
 ```
 
-### Kubernetes
+### Kubernetes - Google Cloud Platform
 
 Need documentation
+
+To access Google Deploy - http://34.77.119.99/
+
+[Enable Ingress](https://cloud.google.com/community/tutorials/nginx-ingress-gke)
+[Example Ingress Configuration](https://github.com/GoogleCloudPlatform/community/blob/master/tutorials/nginx-ingress-gke/ingress-resource.yaml)
+[Install Helm](https://helm.sh/docs/using_helm/#installing-helm)
+[Kubernetes + Zuul](https://stackoverflow.com/questions/52066141/zuul-unable-to-route-traffic-to-service-on-kubernetes)
+[Example Spring Boot 2 + Kubernestes + Zuul](https://piotrminkowski.wordpress.com/2018/08/02/quick-guide-to-microservices-with-kubernetes-spring-boot-2-0-and-docker/)
 
 ### Swagger UI
 

@@ -51,6 +51,8 @@ spec:
               value: http://config-server:8888
             - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
               value: "false"
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
           ports:
             - containerPort: 9000
           livenessProbe:

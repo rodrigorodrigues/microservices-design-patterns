@@ -10,6 +10,7 @@ spec:
       port: 8083
   selector:
     app: user-service
+  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -53,6 +54,8 @@ spec:
               value: "false"
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
           ports:
             - containerPort: 8083
           livenessProbe:
