@@ -22,3 +22,8 @@ zuul:
             serviceId: week-menu-api
             stripPrefix: true
             sensitiveHeaders:
+        monitoring-service:
+            path: /monitoring/**
+            serviceId: admin-server
+            stripPrefix: true
+            sensitiveHeaders:
