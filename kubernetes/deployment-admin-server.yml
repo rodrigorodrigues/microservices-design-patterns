@@ -53,6 +53,8 @@ spec:
               value: "false"
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+            - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
+              value: /monitoring
           ports:
             - containerPort: 9000
           livenessProbe:
