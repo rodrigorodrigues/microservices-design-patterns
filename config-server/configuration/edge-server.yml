@@ -30,5 +30,5 @@ zuul:
         eureka-server:
             path: /eureka-server/**
             serviceId: eureka-server
-            stripPrefix: false
+            stripPrefix: true
             sensitiveHeaders:
