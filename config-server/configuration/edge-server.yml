@@ -25,7 +25,7 @@ zuul:
         monitoring-server:
             path: /monitoring/**
             serviceId: admin-server
-            stripPrefix: false
+            stripPrefix: true
             sensitiveHeaders:
         eureka-server:
             path: /eureka-server/**
