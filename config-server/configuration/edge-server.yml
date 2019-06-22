@@ -22,8 +22,13 @@ zuul:
             serviceId: week-menu-api
             stripPrefix: true
             sensitiveHeaders:
-        monitoring-service:
+        monitoring-server:
             path: /monitoring/**
             serviceId: admin-server
-            stripPrefix: true
+            stripPrefix: false
+            sensitiveHeaders:
+        eureka-server:
+            path: /eureka-server/**
+            serviceId: eureka-server
+            stripPrefix: false
             sensitiveHeaders:
