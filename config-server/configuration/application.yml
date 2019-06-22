@@ -15,6 +15,7 @@ management:
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 
+---
 spring:
     profiles: dev
     sleuth:
