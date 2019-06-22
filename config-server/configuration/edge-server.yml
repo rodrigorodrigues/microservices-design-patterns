@@ -25,5 +25,5 @@ zuul:
         monitoring-service:
             path: /monitoring/**
             serviceId: admin-server
-            stripPrefix: true
+            stripPrefix: false
             sensitiveHeaders:
