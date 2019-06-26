@@ -16,13 +16,17 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: user-service
+  labels:
+    app: user-service
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
   template:
     metadata:
       labels:
         app: user-service
-        version: v1
     spec:
       containers:
         - name: user-service

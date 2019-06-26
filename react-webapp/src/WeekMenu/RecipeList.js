@@ -13,6 +13,7 @@ class RecipeList extends Component {
     super(props);
     this.state = {recipes: [], isLoading: true, jwt: props.jwt, displayError: null};
     this.remove = this.remove.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   async componentDidMount() {

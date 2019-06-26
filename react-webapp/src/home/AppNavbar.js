@@ -22,7 +22,13 @@ export default class AppNavbar extends Component {
       <Collapse isOpen={this.state.isOpen} navbar>
         <Nav className="ml-auto" navbar>
           <NavItem>
-            <NavLink href="https://github.com/rodrigorodrigues/java8-springboot">GitHub</NavLink>
+            <NavLink href="https://github.com/rodrigorodrigues/microservices-design-patterns">GitHub</NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink disabled>Environment: {process.env.NODE_ENV}</NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink disabled>URL API: {process.env.REACT_APP_GATEWAY_URL}</NavLink>
           </NavItem>
         </Nav>
       </Collapse>

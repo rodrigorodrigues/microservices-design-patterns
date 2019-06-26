@@ -16,6 +16,7 @@ class PersonList extends Component {
     super(props);
     this.state = {persons: [], isLoading: true, jwt: props.jwt, displayError: null, authorities: props.authorities};
     this.remove = this.remove.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   componentDidMount() {
@@ -68,6 +69,14 @@ class PersonList extends Component {
           this.setState({persons: persons});
         }
       });
+    }
+  }
+  
+  async logout() {
+    try {
+      this.props.onRemoveAuthentication();
+    } catch (error) {
+      console.error(error);
     }
   }
 

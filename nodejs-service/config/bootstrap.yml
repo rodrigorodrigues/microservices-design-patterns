@@ -13,3 +13,17 @@ spring:
                 multiplier: 2
             headers:
                 X-Encrypt-Key: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+
+---
+profiles: docker
+spring:
+    cloud:
+        config:
+            endpoint: http://config-management:8888
+
+---
+profiles: google
+spring:
+    cloud:
+        config:
+            endpoint: http://config-server:8888

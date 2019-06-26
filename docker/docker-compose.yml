@@ -87,11 +87,8 @@ services:
             args:
                 - SERVER_PORT=3001
             context: ../react-webapp
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile-prod
         container_name: react-webapp
-        environment:
-            - REACT_APP_GATEWAY_URL=http://localhost:9006
-            - SERVER_PORT=3001
         ports:
             - 3001:3001
         links:

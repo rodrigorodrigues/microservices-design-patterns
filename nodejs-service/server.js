@@ -204,25 +204,28 @@ function loadEureka() {
 }
 
 function loadZipkin() {
-    /* eslint-env browser */
-    const { BatchRecorder, jsonEncoder: { JSON_V2 } } = require('zipkin');
-    const { HttpLogger } = require('zipkin-transport-http');
-    // Send spans to Zipkin asynchronously over HTTP
-    const zipkinBaseUrl = `http://${zipkinHost}:${zipkinPort}`;
-    const recorder = new BatchRecorder({
-        logger: new HttpLogger({
-            endpoint: `${zipkinBaseUrl}/api/v2/spans`,
-            jsonEncoder: JSON_V2
-        })
-    });
-    const CLSContext = require('zipkin-context-cls');
-    const { Tracer } = require('zipkin');
-    const ctxImpl = new CLSContext('zipkin');
-    const localServiceName = 'weel-menu-api';
-    const tracer = new Tracer({ ctxImpl, recorder, localServiceName });
-    // instrument the server
-    const zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware;
-    app.use(zipkinMiddleware({ tracer }));
+    const zipkinEnabled = process.env.ZIPKIN_ENABLED || false;
+    if (zipkinEnabled) {
+        /* eslint-env browser */
+        const { BatchRecorder, jsonEncoder: { JSON_V2 } } = require('zipkin');
+        const { HttpLogger } = require('zipkin-transport-http');
+        // Send spans to Zipkin asynchronously over HTTP
+        const zipkinBaseUrl = `http://${zipkinHost}:${zipkinPort}`;
+        const recorder = new BatchRecorder({
+            logger: new HttpLogger({
+                endpoint: `${zipkinBaseUrl}/api/v2/spans`,
+                jsonEncoder: JSON_V2
+            })
+        });
+        const CLSContext = require('zipkin-context-cls');
+        const { Tracer } = require('zipkin');
+        const ctxImpl = new CLSContext('zipkin');
+        const localServiceName = 'weel-menu-api';
+        const tracer = new Tracer({ ctxImpl, recorder, localServiceName });
+        // instrument the server
+        const zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware;
+        app.use(zipkinMiddleware({ tracer }));
+    }
 }
 
 function loadSecretKey() {

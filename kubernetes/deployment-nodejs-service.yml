@@ -1,32 +1,32 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nodejs-service
+  name: week-menu-api
   labels:
-    app: nodejs-service
+    app: week-menu-api
 spec:
   ports:
     - name: http
       port: 3002
   selector:
-    app: nodejs-service
+    app: week-menu-api
   type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: nodejs-service
+  name: week-menu-api
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: nodejs-service
+        app: week-menu-api
         version: v1
     spec:
       containers:
-        - name: nodejs-service
-          image: eu.gcr.io/spring-boot-gke-243520/nodejs-service:1.0
+        - name: week-menu-api
+          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:1.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -40,24 +40,14 @@ spec:
               value: "3002"
             - name: SPRING_PROFILES_ACTIVE
               value: google
-            - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
-            - name: SPRING_DATA_MONGODB_DATABASE
-              value: docker
-            - name: SPRING_REDIS_HOST
-              value: redis
+            - name: MONGODB_URI
+              value: mongodb://mongodb:27017/docker
             - name: EUREKA_SERVER
               value: eureka-server
-            - name: SPRING_CLOUD_CONFIG_URL
-              value: http://config-server:8888
-            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-              value: "false"
             - name: HOST_NAME
-              value: nodejs-service
+              value: week-menu-api
             - name: IP_ADDRESS
-              value: nodejs-service
-            - name: NODE_DEBUG
-              value: request
+              value: week-menu-api
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
           ports:

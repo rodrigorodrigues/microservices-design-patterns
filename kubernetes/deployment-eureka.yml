@@ -46,10 +46,8 @@ spec:
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-            - name: DEBUG
-              value: "true"
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
-              value: "true"
+            - name: LOGGING_LEVEL_ROOT
+              value: error
           ports:
             - containerPort: 8761
           livenessProbe:

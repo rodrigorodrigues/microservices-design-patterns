@@ -13,6 +13,7 @@ class CategoryList extends Component {
     super(props);
     this.state = {categories: [], isLoading: true, jwt: props.jwt, displayError: null};
     this.remove = this.remove.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   async componentDidMount() {
@@ -53,6 +54,14 @@ class CategoryList extends Component {
           this.setState({categories: categories});
         }
       });
+    }
+  }
+
+  async logout() {
+    try {
+      this.props.onRemoveAuthentication();
+    } catch (error) {
+      console.error(error);
     }
   }
 

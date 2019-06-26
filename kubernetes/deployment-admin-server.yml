@@ -55,6 +55,10 @@ spec:
               value: "true"
             - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
               value: /monitoring
+            - name: LOGGING_LEVEL_ROOT
+              value: error
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+              value: debug
           ports:
             - containerPort: 9000
           livenessProbe:

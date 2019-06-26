@@ -22,11 +22,10 @@ spec:
     metadata:
       labels:
         app: react-webapp
-        version: v1
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:1.0
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:4.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -34,11 +33,7 @@ spec:
             limits:
               memory: "512Mi"
           env:
-            - name: JAVA_OPTS
-              value: -Xmx256m -Xms512m -XX:MaxPermSize=512m
             - name: SERVER_PORT
               value: "3001"
-            - name: REACT_APP_GATEWAY_URL
-              value: http://34.77.119.99
           ports:
             - containerPort: 3001
