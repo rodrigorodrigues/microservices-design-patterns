@@ -12,8 +12,7 @@
     },
     "indicator": {
       "diskSpace": "Disk space",
-      "mail": "Email",
-      "mongo": "MongoDB"
+      "mail": "Email"
     },
     "table": {
       "service": "Service name",

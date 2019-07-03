@@ -13,9 +13,9 @@
     "clientThemeVariant": "",
     "authenticationType": "jwt",
     "cacheProvider": "no",
-    "databaseType": "mongodb",
-    "devDatabaseType": "mongodb",
-    "prodDatabaseType": "mongodb",
+    "databaseType": "mongo",
+    "devDatabaseType": "mongo",
+    "prodDatabaseType": "mongo",
     "testFrameworks": [],
     "jhiPrefix": "jhi",
     "entitySuffix": "",
@@ -23,10 +23,7 @@
     "otherModules": [],
     "enableTranslation": true,
     "nativeLanguage": "en",
-    "languages": [
-      "en",
-      "pt-br"
-    ],
+    "languages": ["en", "pt-br"],
     "skipServer": true
   }
 }
