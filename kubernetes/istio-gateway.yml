@@ -5,28 +5,34 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    #kubernetes.io/ingress.allow-http: "false"
+#    kubernetes.io/ingress.global-static-ip-name: spendingbetter-static-ip
+#    ingress.gcp.kubernetes.io/pre-shared-cert: "spendingbetter-cert"
+#    networking.gke.io/managed-certificates: spendingbetter-certificate
 spec:
+  backend:
+    serviceName: react-webapp
+    servicePort: 3001
+    # tls:
+    #- hosts:
+    #  - spendingbetter.com
+    #  secretName: spring-boot-cert
   rules:
-    - http:
+    -  http:
         paths:
           - path: /api/
             backend:
               serviceName: edge-server
               servicePort: 9006
-    - http:
-        paths:
           - path: /monitoring
             backend:
               serviceName: admin-server
               servicePort: 9000
-    - http:
-        paths:
           - path: /monitoring/
             backend:
               serviceName: admin-server
               servicePort: 9000
-    - http:
-        paths:
           - path: /
             backend:
               serviceName: react-webapp
@@ -39,8 +45,19 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # kubernetes.io/ingress.allow-http: "false"
+#    ingress.gcp.kubernetes.io/pre-shared-cert: "spendingbetter-cert"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
+#    kubernetes.io/ingress.global-static-ip-name: spendingbetter-static-ip
+#    networking.gke.io/managed-certificates: spendingbetter-certificate
 spec:
+  backend:
+    serviceName: react-webapp
+    servicePort: 3001
+    #  tls:
+    #- hosts:
+    #  - spendingbetter.com
+    #  secretName: spring-boot-cert
   rules:
     - http:
         paths:
@@ -48,14 +65,10 @@ spec:
             backend:
               serviceName: config-server
               servicePort: 8888
-    - http:
-        paths:
           - path: /eureka-server/(.*)
             backend:
               serviceName: eureka-server
               servicePort: 8761
-    - http:
-        paths:
           - path: /edge-server/(.*)
             backend:
               serviceName: edge-server

@@ -39,7 +39,7 @@ spec:
             - name: SERVER_PORT
               value: "8082"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE

@@ -86,6 +86,8 @@ services:
         build:
             args:
                 - SERVER_PORT=3001
+                - REACT_APP_GATEWAY_URL=http://localhost:9006
+                - HOSTNAME=${HOSTNAME} - Test
             context: ../react-webapp
             dockerfile: Dockerfile-prod
         container_name: react-webapp

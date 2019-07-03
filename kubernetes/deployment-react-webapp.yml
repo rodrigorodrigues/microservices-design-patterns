@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: react-webapp
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:4.0
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:5.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -35,5 +35,7 @@ spec:
           env:
             - name: SERVER_PORT
               value: "3001"
+            - name: REACT_APP_GATEWAY_URL
+              value: https://www.spendingbetter.com
           ports:
             - containerPort: 3001

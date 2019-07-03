@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: spendingbetter-certificate
+spec:
+  domains:
+    - spendingbetter.com
