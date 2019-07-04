@@ -45,7 +45,7 @@
             "relationshipName": "children"
         }
     ],
-    "changelogDate": "20190703215938",
+    "changelogDate": "20190703224118",
     "entityTableName": "person",
     "dto": "no",
     "pagination": "infinite-scroll",

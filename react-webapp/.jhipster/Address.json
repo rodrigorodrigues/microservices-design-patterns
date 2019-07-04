@@ -37,8 +37,17 @@
             ]
         }
     ],
-    "relationships": [],
-    "changelogDate": "20190703215940",
+    "relationships": [
+        {
+            "relationshipType": "one-to-one",
+            "otherEntityName": "person",
+            "otherEntityRelationshipName": "address",
+            "relationshipName": "person",
+            "otherEntityField": "id",
+            "ownerSide": true
+        }
+    ],
+    "changelogDate": "20190703224120",
     "javadoc": "not an ignored comment",
     "entityTableName": "address",
     "dto": "no",
