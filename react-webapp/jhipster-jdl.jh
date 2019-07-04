@@ -1,0 +1,36 @@
+entity Person {
+    fullName String required
+    dateOfBirth LocalDate
+    createdByUser String
+    createdDate Instant
+    lastModifiedByUser String
+    lastModifiedDate String
+}
+
+entity Child {
+	name String required
+    dateOfBirth LocalDate required
+}
+
+// an ignored comment
+/** not an ignored comment */
+entity Address {
+	address String required
+	postalCode String required
+	city String required
+	stateOrProvince String required
+    country String required
+}
+
+relationship OneToOne {
+	Person{address} to Address
+    Address{person} to Person
+}
+
+// defining multiple OneToMany relationships with comments
+relationship OneToMany {
+	Person{children} to Child,
+}
+
+// Set pagination options
+paginate all with infinite-scroll

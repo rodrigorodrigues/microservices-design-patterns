@@ -1,0 +1,29 @@
+{
+  "spendingbetterApp": {
+    "person": {
+      "home": {
+        "title": "People",
+        "createLabel": "Create a new Person",
+        "createOrEditLabel": "Create or edit a Person",
+        "notFound": "No Person found"
+      },
+      "created": "A new Person is created with identifier {{ param }}",
+      "updated": "A Person is updated with identifier {{ param }}",
+      "deleted": "A Person is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Person {{ id }}?"
+      },
+      "detail": {
+        "title": "Person"
+      },
+      "fullName": "Full Name",
+      "dateOfBirth": "Date Of Birth",
+      "createdByUser": "Created By User",
+      "createdDate": "Created Date",
+      "lastModifiedByUser": "Last Modified By User",
+      "lastModifiedDate": "Last Modified Date",
+      "address": "Address",
+      "children": "Children"
+    }
+  }
+}

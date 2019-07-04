@@ -1,0 +1,24 @@
+{
+  "spendingbetterApp": {
+    "child": {
+      "home": {
+        "title": "Children",
+        "createLabel": "Criar novo Child",
+        "createOrEditLabel": "Criar ou editar Child",
+        "notFound": "Nenhum Child encontrado"
+      },
+      "created": "Um novo Child foi criado com o identificador {{ param }}",
+      "updated": "Um Child foi atualizado com o identificador {{ param }}",
+      "deleted": "Um Child foi excluído com o identificador {{ param }}",
+      "delete": {
+        "question": "Tem certeza de que deseja excluir Child {{ id }}?"
+      },
+      "detail": {
+        "title": "Child"
+      },
+      "name": "Name",
+      "dateOfBirth": "Date Of Birth",
+      "person": "Person"
+    }
+  }
+}
