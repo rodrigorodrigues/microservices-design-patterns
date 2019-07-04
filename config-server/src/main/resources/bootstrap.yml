@@ -31,3 +31,12 @@ management:
         web:
             exposure:
                 include: '*'
+
+---
+spring:
+    profiles: native
+    cloud:
+        config:
+            server:
+                native:
+                    search-locations: file:./config-server/configuration/

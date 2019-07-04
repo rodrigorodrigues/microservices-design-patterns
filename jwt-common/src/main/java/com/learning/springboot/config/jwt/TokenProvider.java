@@ -1,8 +1,22 @@
 package com.learning.springboot.config.jwt;
 
 import com.learning.springboot.config.Java8SpringConfigurationProperties;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -10,11 +24,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.security.Key;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Generate and validate JWT.
@@ -24,6 +33,8 @@ import java.util.stream.Collectors;
 public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "authorities";
+
+    private static final String AUTH_KEY = "auth";
 
     private static final String NAME_KEY = "name";
 
@@ -76,6 +87,7 @@ public class TokenProvider {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put(AUTHORITIES_KEY, authorities);
+        claims.put(AUTH_KEY, String.join(",", authorities));
         claims.put(NAME_KEY, fullName);
 
         return Jwts.builder()
