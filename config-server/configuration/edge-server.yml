@@ -7,6 +7,11 @@ zuul:
             serviceId: user-service
             stripPrefix: false
             sensitiveHeaders:
+        users-account-service:
+            path: /api/account
+            serviceId: user-service
+            stripPrefix: false
+            sensitiveHeaders:
         person-service:
             path: /api/persons/**
             serviceId: person-service
