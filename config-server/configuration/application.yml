@@ -29,6 +29,14 @@ spring:
         sampler:
             probability: 0.1
 
+eureka:
+    instance:
+        preferIpAddress: true
+        securePortEnabled: true
+        statusPageUrl: https://${eureka.instance.hostname}:${server.port}/info
+        healthCheckUrl: https://${eureka.instance.hostname}:${server.port}/health
+        homePageUrl: https://${eureka.instance.hostname}:${server.port}
+
 server:
     ssl:
         key-store: ${KEYSTORE_FILE:}
