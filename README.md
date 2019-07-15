@@ -295,3 +295,57 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Spring WebFlux Security Jwt](https://github.com/raphaelDL/spring-webflux-security-jwt)
 
 [Junit 5](https://medium.com/@GalletVictor/migration-from-junit-4-to-junit-5-d8fe38644abe)
+
+Eureka Server SSL
+management:
+  context-path: /actuator
+  health:
+    binders:
+      # disabled due to a bug in the kafka binder (which creates a kafka consumer that does not honour ssl configuration, version 1.0.1)
+      enabled: false
+  port: 1${server.port}
+  security:
+    enabled: false
+
+security:
+  basic:
+    enabled: false
+
+eureka:
+  instance:
+    leaseExpirationDurationInSeconds: 45
+    metadata-map:
+      host.name: ${spring.cloud.client.hostname:}
+      management.port: ${management.port:}
+      metrics.path: ${management.context-path:}/${endpoints.prometheus.id:prometheus}
+      health.path: ${management.context-path:}/${endpoints.health.id:health}
+      management.context-path: ${management.context-path:}
+
+spring:
+  jackson:
+    time-zone: UTC
+  main:
+    banner-mode: "off"
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.boot: INFO
+
+---
+spring:
+  profiles: https
+
+eureka:
+  instance:
+    nonSecurePortEnabled: false
+    securePortEnabled: true
+    securePort: ${server.port}
+    secureHealthCheckUrl: https://${spring.cloud.client.hostname}:${management.port}${management.context-path:}/${endpoints.health.id:health}
+    healthCheckUrl: https://${spring.cloud.client.hostname}:${management.port}${management.context-path:}/${endpoints.health.id:health}
+    statusPageUrl: https://${spring.cloud.client.hostname}:${management.port}${management.context-path:}/${endpoints.health.id:info}
+
+server:
+  ssl:
+    key-store: ${SSL_KEY_STORE:/opt/ssl/keystore.jks}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:}
