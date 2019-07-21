@@ -39,9 +39,9 @@ security:
 
 eureka:
     instance:
-        preferIpAddress: true
-        nonSecurePortEnabled: false
-        securePortEnabled: true
+        preferIpAddress: ${PREFER_IP_ADDRESS:true}
+        nonSecurePortEnabled: ${NON_SECURE_PORT_ENABLED:false}
+        securePortEnabled: ${SECURE_PORT_ENABLED:true}
         securePort: ${server.port}
         secureHealthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
         healthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
