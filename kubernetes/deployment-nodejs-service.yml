@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 3002
+      port: 8443
   selector:
     app: week-menu-api
   type: NodePort
@@ -33,13 +33,17 @@ spec:
               memory: "256Mi"
             limits:
               memory: "512Mi"
+          volumeMounts:
+            - name: spendingbetter-cert-p12
+              mountPath: "/etc/ssl/certs"
+              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xmx256m -Xms512m -XX:MaxPermSize=512m
+              value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "3002"
+              value: "8443"
             - name: SPRING_PROFILES_ACTIVE
-              value: google
+              value: google,prod
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/docker
             - name: EUREKA_SERVER
@@ -50,11 +54,23 @@ spec:
               value: week-menu-api
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
+            - name: KEYSTORE_FILE
+              value: "/etc/ssl/certs/spendingbetter.com.p12"
           ports:
-            - containerPort: 3002
+            - containerPort: 8443
           livenessProbe:
             httpGet:
+              scheme: HTTPS
               path: /actuator/health
-              port: 3002
+              port: 8443
             initialDelaySeconds: 200
             periodSeconds: 5
+      volumes:
+        - name: spendingbetter-cert-p12
+          secret:
+            secretName: spendingbetter-cert-p12

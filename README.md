@@ -248,6 +248,7 @@ To access Google Deploy - http://34.77.119.99/
 [Install Helm](https://helm.sh/docs/using_helm/#installing-helm)
 [Kubernetes + Zuul](https://stackoverflow.com/questions/52066141/zuul-unable-to-route-traffic-to-service-on-kubernetes)
 [Example Spring Boot 2 + Kubernestes + Zuul](https://piotrminkowski.wordpress.com/2018/08/02/quick-guide-to-microservices-with-kubernetes-spring-boot-2-0-and-docker/)
+https://piotrminkowski.wordpress.com/2018/05/21/secure-discovery-with-spring-cloud-netflix-eureka/
 
 ### Swagger UI
 

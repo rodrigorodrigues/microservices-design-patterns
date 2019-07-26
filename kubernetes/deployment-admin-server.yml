@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 9000
+      port: 8443
   selector:
     app: admin-server
 ---
@@ -32,11 +32,15 @@ spec:
               memory: "256Mi"
             limits:
               memory: "512Mi"
+          volumeMounts:
+            - name: spendingbetter-cert-p12
+              mountPath: "/etc/ssl/certs"
+              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xmx256m -Xms512m -XX:MaxPermSize=512m
+              value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "9000"
+              value: "8443"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: SPRING_DATA_MONGODB_URI
@@ -46,9 +50,9 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/
+              value: https://eureka-server:8443/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-server:8888
+              value: https://config-server:8443
             - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
               value: "false"
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
@@ -59,11 +63,23 @@ spec:
               value: error
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
               value: debug
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
+            - name: KEYSTORE_FILE
+              value: "/etc/ssl/certs/spendingbetter.com.p12"
           ports:
-            - containerPort: 9000
+            - containerPort: 8443
           livenessProbe:
             httpGet:
+              scheme: HTTPS
               path: /actuator/health
-              port: 9000
+              port: 8443
             initialDelaySeconds: 200
             periodSeconds: 5
+      volumes:
+        - name: spendingbetter-cert-p12
+          secret:
+            secretName: spendingbetter-cert-p12

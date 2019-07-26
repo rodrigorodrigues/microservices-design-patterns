@@ -46,7 +46,22 @@
             <artifactId>lettuce-core</artifactId>
             <version>5.1.4.RELEASE</version>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.19.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-apache-client4</artifactId>
+            <version>1.19.1</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -68,9 +83,9 @@
                                     <descriptorRef>artifact</descriptorRef>
                                 </assembly>
                                 <env>
-                                    <JAVA_CMD>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
+                                    <JAVA_CMD>java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
                                 </env>
-                                <cmd>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
+                                <cmd>java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
                             </build>
                         </image>
                     </images>

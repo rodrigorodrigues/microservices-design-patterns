@@ -7,6 +7,7 @@ spring:
                     clone-on-start: true
                     searchPaths: config-server/configuration
                     timeout: 60
+                    skip-ssl-validation: true
     application:
         name: config-server
     session:
@@ -27,6 +28,10 @@ logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 
 management:
+    server:
+        servlet:
+            context-path: /actuator
+        port: ${server.port}
     endpoints:
         web:
             exposure:
@@ -40,3 +45,31 @@ spring:
             server:
                 native:
                     search-locations: file:./config-server/configuration/
+
+---
+spring:
+    profiles: prod
+    sleuth:
+        sampler:
+            probability: 0.1
+
+security:
+    basic:
+        enabled: false
+
+eureka:
+    instance:
+        preferIpAddress: ${PREFER_IP_ADDRESS:true}
+        nonSecurePortEnabled: ${NON_SECURE_PORT_ENABLED:false}
+        securePortEnabled: ${SECURE_PORT_ENABLED:true}
+        securePort: ${server.port}
+        secureHealthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
+        healthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
+        statusPageUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:info}
+        leaseExpirationDurationInSeconds: 45
+        metadata-map:
+            host.name: ${spring.cloud.client.hostname:}
+            management.server.port: ${management.server.port:}
+            metrics.path: ${management.server.servlet.context-path:}/${endpoints.prometheus.id:prometheus}
+            health.path: ${management.server.servlet.context-path:}/${endpoints.health.id:health}
+            management.server.servlet.context-path: ${management.server.servlet.context-path:}

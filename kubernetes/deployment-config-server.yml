@@ -2,12 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: config-server
+  annotations:
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS"}'
   labels:
     app: config-server
 spec:
   ports:
-    - name: http
-      port: 8888
+    - name: https-port
+      port: 8443
   selector:
     app: config-server
   type: NodePort
@@ -26,18 +28,25 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: eu.gcr.io/spring-boot-gke-243520/config-server:1.0
+          image: eu.gcr.io/spring-boot-gke-243520/config-server:5.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
+          volumeMounts:
+            - name: spendingbetter-p12
+              mountPath: "/etc/ssl_certs_p12"
+              readOnly: true
+            - name: spendingbetter-crt
+              mountPath: "/etc/crt"
+              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xmx256m -Xms512m -XX:MaxPermSize=512m
+              value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "8888"
+              value: "8443"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: SPRING_DATA_MONGODB_URI
@@ -47,14 +56,39 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/
+              value: https://eureka-server:8443/eureka/
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+            - name: SERVER_SSL_KEY_STORE
+              value: "/etc/ssl_certs_p12/spendingbetter.com.p12"
+            - name: SERVER_SSL_KEY_STORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
+            - name: SERVER_SSL_KEY_STORE_TYPE
+              value: PKCS12
+            - name: SPRING_CLOUD_CLIENT_HOSTNAME
+              value: config-management.spendingbetter.com
+            - name: SERVICE_SECURITY_TRUSTSTOREPATH
+              value: file:/etc/ssl/truststore.jks
+          command: ["/bin/sh"]
+          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt
+          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
+          && $JAVA_CMD"]
           ports:
-            - containerPort: 8888
+            - containerPort: 8443
           livenessProbe:
             httpGet:
+              scheme: HTTPS
               path: /actuator/health
-              port: 8888
+              port: 8443
             initialDelaySeconds: 200
             periodSeconds: 5
+      volumes:
+        - name: spendingbetter-p12
+          secret:
+            secretName: spendingbetter-p12
+        - name: spendingbetter-crt
+          secret:
+            secretName: spendingbetter-crt
