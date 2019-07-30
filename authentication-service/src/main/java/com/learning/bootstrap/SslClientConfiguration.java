@@ -12,6 +12,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.client.apache4.config.ApacheHttpClient4Config;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -62,6 +63,7 @@ public class SslClientConfiguration {
         clientConfig.getSingletons().add(discoveryJerseyProvider);
 
         DiscoveryClient.DiscoveryClientOptionalArgs clientOptionalArgs = new DiscoveryClient.DiscoveryClientOptionalArgs();
+        clientOptionalArgs.setHostnameVerifier(new AllowAllHostnameVerifier());
         clientOptionalArgs.setEurekaJerseyClient(new EurekaJerseyClientImpl(
             config.getEurekaServerConnectTimeoutSeconds() * 1000,
             config.getEurekaServerReadTimeoutSeconds() * 1000,
