@@ -1,5 +1,6 @@
-package com.learning.bootstrap;
+package com.springboot.bootstrap;
 
+import com.netflix.discovery.DefaultEurekaClientConfig;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClientConfig;
 import com.netflix.discovery.converters.wrappers.CodecWrappers;
@@ -12,6 +13,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.client.apache4.config.ApacheHttpClient4Config;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -28,14 +30,13 @@ import java.security.KeyStore;
 @Profile("prod")
 @Configuration
 @BootstrapConfiguration
-public class SslClientConfiguration {
+public class SslClientAutoConfiguration {
 
     @Bean
     public DiscoveryClient.DiscoveryClientOptionalArgs getTrustStoredEurekaClient(@Value("${service.security.trustStorePath:/etc/ssl/truststore.jks}") String trustStorePath,
                                                                                   @Value("${service.security.trustStorePassword:changeit}") String trustStorePassword,
                                                                                   @Value("${service.security.trustStoreType:JKS}") String trustStoreType,
-                                                                                  @Value("${server.port:8443}") Integer serverPort,
-                                                                                  EurekaClientConfig config)
+                                                                                  @Value("${server.port:8443}") Integer serverPort)
         throws Exception {
         final KeyStore trustStore = KeyStore.getInstance(trustStoreType);
         trustStore.load(new FileSystemResource(trustStorePath).getInputStream(), trustStorePassword.toCharArray());
@@ -55,6 +56,7 @@ public class SslClientConfiguration {
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_CONNECTION_MANAGER, connectionManager);
 
+        EurekaClientConfig config = new DefaultEurekaClientConfig();
         DiscoveryJerseyProvider discoveryJerseyProvider = new DiscoveryJerseyProvider(
             CodecWrappers.getEncoder(config.getEncoderName()),
             CodecWrappers.resolveDecoder(config.getDecoderName(), config.getClientDataAccept()));
@@ -62,6 +64,7 @@ public class SslClientConfiguration {
         clientConfig.getSingletons().add(discoveryJerseyProvider);
 
         DiscoveryClient.DiscoveryClientOptionalArgs clientOptionalArgs = new DiscoveryClient.DiscoveryClientOptionalArgs();
+        clientOptionalArgs.setHostnameVerifier(new AllowAllHostnameVerifier());
         clientOptionalArgs.setEurekaJerseyClient(new EurekaJerseyClientImpl(
             config.getEurekaServerConnectTimeoutSeconds() * 1000,
             config.getEurekaServerReadTimeoutSeconds() * 1000,

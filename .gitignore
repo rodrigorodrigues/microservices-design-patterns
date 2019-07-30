@@ -40,3 +40,4 @@ secrets.yml
 .sts4-cache
 *.jasper
 .attach_*
+*/.vscode

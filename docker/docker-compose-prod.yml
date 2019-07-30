@@ -6,13 +6,23 @@ services:
         environment:
             - SPRING_REDIS_HOST=redisdb
             - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=dev
-            - SERVER_PORT=8761
+            - SPRING_PROFILES_ACTIVE=prod
+            - SERVER_PORT=8443
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
             - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
-            - DEBUG=true
+            - SERVER_SSL_KEY_STORE=/etc/sslmate/www.spendingbetter.com.p12
+            - SERVER_SSL_KEY_STORE_PASSWORD=Cert20!9
+            - SERVER_SSL_TRUST_STORE=/etc/ssl/truststore.jks
+            - SERVER_SSL_TRUST_STORE_TYPE=PKCS12
+            - SERVER_SSL_TRUST_STORE_PASSWORD=changeit
+            - EUREKA_SERVER=https://spendingbetter.com:8443/eureka/
+            - SPRING_CLOUD_CLIENT_HOSTNAME=spendingbetter.com
+            - NON_SECURE_PORT_ENABLED=true
+            - SERVICE_SECURITY_TRUSTSTOREPATH=/etc/ssl/truststore.jks
+        extra_hosts:
+          - "spendingbetter.com:127.0.0.1"
         depends_on:
           - redisdb
           - mongodb-datasource
@@ -20,6 +30,9 @@ services:
             - 8761:8761
         volumes:
             - ./docker-entrypoint.sh:/docker-entrypoint.sh
+            - /etc/ssl/truststore.jks:/etc/ssl/truststore.jks
+            - /etc/sslmate/www.spendingbetter.com.p12:/etc/sslmate/www.spendingbetter.com.p12
+            - /etc/sslmate/www.spendingbetter.com.crt:/etc/sslmate/www.spendingbetter.com.crt
         command: sh ./docker-entrypoint.sh redisdb:6380
 
     config-management:
@@ -28,12 +41,11 @@ services:
         environment:
             - SPRING_REDIS_HOST=redisdb
             - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=prod
             - SERVER_PORT=8888
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
-            - DEBUG=true
         depends_on:
           - service-discovery
         ports:
@@ -49,7 +61,7 @@ services:
             - SPRING_REDIS_HOST=redisdb
             - SPRING_REDIS_PORT=6380
             - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=prod
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=9006
@@ -57,7 +69,6 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
         depends_on:
             - service-discovery
             - config-management
@@ -73,14 +84,13 @@ services:
         environment:
             - SPRING_REDIS_HOST=redisdb
             - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=prod
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=9000
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
-            - DEBUG=true
         depends_on:
           - service-discovery
         ports:
@@ -93,29 +103,12 @@ services:
                 - REACT_APP_GATEWAY_URL=http://localhost:9006
                 - HOSTNAME=${HOSTNAME} - Test
             context: ../react-webapp
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile-prod
         container_name: react-webapp
         ports:
-            - 3001:9000
+            - 3001:3001
         links:
           - gateway
-        volumes:
-            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-        command: sh /tmp/docker-entrypoint.sh gateway:9006
-
-    react-webapp-old:
-        build:
-            args:
-                - SERVER_PORT=3001
-                - REACT_APP_GATEWAY_URL=http://localhost:9006
-                - HOSTNAME=${HOSTNAME} - Test
-            context: ../react-webapp-old
-            dockerfile: Dockerfile
-        container_name: react-webapp-old
-        ports:
-            - 3003:3000
-        links:
-            - gateway
         volumes:
             - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
         command: sh /tmp/docker-entrypoint.sh gateway:9006
@@ -157,7 +150,7 @@ services:
         container_name: person-api
         environment:
             - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=prod
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8082
@@ -165,7 +158,6 @@ services:
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
         depends_on:
             - service-discovery
             - config-management
@@ -181,7 +173,7 @@ services:
         container_name: user-api
         environment:
             - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=prod
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8083
@@ -189,7 +181,6 @@ services:
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
         links:
           - authentication-api
         ports:
@@ -203,7 +194,7 @@ services:
         container_name: authentication-api
         environment:
             - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=prod
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8081
@@ -211,7 +202,6 @@ services:
             - SPRING_DATA_MONGODB_DATABASE=docker
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
         depends_on:
             - service-discovery
             - config-management

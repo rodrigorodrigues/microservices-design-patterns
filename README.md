@@ -275,6 +275,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
+* [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
 * [X] React - Create User List
 * [ ] React - Create User Page
 * [ ] React - Create User Edit

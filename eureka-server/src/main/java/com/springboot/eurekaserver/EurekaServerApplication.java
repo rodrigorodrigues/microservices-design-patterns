@@ -19,12 +19,17 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -49,6 +54,26 @@ public class EurekaServerApplication implements WebMvcConfigurer {
     }
 
     @Profile("prod")
+    @Primary
+    @Bean
+    public static BeanFactoryPostProcessor registerPostProcessor() {
+        return (ConfigurableListableBeanFactory beanFactory) -> {
+            BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+            for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
+                if (beanDefinitionName.equalsIgnoreCase("discoveryClientOptionalArgs")) {
+                    BeanDefinition beanDefinition = registry.containsBeanDefinition(beanDefinitionName) ? registry.getBeanDefinition(beanDefinitionName) : null;
+                    if (beanDefinition != null) {
+                        log.debug("Custom beanDefinition: {}", beanDefinition);
+                        if (registry.containsBeanDefinition(beanDefinitionName)) {
+                            registry.removeBeanDefinition(beanDefinitionName);
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    @Profile("prod")
     @Configuration
     class SslNoopHostnameVerifierConfiguration {
 
@@ -61,8 +86,11 @@ public class EurekaServerApplication implements WebMvcConfigurer {
         @Value("${service.security.trustStoreType:JKS}")
         private String trustStoreType;
 
+        @Value("${server.port:8443}")
+        private Integer serverPort;
+
         @Autowired
-        private EurekaClientConfig config;
+        EurekaClientConfig config;
 
         @Bean
         public DiscoveryClient.DiscoveryClientOptionalArgs getTrustStoredEurekaClient()
@@ -78,7 +106,7 @@ public class EurekaServerApplication implements WebMvcConfigurer {
                 new NoopHostnameVerifier());
 
             SchemeRegistry sslSchemeRegistry = new SchemeRegistry();
-            Scheme schema = new Scheme("https", 8443, new SSLSocketFactoryAdapter(systemSocketFactory));
+            Scheme schema = new Scheme("https", serverPort, new SSLSocketFactoryAdapter(systemSocketFactory));
             sslSchemeRegistry.register(schema);
             String name = "Custom-Discovery-Client";
             MonitoredConnectionManager connectionManager = new MonitoredConnectionManager(name, sslSchemeRegistry);
@@ -99,6 +127,7 @@ public class EurekaServerApplication implements WebMvcConfigurer {
                 clientConfig));
             return clientOptionalArgs;
         }
+
     }
 
 }

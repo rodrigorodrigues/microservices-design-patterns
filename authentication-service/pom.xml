@@ -34,14 +34,14 @@
 
         <dependency>
             <groupId>com.springboot</groupId>
+            <artifactId>ssl-client-configuration</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.springboot</groupId>
             <artifactId>authentication-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-mongodb</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
 		<!-- Test dependencies -->
@@ -87,21 +87,6 @@
 			<version>2.23.4</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>1.19.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-apache-client4</artifactId>
-            <version>1.19.1</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -124,9 +109,9 @@
                                     <descriptorRef>artifact</descriptorRef>
                                 </assembly>
                                 <env>
-                                    <JAVA_CMD>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
+                                    <JAVA_CMD>java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
                                 </env>
-                                <cmd>java -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
+                                <cmd>java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
                             </build>
                         </image>
                     </images>

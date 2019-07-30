@@ -21,8 +21,15 @@ do
     result=$?
     if [ $result -eq 0 ]; then
         echo "Connection is available after $(($count * $SECONDS_SLEEP)) second(s)."
+
+        if [ -f "/etc/sslmate/www.spendingbetter.com.crt" ]; then
+          cmd_keytool="keytool -import -trustcacerts -alias spendingbetter.com -file /etc/sslmate/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt"
+
+          echo "Run keytool command: $cmd_keytool"
+        fi
         cmd="$JAVA_CMD"
 
+        echo "Run cmd command: $cmd"
         # run the command
         exec $cmd
         exit 0
