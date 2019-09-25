@@ -12,7 +12,6 @@ services:
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
             - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
-            - DEBUG=true
         depends_on:
           - redisdb
           - mongodb-datasource
