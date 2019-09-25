@@ -11,7 +11,7 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
-            - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
         depends_on:
           - redisdb
           - mongodb-datasource
@@ -33,6 +33,7 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
+            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
         depends_on:
           - service-discovery
         ports:
@@ -57,6 +58,7 @@ services:
             - SPRING_DATA_MONGODB_DATABASE=docker
             - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
             - DEBUG=true
+            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
         depends_on:
             - service-discovery
             - config-management
@@ -80,6 +82,7 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
+            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
         depends_on:
           - service-discovery
         ports:

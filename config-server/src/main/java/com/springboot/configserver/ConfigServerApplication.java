@@ -45,7 +45,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.learning.autoconfigure", "com.springboot.configserver"})
 @EnableConfigServer
 @EnableDiscoveryClient
 @EnableRedisHttpSession

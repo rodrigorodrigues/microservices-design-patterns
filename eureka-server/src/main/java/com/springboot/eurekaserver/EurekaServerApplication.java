@@ -39,7 +39,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.security.KeyStore;
 
 @Slf4j
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.learning.autoconfigure", "com.springboot.eurekaserver"})
 @EnableRedisHttpSession
 @EnableEurekaServer
 public class EurekaServerApplication implements WebMvcConfigurer {
@@ -51,25 +51,6 @@ public class EurekaServerApplication implements WebMvcConfigurer {
     @Bean
     public LettuceConnectionFactory connectionFactory(RedisProperties redisProperties) {
         return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
-    }
-
-    @Primary
-    @Bean
-    public static BeanFactoryPostProcessor registerPostProcessor() {
-        return (ConfigurableListableBeanFactory beanFactory) -> {
-            BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-            for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
-                if (beanDefinitionName.equalsIgnoreCase("discoveryClientOptionalArgs")) {
-                    BeanDefinition beanDefinition = registry.containsBeanDefinition(beanDefinitionName) ? registry.getBeanDefinition(beanDefinitionName) : null;
-                    if (beanDefinition != null) {
-                        log.debug("Custom beanDefinition: {}", beanDefinition);
-                        if (registry.containsBeanDefinition(beanDefinitionName)) {
-                            registry.removeBeanDefinition(beanDefinitionName);
-                        }
-                    }
-                }
-            }
-        };
     }
 
     @Profile("prod")
