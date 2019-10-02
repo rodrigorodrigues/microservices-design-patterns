@@ -4,6 +4,7 @@ import com.learning.springboot.service.SharedAuthenticationServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,6 +13,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @EnableWebSecurity
 @AllArgsConstructor
 public class ConfigServerWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+    private static final String[] WHITELIST = {
+        "/actuator/**",
+        "/**/*.js",
+        "/**/*.css",
+        "/**/*.html",
+        "/favicon.ico"
+    };
 
     private final SharedAuthenticationServiceImpl sharedAuthenticationService;
 
@@ -24,11 +32,15 @@ public class ConfigServerWebSecurityConfiguration extends WebSecurityConfigurerA
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
-            .antMatchers("/actuator/**").permitAll()
             .anyRequest().access("@webSecurity.checkEncryptKey(request, authentication)")
             .and()
             .formLogin()
             .and()
-            .logout().permitAll();
+            .logout();
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(WHITELIST);
     }
 }

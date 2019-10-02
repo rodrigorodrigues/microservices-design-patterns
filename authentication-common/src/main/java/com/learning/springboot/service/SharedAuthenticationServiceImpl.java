@@ -1,5 +1,6 @@
 package com.learning.springboot.service;
 
+import com.learning.springboot.model.Authentication;
 import com.learning.springboot.repository.AuthenticationRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,9 @@ public class SharedAuthenticationServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Searching username: {}", username);
-        return Optional.ofNullable(authenticationRepository.findByEmail(username))
-                .orElseThrow(() -> new UsernameNotFoundException(String.format("Authentication(%s) not found!", username)));
+        Authentication authentication = Optional.ofNullable(authenticationRepository.findByEmail(username))
+            .orElseThrow(() -> new UsernameNotFoundException(String.format("Authentication(%s) not found!", username)));
+        log.debug("Authentication: {}", authentication);
+        return authentication;
     }
 }

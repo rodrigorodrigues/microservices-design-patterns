@@ -26,7 +26,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.config.server.EnableConfigServer;
@@ -35,8 +34,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -48,18 +45,12 @@ import java.security.cert.CertificateException;
 @SpringBootApplication(scanBasePackages = {"com.learning.autoconfigure", "com.springboot.configserver"})
 @EnableConfigServer
 @EnableDiscoveryClient
-@EnableRedisHttpSession
 @EnableConfigurationProperties(ConfigServerProperties.class)
 public class ConfigServerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ConfigServerApplication.class, args);
 	}
-
-    @Bean
-    public LettuceConnectionFactory connectionFactory(RedisProperties redisProperties) {
-        return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
-    }
 
     @Profile("prod")
     @Primary

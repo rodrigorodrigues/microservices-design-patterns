@@ -11,7 +11,7 @@
 
     <properties>
         <!-- make sure this matches zipkin-server's spring boot version -->
-        <spring-boot.version>2.1.1.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.8.RELEASE</spring-boot.version>
     </properties>
 
     <dependencyManagement>

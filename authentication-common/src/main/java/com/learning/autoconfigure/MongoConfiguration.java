@@ -12,8 +12,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories(basePackageClasses = AuthenticationRepository.class)
 @Slf4j
 @ComponentScan(basePackages = "com.learning.springboot")
-public class SharedMongoConfiguration {
-    public SharedMongoConfiguration() {
+public class MongoConfiguration {
+    public MongoConfiguration() {
         log.debug("Set Mongo Configuration: {}", this);
     }
 }

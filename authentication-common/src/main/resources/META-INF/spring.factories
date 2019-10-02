@@ -1,2 +1,3 @@
 rg.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.learning.autoconfigure.SharedMongoConfiguration
+com.learning.autoconfigure.MongoConfiguration,\
+com.springboot.eurekaserver.config.RedisConfiguration
