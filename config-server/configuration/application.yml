@@ -7,10 +7,6 @@ configuration:
         token-validity-in-seconds-for-remember-me: 2592000
 
 management:
-    server:
-        servlet:
-            context-path: /actuator
-        port: ${server.port}
     endpoints:
         web:
             exposure:
@@ -28,7 +24,7 @@ spring:
 
 ---
 spring:
-    profiles: dev
+    profiles: dev, default
     sleuth:
         sampler:
             probability: 1
