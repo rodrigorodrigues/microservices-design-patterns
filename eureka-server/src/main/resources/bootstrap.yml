@@ -14,10 +14,6 @@ logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 
 management:
-    server:
-        servlet:
-            context-path: /actuator
-        port: ${server.port}
     endpoints:
         web:
             exposure:
