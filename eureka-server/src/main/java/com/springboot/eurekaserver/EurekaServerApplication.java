@@ -31,31 +31,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.security.KeyStore;
 
 
 @Slf4j
-@SpringBootApplication(scanBasePackages = {"com.learning.autoconfigure", "com.springboot.eurekaserver"})
+@SpringBootApplication
 @EnableEurekaServer
 public class EurekaServerApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(EurekaServerApplication.class, args);
-    }
-
-    @Bean
-    CorsFilter corsWebFilter() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.applyPermitDefaultValues();
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);
-
-        return new CorsFilter(source);
     }
 
     @Profile("prod")

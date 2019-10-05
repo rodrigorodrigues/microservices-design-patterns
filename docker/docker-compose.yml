@@ -11,10 +11,6 @@ services:
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
-            - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
-            - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
-            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-            - LOGGING_LEVEL_COM_LEARNING=debug
         depends_on:
           - redisdb
           - mongodb-datasource

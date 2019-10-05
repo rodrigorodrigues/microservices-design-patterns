@@ -1,6 +1,6 @@
 package com.springboot.configserver.config;
 
-import com.learning.springboot.service.SharedAuthenticationServiceImpl;
+import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

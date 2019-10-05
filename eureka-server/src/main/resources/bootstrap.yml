@@ -4,12 +4,9 @@ server:
 spring:
     application:
         name: eureka-server
-    session:
-        store-type: redis
     mvc:
         async:
             request-timeout: 35000
-
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 

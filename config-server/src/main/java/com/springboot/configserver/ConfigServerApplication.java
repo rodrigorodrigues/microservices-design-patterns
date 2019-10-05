@@ -42,7 +42,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-@SpringBootApplication(scanBasePackages = {"com.learning.autoconfigure", "com.springboot.configserver"})
+@SpringBootApplication
 @EnableConfigServer
 @EnableDiscoveryClient
 @EnableConfigurationProperties(ConfigServerProperties.class)

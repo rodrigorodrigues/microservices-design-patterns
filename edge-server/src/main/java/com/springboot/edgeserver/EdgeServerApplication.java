@@ -9,7 +9,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-@SpringBootApplication(scanBasePackages = {"com.learning.autoconfigure", "com.springboot.edgeserver"})
+@SpringBootApplication
 @EnableZuulProxy
 @EnableDiscoveryClient
 public class EdgeServerApplication {

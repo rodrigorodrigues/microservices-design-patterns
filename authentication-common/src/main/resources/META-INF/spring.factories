@@ -1,3 +1,2 @@
-rg.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.learning.autoconfigure.MongoConfiguration,\
-com.springboot.eurekaserver.config.RedisConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.microservice.authentication.autoconfigure.AuthenticationCommonMongoConfiguration
