@@ -36,6 +36,13 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
 
+const redis   = require("redis");
+const session = require('express-session');
+const redisStore = require('connect-redis')(session);
+
+// Session Redis
+loadSessionRedis();
+
 // Spring Boot Actuator
 loadActuator();
 
@@ -66,6 +73,8 @@ app.use(function (req, res, next) {
 
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
+    } else if (req.path.endsWith('/sharedSessions')) {
+        res.sendStatus(req.session);
     } else {
         validateJwt(req, res, next);
     }
@@ -121,6 +130,20 @@ function loadSleuth() {
             tokens.res(req, res, 'content-length'), '-',
             tokens['response-time'](req, res), 'ms'
         ].join(' ');
+    }));
+}
+
+function loadSessionRedis() {
+    const redisServer = process.env.REDIS_SERVER || '127.0.0.1';
+    const redisPort = process.env.REDIS_PORT || 6379;
+    const client  = redis.createClient({ host: redisServer, port: redisPort});
+
+    app.use(session({
+        secret: 'ssshhhhh',
+        // create new redis store.
+        store: new redisStore({ host: redisServer, port: redisPort, client: client,ttl :  260}),
+        saveUninitialized: false,
+        resave: false
     }));
 }
 

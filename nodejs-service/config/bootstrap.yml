@@ -27,3 +27,10 @@ spring:
     cloud:
         config:
             endpoint: http://config-server:8888
+
+---
+profiles: localhost
+spring:
+    cloud:
+        config:
+            endpoint: http://localhost:8888

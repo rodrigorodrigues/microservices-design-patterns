@@ -3,6 +3,10 @@ import constants from '../constants/AppConstant';
 const { API_V1 } = constants;
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
+export async function getWithoutCredentials(resource, isWithoutApi) {
+    return get(resource, false, isWithoutApi);
+}
+
 export async function get(resource, isCredential, isWithoutApi, jwt) {
     try {
         console.log("Gateway Url: ", gatewayUrl);
@@ -17,8 +21,9 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
             response = await fetch(url)
         }
         return await response.text();
-    } catch (error) {
-        throw Error(error)
+    } catch (e) {
+        console.log("Error get method", e);
+        throw Error(e)
     }
 }
 
@@ -33,8 +38,9 @@ export async function post(resource, payload) {
             body: JSON.stringify(payload)
         })
         return response.json();
-    } catch (error) {
-        throw Error(error)
+    } catch (e) {
+        console.log("Error post method", e);
+        throw Error(e)
     }
 }
 

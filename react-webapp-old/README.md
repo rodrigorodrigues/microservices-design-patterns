@@ -46,3 +46,10 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 ## Dockerize to production
 
 https://medium.com/thepeaklab/how-to-deploy-a-react-application-to-production-with-docker-multi-stage-builds-4da347f2d681
+
+## Windows
+SET REACT_APP_GATEWAY_URL=http://localhost:9006
+
+SET PORT=3000
+
+SET REACT_APP_HOSTNAME=docker-localhost

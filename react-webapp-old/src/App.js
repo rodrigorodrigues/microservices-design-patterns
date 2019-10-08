@@ -13,6 +13,9 @@ import CategoryList from "./WeekMenu/CategoryList";
 import CategoryEdit from "./WeekMenu/CategoryEdit";
 import RecipeList from "./WeekMenu/RecipeList";
 import jwt_decode from 'jwt-decode';
+import {getWithoutCredentials} from "./services/ApiService";
+import MessageAlert from './MessageAlert';
+import {errorMessage} from './common/Util';
 
 class App extends Component {
   state = {
@@ -22,10 +25,18 @@ class App extends Component {
     error: null,
     jwt: null,
     authorities: [],
-    notDisplayMessage: false
+    notDisplayMessage: false,
+    displayError: null
   };
 
   async componentDidMount() {
+    try {
+      let data = await getWithoutCredentials('week-menu/v2/sharedSessions', false);
+      console.log("Shared Session", data);
+    } catch (e) {
+      console.log("Error when trying to connect to Session Redis", e);
+      this.setState({ displayError: errorMessage(`{"error": "${e}"}`)});
+    }
     const localStorageJwt = localStorage.getItem('JWT');
     if (localStorageJwt) {
       this.decodeJwt(localStorageJwt);
@@ -51,6 +62,8 @@ class App extends Component {
   }
 
   render() {
+    const {displayError} = this.state;
+
     return (
       <UserContext.Provider value={this.state}>
         <Router>
@@ -78,8 +91,11 @@ class App extends Component {
                    component={() => <RecipeList {...this.state} />} />
           </Switch>
         </Router>
+        <div>
+          <MessageAlert {...displayError}></MessageAlert>
+        </div>
       </UserContext.Provider>
-    )
+    );
   }
 }
 

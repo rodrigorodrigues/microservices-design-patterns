@@ -36,7 +36,10 @@
         "zipkin-instrumentation-express": "0.16.2",
         "zipkin-context-cls": "0.16.0",
         "zipkin-transport-http": "0.16.2",
-        "express-jwt-permissions": "1.2.3"
+        "express-jwt-permissions": "1.2.3",
+        "redis": "2.8.0",
+        "express-session": "1.16.2",
+        "connect-redis": "4.0.3"
     },
     "devDependencies": {
         "chai": "3.5.0",
