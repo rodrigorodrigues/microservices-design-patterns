@@ -106,7 +106,7 @@ class UserList extends Component {
         <tr>
           <th>#</th>
           <th>Email</th>
-          <th>Full Name</th>
+          <th>Test Name</th>
         </tr>
         </thead>
         <tbody>

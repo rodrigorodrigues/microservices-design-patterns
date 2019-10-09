@@ -12,19 +12,19 @@ RUN npm run build
 
 ### STAGE 2: Production Environment ###
 FROM nginx:1.13.12-alpine
-ARG SERVER_PORT
+ARG PORT
 
-ENV PORT=$SERVER_PORT
+ENV PORT=$PORT
 
 RUN rm -rf /etc/nginx/conf.d
 COPY --from=builder /usr/src/app/build /usr/share/nginx/html
 COPY --from=builder /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN echo "PORT = $PORT"
-RUN sed -i 's/SERVER_PORT/'"$PORT"'/g' /etc/nginx/conf.d/default.conf
+RUN sed -i 's/PORT/'"$PORT"'/g' /etc/nginx/conf.d/default.conf
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
-EXPOSE $SERVER_PORT
+EXPOSE $PORT
 
 ENV JAVA_CMD="nginx"
 CMD ["nginx"]

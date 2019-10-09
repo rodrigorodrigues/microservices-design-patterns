@@ -12,8 +12,6 @@ spring:
                 max-attempts: 6
                 max-interval: 128000
                 multiplier: 2
-    session:
-        store-type: redis
 
 eureka:
     client:

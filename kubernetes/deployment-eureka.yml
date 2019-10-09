@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: https
-      port: 8761
+      port: 8443
   selector:
     app: eureka-server
   type: NodePort
@@ -48,7 +48,7 @@ spec:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "8761"
+              value: "8443"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: SPRING_DATA_MONGODB_URI
@@ -68,14 +68,14 @@ spec:
                   key: KEYSTORE_PASSWORD
             - name: SERVER_SSL_KEY_STORE_TYPE
               value: PKCS12
-            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE
+            - name: EUREKA_SERVER
               value: https://eureka-server:${server.port}/eureka/
             - name: SPRING_CLOUD_CLIENT_HOSTNAME
               value: spendingbetter.com
             - name: NON_SECURE_PORT_ENABLED
               value: "true"
             - name: SERVICE_SECURITY_TRUSTSTOREPATH
-              value: file:/etc/ssl/truststore.jks
+              value: /etc/ssl/truststore.jks
             - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
               value: ${SERVER_SSL_KEY_STORE_PASSWORD}
           command: ["/bin/sh"]
@@ -83,12 +83,12 @@ spec:
           && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
           && $JAVA_CMD"]
           ports:
-            - containerPort: 8761
+            - containerPort: 8443
           livenessProbe:
             httpGet:
               scheme: HTTPS
               path: /actuator/health
-              port: 8761
+              port: 8443
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:

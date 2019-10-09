@@ -73,8 +73,9 @@ app.use(function (req, res, next) {
 
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
-    } else if (req.path.endsWith('/sharedSessions')) {
-        res.sendStatus(req.session);
+    } else if (req.path === '/sharedSessions') {
+        console.log("SessionId: ", req.sessionID);
+        res.status(200).send(req.session);
     } else {
         validateJwt(req, res, next);
     }
@@ -136,15 +137,33 @@ function loadSleuth() {
 function loadSessionRedis() {
     const redisServer = process.env.REDIS_SERVER || '127.0.0.1';
     const redisPort = process.env.REDIS_PORT || 6379;
+
+    console.log("redisServer: ", redisServer);
+    console.log("redisPort: ", redisPort);
+
     const client  = redis.createClient({ host: redisServer, port: redisPort});
 
+    client.on('error', (err) => {
+        console.log('Redis error: ', err);
+    });
+
     app.use(session({
-        secret: 'ssshhhhh',
-        // create new redis store.
-        store: new redisStore({ host: redisServer, port: redisPort, client: client,ttl :  260}),
+        secret: 'spring:session:',
+        store: new redisStore({ host: redisServer, port: redisPort, client: client, ttl: 86400}),
         saveUninitialized: false,
         resave: false
     }));
+
+    client.keys("spring:session:*", function(error, key){
+        key.forEach(k => {
+            console.log("Key: ", k);
+            if (k.startsWith('spring:session:index:org.springframework.session.FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME')) {
+                console.log("Object");
+                client.hkeys(k, redis.print);
+            }
+        });
+    });
+
 }
 
 function loadActuator() {

@@ -10,8 +10,6 @@ spring:
                     skip-ssl-validation: true
     application:
         name: config-server
-    session:
-        store-type: redis
 eureka:
     client:
         serviceUrl:

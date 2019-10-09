@@ -31,7 +31,7 @@ class App extends Component {
 
   async componentDidMount() {
     try {
-      let data = await getWithoutCredentials('week-menu/v2/sharedSessions', false);
+      let data = await getWithoutCredentials('sharedSessions', false);
       console.log("Shared Session", data);
     } catch (e) {
       console.log("Error when trying to connect to Session Redis", e);

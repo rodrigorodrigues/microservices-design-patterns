@@ -27,3 +27,8 @@ zuul:
             serviceId: week-menu-api
             stripPrefix: true
             sensitiveHeaders:
+        sharedSessions-resource:
+            path: /api/sharedSessions
+            serviceId: week-menu-api
+            stripPrefix: true
+            sensitiveHeaders:
