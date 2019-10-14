@@ -3,19 +3,22 @@ package com.microservice.authentication;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
-import com.microservice.web.common.util.constants.DefaultUsers;
 import com.microservice.authentication.dto.LoginDto;
 import com.microservice.authentication.repository.AuthenticationRepository;
+import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +27,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.test.StepVerifier;
+import redis.embedded.RedisServer;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +44,12 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = AuthenticationServiceApplication.class,
-		properties = "configuration.swagger=false")
+@SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
+		properties = {"configuration.swagger=false", "logging.level.org.springframework=debug", "logging.level.com.microservice=debug", "spring.redis.port=6370"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 @Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
@@ -55,6 +63,29 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
 
 	@Autowired
     ObjectMapper objectMapper;
+
+	@Autowired
+    ReactiveRedisTemplate reactiveRedisTemplate;
+
+    @TestConfiguration
+    public static class EmbeddedRedisTestConfiguration {
+
+        private final RedisServer redisServer;
+
+        public EmbeddedRedisTestConfiguration(@Value("${spring.redis.port}") final int redisPort) {
+            this.redisServer = new RedisServer(redisPort);
+        }
+
+        @PostConstruct
+        public void startRedis() {
+            this.redisServer.start();
+        }
+
+        @PreDestroy
+        public void stopRedis() {
+            this.redisServer.stop();
+        }
+    }
 
     @Configuration
     @AllArgsConstructor
@@ -93,13 +124,22 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     @Test
 	@DisplayName("Test - When Cal POST - /api/authenticate should return token and response 200 - OK")
 	public void shouldReturnTokenWhenCallApi() {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", "master@gmail.com");
+        formData.add("password", "password123");
+        formData.add("rememberMe", "false");
         client.post().uri("/api/authenticate")
-            .body(fromObject(new LoginDto("master@gmail.com", "password123", false)))
+            //.body(fromObject(new LoginDto("master@gmail.com", "password123", false)))
+            .body(fromFormData(formData))
             .exchange()
             .expectStatus().isOk()
             .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
             .expectHeader().exists(HttpHeaders.AUTHORIZATION)
             .expectBody().jsonPath("$.id_token").isNotEmpty();
+
+        StepVerifier.create(reactiveRedisTemplate.keys("*"))
+            .expectNextCount(1)
+            .verifyComplete();
 	}
 
     @Test
