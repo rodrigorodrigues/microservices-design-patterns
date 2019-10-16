@@ -3,7 +3,7 @@ package com.microservice.authentication;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
-import com.microservice.authentication.dto.LoginDto;
+import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.repository.AuthenticationRepository;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,25 +31,22 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.test.StepVerifier;
 import redis.embedded.RedisServer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
-		properties = {"configuration.swagger=false", "logging.level.org.springframework=debug", "logging.level.com.microservice=debug", "spring.redis.port=6370"})
+		properties = {"configuration.swagger=false", "debug=debug", "logging.level.com.microservice=debug", "spring.redis.port=6370"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 @Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
@@ -65,7 +62,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
 	@Autowired
-    ReactiveRedisTemplate reactiveRedisTemplate;
+    ReactiveRedisOperations reactiveRedisOperations;
 
     @TestConfiguration
     public static class EmbeddedRedisTestConfiguration {
@@ -137,29 +134,36 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .expectHeader().exists(HttpHeaders.AUTHORIZATION)
             .expectBody().jsonPath("$.id_token").isNotEmpty();
 
-        StepVerifier.create(reactiveRedisTemplate.keys("*"))
+/* // Check later how to test this
+        StepVerifier.create(reactiveRedisOperations.keys("*"))
             .expectNextCount(1)
             .verifyComplete();
+*/
+
 	}
 
     @Test
     @DisplayName("Test - When Cal POST - /api/test should be authenticated and response 200 - OK")
     public void shouldUserBeAuthenticatedWhenCallApi() throws IOException {
-        Map<String, String> auth = objectMapper.readValue(client.post().uri("/api/authenticate")
-            .body(fromObject(new LoginDto("master@gmail.com", "password123", false)))
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", "master@gmail.com");
+        formData.add("password", "password123");
+        formData.add("rememberMe", "false");
+        JwtTokenDto auth = objectMapper.readValue(client.post().uri("/api/authenticate")
+            .body(fromFormData(formData))
             .exchange()
             .expectStatus().isOk()
             .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
             .expectHeader().exists(HttpHeaders.AUTHORIZATION)
             .expectBody(String.class)
             .returnResult()
-            .getResponseBody(), Map.class);
+            .getResponseBody(), JwtTokenDto.class);
 
-        assertThat(auth.isEmpty()).isFalse();
-        assertThat(auth.get("id_token")).isNotEmpty();
+        assertThat(auth).isNotNull();
+        assertThat(auth.getIdToken()).isNotEmpty();
 
         client.get().uri("/api/test")
-            .header(HttpHeaders.AUTHORIZATION, auth.get("id_token"))
+            .header(HttpHeaders.AUTHORIZATION, auth.getIdToken())
             .exchange()
             .expectStatus().isOk()
             .expectBody(String.class).value(containsString("User(master@gmail.com) is authenticated!"));
@@ -168,8 +172,12 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     @Test
     @DisplayName("Test - When Cal POST - /api/authenticate with default system user should return 401 - Unauthorized")
     public void shouldReturnUnauthorizedWhenCallApiWithDefaultSystemUser() {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", DefaultUsers.SYSTEM_DEFAULT.getValue());
+        formData.add("password", "noPassword");
+        formData.add("rememberMe", "false");
         client.post().uri("/api/authenticate")
-            .body(fromObject(new LoginDto(DefaultUsers.SYSTEM_DEFAULT.getValue(), "noPassword", false)))
+            .body(fromFormData(formData))
             .exchange()
             .expectStatus().isUnauthorized()
             .expectBody().jsonPath("$.message").value(containsString("User(default@admin.com) is locked"));

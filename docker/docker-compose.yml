@@ -87,76 +87,78 @@ services:
         ports:
             - 9000:9000
 
-#    react-webapp:
-#        build:
-#            args:
-#                - SERVER_PORT=3001
-#                - REACT_APP_GATEWAY_URL=http://localhost:9006
-#                - HOSTNAME=${HOSTNAME} - Test
-#            context: ../react-webapp
-#            dockerfile: Dockerfile
-#        container_name: react-webapp
-#        ports:
-#            - 3001:9000
-#        links:
-#          - gateway
-#        volumes:
-#            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+    react-webapp:
+        build:
+            args:
+                - SERVER_PORT=3001
+                - REACT_APP_GATEWAY_URL=http://localhost:9006
+                - HOSTNAME=${HOSTNAME} - Test
+            context: ../react-webapp
+            dockerfile: Dockerfile
+        container_name: react-webapp
+        ports:
+            - 3001:9000
+        links:
+          - gateway
+        volumes:
+            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
 #            - ./node_modules:/usr/src/app/
-#        command: sh /tmp/docker-entrypoint.sh gateway:9006
+        command: sh /tmp/docker-entrypoint.sh gateway:9006
+
+    react-webapp-old:
+        build:
+            args:
+                - SERVER_PORT=3001
+            context: ../react-webapp-old
+            dockerfile: Dockerfile
+        container_name: react-webapp-old
+        environment:
+            - REACT_APP_GATEWAY_URL=http://localhost:9006
+            - HOSTNAME=${HOSTNAME} - Test
+            - NODE_ENV=development
+        ports:
+            - 3003:3000
+        links:
+            - gateway
+        volumes:
+            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+#            - .:/usr/src/app
+#            - ./node_modules:/usr/src/app/node_modules
+        command: sh /tmp/docker-entrypoint.sh gateway:9006
 #
-#    react-webapp-old:
-#        build:
-#            args:
-#                - SERVER_PORT=3001
-#            context: ../react-webapp-old
-#            dockerfile: Dockerfile
-#        container_name: react-webapp-old
-#        environment:
-#            - REACT_APP_GATEWAY_URL=http://localhost:9006
-#            - HOSTNAME=${HOSTNAME} - Test
-#            - NODE_ENV=development
-#        ports:
-#            - 3003:3000
-#        links:
-#            - gateway
-#        volumes:
-#            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-##            - .:/usr/src/app
-##            - ./node_modules:/usr/src/app/node_modules
-#        command: sh /tmp/docker-entrypoint.sh gateway:9006
-#
-#    week-menu-api:
-#        build:
-#            args:
-#                - SERVER_PORT=3002
-#            context: ../nodejs-service
-#            dockerfile: Dockerfile
-#        container_name: week-menu-api
-#        environment:
-#            - SPRING_PROFILES_ACTIVE=docker
-#            - CONFIG_SERVER=http://localhost:8888
-#            - SERVER_PORT=3002
-#            - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
-#            - EUREKA_SERVER=service-discovery
-#            - EUREKA_PORT=8761
+    week-menu-api:
+        build:
+            args:
+                - SERVER_PORT=3002
+            context: ../nodejs-service
+            dockerfile: Dockerfile
+        container_name: week-menu-api
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+            - REDIS_SERVER=redisdb
+            - REDIS_PORT=6380
+            - CONFIG_SERVER=http://localhost:8888
+            - SERVER_PORT=3002
+            - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
+            - EUREKA_SERVER=service-discovery
+            - EUREKA_PORT=8761
 #            - DEBUG=*
 #            - NODE_DEBUG=request
-#            - HOST_NAME=week-menu-api
-#            - IP_ADDRESS=week-menu-api
-#            - ZIPKIN_HOST=zipkin
-#            - ZIPKIN_PORT=9411
-#        depends_on:
-#            - service-discovery
-#            - config-management
-#        links:
-#          - service-discovery
-#          - config-management
-#        ports:
-#            - 3002:3002
-#        volumes:
-#            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#        command: sh /tmp/docker-entrypoint.sh config-management:8888
+            - HOST_NAME=week-menu-api
+            - IP_ADDRESS=week-menu-api
+            - ZIPKIN_HOST=zipkin
+            - ZIPKIN_PORT=9411
+        depends_on:
+            - service-discovery
+            - config-management
+        links:
+          - service-discovery
+          - config-management
+        ports:
+            - 3002:3002
+        volumes:
+            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+        command: sh /tmp/docker-entrypoint.sh config-management:8888
 
     person-api:
         image: person-service
@@ -210,6 +212,8 @@ services:
         environment:
             - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_REDIS_HOST=redisdb
+            - SPRING_REDIS_PORT=6380
             - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
             - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
             - SERVER_PORT=8081

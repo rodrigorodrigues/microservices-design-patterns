@@ -1,6 +1,8 @@
 package com.microservice.authentication.config;
 
+import com.microservice.authentication.config.jwt.CustomReactiveAuthenticationManager;
 import com.microservice.authentication.dto.JwtTokenDto;
+import com.microservice.authentication.service.AuthenticationService;
 import com.microservice.jwt.common.JwtAuthenticationConverter;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.web.common.util.HandleResponseError;
@@ -26,10 +28,6 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
 /**
  * Spring Security Configuration
  */
@@ -42,6 +40,8 @@ public class SpringSecurityConfiguration {
     private final HandleResponseError handleResponseError;
 
     private final TokenProvider tokenProvider;
+
+    private final AuthenticationService authenticationService;
 
     private static final String[] WHITELIST = {
         // -- swagger ui
@@ -74,6 +74,7 @@ public class SpringSecurityConfiguration {
                 .authenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true))
                 .authenticationSuccessHandler(getServerAuthenticationSuccessHandler())
                 .securityContextRepository(webSessionServerSecurityContextRepository())
+                .authenticationManager(authenticationManager())
                 .and().logout().logoutUrl("/api/logout")
                 .and().httpBasic().disable()
             .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
@@ -97,6 +98,11 @@ public class SpringSecurityConfiguration {
         return new WebSessionServerSecurityContextRepository();
     }
 
+    @Bean
+    public CustomReactiveAuthenticationManager authenticationManager() {
+        return new CustomReactiveAuthenticationManager(authenticationService);
+    }
+
     private AuthenticationWebFilter authenticationWebFilter() {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(Mono::just);
         authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenProvider));
@@ -117,21 +123,9 @@ public class SpringSecurityConfiguration {
             JwtTokenDto jwtToken = new JwtTokenDto(authorization);
             response.getHeaders().add(HttpHeaders.AUTHORIZATION, authorization);
             response.setStatusCode(HttpStatus.OK);
-            response.writeWith(Mono.just(response.bufferFactory().wrap(covertToByteArray(jwtToken))));
+            response.writeWith(Mono.just(response.bufferFactory().wrap(handleResponseError.convertToByteArray(jwtToken))));
             return webFilterExchange.getChain().filter(exchange);
         };
-    }
-
-    private byte[] covertToByteArray(JwtTokenDto jwtToken) {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(jwtToken);
-            oos.flush();
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

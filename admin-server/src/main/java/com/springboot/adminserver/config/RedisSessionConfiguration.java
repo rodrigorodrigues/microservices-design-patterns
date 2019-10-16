@@ -1,4 +1,4 @@
-package com.springboot.eurekaserver.config;
+package com.springboot.adminserver.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.BeanClassLoaderAware;

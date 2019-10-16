@@ -1,25 +1,34 @@
 package com.microservice.web.common.util;
 
-import io.jsonwebtoken.security.SignatureException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import javax.validation.ConstraintViolationException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 /**
  * Handle http status according to type of Exception.
  */
 @Slf4j
+@AllArgsConstructor
 public class HandleResponseError {
+    private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Set http status according to Exception and print exception message when writeToResponse is true.
      * @param exchange the current request
@@ -31,31 +40,36 @@ public class HandleResponseError {
         log.error("Error on calling api", ex);
         log.error("Error on calling api:request: {}", exchange.getRequest().getPath().value());
         ServerHttpResponse response = exchange.getResponse();
-        HttpStatus httpStatus = getHttpStatusError(ex);
+        HttpStatus httpStatus = customDefaultErrorAttributes.getHttpStatusError(ex);
         response.setStatusCode(httpStatus);
         if (writeToResponse) {
-            byte[] bytes = ExceptionUtils.getMessage(ex).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = getBytes(ex);
             DataBuffer buffer = response.bufferFactory().wrap(bytes);
+            DataBufferUtils.release(buffer);
             return response.writeWith(Flux.just(buffer));
         } else {
             return Mono.empty();
         }
     }
 
-    /**
-     * Return {@link HttpStatus} according to type of Exception.
-     * @param ex current exception
-     * @return httpStatus
-     */
-    public HttpStatus getHttpStatusError(Throwable ex) {
-        HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
-        if (ex instanceof HttpStatusCodeException) {
-            httpStatus = ((HttpStatusCodeException) ex).getStatusCode();
-        } else if (ex instanceof AuthenticationException || ex instanceof SignatureException) {
-            httpStatus = HttpStatus.UNAUTHORIZED;
-        } else if (ex instanceof ConstraintViolationException) {
-            httpStatus = HttpStatus.BAD_REQUEST;
+    private byte[] getBytes(Throwable ex) {
+        try {
+            return objectMapper.writeValueAsString(Collections.singletonMap("message", ExceptionUtils.getMessage(ex))).getBytes(StandardCharsets.UTF_8);
+        } catch (JsonProcessingException e) {
+            log.error("Error converting to bytes", e);
+            throw new RuntimeException(e);
         }
-        return httpStatus;
+    }
+
+    public byte[] convertToByteArray(Object object) {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(object);
+            oos.flush();
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

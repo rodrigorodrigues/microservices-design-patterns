@@ -156,9 +156,8 @@ function loadSessionRedis() {
 
     client.keys("spring:session:*", function(error, key){
         key.forEach(k => {
-            console.log("Key: ", k);
-            if (k.startsWith('spring:session:index:org.springframework.session.FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME')) {
-                console.log("Object");
+            if (k.startsWith('spring:session:sessions:')) {
+                console.log("Redis Key: ", k);
                 client.hkeys(k, redis.print);
             }
         });

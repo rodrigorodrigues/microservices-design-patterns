@@ -1,5 +1,7 @@
 package com.microservice.authentication.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +18,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "users_login")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Authentication implements UserDetails {
     @Id
     private String id;
