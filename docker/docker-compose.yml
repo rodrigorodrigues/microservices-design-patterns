@@ -87,37 +87,39 @@ services:
         ports:
             - 9000:9000
 
+## Need to fix proxy issue
+#    react-webapp-jhipster:
+#        build:
+#            args:
+#                - SERVER_PORT=3001
+#                - REACT_APP_GATEWAY_URL=http://localhost:9006
+#                - HOSTNAME=${HOSTNAME} - Test
+#            context: ../react-webapp-jhipster
+#            dockerfile: Dockerfile
+#        container_name: react-webapp
+#        ports:
+#            - 3001:9000
+#        links:
+#          - gateway
+#        volumes:
+#            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+##            - ./node_modules:/usr/src/app/
+#        command: sh /tmp/docker-entrypoint.sh gateway:9006
+#
     react-webapp:
         build:
             args:
-                - SERVER_PORT=3001
+                - PORT=3003
                 - REACT_APP_GATEWAY_URL=http://localhost:9006
-                - HOSTNAME=${HOSTNAME} - Test
             context: ../react-webapp
             dockerfile: Dockerfile
         container_name: react-webapp
-        ports:
-            - 3001:9000
-        links:
-          - gateway
-        volumes:
-            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#            - ./node_modules:/usr/src/app/
-        command: sh /tmp/docker-entrypoint.sh gateway:9006
-
-    react-webapp-old:
-        build:
-            args:
-                - SERVER_PORT=3001
-            context: ../react-webapp-old
-            dockerfile: Dockerfile
-        container_name: react-webapp-old
         environment:
             - REACT_APP_GATEWAY_URL=http://localhost:9006
             - HOSTNAME=${HOSTNAME} - Test
             - NODE_ENV=development
         ports:
-            - 3003:3000
+            - 3003:3003
         links:
             - gateway
         volumes:

@@ -30,13 +30,13 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    try {
+/*    try {
       let data = await getWithoutCredentials('sharedSessions', false);
       console.log("Shared Session", data);
     } catch (e) {
       console.log("Error when trying to connect to Session Redis", e);
       this.setState({ displayError: errorMessage(`{"error": "${e}"}`)});
-    }
+    }*/
     const localStorageJwt = localStorage.getItem('JWT');
     if (localStorageJwt) {
       this.decodeJwt(localStorageJwt);

@@ -1,5 +1,6 @@
 package com.microservice.authentication;
 
+import com.microservice.web.autoconfigure.Swagger2Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -17,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 @Slf4j
-@SpringBootApplication
+@SpringBootApplication(exclude = Swagger2Configuration.class)
 @EnableDiscoveryClient
 public class AuthenticationServiceApplication {
 

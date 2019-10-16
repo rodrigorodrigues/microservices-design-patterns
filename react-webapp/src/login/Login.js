@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
-import { post } from '../services/ApiService';
+import { postWithHeaders } from '../services/ApiService';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 
@@ -36,9 +36,10 @@ class Login extends Component {
     event.preventDefault();
     const { login } = this.state;
     const { setAuthentication, history } = this.props;
+    const loginSubmit = "username=" + encodeURIComponent(login.username) + '&password=' + encodeURIComponent(login.password);
 
     try {
-      const data = await post('authenticate', login, false)
+      const data = await postWithHeaders('authenticate', loginSubmit, {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'});
       if (data.id_token) {
         setAuthentication(data);
         history.push('/');

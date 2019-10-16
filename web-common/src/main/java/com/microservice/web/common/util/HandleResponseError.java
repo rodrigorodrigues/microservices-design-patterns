@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -45,8 +44,7 @@ public class HandleResponseError {
         if (writeToResponse) {
             byte[] bytes = getBytes(ex);
             DataBuffer buffer = response.bufferFactory().wrap(bytes);
-            DataBufferUtils.release(buffer);
-            return response.writeWith(Flux.just(buffer));
+            return response.writeAndFlushWith(Flux.just(Mono.just(buffer)));
         } else {
             return Mono.empty();
         }

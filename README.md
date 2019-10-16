@@ -23,7 +23,7 @@ Inspired from the book [Microservices Patterns](https://www.manning.com/books/mi
   11. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
   12. [Accessing React Web App](#accessing-react-app)
   13. [List of default users](#default-users)
-  14, [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
+  14. [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
   15. [TODO-LIST](#todo-list)
   16. [References](#references)
   17. [Postman Collection](docs/postman_collection.json?raw=true)
@@ -284,6 +284,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] React - Fix User Create/Edit
 * [ ] React - Fix Person Create/Edit
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
+* [X] React - Fix Docker to use Nginx
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

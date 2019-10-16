@@ -9,9 +9,9 @@ export async function getWithoutCredentials(resource, isWithoutApi) {
 
 export async function get(resource, isCredential, isWithoutApi, jwt) {
     try {
-        console.log("Gateway Url: ", gatewayUrl);
         let response;
         let url = (isWithoutApi ? `${gatewayUrl}/${resource}` : `${gatewayUrl}/${API_V1}/${resource}`);
+        console.log("API Url: ", url);
         if(isCredential) {
             response = await fetch(url, {
             headers: {
@@ -27,20 +27,27 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
     }
 }
 
+export async function postWithHeaders(resource, payload, headers) {
+    return processPost(resource, headers, payload);
+}
+
 export async function post(resource, payload) {
+    return processPost(resource, {'Content-Type': 'application/json'}, JSON.stringify(payload));
+}
+
+async function processPost(resource, headers, body) {
     try {
-        console.log("Gateway Url: ", gatewayUrl);
-        const response = await fetch(`${gatewayUrl}/${API_V1}/${resource}`, {
+        const url = `${gatewayUrl}/${API_V1}/${resource}`;
+        console.log("API Url: ", url);
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        })
+            headers: headers,
+            body: body
+        });
+        console.log("response status: ", response.status);
         return response.json();
     } catch (e) {
         console.log("Error post method", e);
         throw Error(e)
     }
 }
-

@@ -1,150 +1,55 @@
-# spendingbetter
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-This application was generated using JHipster 6.1.2, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.1.2](https://www.jhipster.tech/documentation-archive/v6.1.2).
+## Available Scripts
 
-## Development
+In the project directory, you can run:
 
-Before you can build this project, you must install and configure the following dependencies on your machine:
+### `npm start`
 
-1. [Node.js][]: We use Node to run a development web server and build the project.
-   Depending on your system, you can install Node either from source or as a pre-packaged bundle.
+Runs the app in the development mode.<br>
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-After installing Node, you should be able to run the following command to install development tools.
-You will only need to run this command when dependencies change in [package.json](package.json).
+The page will reload if you make edits.<br>
+You will also see any lint errors in the console.
 
-    npm install
+### `npm test`
 
-We use npm scripts and [Webpack][] as our build system.
+Launches the test runner in the interactive watch mode.<br>
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-Run the following commands in two separate terminals to create a blissful development experience where your browser
-auto-refreshes when files change on your hard drive.
+### `npm run build`
 
-    npm start
+Builds the app for production to the `build` folder.<br>
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-Npm is also used to manage CSS and JavaScript dependencies used in this application. You can upgrade dependencies by
-specifying a newer version in [package.json](package.json). You can also run `npm update` and `npm install` to manage dependencies.
-Add the `help` flag on any command to see how you can use it. For example, `npm help update`.
+The build is minified and the filenames include the hashes.<br>
+Your app is ready to be deployed!
 
-The `npm run` command will list all of the scripts available to run for this project.
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### Service workers
+### `npm run eject`
 
-Service workers are commented by default, to enable them please uncomment the following code.
+**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-- The service worker registering script in index.html
+If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-```html
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js').then(function() {
-      console.log('Service Worker Registered');
-    });
-  }
-</script>
-```
+Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-Note: workbox creates the respective service worker and dynamically generate the `service-worker.js`
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-### Managing dependencies
+## Learn More
 
-For example, to add [Leaflet][] library as a runtime dependency of your application, you would run following command:
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-    npm install --save --save-exact leaflet
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-To benefit from TypeScript type definitions from [DefinitelyTyped][] repository in development, you would run following command:
+## Dockerize to production
 
-    npm install --save-dev --save-exact @types/leaflet
+https://medium.com/thepeaklab/how-to-deploy-a-react-application-to-production-with-docker-multi-stage-builds-4da347f2d681
 
-Then you would import the JS and CSS files specified in library's installation instructions so that [Webpack][] knows about them:
-Note: there are still few other things remaining to do for Leaflet that we won't detail here.
+## Windows
+SET REACT_APP_GATEWAY_URL=http://localhost:9006
 
-For further instructions on how to develop with JHipster, have a look at [Using JHipster in development][].
+SET PORT=3000
 
-## Building for production
-
-### Packaging as jar
-
-To build the final jar and optimize the spendingbetter application for production, run:
-
-This will concatenate and minify the client CSS and JavaScript files. It will also modify `index.html` so it references these new files.
-To ensure everything worked, run:
-
-Then navigate to [http://localhost:](http://localhost:) in your browser.
-
-Refer to [Using JHipster in production][] for more details.
-
-### Packaging as war
-
-To package your application as a war in order to deploy it to an application server, run:
-
-## Testing
-
-To launch your application's tests, run:
-
-    ./gradlew test integrationTest
-
-### Client tests
-
-Unit tests are run by [Jest][] and written with [Jasmine][]. They're located in [src/test/javascript/](src/test/javascript/) and can be run with:
-
-    npm test
-
-For more information, refer to the [Running tests page][].
-
-### Code quality
-
-Sonar is used to analyse code quality. You can start a local Sonar server (accessible on http://localhost:9001) with:
-
-```
-docker-compose -f src/main/docker/sonar.yml up -d
-```
-
-You can run a Sonar analysis with using the [sonar-scanner](https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner).
-
-Then, run a Sonar analysis:
-
-For more information, refer to the [Code quality page][].
-
-## Using Docker to simplify development (optional)
-
-You can use Docker to improve your JHipster development experience. A number of docker-compose configuration are available in the [src/main/docker](src/main/docker) folder to launch required third party services.
-
-For example, to start a mongodb database in a docker container, run:
-
-    docker-compose -f src/main/docker/mongodb.yml up -d
-
-To stop it and remove the container, run:
-
-    docker-compose -f src/main/docker/mongodb.yml down
-
-You can also fully dockerize your application and all the services that it depends on.
-To achieve this, first build a docker image of your app by running:
-
-Then run:
-
-    docker-compose -f src/main/docker/app.yml up -d
-
-For more information refer to [Using Docker and Docker-Compose][], this page also contains information on the docker-compose sub-generator (`jhipster docker-compose`), which is able to generate docker configurations for one or several JHipster applications.
-
-## Continuous Integration (optional)
-
-To configure CI for your project, run the ci-cd sub-generator (`jhipster ci-cd`), this will let you generate configuration files for a number of Continuous Integration systems. Consult the [Setting up Continuous Integration][] page for more information.
-
-[jhipster homepage and latest documentation]: https://www.jhipster.tech
-[jhipster 6.1.2 archive]: https://www.jhipster.tech/documentation-archive/v6.1.2
-[using jhipster in development]: https://www.jhipster.tech/documentation-archive/v6.1.2/development/
-[using docker and docker-compose]: https://www.jhipster.tech/documentation-archive/v6.1.2/docker-compose
-[using jhipster in production]: https://www.jhipster.tech/documentation-archive/v6.1.2/production/
-[running tests page]: https://www.jhipster.tech/documentation-archive/v6.1.2/running-tests/
-[code quality page]: https://www.jhipster.tech/documentation-archive/v6.1.2/code-quality/
-[setting up continuous integration]: https://www.jhipster.tech/documentation-archive/v6.1.2/setting-up-ci/
-[node.js]: https://nodejs.org/
-[yarn]: https://yarnpkg.org/
-[webpack]: https://webpack.github.io/
-[angular cli]: https://cli.angular.io/
-[browsersync]: http://www.browsersync.io/
-[jest]: https://facebook.github.io/jest/
-[jasmine]: http://jasmine.github.io/2.0/introduction.html
-[protractor]: https://angular.github.io/protractor/
-[leaflet]: http://leafletjs.com/
-[definitelytyped]: http://definitelytyped.org/
+SET REACT_APP_HOSTNAME=docker-localhost
