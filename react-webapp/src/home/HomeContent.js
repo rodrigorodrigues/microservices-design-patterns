@@ -20,6 +20,12 @@ function HomeContent({notDisplayMessage}) {
                     {displayButtonManageRecipes(authorities)}
                 </Col>
                 <Col xs="auto">
+                    {displayButtonAdminEureka(authorities)}
+                </Col>
+                <Col xs="auto">
+                    {displayButtonAdminMonitoring(authorities)}
+                </Col>
+                <Col xs="auto">
                     <Link className="link" to="/logout">Logout</Link>
                 </Col>
             </Row>
@@ -54,7 +60,16 @@ function displayButtonManagePeople(authorities) {
 function displayButtonManageUsers(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
     return <Link to="/users" className={"link" + (!isAdmin ? " disabled-link" : "")}>Manage Users</Link>
+}
 
+function displayButtonAdminEureka(authorities) {
+    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
+    return <Link to="/admin-eureka" className={"link" + (!isAdmin ? " disabled-link" : "")}>Admin - Eureka</Link>
+}
+
+function displayButtonAdminMonitoring(authorities) {
+    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
+    return <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Admin - Monitoring</Link>
 }
 
 function displayButtonManageCategories(authorities) {

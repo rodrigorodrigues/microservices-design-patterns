@@ -16,6 +16,8 @@ import jwt_decode from 'jwt-decode';
 import {getWithoutCredentials} from "./services/ApiService";
 import MessageAlert from './MessageAlert';
 import {errorMessage} from './common/Util';
+const eurekaUrl = process.env.REACT_APP_EUREKA_URL;
+const monitoringUrl = process.env.REACT_APP_MONITORING_URL;
 
 class App extends Component {
   state = {
@@ -89,6 +91,14 @@ class App extends Component {
                    component={() => <CategoryEdit {...this.state} />} />
             <Route path='/recipes' exact={true}
                    component={() => <RecipeList {...this.state} />} />
+            <Route path='/admin-eureka' component={() => {
+              window.location.href = `${eurekaUrl}`; 
+              return null;
+            }} />
+            <Route path='/admin-monitoring' component={() => {
+              window.location.href = `${monitoringUrl}`; 
+              return null;
+            }} />
           </Switch>
         </Router>
         <div>
