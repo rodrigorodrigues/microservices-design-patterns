@@ -11,6 +11,8 @@ management:
         web:
             exposure:
                 include: '*'
+    server:
+        port: ${server.port}
 
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
