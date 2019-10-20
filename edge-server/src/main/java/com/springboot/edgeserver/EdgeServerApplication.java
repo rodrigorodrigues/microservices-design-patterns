@@ -1,5 +1,6 @@
 package com.springboot.edgeserver;
 
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -11,10 +12,15 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.net.ssl.HttpsURLConnection;
+
 @SpringBootApplication
 @EnableZuulProxy
 @EnableDiscoveryClient
 public class EdgeServerApplication {
+	static {
+		HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(EdgeServerApplication.class, args);
@@ -25,7 +31,6 @@ public class EdgeServerApplication {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 		serializer.setCookieName("SESSIONID");
 		serializer.setCookiePath("/");
-		serializer.setDomainNamePattern("^.+?\\.(\\w+\\.[a-z]+)$");
 		return serializer;
 	}
 

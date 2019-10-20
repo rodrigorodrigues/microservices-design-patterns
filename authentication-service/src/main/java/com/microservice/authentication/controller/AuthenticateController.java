@@ -1,8 +1,6 @@
 package com.microservice.authentication.controller;
 
 import com.microservice.authentication.dto.JwtTokenDto;
-import java.time.Instant;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import springfox.documentation.annotations.ApiIgnore;
+
+import java.time.Instant;
+import java.util.Objects;
 
 /**
  * Controller for user authentication.
@@ -41,5 +42,4 @@ public class AuthenticateController {
                     .body(new JwtTokenDto(response.getHeaders().getFirst(HttpHeaders.AUTHORIZATION))));
             });
     }
-
 }

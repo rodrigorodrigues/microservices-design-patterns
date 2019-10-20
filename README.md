@@ -74,7 +74,7 @@ On `root folder` first need to generate the docker images.
 
 ```bash
 # at once for building the docker images
-mvn clean package docker:build
+mvn clean install docker:build
 ```
 
 Then on `docker folder` run all microservices using
@@ -178,7 +178,7 @@ If for some reason you cannot install `docker/docker-compose` you can run all se
 
 On `root folder` run the following command at once:
 
-`mvn clean package docker:build`
+`mvn clean install`
 
 **Run Spring Boot**
 

@@ -2,12 +2,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: eureka-server
+  annotations:
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
     app: eureka-server
 spec:
   ports:
-    - name: https
+    - name: https-port
       port: 8443
+    - name: http-port
+      port: 8761
   selector:
     app: eureka-server
   type: NodePort
@@ -24,13 +28,13 @@ spec:
         app: eureka-server
         version: v1
     spec:
-      hostAliases:
-      - ip: "127.0.0.1"
-        hostnames:
-          - "spendingbetter.com"
+#      hostAliases:
+#      - ip: "127.0.0.1"
+#        hostnames:
+#          - "spendingbetter.com"
       containers:
         - name: eureka-server
-          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:1.0
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:3.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -48,47 +52,48 @@ spec:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "8443"
+              value: "8761"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+#            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+#              value: "false"
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-            - name: DEBUG
-              value: "true"
-            - name: SERVER_SSL_KEY_STORE
-              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
-            - name: SERVER_SSL_KEY_STORE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: KEYSTORE_PASSWORD
-            - name: SERVER_SSL_KEY_STORE_TYPE
-              value: PKCS12
+#            - name: SERVER_SSL_KEY_STORE
+#              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
+#            - name: SERVER_SSL_KEY_STORE_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: secrets
+#                  key: KEYSTORE_PASSWORD
+#            - name: SERVER_SSL_KEY_STORE_TYPE
+#              value: PKCS12
             - name: EUREKA_SERVER
-              value: https://eureka-server:${server.port}/eureka/
-            - name: SPRING_CLOUD_CLIENT_HOSTNAME
-              value: spendingbetter.com
-            - name: NON_SECURE_PORT_ENABLED
-              value: "true"
-            - name: SERVICE_SECURITY_TRUSTSTOREPATH
-              value: /etc/ssl/truststore.jks
-            - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
-              value: ${SERVER_SSL_KEY_STORE_PASSWORD}
+              value: http://eureka-server:${server.port}/eureka/
+#            - name: SPRING_CLOUD_CLIENT_HOSTNAME
+#              value: eureka.spendingbetter.com
+#            - name: NON_SECURE_PORT_ENABLED
+#              value: "false"
+#            - name: SERVICE_SECURITY_TRUSTSTOREPATH
+#              value: /etc/ssl/truststore.jks
+#            - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
+#              value: ${SERVER_SSL_KEY_STORE_PASSWORD}
           command: ["/bin/sh"]
-          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt
-          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
-          && $JAVA_CMD"]
+          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
+#          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
           ports:
-            - containerPort: 8443
+            - containerPort: 8761
           livenessProbe:
             httpGet:
-              scheme: HTTPS
+              scheme: HTTP
               path: /actuator/health
-              port: 8443
+              port: 8761
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:

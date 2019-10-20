@@ -27,7 +27,7 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
      */
     @Override
     public Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
-        Map<String, Object> errorAttributes = super.getErrorAttributes(request, false);
+        Map<String, Object> errorAttributes = super.getErrorAttributes(request, includeStackTrace);
         Throwable error = getError(request);
         HttpStatus status = getHttpStatusError(error);
         errorAttributes.put("status", status.value());

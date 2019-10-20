@@ -3,13 +3,15 @@ kind: Service
 metadata:
   name: edge-server
   annotations:
-    cloud.google.com/app-protocols: '{"https-port":"HTTPS"}'
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
     app: edge-server
 spec:
   ports:
     - name: https-port
       port: 8443
+    - name: http-port
+      port: 9006
   selector:
     app: edge-server
   type: NodePort
@@ -28,7 +30,7 @@ spec:
     spec:
       containers:
         - name: edge-server
-          image: eu.gcr.io/spring-boot-gke-243520/edge-server:1.0
+          image: eu.gcr.io/spring-boot-gke-243520/edge-server:3.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -36,16 +38,19 @@ spec:
             limits:
               memory: "512Mi"
           volumeMounts:
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs"
+            - name: spendingbetter-p12
+              mountPath: "/etc/ssl_certs_p12"
+              readOnly: true
+            - name: spendingbetter-crt
+              mountPath: "/etc/crt"
               readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xms256m -Xmx512m -Djavax.net.ssl.trustStore=/etc/ssl/truststore.jks
+              value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "8443"
+              value: "9006"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -53,50 +58,53 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: https://eureka-server:8443/eureka/
+              value: http://eureka-server:8761/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
-              value: https://config-server:8443
-            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-              value: "false"
+              value: http://config-server:8888
+#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+#              value: "false"
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - name: DEBUG
-              value: "true"
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
-              value: "true"
+#            - name: DEBUG
+#              value: "true"
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+#              value: "true"
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
-            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
-              value: "false"
-            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED
-              value: "true"
-            - name: EUREKA_INSTANCE_SECURE_PORT
-              value: "8443"
-            - name: EUREKA_INSTANCE_STATUS_PAGE_URL
-              value: https://localhost:${server.port}/actuator/info
-            - name: EUREKA_INSTANCE_HEALTH_CHECK_URL
-              value: https://localhost:${server.port}/actuator/health
-            - name: EUREKA_INSTANCE_HOME_PAGE_URL
-              value: https://localhost:${server.port}/
-            - name: KEYSTORE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: KEYSTORE_PASSWORD
-            - name: KEYSTORE_FILE
-              value: "/etc/ssl_certs/spendingbetter.com.jks"
+#            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
+#              value: "false"
+#            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED
+#              value: "true"
+#            - name: EUREKA_INSTANCE_SECURE_PORT
+#              value: "8443"
+#            - name: EUREKA_INSTANCE_STATUS_PAGE_URL
+#              value: https://localhost:${server.port}/actuator/info
+#            - name: EUREKA_INSTANCE_HEALTH_CHECK_URL
+#              value: https://localhost:${server.port}/actuator/health
+#            - name: EUREKA_INSTANCE_HOME_PAGE_URL
+#              value: https://localhost:${server.port}/
+#            - name: KEYSTORE_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: secrets
+#                  key: KEYSTORE_PASSWORD
+#            - name: KEYSTORE_FILE
+#              value: "/etc/ssl_certs/spendingbetter.com.jks"
           command: ["/bin/sh"]
-          args: ["-c", "keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(KEYSTORE_PASSWORD) -alias kubernetes_ca -noprompt && $JAVA_CMD"]
+          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
           ports:
-            - containerPort: 8443
+            - containerPort: 9006
           livenessProbe:
             httpGet:
-              scheme: HTTPS
+              scheme: HTTP
               path: /actuator/health
-              port: 8443
+              port: 9006
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-jks
+        - name: spendingbetter-p12
           secret:
-            secretName: spendingbetter-jks
+            secretName: spendingbetter-p12
+        - name: spendingbetter-crt
+          secret:
+            secretName: spendingbetter-crt

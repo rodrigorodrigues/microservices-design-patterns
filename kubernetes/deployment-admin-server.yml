@@ -2,12 +2,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: admin-server
+  annotations:
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
     app: admin-server
 spec:
   ports:
-    - name: http
+    - name: https-port
       port: 8443
+    - name: http-port
+      port: 9000
   selector:
     app: admin-server
 ---
@@ -25,7 +29,7 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: eu.gcr.io/spring-boot-gke-243520/admin-server:1.0
+          image: eu.gcr.io/spring-boot-gke-243520/admin-server:4.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -33,16 +37,21 @@ spec:
             limits:
               memory: "512Mi"
           volumeMounts:
-            - name: spendingbetter-cert-p12
-              mountPath: "/etc/ssl/certs"
+            - name: spendingbetter-p12
+              mountPath: "/etc/ssl_certs_p12"
+              readOnly: true
+            - name: spendingbetter-crt
+              mountPath: "/etc/crt"
               readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "8443"
+              value: "9000"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -50,36 +59,46 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: https://eureka-server:8443/eureka/
+              value: http://eureka-server:8761/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
-              value: https://config-server:8443
-            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-              value: "false"
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
-            - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
-              value: /monitoring
-            - name: LOGGING_LEVEL_ROOT
-              value: error
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
-              value: debug
-            - name: KEYSTORE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: KEYSTORE_PASSWORD
-            - name: KEYSTORE_FILE
-              value: "/etc/ssl/certs/spendingbetter.com.p12"
+              value: http://config-server:8888
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+#              value: debug
+#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+#              value: "false"
+#            - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
+#              value: /monitoring
+#            - name: SERVER_SSL_KEY_STORE
+#              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
+#            - name: SERVER_SSL_KEY_STORE_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: secrets
+#                  key: KEYSTORE_PASSWORD
+#            - name: SERVER_SSL_KEY_STORE_TYPE
+#              value: PKCS12
+#            - name: SPRING_CLOUD_CLIENT_HOSTNAME
+#              value: config-management.spendingbetter.com
+#            - name: SERVICE_SECURITY_TRUSTSTOREPATH
+#              value: /etc/ssl/truststore.jks
+#            - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
+#              value: ${SERVER_SSL_KEY_STORE_PASSWORD}
+          command: ["/bin/sh"]
+          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
+#          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
           ports:
-            - containerPort: 8443
+            - containerPort: 9000
           livenessProbe:
             httpGet:
-              scheme: HTTPS
+              scheme: HTTP
               path: /actuator/health
-              port: 8443
+              port: 9000
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-cert-p12
+        - name: spendingbetter-p12
           secret:
-            secretName: spendingbetter-cert-p12
+            secretName: spendingbetter-p12
+        - name: spendingbetter-crt
+          secret:
+            secretName: spendingbetter-crt

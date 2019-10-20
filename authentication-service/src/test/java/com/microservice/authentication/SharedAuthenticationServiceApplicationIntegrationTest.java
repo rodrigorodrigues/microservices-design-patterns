@@ -133,13 +133,11 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
             .expectHeader().exists(HttpHeaders.AUTHORIZATION)
             .expectBody().jsonPath("$.id_token").isNotEmpty();
-
 /* // Check later how to test this
         StepVerifier.create(reactiveRedisOperations.keys("*"))
             .expectNextCount(1)
             .verifyComplete();
 */
-
 	}
 
     @Test

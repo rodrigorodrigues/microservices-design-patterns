@@ -4,23 +4,60 @@ metadata:
   name: ingress-gateway
   annotations:
     kubernetes.io/ingress.class: nginx
+#    ingress.kubernetes.io/force-ssl-redirect: "true"
+#    kubernetes.io/ingress.allow-http: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+#    nginx.ingress.kubernetes.io/configuration-snippet: |
+#      if ($http_x_forwarded_proto = "http") {
+#         return 301 https://$host$request_uri;
+#      }
 spec:
   tls:
-    - hosts:
-        - spendingbetter.com
-      secretName: spendingbetter-tls
+  - secretName: ingress-tls
+    hosts:
+      - spendingbetter.com
   rules:
-    - http:
+    - host: spendingbetter.com
+      http:
         paths:
-          - path: /eureka
+          - path: /monitoring/(.*)
+            backend:
+              serviceName: admin-server
+              servicePort: http-port
+          - path: /config/(.*)
+            backend:
+              serviceName: config-server
+              servicePort: http-port
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-gateway-web
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/ingress.allow-http: "true"
+spec:
+  backend:
+    serviceName: react-webapp
+    servicePort: 3003
+  tls:
+    - secretName: ingress-tls
+      hosts:
+        - spendingbetter.com
+  rules:
+    - host: spendingbetter.com
+      http:
+        paths:
+          - path: /eureka/
             backend:
               serviceName: eureka-server
-              servicePort: 8443
+              servicePort: http-port
           - path: /api/
             backend:
               serviceName: edge-server
-              servicePort: 8443
+              servicePort: http-port
           - path: /
             backend:
               serviceName: react-webapp
-              servicePort: 3001
+              servicePort: 3003

@@ -1,6 +1,7 @@
 package com.springboot.adminserver;
 
 import de.codecentric.boot.admin.server.config.EnableAdminServer;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -11,10 +12,16 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.net.ssl.HttpsURLConnection;
+
 @SpringBootApplication
 @EnableAdminServer
 @EnableDiscoveryClient
 public class AdminServerApplication {
+    static {
+        HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(AdminServerApplication.class, args);
     }
@@ -24,7 +31,6 @@ public class AdminServerApplication {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("SESSIONID");
         serializer.setCookiePath("/");
-        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.[a-z]+)$");
         return serializer;
     }
 

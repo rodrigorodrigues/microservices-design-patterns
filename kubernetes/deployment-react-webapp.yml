@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 3001
+      port: 3003
   selector:
     app: react-webapp
   type: NodePort
@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: react-webapp
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:5.0
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:3.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -33,9 +33,16 @@ spec:
             limits:
               memory: "512Mi"
           env:
-            - name: SERVER_PORT
-              value: "3001"
+            - name: PORT
+              value: "3003"
             - name: REACT_APP_GATEWAY_URL
-              value: https://www.spendingbetter.com
+#              value: https://35.195.42.69
+              value: https://spendingbetter.com
+            - name: REACT_APP_EUREKA_URL
+              value: https://spendingbetter.com/eureka
+            - name: REACT_APP_MONITORING_URL
+              value: https://spendingbetter.com/monitoring
+            - name: REACT_APP_HOSTNAME
+              value: ${HOSTNAME} - Production
           ports:
-            - containerPort: 3001
+            - containerPort: 3003
