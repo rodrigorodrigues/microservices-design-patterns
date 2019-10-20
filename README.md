@@ -239,9 +239,32 @@ anonymous@gmail.com/test - ROLE_PERSON_READ
 
 ### Kubernetes - Google Cloud Platform
 
-Need documentation
+The code is deployed at `Google Cloud Platform`, to access it go through `https://spendingbetter.com`.
 
-To access Google Deploy - http://34.77.119.99/
+Following useful commands for kubernetes
+
+```
+cd kubernetes
+
+#Deploy
+kubectl apply -f deployment-admin-server.yml
+
+#Undeploy
+kubectl delete -f deployment-admin-server.yml
+
+#see logs
+kubectl logs admin-server-RAND-ID -f
+
+#exec command
+kubectl exec -it redis-5b4699dd74-qckm9 -- sh
+
+#show all pods
+kubectl get pods --show-labels
+
+#ingress
+kubectl get ing
+kubectl describe ingress
+```
 
 [Enable Ingress](https://cloud.google.com/community/tutorials/nginx-ingress-gke)
 [Example Ingress Configuration](https://github.com/GoogleCloudPlatform/community/blob/master/tutorials/nginx-ingress-gke/ingress-resource.yaml)
