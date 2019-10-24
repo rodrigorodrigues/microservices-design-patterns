@@ -14,8 +14,6 @@ spring:
                 multiplier: 2
             headers:
                 X-Encrypt-Key: ${X_ENCRYPT_KEY:}
-    session:
-        store-type: redis
 eureka:
     client:
         serviceUrl:

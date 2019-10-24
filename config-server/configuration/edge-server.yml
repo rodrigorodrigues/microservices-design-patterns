@@ -32,3 +32,8 @@ zuul:
             serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:
+        authenticated-user-service:
+            path: /api/authenticatedUser
+            serviceId: authentication-service
+            stripPrefix: false
+            sensitiveHeaders:

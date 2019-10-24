@@ -17,7 +17,7 @@ import java.util.Map;
  * Custom Error Attributes.
  */
 @Slf4j
-public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
+public class CustomReactiveDefaultErrorAttributes extends DefaultErrorAttributes {
 
     /**
      * Return custom error message according to exception.

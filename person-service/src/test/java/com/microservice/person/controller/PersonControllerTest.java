@@ -10,7 +10,7 @@ import com.microservice.person.config.SpringSecurityConfiguration;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
 import com.microservice.person.service.PersonService;
-import com.microservice.web.common.util.CustomDefaultErrorAttributes;
+import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
         "configuration.initialLoad=false",
         "configuration.mongo=false"},
 controllers = PersonController.class, excludeAutoConfiguration = MongoReactiveAutoConfiguration.class)
-@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class, JwtCommonAutoConfiguration.class})
+@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomReactiveDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class, JwtCommonAutoConfiguration.class})
 public class PersonControllerTest {
 
     @Autowired

@@ -12,9 +12,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
@@ -24,7 +21,7 @@ import java.util.Collections;
 @Slf4j
 @AllArgsConstructor
 public class HandleResponseError {
-    private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
+    private final CustomReactiveDefaultErrorAttributes customReactiveDefaultErrorAttributes;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,7 +36,7 @@ public class HandleResponseError {
         log.error("Error on calling api", ex);
         log.error("Error on calling api:request: {}", exchange.getRequest().getPath().value());
         ServerHttpResponse response = exchange.getResponse();
-        HttpStatus httpStatus = customDefaultErrorAttributes.getHttpStatusError(ex);
+        HttpStatus httpStatus = customReactiveDefaultErrorAttributes.getHttpStatusError(ex);
         response.setStatusCode(httpStatus);
         if (writeToResponse) {
             byte[] bytes = getBytes(ex);
@@ -55,18 +52,6 @@ public class HandleResponseError {
             return objectMapper.writeValueAsString(Collections.singletonMap("message", ExceptionUtils.getMessage(ex))).getBytes(StandardCharsets.UTF_8);
         } catch (JsonProcessingException e) {
             log.error("Error converting to bytes", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public byte[] convertToByteArray(Object object) {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(object);
-            oos.flush();
-            return bos.toByteArray();
-        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

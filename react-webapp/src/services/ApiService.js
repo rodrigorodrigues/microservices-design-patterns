@@ -3,7 +3,7 @@ import constants from '../constants/AppConstant';
 const { API_V1 } = constants;
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
-export async function getWithoutCredentials(resource, isWithoutApi) {
+export async function getWithCredentials(resource, isWithoutApi) {
     return get(resource, false, isWithoutApi);
 }
 
@@ -14,11 +14,13 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
         console.log("API Url: ", url);
         if(isCredential) {
             response = await fetch(url, {
-            headers: {
-                'Authorization': jwt
-            }});
+                credentials: 'include',
+                headers: {
+                    'Authorization': jwt
+                }
+            });
         } else {
-            response = await fetch(url)
+            response = await fetch(url, {credentials: 'include'})
         }
         return await response.text();
     } catch (e) {
@@ -40,6 +42,7 @@ async function processPost(resource, headers, body) {
         const url = `${gatewayUrl}/${API_V1}/${resource}`;
         console.log("API Url: ", url);
         const response = await fetch(url, {
+            credentials: 'include',
             method: 'POST',
             headers: headers,
             body: body

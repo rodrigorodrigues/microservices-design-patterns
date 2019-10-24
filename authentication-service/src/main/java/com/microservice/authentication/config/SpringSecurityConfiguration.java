@@ -1,47 +1,41 @@
 package com.microservice.authentication.config;
 
-import com.microservice.authentication.config.jwt.CustomReactiveAuthenticationManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import com.microservice.authentication.dto.JwtTokenDto;
-import com.microservice.authentication.service.AuthenticationService;
-import com.microservice.jwt.common.JwtAuthenticationConverter;
+import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import com.microservice.jwt.common.TokenProvider;
-import com.microservice.web.common.util.HandleResponseError;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
-import org.springframework.security.web.server.savedrequest.NoOpServerRequestCache;
-import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+
+import java.util.Map;
 
 /**
  * Spring Security Configuration
  */
-@Slf4j
 @Configuration
+@EnableWebSecurity
 @AllArgsConstructor
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
-public class SpringSecurityConfiguration {
-    private final HandleResponseError handleResponseError;
+public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
+    private final SharedAuthenticationServiceImpl sharedAuthenticationService;
 
     private final TokenProvider tokenProvider;
 
-    private final AuthenticationService authenticationService;
+    private final ObjectMapper objectMapper;
+
+    private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
     private static final String[] WHITELIST = {
         // -- swagger ui
@@ -57,75 +51,57 @@ public class SpringSecurityConfiguration {
         "/**/*.html",
         "/favicon.ico",
         // other public endpoints of your API may be appended to this array
-        "/api/authenticate",
-        "/api/logout",
         "/actuator/**"
     };
 
-    @Bean
-    public SecurityWebFilterChain configure(ServerHttpSecurity http) {
-        return http
-            .authorizeExchange()
-                .pathMatchers(WHITELIST).permitAll()
-            .anyExchange().authenticated()
+    @Override
+    protected UserDetailsService userDetailsService() {
+        return sharedAuthenticationService;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+            .authorizeRequests()
+            .anyRequest().authenticated()
             .and()
             .formLogin()
-                .loginPage("/api/authenticate")
-                .authenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true))
-                .authenticationSuccessHandler(getServerAuthenticationSuccessHandler())
-                .securityContextRepository(webSessionServerSecurityContextRepository())
-                .authenticationManager(authenticationManager())
-                .and().logout().logoutUrl("/api/logout")
-                .and().httpBasic().disable()
-            .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
+                .loginProcessingUrl("/api/authenticate")
+                .successHandler(successHandler())
+                .failureHandler(authenticationFailureHandler())
+            .and()
             .exceptionHandling()
-                .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
             .and()
-            .requestCache()
-                .requestCache(NoOpServerRequestCache.getInstance())
-            .and()
-            .csrf()
-                .disable()
-            .headers()
-                .frameOptions().disable()
-            .cache().disable()
-            .and()
-            .build();
+            .logout()
+                .logoutUrl("/api/logout")
+                .deleteCookies("SESSIONID")
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
     }
 
-    @Bean
-    public WebSessionServerSecurityContextRepository webSessionServerSecurityContextRepository() {
-        return new WebSessionServerSecurityContextRepository();
-    }
-
-    @Bean
-    public CustomReactiveAuthenticationManager authenticationManager() {
-        return new CustomReactiveAuthenticationManager(authenticationService);
-    }
-
-    private AuthenticationWebFilter authenticationWebFilter() {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(Mono::just);
-        authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenProvider));
-        NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
-        authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
-        return authenticationWebFilter;
-    }
-
-    private ServerAuthenticationSuccessHandler getServerAuthenticationSuccessHandler() {
-        return (webFilterExchange, authentication) -> {
-            ServerWebExchange exchange = webFilterExchange.getExchange();
-            //MultiValueMap<String, String> body = webFilterExchange.getExchange().getFormData().block();
-            log.debug("getServerAuthenticationSuccessHandler:authentication: {}", authentication);
-            log.debug("webFilterExchange.getChain(): {}", webFilterExchange.getChain());
-            ServerHttpResponse response = exchange.getResponse();
-            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), false);
-            JwtTokenDto jwtToken = new JwtTokenDto(authorization);
-            response.getHeaders().add(HttpHeaders.AUTHORIZATION, authorization);
-            response.setStatusCode(HttpStatus.OK);
-            response.writeWith(Mono.just(response.bufferFactory().wrap(handleResponseError.convertToByteArray(jwtToken))));
-            return webFilterExchange.getChain().filter(exchange);
+    private AuthenticationFailureHandler authenticationFailureHandler() {
+        return (request, response, exception) -> {
+            Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(request, exception,true);
+            response.setStatus(Integer.parseInt(errorAttributes.get("status").toString()));
+            response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            response.getWriter().append(objectMapper.writeValueAsString(errorAttributes));
         };
     }
 
+    private AuthenticationSuccessHandler successHandler() {
+        return (request, response, authentication) -> {
+            String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), false);
+            JwtTokenDto jwtToken = new JwtTokenDto(authorization);
+            response.addHeader(HttpHeaders.AUTHORIZATION, authorization);
+            response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            response.addHeader("sessionId", request.getSession().getId());
+            response.setStatus(HttpStatus.OK.value());
+            response.getWriter().append(objectMapper.writeValueAsString(jwtToken));
+        };
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(WHITELIST);
+    }
 }

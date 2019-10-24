@@ -13,9 +13,11 @@ import CategoryList from "./WeekMenu/CategoryList";
 import CategoryEdit from "./WeekMenu/CategoryEdit";
 import RecipeList from "./WeekMenu/RecipeList";
 import jwt_decode from 'jwt-decode';
-import {getWithoutCredentials} from "./services/ApiService";
+import {getWithCredentials} from "./services/ApiService";
 import MessageAlert from './MessageAlert';
 import {errorMessage} from './common/Util';
+import Cookies from 'js-cookie'
+
 const eurekaUrl = process.env.REACT_APP_EUREKA_URL;
 const monitoringUrl = process.env.REACT_APP_MONITORING_URL;
 
@@ -32,17 +34,26 @@ class App extends Component {
   };
 
   async componentDidMount() {
-/*    try {
-      let data = await getWithoutCredentials('sharedSessions', false);
+    try {
+      let data = await getWithCredentials('sharedSessions', false);
       console.log("Shared Session", data);
+      if (data.id_token) {
+        this.setAuthentication(data);
+      } else {
+        const localStorageJwt = localStorage.getItem('JWT');
+        if (localStorageJwt) {
+          this.decodeJwt(localStorageJwt);
+        }
+      }
     } catch (e) {
       console.log("Error when trying to connect to Session Redis", e);
       this.setState({ displayError: errorMessage(`{"error": "${e}"}`)});
-    }*/
-    const localStorageJwt = localStorage.getItem('JWT');
-    if (localStorageJwt) {
-      this.decodeJwt(localStorageJwt);
     }
+  }
+
+  removeSessionIdCookie() {
+    console.log("UseCookies: ", Cookies.get('SESSIONID'));
+    Cookies.remove('SESSIONID');
   }
 
   setAuthentication = (data) => {
@@ -54,6 +65,7 @@ class App extends Component {
   removeAuthentication = () => {
     localStorage.removeItem('JWT');
     this.setState({ isAuthenticated: false, user: null, jwt: null });
+    this.removeSessionIdCookie();
   }
 
   decodeJwt(token) {

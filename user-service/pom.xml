@@ -78,6 +78,12 @@
             <version>2.23.4</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.springboot</groupId>
+            <artifactId>authentication-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 

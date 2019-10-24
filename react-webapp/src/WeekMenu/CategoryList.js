@@ -19,7 +19,7 @@ class CategoryList extends Component {
     let jwt = this.state.jwt;
     if (jwt) {
       try {
-        let data = await get('week-menu/v2/category', true, false, jwt)
+        let data = await get('week-menu/v2/category', true, false, jwt);
         if (data) {
           data = JSON.parse(data);
           if (Array.isArray(data)) {

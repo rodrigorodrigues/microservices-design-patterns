@@ -1,6 +1,6 @@
 package com.microservice.web.autoconfigure;
 
-import com.microservice.web.common.util.CustomDefaultErrorAttributes;
+import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.GlobalExceptionHandler;
 import com.microservice.web.common.util.HandleResponseError;
 import org.springframework.beans.factory.ObjectProvider;
@@ -18,13 +18,13 @@ import org.springframework.web.reactive.result.view.ViewResolver;
 public class WebCommonAutoConfiguration {
     @Primary
     @Bean
-    CustomDefaultErrorAttributes customDefaultErrorAttributes() {
-        return new CustomDefaultErrorAttributes();
+    CustomReactiveDefaultErrorAttributes customReactiveDefaultErrorAttributes() {
+        return new CustomReactiveDefaultErrorAttributes();
     }
 
     @Bean
-    HandleResponseError handleResponseError(CustomDefaultErrorAttributes customDefaultErrorAttributes) {
-        return new HandleResponseError(customDefaultErrorAttributes);
+    HandleResponseError handleResponseError(CustomReactiveDefaultErrorAttributes customReactiveDefaultErrorAttributes) {
+        return new HandleResponseError(customReactiveDefaultErrorAttributes);
     }
 
     @Bean

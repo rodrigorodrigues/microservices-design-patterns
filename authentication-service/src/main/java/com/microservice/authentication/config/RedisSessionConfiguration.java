@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
-import org.springframework.session.data.redis.config.annotation.web.server.EnableRedisWebSession;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @Configuration
-@EnableRedisWebSession
+@EnableRedisHttpSession
 public class RedisSessionConfiguration implements BeanClassLoaderAware {
     private ClassLoader loader;
 
@@ -25,5 +25,4 @@ public class RedisSessionConfiguration implements BeanClassLoaderAware {
         mapper.registerModules(SecurityJackson2Modules.getModules(this.loader));
         return new GenericJackson2JsonRedisSerializer(mapper);
     }
-
 }

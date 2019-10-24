@@ -15,7 +15,8 @@
     "jwt-decode": "2.2.0",
     "event-source-polyfill": "1.0.5",
     "react-datepicker": "2.2.0",
-    "reactstrap-confirm": "1.0.4"
+    "reactstrap-confirm": "1.0.4",
+    "js-cookie": "2.2.1"
   },
   "scripts": {
     "start": "react-scripts start",

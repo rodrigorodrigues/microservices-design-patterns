@@ -7,62 +7,67 @@ import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.repository.AuthenticationRepository;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.redis.core.ReactiveRedisOperations;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import redis.embedded.RedisServer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
+import static org.hamcrest.CoreMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
 		properties = {"configuration.swagger=false", "debug=debug", "logging.level.com.microservice=debug", "spring.redis.port=6370"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 @Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
+@AutoConfigureMockMvc
 public class SharedAuthenticationServiceApplicationIntegrationTest {
 
 	@Autowired
 	ApplicationContext context;
 
 	@Autowired
-	WebTestClient client;
+    MockMvc mockMvc;
 
 	@Autowired
     ObjectMapper objectMapper;
 
-	@Autowired
-    ReactiveRedisOperations reactiveRedisOperations;
+	@Autowired @Qualifier("stringRedisTemplate")
+    RedisOperations redisOperations;
 
     @TestConfiguration
     public static class EmbeddedRedisTestConfiguration {
@@ -99,7 +104,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
                 .fullName("Master of something")
                 .enabled(true)
                 .build()).subscribe(u -> System.out.println(String.format("Created Master Authentication: %s", u)));
-
         }
 
         private List<Authority> permissions(String ... permissions) {
@@ -107,78 +111,99 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
                 .map(Authority::new)
                 .collect(Collectors.toList());
         }
-
-        @RestController
-        @RequestMapping("/api/test")
-        class TestController {
-            @GetMapping
-            public ResponseEntity<String> get(@AuthenticationPrincipal org.springframework.security.core.Authentication authentication) {
-                return ResponseEntity.ok(String.format("User(%s) is authenticated!", authentication.getName()));
-            }
-        }
     }
 
     @Test
 	@DisplayName("Test - When Cal POST - /api/authenticate should return token and response 200 - OK")
-	public void shouldReturnTokenWhenCallApi() {
+	public void shouldReturnTokenWhenCallApi() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
         formData.add("rememberMe", "false");
-        client.post().uri("/api/authenticate")
-            //.body(fromObject(new LoginDto("master@gmail.com", "password123", false)))
-            .body(fromFormData(formData))
-            .exchange()
-            .expectStatus().isOk()
-            .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-            .expectHeader().exists(HttpHeaders.AUTHORIZATION)
-            .expectBody().jsonPath("$.id_token").isNotEmpty();
-/* // Check later how to test this
-        StepVerifier.create(reactiveRedisOperations.keys("*"))
-            .expectNextCount(1)
-            .verifyComplete();
-*/
+        String sessionId = mockMvc.perform(post("/api/authenticate")
+            .params(formData))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.id_token", is(notNullValue())))
+            .andReturn()
+            .getResponse()
+            .getHeader("sessionId");
+
+        assertThat(sessionId).isNotEmpty();
+        Set keys = redisOperations.keys(String.format("spring:session:sessions:%s*", sessionId));
+        assertThat(keys).isNotNull();
+        assertThat(keys.size()).isEqualTo(1);
 	}
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/test should be authenticated and response 200 - OK")
-    public void shouldUserBeAuthenticatedWhenCallApi() throws IOException {
+    @DisplayName("Test - When Cal POST - /api/authenticatedUser should be authenticated and response 200 - OK")
+    public void shouldUserBeAuthenticatedWhenCallApi() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
         formData.add("rememberMe", "false");
-        JwtTokenDto auth = objectMapper.readValue(client.post().uri("/api/authenticate")
-            .body(fromFormData(formData))
-            .exchange()
-            .expectStatus().isOk()
-            .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-            .expectHeader().exists(HttpHeaders.AUTHORIZATION)
-            .expectBody(String.class)
-            .returnResult()
-            .getResponseBody(), JwtTokenDto.class);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
+            .params(formData))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.id_token", is(notNullValue())))
+            .andExpect(cookie().value("SESSIONID", is(notNullValue())))
+            .andReturn();
+
+        MockHttpServletResponse response = mvcResult.getResponse();
+        String responseBody = response
+            .getContentAsString();
+
+        JwtTokenDto auth = objectMapper.readValue(responseBody, JwtTokenDto.class);
 
         assertThat(auth).isNotNull();
         assertThat(auth.getIdToken()).isNotEmpty();
 
-        client.get().uri("/api/test")
-            .header(HttpHeaders.AUTHORIZATION, auth.getIdToken())
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody(String.class).value(containsString("User(master@gmail.com) is authenticated!"));
+        mockMvc.perform(get("/api/authenticatedUser")
+            .cookie(response.getCookies()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.id_token", is(notNullValue())));
+
+        String sessionId = "spring:session:index:org.springframework.session.FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME:master@gmail.com";
+        Set keys = redisOperations.keys(sessionId);
+        log.debug("Keys:before logout: {}", keys);
+        assertThat(keys).isNotNull();
+        assertThat(keys.size()).isEqualTo(1);
+
+        mockMvc.perform(get("/api/logout")
+            .cookie(response.getCookies()))
+            .andExpect(status().isOk())
+            .andExpect(cookie().value("SESSIONID", is(nullValue())));
+
+        mockMvc.perform(get("/api/authenticatedUser")
+            .cookie(response.getCookies()))
+            .andExpect(status().is4xxClientError());
+
+        keys = redisOperations.keys(sessionId);
+        log.debug("Keys after logout: {}", keys);
+        assertThat(keys).isNullOrEmpty();
     }
 
     @Test
     @DisplayName("Test - When Cal POST - /api/authenticate with default system user should return 401 - Unauthorized")
-    public void shouldReturnUnauthorizedWhenCallApiWithDefaultSystemUser() {
+    public void shouldReturnUnauthorizedWhenCallApiWithDefaultSystemUser() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", DefaultUsers.SYSTEM_DEFAULT.getValue());
         formData.add("password", "noPassword");
         formData.add("rememberMe", "false");
-        client.post().uri("/api/authenticate")
-            .body(fromFormData(formData))
-            .exchange()
-            .expectStatus().isUnauthorized()
-            .expectBody().jsonPath("$.message").value(containsString("User(default@admin.com) is locked"));
+        mockMvc.perform(post("/api/authenticate")
+            .params(formData))
+            .andDo(print())
+            .andExpect(status().is4xxClientError())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.message", containsString("User is disabled")));
     }
-
 }
