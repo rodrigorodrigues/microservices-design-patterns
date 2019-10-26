@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: eu.gcr.io/spring-boot-gke-243520/admin-server:4.0
+          image: eu.gcr.io/spring-boot-gke-243520/admin-server:6.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -59,15 +59,17 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/
+              value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
 #            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
 #              value: debug
 #            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
 #              value: "false"
-#            - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
-#              value: /monitoring
+            - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
+              value: /monitoring
+            - name: SERVER_USE_FORWARD_HEADERS
+              value: "true"
 #            - name: SERVER_SSL_KEY_STORE
 #              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
 #            - name: SERVER_SSL_KEY_STORE_PASSWORD
@@ -91,7 +93,7 @@ spec:
           livenessProbe:
             httpGet:
               scheme: HTTP
-              path: /actuator/health
+              path: /monitoring/actuator/health
               port: 9000
             initialDelaySeconds: 200
             periodSeconds: 5

@@ -21,7 +21,6 @@ class CategoryList extends Component {
       try {
         let data = await get('week-menu/v2/category', true, false, jwt);
         if (data) {
-          data = JSON.parse(data);
           if (Array.isArray(data)) {
             this.setState({isLoading: false, categories: data});
           } else {

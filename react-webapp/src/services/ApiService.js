@@ -22,7 +22,13 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
         } else {
             response = await fetch(url, {credentials: 'include'})
         }
-        return await response.text();
+        console.log("response status: ", response.status);
+        console.log("response header content-type: ", response.headers.get('Content-type'));
+        if (response.headers.get('Content-type') !== null && response.headers.get('Content-type').startsWith('application/json')) {
+            return response.json();
+        } else {
+            return response.text();
+        }
     } catch (e) {
         console.log("Error get method", e);
         throw Error(e)

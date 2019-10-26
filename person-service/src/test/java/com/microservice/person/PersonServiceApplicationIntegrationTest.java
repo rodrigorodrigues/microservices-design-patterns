@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.person.dto.PersonDto;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,8 +18,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Arrays;
@@ -26,9 +29,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false"})
@@ -63,7 +68,8 @@ public class PersonServiceApplicationIntegrationTest {
 		client.get().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.exchange()
-				.expectStatus().isOk();
+				.expectStatus().isOk()
+                .expectBodyList(PersonDto.class).hasSize(3);
 	}
 
 	@Test
@@ -82,10 +88,26 @@ public class PersonServiceApplicationIntegrationTest {
 				.expectHeader().value(HttpHeaders.LOCATION, containsString("/api/persons/"))
 				.expectBody()
                     .jsonPath("$.id").isNotEmpty()
-                    .jsonPath("$.createdByUser").isEqualTo("master@gmail.com");
+                    .jsonPath("$.createdByUser").isEqualTo("master@gmail.com")
+                    .consumeWith(c -> setId(person, c));
+
+		assertThat(person.getId()).isNotEmpty();
+
+		client.delete().uri("/api/persons/{id}", person.getId())
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader("admin@gmail.com"))
+            .exchange()
+            .expectStatus().is2xxSuccessful();
 	}
 
-	@Test
+    private void setId(PersonDto person, EntityExchangeResult<byte[]> c) {
+        try {
+            person.setId(objectMapper.readValue(c.getResponseBody(), PersonDto.class).getId());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
     @DisplayName("Test - When Cal POST - /api/persons without mandatory field should response 400 - Bad Request")
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws JsonProcessingException {
 		String authorizationHeader = authorizationHeader("admin@gmail.com");

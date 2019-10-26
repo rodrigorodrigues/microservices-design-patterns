@@ -246,6 +246,12 @@ Following useful commands for kubernetes
 ```
 cd kubernetes
 
+#create docker image
+docker tag eureka-server:latest eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+
+#push docker image
+docker push eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+
 #Deploy
 kubectl apply -f deployment-admin-server.yml
 
@@ -253,7 +259,7 @@ kubectl apply -f deployment-admin-server.yml
 kubectl delete -f deployment-admin-server.yml
 
 #see logs
-kubectl logs admin-server-RAND-ID -f
+kubectl logs admin-server-XXXXX -f
 
 #exec command
 kubectl exec -it redis-5b4699dd74-qckm9 -- sh

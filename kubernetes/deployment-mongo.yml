@@ -17,6 +17,12 @@ spec:
       containers:
         - name: mongodb
           image: mongo:3.6.6
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
           ports:
             - containerPort: 27017
 ---

@@ -17,6 +17,12 @@ spec:
       containers:
         - name: redis
           image: redis:alpine
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
           ports:
             - containerPort: 6379
 ---

@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: eu.gcr.io/spring-boot-gke-243520/config-server:3.0
+          image: eu.gcr.io/spring-boot-gke-243520/config-server:4.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -62,7 +62,7 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/
+              value: http://eureka-server:8761/eureka/eureka/
 #            - name: SERVER_SSL_KEY_STORE
 #              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
 #            - name: SERVER_SSL_KEY_STORE_PASSWORD

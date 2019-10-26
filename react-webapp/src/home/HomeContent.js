@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Row, Col } from 'reactstrap';
+import { Container, Row, Col, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import UserContext from '../UserContext';
 
@@ -20,10 +20,7 @@ function HomeContent({notDisplayMessage}) {
                     {displayButtonManageRecipes(authorities)}
                 </Col>
                 <Col xs="auto">
-                    {displayButtonAdminEureka(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonAdminMonitoring(authorities)}
+                    {displayButtonAdmin(authorities)}
                 </Col>
                 <Col xs="auto">
                     <Link className="link" to="/logout">Logout</Link>
@@ -62,14 +59,29 @@ function displayButtonManageUsers(authorities) {
     return <Link to="/users" className={"link" + (!isAdmin ? " disabled-link" : "")}>Manage Users</Link>
 }
 
-function displayButtonAdminEureka(authorities) {
+function displayButtonAdmin(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    return <Link to="/admin-eureka" className={"link" + (!isAdmin ? " disabled-link" : "")}>Admin - Eureka</Link>
-}
-
-function displayButtonAdminMonitoring(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    return <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Admin - Monitoring</Link>
+    return (
+        <UncontrolledDropdown>
+                <DropdownToggle nav caret>
+                    Admin
+                </DropdownToggle>
+                <DropdownMenu>
+                <DropdownItem>
+                    <Link to="/admin-eureka" className={"link" + (!isAdmin ? " disabled-link" : "")}>Service Discovery - Eureka</Link>
+                </DropdownItem>
+                <DropdownItem>
+                    <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Monitoring - Spring Boot Admin</Link>
+                </DropdownItem>
+                <DropdownItem>
+                    <Link to="/admin-grafana" className={"link" + (!isAdmin ? " disabled-link" : "")}>Metrics - Grafana</Link>
+                </DropdownItem>
+                <DropdownItem>
+                    <Link to="/admin-tracing" className={"link" + (!isAdmin ? " disabled-link" : "")}>Tracing - Zipkin</Link>
+                </DropdownItem>
+            </DropdownMenu>
+            </UncontrolledDropdown>
+    )
 }
 
 function displayButtonManageCategories(authorities) {

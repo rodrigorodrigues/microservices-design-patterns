@@ -18,8 +18,11 @@ import MessageAlert from './MessageAlert';
 import {errorMessage} from './common/Util';
 import Cookies from 'js-cookie'
 
+
 const eurekaUrl = process.env.REACT_APP_EUREKA_URL;
 const monitoringUrl = process.env.REACT_APP_MONITORING_URL;
+const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
+const zipkinUrl = process.env.REACT_APP_ZIPKIN_URL;
 
 class App extends Component {
   state = {
@@ -35,19 +38,26 @@ class App extends Component {
 
   async componentDidMount() {
     try {
-      let data = await getWithCredentials('sharedSessions', false);
-      console.log("Shared Session", data);
-      if (data.id_token) {
-        this.setAuthentication(data);
-      } else {
-        const localStorageJwt = localStorage.getItem('JWT');
-        if (localStorageJwt) {
-          this.decodeJwt(localStorageJwt);
+      console.log("UseCookies: ", Cookies.get());
+      if (this.state.isAuthenticated === false) {
+          let data = await getWithCredentials('authenticatedUser', false);
+          console.log("User is Authenticated?", data);
+          if (data.id_token) {
+            this.setAuthentication(data);
+          } else {
+            this.redirectToIndexPage();
+          }
         }
-      }
     } catch (e) {
       console.log("Error when trying to connect to Session Redis", e);
       this.setState({ displayError: errorMessage(`{"error": "${e}"}`)});
+      this.redirectToIndexPage();
+    }
+  }
+
+  redirectToIndexPage() {
+    if (this.props.history !== undefined) {
+      this.props.history.push('/');
     }
   }
 
@@ -59,11 +69,9 @@ class App extends Component {
   setAuthentication = (data) => {
     let token = data.id_token;
     this.decodeJwt(token);
-    localStorage.setItem('JWT', token);
   }
 
   removeAuthentication = () => {
-    localStorage.removeItem('JWT');
     this.setState({ isAuthenticated: false, user: null, jwt: null });
     this.removeSessionIdCookie();
   }
@@ -104,11 +112,23 @@ class App extends Component {
             <Route path='/recipes' exact={true}
                    component={() => <RecipeList {...this.state} />} />
             <Route path='/admin-eureka' component={() => {
+              console.log("Eureka URL: ", eurekaUrl);
               window.location.href = `${eurekaUrl}`; 
               return null;
             }} />
             <Route path='/admin-monitoring' component={() => {
+              console.log("Monitoring URL: ", monitoringUrl);
               window.location.href = `${monitoringUrl}`; 
+              return null;
+            }} />
+            <Route path='/admin-grafana' component={() => {
+              console.log("Grafana URL: ", grafanaUrl);
+              window.location.href = `${grafanaUrl}`; 
+              return null;
+            }} />
+            <Route path='/admin-tracing' component={() => {
+              console.log("Zipkin URL: ", zipkinUrl);
+              window.location.href = `${zipkinUrl}`; 
               return null;
             }} />
           </Switch>

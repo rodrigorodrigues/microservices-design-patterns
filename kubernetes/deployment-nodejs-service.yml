@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: week-menu-api
-          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:2.0
+          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:5.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -55,6 +55,8 @@ spec:
               value: mongodb://mongodb:27017/docker
             - name: REDIS_SERVER
               value: redis
+            - name: EUREKA_PATH
+              value: /eureka/eureka/apps/
             - name: EUREKA_SERVER
               value: eureka-server
             - name: HOST_NAME

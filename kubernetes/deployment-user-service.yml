@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/spring-boot-gke-243520/user-service:2.0
+          image: eu.gcr.io/spring-boot-gke-243520/user-service:3.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -62,7 +62,7 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/
+              value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
 #            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED

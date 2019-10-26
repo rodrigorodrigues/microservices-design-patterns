@@ -37,24 +37,22 @@ public class PersonServiceApplication {
 	@ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)
 	@Bean
 	CommandLineRunner runner(PersonRepository personRepository) {
-		return args -> {
-		    personRepository.count()
-                .filter(c -> c == 0)
-                .thenReturn(personRepository.saveAll(Arrays.asList(Person.builder().fullName("Rodrigo Rodrigues")
-                    .dateOfBirth(LocalDate.of(1983, 1, 5))
-                    .children(Arrays.asList(new Child("Daniel", LocalDate.of(2017, Month.JANUARY, 1)), new Child("Oliver", LocalDate.of(2017, Month.JANUARY, 1))))
-                    .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+		return args -> personRepository.count()
+            .filter(c -> c == 0)
+            .subscribe(c -> personRepository.saveAll(Arrays.asList(Person.builder().fullName("Rodrigo Rodrigues")
+                .dateOfBirth(LocalDate.of(1983, 1, 5))
+                .children(Arrays.asList(new Child("Daniel", LocalDate.of(2017, Month.JANUARY, 1)), new Child("Oliver", LocalDate.of(2017, Month.JANUARY, 1))))
+                .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+                .build(),
+                Person.builder().fullName("Juninho")
+                    .dateOfBirth(LocalDate.of(1981, 5, 25))
+                    .children(Arrays.asList(new Child("Dan", LocalDate.of(2013, Month.JUNE, 10)), new Child("Ian", LocalDate.of(2016, Month.AUGUST, 18))))
+                    .address(new Address("100 Gardiner Street", "Dun Laoghaire", "Dublin", "Ireland", "000 65412"))
                     .build(),
-                    Person.builder().fullName("Juninho")
-                        .dateOfBirth(LocalDate.of(1981, 5, 25))
-                        .children(Arrays.asList(new Child("Dan", LocalDate.of(2013, Month.JUNE, 10)), new Child("Ian", LocalDate.of(2016, Month.AUGUST, 18))))
-                        .address(new Address("100 Gardiner Street", "Dun Laoghaire", "Dublin", "Ireland", "000 65412"))
-                        .build(),
-                    Person.builder().fullName("Anonymous")
-                        .dateOfBirth(LocalDate.of(1985, 1, 2))
-                        .address(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"))
-                        .build())).blockLast());
-		};
+                Person.builder().fullName("Anonymous")
+                    .dateOfBirth(LocalDate.of(1985, 1, 2))
+                    .address(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"))
+                    .build())).blockLast());
 	}
 
 	@Bean

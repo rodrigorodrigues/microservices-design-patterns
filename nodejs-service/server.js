@@ -49,7 +49,7 @@ loadActuator();
 // Prometheus
 loadPrometheus();
 
-const { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb } = loadEnvVariables();
+const { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath } = loadEnvVariables();
 
 // Eureka configuration
 loadEureka();
@@ -110,7 +110,11 @@ db.connection.once('open', () => {
     console.log("MongoDB successful connected");
     if (restoreMongoDb) {
         console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_CONNECTION);
-        db.connection.db.dropDatabase();
+        db.connection.db.dropCollection('categories');
+        db.connection.db.dropCollection('ingredients');
+        db.connection.db.dropCollection('recipe2');
+        db.connection.db.dropCollection('recipes');
+        db.connection.db.dropCollection('shoppinglists');
         restoreBackup();
     }
 });
@@ -179,6 +183,7 @@ function loadPrometheus() {
 function loadEnvVariables() {
     const eurekaServer = process.env.EUREKA_SERVER || '127.0.0.1';
     const eurekaServerPort = process.env.EUREKA_PORT || 8761;
+    const eurekaServerPath = process.env.EUREKA_PATH || '/eureka/apps/';
     const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
     const hostName = process.env.HOST_NAME || 'localhost';
     const zipkinHost = process.env.ZIPKIN_HOST || 'localhost';
@@ -186,13 +191,14 @@ function loadEnvVariables() {
     const restoreMongoDb = process.env.RESTORE_MONGODB || true;
     console.log("eurekaServer: ", eurekaServer);
     console.log("eurekaServerPort: ", eurekaServerPort);
+    console.log("eurekaServerPath: ", eurekaServerPath);
     console.log("port: ", port);
     console.log("ipAddr: ", ipAddr);
     console.log("hostName: ", hostName);
     console.log("zipkinHost: ", zipkinHost);
     console.log("zipkinPort: ", zipkinPort);
     console.log("restoreMongoDb: ", restoreMongoDb);
-    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb };
+    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath };
 }
 
 function loadSpringCloudConfig() {
@@ -235,7 +241,7 @@ function loadEureka() {
             // eureka server host / port
             host: eurekaServer,
             port: eurekaServerPort,
-            servicePath: '/eureka/apps/',
+            servicePath: eurekaServerPath,
             maxRetries: 10,
             registerWithEureka: true,
             fetchRegistry: true

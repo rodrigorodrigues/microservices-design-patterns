@@ -111,21 +111,22 @@ services:
             args:
                 - PORT=3003
 # Production
-#                - REACT_APP_GATEWAY_URL=https://spendingbetter.com
-                - REACT_APP_GATEWAY_URL=http://localhost:9006
-                - REACT_APP_HOSTNAME=${HOSTNAME} - Testock
+                - REACT_APP_GATEWAY_URL=https://spendingbetter.com
+                - REACT_APP_EUREKA_URL=https://spendingbetter.com/eureka
+                - REACT_APP_MONITORING_URL=https://spendingbetter.com/monitoring
+                - REACT_APP_GRAFANA_URL=https://spendingbetter.com/grafana
+                - REACT_APP_ZIPKIN_URL=https://spendingbetter.com/zipkin
+#                - REACT_APP_GATEWAY_URL=http://localhost:9006
+                - REACT_APP_HOSTNAME=${REACT_APP_HOSTNAME} - Production
             context: ../react-webapp
             dockerfile: Dockerfile
         container_name: react-webapp
         environment:
-# Production
-#            - REACT_APP_GATEWAY_URL=https://35.195.42.69
-#            - REACT_APP_GATEWAY_URL=https://spendingbetter.com
-#            - REACT_APP_EUREKA_URL=https://spendingbetter.com/eureka
-#            - REACT_APP_MONITORING_URL=https://spendingbetter.com/monitoring
             - REACT_APP_GATEWAY_URL=http://localhost:9006
             - REACT_APP_EUREKA_URL=http://localhost:8761
             - REACT_APP_MONITORING_URL=http://localhost:9000
+            - REACT_APP_GRAFANA_URL=http://localhost:9000
+            - REACT_APP_ZIPKIN_URL=http://localhost:9000
             - REACT_APP_HOSTNAME=${HOSTNAME} - Test
             - NODE_ENV=development
         ports:

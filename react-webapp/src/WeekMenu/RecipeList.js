@@ -21,7 +21,6 @@ class RecipeList extends Component {
       try {
         let data = await get('week-menu/v2/recipe', true, false, jwt)
         if (data) {
-          data = JSON.parse(data);
           if (Array.isArray(data)) {
             this.setState({isLoading: false, recipes: data});
           } else {
@@ -29,6 +28,7 @@ class RecipeList extends Component {
           }
         }
       } catch (error) {
+        console.log("Error!");
         this.setState({isLoading: false, displayError: errorMessage(error)});
       }
     }
