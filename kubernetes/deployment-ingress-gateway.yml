@@ -1,12 +1,12 @@
 #apiVersion: extensions/v1beta1
 #kind: Ingress
 #metadata:
-#  name: ingress-gateway
+#  name: ingress-gateway-forward-https
 #  annotations:
 #    kubernetes.io/ingress.class: nginx
-#    ingress.kubernetes.io/force-ssl-redirect: "true"
-#    kubernetes.io/ingress.allow-http: "false"
-#    nginx.ingress.kubernetes.io/rewrite-target: /
+##    ingress.kubernetes.io/force-ssl-redirect: "true"
+##    kubernetes.io/ingress.allow-http: "false"
+##    nginx.ingress.kubernetes.io/rewrite-target: /
 #    nginx.ingress.kubernetes.io/configuration-snippet: |
 #      if ($http_x_forwarded_proto = "http") {
 #         return 301 https://$host$request_uri;
@@ -20,10 +20,14 @@
 #    - host: spendingbetter.com
 #      http:
 #        paths:
-#          - path: /config/(.*)
+#          - path: /grafana
 #            backend:
-#              serviceName: config-server
-#              servicePort: http-port
+#              serviceName: grafana
+#              servicePort: 3000
+##          - path: /config/(.*)
+##            backend:
+##              serviceName: config-server
+##              servicePort: http-port
 
 ---
 apiVersion: extensions/v1beta1
@@ -45,6 +49,10 @@ spec:
     - host: spendingbetter.com
       http:
         paths:
+          - path: /grafana
+            backend:
+              serviceName: grafana
+              servicePort: 3000
           - path: /monitoring
             backend:
               serviceName: admin-server

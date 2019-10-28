@@ -1,0 +1,79 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+          volumeMounts:
+            - name: grafana-datasource
+              mountPath: "/etc/grafana/provisioning/datasources"
+              readOnly: true
+            - name: spendingbetter-crt
+              mountPath: "/etc/crt"
+              readOnly: true
+            - name: spendingbetter-key
+              mountPath: "/etc/ssl_certs_key"
+              readOnly: true
+          env:
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
+            - name: GF_SERVER_DOMAIN
+              value: spendingbetter.com
+            - name: GF_SERVER_ROOT_URL
+              value: https://spendingbetter.com/grafana
+#            - name: GF_SERVER_PROTOCOL
+#              value: https
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
+#            - name: GF_SERVER_CERT_FILE
+#              value: /etc/crt/www.spendingbetter.com.crt
+#            - name: GF_SERVER_CERT_KEY
+#              value: /etc/ssl_certs_key/www.spendingbetter.com.key
+          ports:
+            - containerPort: 3000
+      volumes:
+        - name: grafana-datasource
+          configMap:
+            name: grafana-datasource
+            items:
+              - key: grafana-datasource.yaml
+                path: datasource.yaml
+        - name: spendingbetter-crt
+          secret:
+            secretName: spendingbetter-crt
+        - name: spendingbetter-key
+          secret:
+            secretName: spendingbetter-key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  ports:
+    - port: 3000
+  selector:
+    app: grafana

@@ -1,9 +1,11 @@
 FROM maven:3.6.0-jdk-8-alpine
 
+WORKDIR /usr/src/zipkin
+
 COPY pom.xml ./
 
 # get normal zipkin server
-RUN curl -sSL https://zipkin.apache.org/quickstart.sh -o zipkin.sh
+RUN curl -sSL https://zipkin.io/quickstart.sh -o zipkin.sh
 
 # remove --check flag does not work for some reason
 RUN sed -i 's/--check//g' zipkin.sh
@@ -17,6 +19,7 @@ RUN jar xf zipkin.jar BOOT-INF/classes/zipkin-server-shared.yml
 RUN echo 'spring.application.name: zipkin-server' >> BOOT-INF/classes/zipkin-server-shared.yml
 RUN echo 'eureka.client.enabled: true' >> BOOT-INF/classes/zipkin-server-shared.yml
 RUN echo 'eureka.client.serviceUrl.defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}' >> BOOT-INF/classes/zipkin-server-shared.yml
+RUN echo 'logging.file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log' >> BOOT-INF/classes/zipkin-server-shared.yml
 
 ## download eureka client
 #RUN curl -sSL https://start.spring.io/starter.tgz -d dependencies=web,actuator \
@@ -31,7 +34,7 @@ RUN mv target/eureka-1.0-SNAPSHOT-module.jar eureka.jar
 
 # start zipkin which now has eureka support
 CMD java -cp zipkin.jar \
- -Dloader.path='eureka.jar' \
+ -Dloader.path='eureka.jar,eureka.jar!/lib' \
  -Dloader.main=zipkin.server.ZipkinServer org.springframework.boot.loader.PropertiesLauncher \
  --spring.config.location=file:BOOT-INF/classes/zipkin-server-shared.yml \
  --spring.profiles.active=shared \

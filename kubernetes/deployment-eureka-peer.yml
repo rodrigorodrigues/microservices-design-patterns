@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-server-peer
+  annotations:
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
+  labels:
+    app: eureka-server-peer
+spec:
+  ports:
+    - name: https-port
+      port: 8443
+    - name: http-port
+      port: 8761
+  selector:
+    app: eureka-server-peer
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: eureka-server-peer
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: eureka-server-peer
+        version: v1
+    spec:
+      containers:
+        - name: eureka-server-peer
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+          env:
+            - name: JAVA_OPTS
+              value: -Xms256m -Xmx512m
+            - name: SERVER_PORT
+              value: "8761"
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+            - name: SPRING_DATA_MONGODB_URI
+              value: mongodb://mongodb:27017
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: docker
+            - name: SPRING_REDIS_HOST
+              value: redis
+            - name: EUREKA_SERVER
+              value: http://eureka-server:${server.port}/eureka/eureka
+          command: ["/bin/sh"]
+          args: ["-c", "$JAVA_CMD"]
+          ports:
+            - containerPort: 8761
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 200
+            periodSeconds: 5

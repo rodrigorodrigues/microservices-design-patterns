@@ -243,6 +243,43 @@ The code is deployed at `Google Cloud Platform`, to access it go through `https:
 
 Following useful commands for kubernetes
 
+Install
+
+```
+#helm create ingress - RBAC enabled
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+helm init --service-account tiller
+helm list
+helm init --tiller-tls-verify
+helm init
+kubectl get deployments -n kube-system
+helm install --name nginx-ingress stable/nginx-ingress --set rbac.create=true --set controller.publishService.enabled=true
+
+#helm list
+helm list
+
+#create tls
+kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com.chained.crt --key /etc/sslmate/www.spendingbetter.com.key
+
+#create generic certs
+kubectl create secret generic spendingbetter-p12 --from-file=/etc/sslmate/www.spendingbetter.com.p12
+kubectl create secret generic spendingbetter-crt --from-file=/etc/sslmate/www.spendingbetter.com.crt
+
+#list certs
+kubectl get secrets
+
+#list specific cert
+kubectl describe secret ingress-tls
+
+#show ingress
+kubectl get ing
+kubectl describe ingress
+
+```
+
+Deployment
+
 ```
 cd kubernetes
 
@@ -267,9 +304,14 @@ kubectl exec -it redis-5b4699dd74-qckm9 -- sh
 #show all pods
 kubectl get pods --show-labels
 
-#ingress
-kubectl get ing
-kubectl describe ingress
+#create config map
+kubectl create configmap prometheus --from-file=../docker/prometheus-prod.yml
+
+#port forward
+kubectl port-forward $(kubectl get pod --selector="app=eureka-server" --output jsonpath='{.items[0].metadata.name}') 8761:8761
+
+#delete specific ingress
+kubectl delete ingress ingress-gateway-forward-https
 ```
 
 [Enable Ingress](https://cloud.google.com/community/tutorials/nginx-ingress-gke)

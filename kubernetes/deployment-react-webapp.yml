@@ -35,14 +35,5 @@ spec:
           env:
             - name: PORT
               value: "3003"
-            - name: REACT_APP_GATEWAY_URL
-#              value: https://35.195.42.69
-              value: https://spendingbetter.com
-            - name: REACT_APP_EUREKA_URL
-              value: https://spendingbetter.com/eureka
-            - name: REACT_APP_MONITORING_URL
-              value: https://spendingbetter.com/monitoring
-            - name: REACT_APP_HOSTNAME
-              value: ${HOSTNAME} - Production
           ports:
             - containerPort: 3003

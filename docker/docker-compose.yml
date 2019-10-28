@@ -26,19 +26,21 @@ services:
         environment:
             - SPRING_REDIS_HOST=redisdb
             - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_PROFILES_ACTIVE=native
             - SERVER_PORT=8888
             - EUREKA_SERVER=http://service-discovery:8761/eureka/
             - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
             - SPRING_DATA_MONGODB_DATABASE=docker
             - DEBUG=true
             - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+            - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:./config
         depends_on:
           - service-discovery
         ports:
             - 8888:8888
         volumes:
             - ./docker-entrypoint.sh:/docker-entrypoint.sh
+            - ../config-server/configuration:/config
         command: sh ./docker-entrypoint.sh service-discovery:8761
 
     gateway:
@@ -117,7 +119,7 @@ services:
                 - REACT_APP_GRAFANA_URL=https://spendingbetter.com/grafana
                 - REACT_APP_ZIPKIN_URL=https://spendingbetter.com/zipkin
 #                - REACT_APP_GATEWAY_URL=http://localhost:9006
-                - REACT_APP_HOSTNAME=${REACT_APP_HOSTNAME} - Production
+                - REACT_APP_HOSTNAME=${HOSTNAME} - Production
             context: ../react-webapp
             dockerfile: Dockerfile
         container_name: react-webapp
@@ -282,8 +284,13 @@ services:
       ports:
         - 3000:3000
       environment:
-        - GF_AUTH_ANONYMOUS_ENABLED=true
-        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+#        - GF_AUTH_ANONYMOUS_ENABLED=true
+#        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+        - GF_SERVER_ROOT_URL=http://localhost:3000/grafana
+        - GF_SERVER_SERVE_FROM_SUB_PATH=true
+        - GF_AUTH_PROXY_ENABLED=true
+        - GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER
+        - GF_AUTH_PROXY_AUTO_SIGN_UP=false
 
     setup_grafana_datasource:
         image: appropriate/curl
@@ -319,6 +326,7 @@ services:
             - MYSQL_PASS=zipkin
             - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
             - DEBUG=true
+            - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
             # Uncomment to enable scribe
             # - SCRIBE_ENABLED=true
             # Uncomment to enable self-tracing

@@ -77,7 +77,7 @@ spec:
 #            - name: SERVER_SSL_KEY_STORE_TYPE
 #              value: PKCS12
             - name: EUREKA_SERVER
-              value: http://eureka-server:${server.port}/eureka/eureka/
+              value: http://eureka-server-peer:${server.port}/eureka/
 #            - name: SPRING_CLOUD_CLIENT_HOSTNAME
 #              value: eureka.spendingbetter.com
 #            - name: NON_SECURE_PORT_ENABLED

@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.springboot.eurekaserver.config.RedisSessionConfiguration,\
+com.springboot.eurekaserver.config.EurekaServerWebSecurityConfiguration

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: setup-grafana-datasource
+  labels:
+    app: setup-grafana-datasource
+spec:
+  containers:
+    - name: setup-grafana-datasource
+      image: appropriate/curl
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "128Mi"
+        limits:
+          memory: "256Mi"
+      volumeMounts:
+        - name: grafana-configmap
+          mountPath: "/opt/grafana_dashboard"
+          readOnly: true
+      command: ["/bin/sh"]
+      args: ["-c", "/opt/grafana_dashboard/create-datasource-and-dashboard.sh"]
+  restartPolicy: Never
+  volumes:
+    - name: grafana-configmap
+      configMap:
+        name: grafana-dashboard
+        defaultMode: 0700
+        items:
+          - key: create-datasource-and-dashboard.sh
+            path: create-datasource-and-dashboard.sh
