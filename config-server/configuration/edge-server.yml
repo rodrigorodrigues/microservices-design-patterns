@@ -37,13 +37,13 @@ zuul:
             serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:
-        grafana-service:
-            path: /grafana/**
-            url: ${GRAFANA_URL:http://localhost:3000}
-            stripPrefix: false
-            sensitiveHeaders:
-        zipkin-service:
-            path: /zipkin
-            serviceId: zipkin-server
-            stripPrefix: false
-            sensitiveHeaders:
+#        grafana-service:
+#            path: /grafana/**
+#            url: ${GRAFANA_URL:http://localhost:3000}
+#            stripPrefix: false
+#            sensitiveHeaders:
+#        zipkin-service:
+#            path: /zipkin
+#            serviceId: zipkin-server
+#            stripPrefix: false
+#            sensitiveHeaders:
