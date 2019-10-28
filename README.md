@@ -285,9 +285,11 @@ cd kubernetes
 
 #create docker image
 docker tag eureka-server:latest eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+docker tag docker_react-webapp:latest eu.gcr.io/spring-boot-gke-243520/react-webapp:6.0
 
 #push docker image
 docker push eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+docker push eu.gcr.io/spring-boot-gke-243520/react-webapp:6.0
 
 #Deploy
 kubectl apply -f deployment-admin-server.yml
