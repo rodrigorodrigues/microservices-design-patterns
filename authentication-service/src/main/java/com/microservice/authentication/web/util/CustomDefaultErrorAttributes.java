@@ -33,7 +33,7 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
      * @param ex current exception
      * @return httpStatus
      */
-    public HttpStatus getHttpStatusError(Throwable ex) {
+    private HttpStatus getHttpStatusError(Throwable ex) {
         HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
         if (ex instanceof HttpStatusCodeException) {
             httpStatus = ((HttpStatusCodeException) ex).getStatusCode();

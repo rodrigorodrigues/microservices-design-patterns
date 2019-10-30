@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.dto.JwtTokenDto;
-import com.microservice.authentication.repository.AuthenticationRepository;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +18,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.repository.Repository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -53,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 		properties = {"configuration.swagger=false", "debug=debug", "logging.level.com.microservice=debug", "spring.redis.port=6370"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
-@Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
+@Import({SharedAuthenticationServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class, SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
 @AutoConfigureMockMvc
 public class SharedAuthenticationServiceApplicationIntegrationTest {
 
@@ -89,7 +90,17 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         }
     }
 
-    @Configuration
+    @TestConfiguration
+    @EnableMongoAuditing
+    @EnableMongoRepositories(basePackageClasses = AuthenticationRepository.class, considerNestedRepositories = true)
+    static class MockAuthenticationMongoConfiguration {
+    }
+
+    interface AuthenticationRepository extends Repository<Authentication, String> {
+        Authentication save(Authentication authentication);
+    }
+
+    @TestConfiguration
     @AllArgsConstructor
     static class UserMockConfiguration {
         private final AuthenticationRepository authenticationRepository;
@@ -98,12 +109,13 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
 
         @PostConstruct
         public void init() {
-            authenticationRepository.save(Authentication.builder().email("master@gmail.com")
+            Authentication authentication = authenticationRepository.save(Authentication.builder().email("master@gmail.com")
                 .password(passwordEncoder.encode("password123"))
                 .authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
                 .fullName("Master of something")
                 .enabled(true)
-                .build()).subscribe(u -> System.out.println(String.format("Created Master Authentication: %s", u)));
+                .build());
+            log.debug(String.format("Created Master Authentication: %s", authentication));
         }
 
         private List<Authority> permissions(String ... permissions) {

@@ -5,3 +5,6 @@ configuration:
     # Token is valid 24 hours
     token-validity-in-seconds: 86400
     token-validity-in-seconds-for-remember-me: 2592000
+spring:
+    main:
+        allow-bean-definition-overriding: true
