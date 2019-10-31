@@ -68,7 +68,7 @@ public class PersonControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/persons without valid authorization the response should be 403 - Forbidden")
+    @DisplayName("Test - When Calling GET - /api/persons without valid authorization the response should be 403 - Forbidden")
     @WithMockUser(roles = "INVALID_ROLE")
     public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() {
         client.get().uri("/api/persons")
@@ -78,7 +78,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/persons without authorization the response should be 401 - Unauthorized")
+    @DisplayName("Test - When Calling GET - /api/persons without authorization the response should be 401 - Unauthorized")
     public void whenCallFindAllShouldReturnUnauthorizedWhenDoesNotHavePermission() {
         client.get().uri("/api/persons")
                 .exchange()
@@ -86,7 +86,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/persons with valid authorization the response should be a list of People - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/persons with valid authorization the response should be a list of People - 200 - OK")
     @WithMockUser(roles = "PERSON_READ")
     public void whenCallFindAllShouldReturnListOfPersons() {
         PersonDto person = new PersonDto();
@@ -107,7 +107,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/persons/{id} with valid authorization the response should be person - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/persons/{id} with valid authorization the response should be person - 200 - OK")
     @WithMockUser(roles = "PERSON_READ")
     public void whenCallFindByIdShouldReturnPerson() {
         PersonDto person = new PersonDto();
@@ -123,7 +123,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/persons with valid authorization the response should be a person - 201 - Created")
+    @DisplayName("Test - When Calling POST - /api/persons with valid authorization the response should be a person - 201 - Created")
     @WithMockUser(roles = "PERSON_CREATE")
     public void whenCallCreateShouldSavePerson() throws Exception {
         PersonDto personDto = createPersonDto();
@@ -140,7 +140,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal PUT - /api/persons/{id} with valid authorization the response should be a person - 200 - OK")
+    @DisplayName("Test - When Calling PUT - /api/persons/{id} with valid authorization the response should be a person - 200 - OK")
     @WithMockUser(roles = "PERSON_SAVE")
     public void whenCallUpdateShouldUpdatePerson() throws Exception {
         PersonDto personDto = createPersonDto();
@@ -161,7 +161,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal PUT - /api/persons/{id} with invalid id the response should be 404 - Not Found")
+    @DisplayName("Test - When Calling PUT - /api/persons/{id} with invalid id the response should be 404 - Not Found")
     @WithMockUser(roles = "PERSON_SAVE")
     public void whenCallUpdateShouldResponseNotFound() throws Exception {
         PersonDto personDto = createPersonDto();
@@ -177,7 +177,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal DELETE - /api/persons/{id} with valid authorization the response should be 200 - OK")
+    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with valid authorization the response should be 200 - OK")
     @WithMockUser(roles = "PERSON_DELETE")
     public void whenCallDeleteShouldDeleteById() {
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());

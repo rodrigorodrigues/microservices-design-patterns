@@ -62,7 +62,7 @@ public class UserControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/users without valid authorization the response should be 403 - Forbidden")
+    @DisplayName("Test - When Calling GET - /api/users without valid authorization the response should be 403 - Forbidden")
     @WithMockUser(roles = "INVALID_ROLE")
     public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() {
         client.get().uri("/api/users")
@@ -72,7 +72,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/users without authorization the response should be 401 - Unauthorized")
+    @DisplayName("Test - When Calling GET - /api/users without authorization the response should be 401 - Unauthorized")
     public void whenCallFindAllShouldReturnUnauthorizedWhenDoesNotHaveAuthorizationHeader() {
         client.get().uri("/api/users")
                 .exchange()
@@ -80,7 +80,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/users with valid authorization the response should be a list of Users - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/users with valid authorization the response should be a list of Users - 200 - OK")
     @WithMockUser(roles = "ADMIN")
     public void whenCallFindAllShouldReturnListOfUsers() {
         UserDto userDto = new UserDto();
@@ -101,7 +101,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/users/{id} with valid authorization the response should be user - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/users/{id} with valid authorization the response should be user - 200 - OK")
     @WithMockUser(roles = "ADMIN")
     public void whenCallFindByIdShouldReturnUser() {
         UserDto userDto = new UserDto();
@@ -117,7 +117,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/users with valid request should create user and response 201 - Created")
+    @DisplayName("Test - When Calling POST - /api/users with valid request should create user and response 201 - Created")
     @WithMockUser(roles = "ADMIN")
     public void whenCallCreateShouldSaveUser() throws Exception {
         UserDto userDto = createUserDto();
@@ -134,7 +134,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal PUT - /api/users/{id} with valid authorization the response should be a user - 200 - OK")
+    @DisplayName("Test - When Calling PUT - /api/users/{id} with valid authorization the response should be a user - 200 - OK")
     @WithMockUser(roles = "ADMIN")
     public void whenCallUpdateShouldUpdateUser() throws Exception {
         UserDto userDto = createUserDto();
@@ -155,7 +155,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal PUT - /api/users/{id} with invalid id the response should be 404 - Not Found")
+    @DisplayName("Test - When Calling PUT - /api/users/{id} with invalid id the response should be 404 - Not Found")
     @WithMockUser(roles = "ADMIN")
     public void whenCallUpdateShouldResponseNotFound() throws Exception {
         UserDto userDto = createUserDto();
@@ -171,7 +171,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal DELETE - /api/users/{id} with valid authorization the response should be 200 - OK")
+    @DisplayName("Test - When Calling DELETE - /api/users/{id} with valid authorization the response should be 200 - OK")
     @WithMockUser(roles = "ADMIN")
     public void whenCallDeleteShouldDeleteById() {
         when(userService.deleteById(anyString())).thenReturn(Mono.empty());

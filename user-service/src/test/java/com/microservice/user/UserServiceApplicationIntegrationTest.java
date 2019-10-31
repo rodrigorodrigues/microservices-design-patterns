@@ -41,7 +41,7 @@ class UserServiceApplicationIntegrationTest {
     TokenProvider tokenProvider;
 
     @Test
-    @DisplayName("Test - When Cal GET - /api/users should return list of users and response 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/users should return list of users and response 200 - OK")
     public void shouldReturnListOfUsersWhenCallApi() {
         client.get().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN"))))
@@ -50,7 +50,7 @@ class UserServiceApplicationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/users should create a new user and response 201 - Created")
+    @DisplayName("Test - When Calling POST - /api/users should create a new user and response 201 - Created")
     public void shouldInsertNewUserWhenCallApi() throws Exception {
         String authorizationHeader = authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
         UserDto userDto = createUserDto();

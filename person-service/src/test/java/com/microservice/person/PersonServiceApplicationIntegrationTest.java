@@ -61,7 +61,7 @@ public class PersonServiceApplicationIntegrationTest {
     }
 
     @Test
-	@DisplayName("Test - When Cal GET - /api/persons should return list of people and response 200 - OK")
+	@DisplayName("Test - When Calling GET - /api/persons should return list of people and response 200 - OK")
 	public void shouldReturnListOfPersonsWhenCallApi() {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 
@@ -73,7 +73,7 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
 	@Test
-    @DisplayName("Test - When Cal POST - /api/persons should create a new person and response 201 - Created")
+    @DisplayName("Test - When Calling POST - /api/persons should create a new person and response 201 - Created")
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 		PersonDto person = createPerson();
@@ -108,7 +108,7 @@ public class PersonServiceApplicationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/persons without mandatory field should response 400 - Bad Request")
+    @DisplayName("Test - When Calling POST - /api/persons without mandatory field should response 400 - Bad Request")
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws JsonProcessingException {
 		String authorizationHeader = authorizationHeader("admin@gmail.com");
 
@@ -125,7 +125,7 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
 	@Test
-    @DisplayName("Test - When Cal POST - /api/persons without valid authorization should response 403 - Forbidden")
+    @DisplayName("Test - When Calling POST - /api/persons without valid authorization should response 403 - Forbidden")
 	public void shouldResponseForbiddenWhenCallApiWithoutRightPermission() throws Exception {
 		String authorizationHeader = authorizationHeader("anonymous@gmail.com");
 

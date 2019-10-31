@@ -51,6 +51,7 @@ public class AuthenticationServiceApplication {
 		return new LocalValidatorFactoryBean();
 	}
 
+	@Primary
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();

@@ -23,4 +23,5 @@ public class SharedAuthenticationServiceImpl implements UserDetailsService {
         log.debug("Authentication: {}", authentication);
         return authentication;
     }
+
 }

@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,7 +52,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
-		properties = {"configuration.swagger=false", "debug=debug", "logging.level.com.microservice=debug", "spring.redis.port=6370"})
+		properties = {"configuration.swagger=false", "debug=debug",
+            "logging.level.com.microservice=debug",
+            "logging.level.org.springframework.security=debug",
+            "spring.redis.port=6370"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 @Import({SharedAuthenticationServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class, SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
@@ -126,38 +130,50 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     }
 
     @Test
-	@DisplayName("Test - When Cal POST - /api/authenticate should return token and response 200 - OK")
+	@DisplayName("Test - When Calling POST - /api/authenticate should return token and response 200 - OK")
 	public void shouldReturnTokenWhenCallApi() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("client_id", "master@gmail.com");
+        formData.add("client_secret", "password123");
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
-        formData.add("rememberMe", "false");
-        String sessionId = mockMvc.perform(post("/api/authenticate")
+        formData.add("grant_type", "password");
+        formData.add("scope", "any");
+        String token = objectMapper.readValue(mockMvc.perform(post("/oauth/token")
             .params(formData))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.id_token", is(notNullValue())))
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())))
+            .andExpect(jsonPath("$.token_type", is(notNullValue())))
             .andReturn()
             .getResponse()
-            .getHeader("sessionId");
+            .getContentAsString(), OAuth2AccessToken.class).getValue();
 
-        assertThat(sessionId).isNotEmpty();
-        Set keys = redisOperations.keys(String.format("spring:session:sessions:%s*", sessionId));
+        assertThat(token).isNotEmpty();
+        Set keys = redisOperations.keys(String.format("*%s*", token));
         assertThat(keys).isNotNull();
-        assertThat(keys.size()).isEqualTo(1);
+        assertThat(keys.size()).isGreaterThan(0);
+        log.debug("redis:keys: {}", keys);
+
+        mockMvc.perform(get("/api/authenticatedUser")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.id_token", is(notNullValue())));
 	}
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/authenticatedUser should be authenticated and response 200 - OK")
+    @DisplayName("Test - When Calling POST - /api/authenticatedUser should be authenticated and response 200 - OK")
     public void shouldUserBeAuthenticatedWhenCallApi() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
         formData.add("rememberMe", "false");
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
+        MvcResult mvcResult = mockMvc.perform(post("/login")
             .params(formData))
             .andDo(print())
             .andExpect(status().isOk())
@@ -189,7 +205,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         assertThat(keys).isNotNull();
         assertThat(keys.size()).isEqualTo(1);
 
-        mockMvc.perform(get("/api/logout")
+        mockMvc.perform(get("/logout")
             .cookie(response.getCookies()))
             .andExpect(status().isOk())
             .andExpect(cookie().value("SESSIONID", is(nullValue())));
@@ -204,18 +220,22 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Test - When Cal POST - /api/authenticate with default system user should return 401 - Unauthorized")
+    @DisplayName("Test - When Calling POST - /api/authenticate with default system user should return 401 - Unauthorized")
     public void shouldReturnUnauthorizedWhenCallApiWithDefaultSystemUser() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("client_id", DefaultUsers.SYSTEM_DEFAULT.getValue());
+        formData.add("client_secret", "noPassword");
         formData.add("username", DefaultUsers.SYSTEM_DEFAULT.getValue());
         formData.add("password", "noPassword");
-        formData.add("rememberMe", "false");
-        mockMvc.perform(post("/api/authenticate")
+        formData.add("grant_type", "password");
+        formData.add("scope", "any");
+
+        mockMvc.perform(post("/oauth/token")
             .params(formData))
             .andDo(print())
             .andExpect(status().is4xxClientError())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.message", containsString("User is disabled")));
+            .andExpect(jsonPath("$.error_description", containsString("User(default@admin.com) is locked")));
     }
 }
