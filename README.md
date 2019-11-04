@@ -371,3 +371,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Spring WebFlux Security Jwt](https://github.com/raphaelDL/spring-webflux-security-jwt)
 
 [Junit 5](https://medium.com/@GalletVictor/migration-from-junit-4-to-junit-5-d8fe38644abe)
+
+[Keytool Commands](https://www.sslshopper.com/article-most-common-java-keytool-keystore-commands.html)

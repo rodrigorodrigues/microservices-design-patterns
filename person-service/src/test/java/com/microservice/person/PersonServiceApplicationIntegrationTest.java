@@ -2,20 +2,31 @@ package com.microservice.person;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservice.authentication.common.model.Authentication;
+import com.microservice.authentication.common.model.Authority;
+import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.person.dto.PersonDto;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
@@ -28,6 +39,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -36,9 +48,10 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
-		properties = {"configuration.swagger=false"})
+		properties = {"configuration.swagger=false", "debug=true", "logging.level.org.springframework.security=debug"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
+@Import(PersonServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class)
 public class PersonServiceApplicationIntegrationTest {
 
 	@Autowired
@@ -50,6 +63,12 @@ public class PersonServiceApplicationIntegrationTest {
 	@Autowired
     TokenProvider tokenProvider;
 
+	@Autowired
+    AuthenticationRepository authenticationRepository;
+
+	@Autowired
+    PasswordEncoder passwordEncoder;
+
 	Map<String, List<GrantedAuthority>> users = new HashMap<>();
 
     {
@@ -58,6 +77,32 @@ public class PersonServiceApplicationIntegrationTest {
         users.put("master@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_PERSON_CREATE"),
             new SimpleGrantedAuthority("ROLE_PERSON_READ"),
             new SimpleGrantedAuthority("ROLE_PERSON_SAVE")));
+    }
+
+    @TestConfiguration
+    @EnableMongoAuditing
+    @EnableMongoRepositories(basePackageClasses = AuthenticationRepository.class, considerNestedRepositories = true)
+    static class MockAuthenticationMongoConfiguration {
+    }
+
+    interface AuthenticationRepository extends AuthenticationCommonRepository, CrudRepository<Authentication, String> {
+    }
+
+    @BeforeEach
+    public void setup() {
+        users.entrySet().stream()
+            .map(e -> Authentication.builder().email(e.getKey())
+                .password(passwordEncoder.encode("password123"))
+                .authorities(e.getValue().stream().map(a -> new Authority(a.getAuthority())).collect(Collectors.toList()))
+                .fullName("Master of something")
+                .enabled(true)
+                .build())
+        .forEach(authenticationRepository::save);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        authenticationRepository.deleteAll();
     }
 
     @Test
@@ -141,7 +186,9 @@ public class PersonServiceApplicationIntegrationTest {
 
 	private String authorizationHeader(String user) {
         if (users.containsKey(user)) {
-            return "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken(user, null, users.get(user)), "Something", false);
+            Authentication authentication = authenticationRepository.findByEmail(user);
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(authentication, null, authentication.getAuthorities());
+            return "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "Something", false);
         } else {
             return null;
         }

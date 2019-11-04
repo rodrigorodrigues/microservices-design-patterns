@@ -1,5 +1,6 @@
 package com.microservice.person.config;
 
+import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
 import com.microservice.jwt.common.JwtAuthenticationConverter;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.web.common.util.HandleResponseError;
@@ -16,7 +17,6 @@ import org.springframework.security.web.server.authentication.AuthenticationWebF
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
-import reactor.core.publisher.Mono;
 
 /**
  * Spring Security Configuration
@@ -31,6 +31,8 @@ public class SpringSecurityConfiguration {
     private final HandleResponseError handleResponseError;
 
     private final WebSessionServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
+
+    private final ReactivePreAuthenticatedAuthenticationManager authenticationManager;
 
     private static final String[] WHITELIST = {
         // -- swagger ui
@@ -74,7 +76,7 @@ public class SpringSecurityConfiguration {
     }
 
     private AuthenticationWebFilter authenticationWebFilter() {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(Mono::just);
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
         authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenProvider));
         NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);

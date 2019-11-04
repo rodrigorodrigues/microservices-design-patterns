@@ -1,6 +1,6 @@
 package com.microservice.user.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.microservice.authentication.common.model.Authority;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,13 +8,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 
 @Builder
@@ -22,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "users_login")
-public class User implements UserDetails {
+public class User implements Serializable {
     @Id
     private String id;
 
@@ -53,34 +52,4 @@ public class User implements UserDetails {
 
     @LastModifiedDate
     private Instant lastModifiedDate = Instant.now();
-
-    @Override
-    public Collection<Authority> getAuthorities() {
-        return authorities;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override @JsonIgnore
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override @JsonIgnore
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override @JsonIgnore
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override @JsonIgnore
-    public boolean isEnabled() {
-        return enabled;
-    }
 }

@@ -86,6 +86,7 @@ services:
             - LOGGING_LEVEL_COM_SPRINGBOOT=debug
         depends_on:
           - service-discovery
+          - config-management
         ports:
             - 9000:9000
 

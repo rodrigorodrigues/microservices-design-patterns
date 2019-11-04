@@ -10,8 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -34,7 +34,7 @@ class JwtAuthenticationConverterTest {
     @Test
     void shouldValidateByAuthorizationHeaderAndReturnValidAuthentication() {
         when(tokenProvider.validateToken(anyString())).thenReturn(true);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(null, null);
+        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(null, null);
         when(tokenProvider.getAuthentication(anyString())).thenReturn(authenticationToken);
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
@@ -50,7 +50,7 @@ class JwtAuthenticationConverterTest {
     @Test
     void shouldValidateByRequestParameterAndReturnValidAuthentication() {
         when(tokenProvider.validateToken(anyString())).thenReturn(true);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(null, null);
+        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(null, null);
         when(tokenProvider.getAuthentication(anyString())).thenReturn(authenticationToken);
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")

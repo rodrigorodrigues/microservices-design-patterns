@@ -5,6 +5,10 @@ import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.web.common.util.constants.DefaultUsers;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.EurekaClient;
+import com.netflix.discovery.shared.Application;
+import com.netflix.discovery.shared.Applications;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
@@ -37,6 +42,7 @@ import redis.embedded.RedisServer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,6 +50,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -122,6 +131,22 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             log.debug(String.format("Created Master Authentication: %s", authentication));
         }
 
+        @Bean
+        EurekaClient eurekaClient() {
+            EurekaClient eurekaClient = mock(EurekaClient.class);
+            Applications applications = mock(Applications.class);
+            Application application = mock(Application.class);
+            when(application.getInstances()).thenReturn(Arrays.asList(InstanceInfo.Builder
+                .newBuilder()
+                .setIPAddr("127.0.0.1")
+                .setPort(8080)
+                .setAppName("mock-service")
+                .build()));
+            when(applications.getRegisteredApplications()).thenReturn(Arrays.asList(application));
+            when(eurekaClient.getApplications()).thenReturn(applications);
+            return eurekaClient;
+        }
+
         private List<Authority> permissions(String ... permissions) {
             return Stream.of(permissions)
                 .map(Authority::new)
@@ -130,15 +155,15 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     }
 
     @Test
-	@DisplayName("Test - When Calling POST - /api/authenticate should return token and response 200 - OK")
-	public void shouldReturnTokenWhenCallApi() throws Exception {
+	@DisplayName("Test - When Calling POST - /oauth/token should return token and response 200 - OK")
+	public void shouldReturnTokenWhenCallingApi() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("client_id", "master@gmail.com");
-        formData.add("client_secret", "password123");
+        formData.add("client_id", "client");
+        formData.add("client_secret", "secret");
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
         formData.add("grant_type", "password");
-        formData.add("scope", "any");
+        formData.add("scope", "read");
         String token = objectMapper.readValue(mockMvc.perform(post("/oauth/token")
             .params(formData))
             .andDo(print())
@@ -151,30 +176,61 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .getContentAsString(), OAuth2AccessToken.class).getValue();
 
         assertThat(token).isNotEmpty();
-        Set keys = redisOperations.keys(String.format("*%s*", token));
-        assertThat(keys).isNotNull();
-        assertThat(keys.size()).isGreaterThan(0);
-        log.debug("redis:keys: {}", keys);
+	}
+
+    @Test
+    @DisplayName("Test - When Calling POST - /login should be authenticated and response 200 - OK")
+    public void shouldUserBeAuthenticatedWhenCallingApi() throws Exception {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", "master@gmail.com");
+        formData.add("password", "password123");
+        MockHttpServletResponse response = mockMvc.perform(post("/login")
+            .params(formData)
+            .with(csrf()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id_token", is(notNullValue())))
+            .andExpect(cookie().value("SESSIONID", is(notNullValue())))
+            .andReturn()
+            .getResponse();
+        OAuth2AccessToken oAuth2AccessToken = objectMapper.readValue(response.getContentAsString(), OAuth2AccessToken.class);
+
+        assertThat(oAuth2AccessToken).isNotNull();
 
         mockMvc.perform(get("/api/authenticatedUser")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-            .andDo(print())
+            .with(csrf())
+            .cookie(response.getCookies()))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
             .andExpect(jsonPath("$.id_token", is(notNullValue())));
+
+        Set keys = redisOperations.keys("*");
+        assertThat(keys).isNotNull();
+        assertThat(keys.size()).isGreaterThan(0);
 	}
 
     @Test
+    @DisplayName("Test - When Calling GET - /api/login should display page and response 200 - OK")
+    public void shouldDisplayLoginPage() throws Exception {
+        mockMvc.perform(get("/login"))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+    }
+
+    @Test
     @DisplayName("Test - When Calling POST - /api/authenticatedUser should be authenticated and response 200 - OK")
-    public void shouldUserBeAuthenticatedWhenCallApi() throws Exception {
+    public void shouldWorkLoginAndLogout() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
         formData.add("rememberMe", "false");
 
-        MvcResult mvcResult = mockMvc.perform(post("/login")
-            .params(formData))
+        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
+            .params(formData)
+            .with(csrf()))
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -205,7 +261,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         assertThat(keys).isNotNull();
         assertThat(keys.size()).isEqualTo(1);
 
-        mockMvc.perform(get("/logout")
+        mockMvc.perform(post("/api/logout").with(csrf())
             .cookie(response.getCookies()))
             .andExpect(status().isOk())
             .andExpect(cookie().value("SESSIONID", is(nullValue())));
@@ -219,16 +275,25 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         assertThat(keys).isNullOrEmpty();
     }
 
+
     @Test
-    @DisplayName("Test - When Calling POST - /api/authenticate with default system user should return 401 - Unauthorized")
-    public void shouldReturnUnauthorizedWhenCallApiWithDefaultSystemUser() throws Exception {
+    @DisplayName("Test - When Calling GET - /oauth/authenticatedUser without jwt should return 401 - Unauthorized")
+    public void shouldReturnUnauthorizedWhenCallingApiWithoutAuthorizationHeader() throws Exception {
+        mockMvc.perform(get("/api/authenticatedUser"))
+            .andDo(print())
+            .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("Test - When Calling POST - /oauth/token with default system user should return 401 - Unauthorized")
+    public void shouldReturnUnauthorizedWhenCallingApiWithDefaultSystemUser() throws Exception {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("client_id", DefaultUsers.SYSTEM_DEFAULT.getValue());
-        formData.add("client_secret", "noPassword");
+        formData.add("client_id", "client");
+        formData.add("client_secret", "secret");
         formData.add("username", DefaultUsers.SYSTEM_DEFAULT.getValue());
         formData.add("password", "noPassword");
         formData.add("grant_type", "password");
-        formData.add("scope", "any");
+        formData.add("scope", "read");
 
         mockMvc.perform(post("/oauth/token")
             .params(formData))
@@ -236,6 +301,23 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .andExpect(status().is4xxClientError())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.error_description", containsString("User(default@admin.com) is locked")));
+            .andExpect(jsonPath("$.error_description", containsString("User is disabled")));
+    }
+
+    @Test
+    @DisplayName("Test - When Calling POST - /api/authenticate with default system user should return 401 - Unauthorized")
+    public void shouldReturnUnauthorizedWhenCallingAuthenticateApiWithDefaultSystemUser() throws Exception {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", DefaultUsers.SYSTEM_DEFAULT.getValue());
+        formData.add("password", "noPassword");
+
+        mockMvc.perform(post("/api/authenticate")
+            .params(formData)
+            .with(csrf()))
+            .andDo(print())
+            .andExpect(status().is4xxClientError())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.message", containsString("User is disabled")));
     }
 }

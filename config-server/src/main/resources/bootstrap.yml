@@ -30,6 +30,10 @@ management:
         web:
             exposure:
                 include: '*'
+    endpoint:
+        health:
+            show-details: when_authorized
+
 
 ---
 spring:

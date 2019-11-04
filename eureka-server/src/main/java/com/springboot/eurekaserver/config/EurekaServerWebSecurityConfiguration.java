@@ -1,22 +1,24 @@
 package com.springboot.eurekaserver.config;
 
-import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
+import com.microservice.authentication.common.service.SharedAuthenticationService;
 import lombok.AllArgsConstructor;
+import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableOAuth2Sso
 public class EurekaServerWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final String[] WHITELIST = {
         "/eureka/apps/**",
-        "/actuator/**",
         "/v1/agent/self",
         "/eureka/peerreplication/batch/**",
         "/v1/catalog/services",
@@ -27,7 +29,7 @@ public class EurekaServerWebSecurityConfiguration extends WebSecurityConfigurerA
         "/favicon.ico",
     };
 
-    private final SharedAuthenticationServiceImpl sharedAuthenticationService;
+    private final SharedAuthenticationService sharedAuthenticationService;
 
     @Override
     protected UserDetailsService userDetailsService() {
@@ -36,17 +38,24 @@ public class EurekaServerWebSecurityConfiguration extends WebSecurityConfigurerA
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+        successHandler.setTargetUrlParameter("redirect_uri");
+        successHandler.setDefaultTargetUrl("/");
+
         http.csrf().disable()
             .authorizeRequests()
+            .antMatchers("/login", "/logout").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
-            .formLogin()
+            .formLogin().loginPage("/login").successHandler(successHandler)
             .and()
-            .logout();
+            .logout()
+            .deleteCookies("SESSIONID")
+            .invalidateHttpSession(true);
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
+    public void configure(WebSecurity web) {
         web.ignoring().antMatchers(WHITELIST);
     }
 }

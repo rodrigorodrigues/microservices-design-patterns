@@ -13,16 +13,42 @@ management:
                 include: '*'
     server:
         port: ${server.port}
+    endpoint:
+        health:
+            show-details: when_authorized
 
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 
 spring:
+    main:
+        allow-bean-definition-overriding: true
     cloud:
         config:
             allowOverride: true
             overrideNone: true
             overrideSystemProperties: false
+security:
+    oauth2:
+        client:
+            accessTokenUri: http://localhost:9999/oauth/token
+            userAuthorizationUri: http://localhost:9999/oauth/authorize
+            clientId: client
+            clientSecret: secret
+        resource:
+            jwt:
+                keyValue: secret
+
+---
+spring:
+    profiles: integration-tests-certs
+
+configuration:
+    jwt:
+        base64-secret:
+        keystore: ${KEYSTORE:}
+        keystoreAlias: ${KEYSTORE_ALIAS:}
+        keystorePassword: ${KEYSTORE_PASSWORD:}
 
 ---
 spring:

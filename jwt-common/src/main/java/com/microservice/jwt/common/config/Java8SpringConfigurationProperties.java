@@ -3,7 +3,6 @@ package com.microservice.jwt.common.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -24,19 +23,22 @@ public class Java8SpringConfigurationProperties {
         /**
          * This token must be encoded using Base64 (you can type `echo 'secret-key'|base64` on your command line)
          */
-        @NotEmpty
         private String base64Secret;
 
         /**
          * Expiry token in seconds.
          */
-        @NotNull
         private long tokenValidityInSeconds;
 
         /**
          * Remember me expiry token in seconds.
          */
-        @NotNull
         private long tokenValidityInSecondsForRememberMe;
+
+        private String keystore;
+
+        private String keystoreAlias;
+
+        private String keystorePassword;
     }
 }

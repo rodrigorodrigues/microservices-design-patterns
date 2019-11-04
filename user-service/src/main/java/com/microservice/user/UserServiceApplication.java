@@ -1,6 +1,6 @@
 package com.microservice.user;
 
-import com.microservice.user.model.Authority;
+import com.microservice.authentication.common.model.Authority;
 import com.microservice.user.model.User;
 import com.microservice.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -75,6 +76,7 @@ public class UserServiceApplication {
         return new ValidatingMongoEventListener(validator());
     }
 
+    @Primary
     @Bean
     public LocalValidatorFactoryBean validator() {
         return new LocalValidatorFactoryBean();

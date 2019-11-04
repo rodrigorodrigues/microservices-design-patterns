@@ -40,7 +40,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-@Profile("prod")
+@Profile("prod-need-to-fix")
 @Configuration
 @BootstrapConfiguration
 public class SslClientAutoConfiguration {

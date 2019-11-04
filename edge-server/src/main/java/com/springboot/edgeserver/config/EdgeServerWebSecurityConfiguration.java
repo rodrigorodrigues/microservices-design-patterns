@@ -1,6 +1,6 @@
 package com.springboot.edgeserver.config;
 
-import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
+import com.microservice.authentication.common.service.SharedAuthenticationService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,7 +23,7 @@ public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAda
             "/favicon.ico"
     };
 
-    private final SharedAuthenticationServiceImpl sharedAuthenticationService;
+    private final SharedAuthenticationService sharedAuthenticationService;
 
     @Override
     protected UserDetailsService userDetailsService() {
@@ -42,7 +42,7 @@ public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAda
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
+    public void configure(WebSecurity web) {
         web.ignoring().antMatchers(WHITELIST);
     }
 }

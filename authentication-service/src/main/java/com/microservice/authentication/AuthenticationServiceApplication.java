@@ -1,5 +1,6 @@
 package com.microservice.authentication;
 
+import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -7,10 +8,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -23,6 +26,8 @@ import javax.net.ssl.HttpsURLConnection;
 @Slf4j
 @SpringBootApplication
 @EnableDiscoveryClient
+@Import(ActuatorResourceServerConfiguration.class)
+@EnableRedisHttpSession
 public class AuthenticationServiceApplication {
 
     static {

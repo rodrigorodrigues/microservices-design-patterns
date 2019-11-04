@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -27,8 +28,8 @@ public class MongoRecreateCollectionUtil {
             log.debug("Dropping Collection for entity: {}", entity);
             mongoTemplate.dropCollection(entity);
             createCappedCollection(entity);
-            insertSystemDefaultUser();
         }
+        insertSystemDefaultUser();
     }
 
     private void createCappedCollection(Class<? extends Serializable> entity) {
@@ -46,17 +47,19 @@ public class MongoRecreateCollectionUtil {
     }
 
     private void insertSystemDefaultUser() {
-        log.debug("insertSystemDefaultUser:init");
-        Authentication authentication = Authentication.builder()
+        if (!mongoTemplate.exists(new BasicQuery(String.format("{ email : '%s' }", DefaultUsers.SYSTEM_DEFAULT.getValue())), Authentication.class)) {
+            log.debug("insertSystemDefaultUser:init");
+            Authentication authentication = Authentication.builder()
                 .email(DefaultUsers.SYSTEM_DEFAULT.getValue())
                 .password(passwordEncoder.encode("noPassword"))
                 .fullName("System Administrator")
                 .enabled(false)
                 .id(UUID.randomUUID().toString())
                 .build();
-        log.debug("Creating default authentication: {}", authentication);
-        authentication = mongoTemplate.save(authentication, "users_login");
-        log.debug("Created Default Authentication: {}", authentication);
-        log.debug("insertSystemDefaultUser:end");
+            log.debug("Creating default authentication: {}", authentication);
+            authentication = mongoTemplate.save(authentication, "users_login");
+            log.debug("Created Default Authentication: {}", authentication);
+            log.debug("insertSystemDefaultUser:end");
+        }
     }
 }

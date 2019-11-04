@@ -15,10 +15,25 @@ management:
         web:
             exposure:
                 include: '*'
+    endpoint:
+        health:
+            show-details: when_authorized
+
 eureka:
     client:
         serviceUrl:
             defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}
+
+security:
+    oauth2:
+        client:
+            accessTokenUri: http://localhost:9999/oauth/token
+            userAuthorizationUri: http://localhost:9999/oauth/authorize
+            clientId: client
+            clientSecret: secret
+        resource:
+            jwt:
+                keyValue: secret
 
 ---
 spring:

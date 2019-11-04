@@ -3,7 +3,6 @@ package com.microservice.user;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.jwt.common.TokenProvider;
-import com.microservice.user.UserServiceApplication;
 import com.microservice.user.dto.UserDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
-        properties = "configuration.swagger=false")
+        properties = {"configuration.swagger=false", "debug=true", "logging.level.org.springframework.security=debug"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 class UserServiceApplicationIntegrationTest {
@@ -65,11 +64,11 @@ class UserServiceApplicationIntegrationTest {
                 .expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
                 .expectBody()
                 .jsonPath("$.id").isNotEmpty()
-                .jsonPath("$.createdByUser").isEqualTo("master@gmail.com");
+                .jsonPath("$.createdByUser").isEqualTo("admin@gmail.com");
     }
 
     private String authorizationHeader(List<SimpleGrantedAuthority> permissions) {
-        return "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken("master@gmail.com", null, permissions), "Something", false);
+        return "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken("admin@gmail.com", null, permissions), "Something", false);
     }
 
     private String convertToJson(Object object) throws JsonProcessingException {

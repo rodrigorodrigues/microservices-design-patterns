@@ -1,5 +1,6 @@
 package com.microservice.user.config;
 
+import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
 import com.microservice.jwt.common.JwtAuthenticationConverter;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.web.common.util.HandleResponseError;
@@ -13,11 +14,9 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler;
-import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
-import reactor.core.publisher.Mono;
 
 /**
  * Spring Security Configuration
@@ -30,6 +29,10 @@ public class SpringSecurityConfiguration {
     private final TokenProvider tokenProvider;
 
     private final HandleResponseError handleResponseError;
+
+    private final WebSessionServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
+
+    private final ReactivePreAuthenticatedAuthenticationManager authenticationManager;
 
     private static final String[] WHITELIST = {
         // -- swagger ui
@@ -60,6 +63,7 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .logout().disable()
+                .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(WHITELIST).permitAll()
                 .anyExchange().authenticated()
@@ -72,22 +76,15 @@ public class SpringSecurityConfiguration {
     }
 
     private AuthenticationWebFilter authenticationWebFilter() {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(Mono::just);
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
         authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenProvider));
         NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
-        authenticationWebFilter.setAuthenticationFailureHandler(authenticationFailureHandler());
-        authenticationWebFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
+        authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));
+        authenticationWebFilter.setSecurityContextRepository(securityContextRepository);
+        authenticationWebFilter.setAuthenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain().filter(webFilterExchange.getExchange())
+                .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication)));
         return authenticationWebFilter;
-    }
-
-    private ServerAuthenticationFailureHandler authenticationFailureHandler() {
-        return (webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true);
-    }
-
-    private ServerAuthenticationSuccessHandler authenticationSuccessHandler() {
-        return (webFilterExchange, authentication) -> webFilterExchange.getChain().filter(webFilterExchange.getExchange())
-            .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication));
     }
 
 

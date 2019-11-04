@@ -4,14 +4,17 @@ import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.security.Key;
+import java.security.KeyStore;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,14 +46,21 @@ public class TokenProvider {
      * Initiate jwt configuration.
      */
     @PostConstruct
-    public void init() {
-        log.debug("Using a Base64-encoded JWT secret key");
-        byte[] keyBytes = Base64.getDecoder().decode(configurationProperties.getJwt().getBase64Secret());
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+    public void init() throws Exception {
+        Java8SpringConfigurationProperties.Jwt jwt = configurationProperties.getJwt();
+        if (!StringUtils.isEmpty(jwt.getBase64Secret())) {
+            log.debug("Using a Base64-encoded JWT secret key");
+            byte[] keyBytes = Base64.getDecoder().decode(jwt.getBase64Secret());
+            this.key = Keys.hmacShaKeyFor(keyBytes);
+        } else {
+            KeyStore store = KeyStore.getInstance("jks");
+            store.load(new FileSystemResource(jwt.getKeystore()).getInputStream(), jwt.getKeystorePassword().toCharArray());
+            this.key = store.getKey(jwt.getKeystoreAlias(), jwt.getKeystorePassword().toCharArray());
+        }
         this.tokenValidityInMilliseconds =
-            1000 * configurationProperties.getJwt().getTokenValidityInSeconds();
+            1000 * jwt.getTokenValidityInSeconds();
         this.tokenValidityInMillisecondsForRememberMe =
-            1000 * configurationProperties.getJwt()
+            1000 * jwt
                 .getTokenValidityInSecondsForRememberMe();
     }
 
@@ -79,10 +89,15 @@ public class TokenProvider {
         claims.put(AUTH_KEY, String.join(",", authorities));
         claims.put(NAME_KEY, fullName);
 
-        return Jwts.builder()
+        JwtBuilder jwtBuilder = Jwts.builder()
             .setSubject(authentication.getName())
-            .addClaims(claims)
-            .signWith(key, SignatureAlgorithm.HS512)
+            .addClaims(claims);
+        if (!StringUtils.isEmpty(configurationProperties.getJwt().getBase64Secret())) {
+            jwtBuilder.signWith(key, SignatureAlgorithm.HS512);
+        } else {
+            jwtBuilder.signWith(key);
+        }
+        return jwtBuilder
             .setExpiration(validity)
             .compact();
     }
@@ -92,7 +107,7 @@ public class TokenProvider {
      * @param token JWT
      * @return authentication
      */
-    public Authentication getAuthentication(String token) {
+    public PreAuthenticatedAuthenticationToken getAuthentication(String token) {
         Claims claims = Jwts.parser()
             .setSigningKey(key)
             .parseClaimsJws(token)
@@ -107,7 +122,7 @@ public class TokenProvider {
 
         User principal = new User(claims.getSubject(), "", authorities);
 
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+        return new PreAuthenticatedAuthenticationToken(principal, "", authorities);
     }
 
     /**
@@ -120,17 +135,13 @@ public class TokenProvider {
             Jwts.parser().setSigningKey(key).parseClaimsJws(authToken);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT signature.");
-            log.trace("Invalid JWT signature trace: {}", e);
+            log.error("Invalid JWT signature.",e );
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT token.");
-            log.trace("Expired JWT token trace: {}", e);
+            log.error("Expired JWT token.", e);
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT token.");
-            log.trace("Unsupported JWT token trace: {}", e);
+            log.error("Unsupported JWT token.", e);
         } catch (IllegalArgumentException e) {
-            log.info("JWT token compact of handler are invalid.");
-            log.trace("JWT token compact of handler are invalid trace: {}", e);
+            log.error("JWT token compact of handler are invalid.", e);
         }
         return false;
     }

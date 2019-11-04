@@ -2,6 +2,7 @@ package com.microservice.person.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
@@ -63,6 +64,9 @@ public class PersonControllerTest {
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;
+
+    @MockBean
+    SharedAuthenticationService sharedAuthenticationService;
 
     @Autowired
     ObjectMapper objectMapper;

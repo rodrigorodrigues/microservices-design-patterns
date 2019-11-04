@@ -2,6 +2,7 @@ package com.microservice.user.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.user.config.SpringSecurityAuditorAware;
@@ -60,6 +61,9 @@ public class UserControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @MockBean
+    SharedAuthenticationService sharedAuthenticationService;
 
     @Test
     @DisplayName("Test - When Calling GET - /api/users without valid authorization the response should be 403 - Forbidden")

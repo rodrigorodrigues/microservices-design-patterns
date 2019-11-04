@@ -1,81 +1,101 @@
 package com.microservice.authentication.config;
 
-import com.microservice.authentication.service.AuthorizationServiceImpl;
-import org.springframework.beans.factory.annotation.Value;
+import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
+import com.netflix.discovery.EurekaClient;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.joining;
-
+@Slf4j
 @Configuration
 @EnableAuthorizationServer
+@AllArgsConstructor
 public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
-
-    private final AuthorizationServiceImpl authorizationService;
 
     private final AuthenticationManager authenticationManager;
 
-    private final TokenStore tokenStore;
+    private final Java8SpringConfigurationProperties configurationProperties;
 
-    @Value("${configuration.jwt.base64-secret}")
-    private String signingKey;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthorizationServerConfiguration(AuthorizationServiceImpl authorizationService, AuthenticationManager authenticationManager, TokenStore tokenStore) {
-        this.authorizationService = authorizationService;
-        this.authenticationManager = authenticationManager;
-        this.tokenStore = tokenStore;
+    private final EurekaClient eurekaClient;
+
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        endpoints.tokenStore(tokenStore())
+            .authenticationManager(authenticationManager)
+            .accessTokenConverter(jwtAccessTokenConverter());
+    }
+
+    private String[] getListOfServices() {
+        return eurekaClient.getApplications()
+            .getRegisteredApplications()
+            .stream()
+            .flatMap(a -> a.getInstances().stream())
+            .map(a -> String.format("http://%s:%s/login", a.getIPAddr(), a.getPort()))
+            .collect(Collectors.toList())
+            .toArray(new String[] {});
     }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.withClientDetails(authorizationService);
+        String[] listOfServices = getListOfServices();
+        log.debug("listOfServices: {}", listOfServices);
+        clients.inMemory()
+            .withClient("client")
+            .secret(passwordEncoder.encode("secret"))
+            .authorizedGrantTypes("password", "authorization_code", "refresh_token")
+            .redirectUris(listOfServices)
+            .autoApprove(true)
+            .scopes("read", "write")
+            .and()
+            .withClient("actuator")
+            .secret(passwordEncoder.encode("actuator_password"))
+            .authorizedGrantTypes("client_credentials")
+            .autoApprove(true)
+            .authorities("ADMIN")
+            .scopes("actuator");
     }
 
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.tokenStore(tokenStore)
-            .authenticationManager(authenticationManager)
-            .accessTokenConverter(jwtAccessTokenConverter())
-            .tokenEnhancer(customTokenEnhancer());
+    @Bean
+    public TokenStore tokenStore() {
+        return new JwtTokenStore(jwtAccessTokenConverter());
     }
 
     @Bean
     JwtAccessTokenConverter jwtAccessTokenConverter() {
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
-        jwtAccessTokenConverter.setSigningKey(signingKey);
+        Java8SpringConfigurationProperties.Jwt jwt = configurationProperties.getJwt();
+        if (StringUtils.isNotBlank(jwt.getBase64Secret())) {
+            jwtAccessTokenConverter.setSigningKey(jwt.getBase64Secret());
+            jwtAccessTokenConverter.setVerifierKey(jwt.getBase64Secret());
+        } else {
+            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeystore()), jwt.getKeystorePassword().toCharArray());
+            jwtAccessTokenConverter.setKeyPair(keyStoreKeyFactory.getKeyPair(jwt.getKeystoreAlias()));
+        }
         return jwtAccessTokenConverter;
     }
 
-    @Bean
-    TokenEnhancer customTokenEnhancer() {
-        return (accessToken, authentication) -> {
-            Map<String, Object> additionalInfo = new HashMap<>();
-            additionalInfo.put("auth", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(joining(",")));
-            additionalInfo.put("name", authentication.getName());
-            additionalInfo.put("sub", authentication.getName());
-            ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(
-                additionalInfo);
-            return accessToken;
-        };
-    }
-
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security.allowFormAuthenticationForClients()
+    public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
+        oauthServer
+            .allowFormAuthenticationForClients()
             .tokenKeyAccess("permitAll()")
             .checkTokenAccess("isAuthenticated()");
     }
