@@ -1,25 +1,15 @@
 package com.microservice.person.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Child;
 import com.microservice.person.model.Person;
-import com.microservice.person.repository.PersonRepository;
+import com.microservice.person.repository.PersonRepositoryTest.MockServiceConfiguration;
 import com.microservice.person.util.ReactiveMongoMetadataUtil;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
-import reactor.core.Disposable;
-import reactor.test.StepVerifier;
-
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Arrays;
@@ -27,12 +17,25 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+import reactor.core.Disposable;
+import reactor.test.StepVerifier;
 
 @ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
-@Import({ReactiveMongoMetadataUtil.class, ObjectMapper.class})
+@Import({ReactiveMongoMetadataUtil.class, ObjectMapper.class, MockServiceConfiguration.class})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;
@@ -42,6 +45,14 @@ public class PersonRepositoryTest {
 
     @Autowired
     ReactiveMongoTemplate mongoTemplate;
+
+    @TestConfiguration
+    static class MockServiceConfiguration {
+        @Bean
+        SharedAuthenticationService sharedAuthenticationService() {
+            return mock(SharedAuthenticationService.class);
+        }
+    }
 
     @BeforeEach
     @Transactional

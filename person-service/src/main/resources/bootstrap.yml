@@ -13,8 +13,9 @@ spring:
                 max-interval: 128000
                 multiplier: 2
             headers:
-                X-Encrypt-Key: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-
+                X-Encrypt-Key: ${X_ENCRYPT_KEY:}
+    main:
+        allow-bean-definition-overriding: true
 eureka:
     client:
         serviceUrl:

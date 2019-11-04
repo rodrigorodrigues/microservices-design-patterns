@@ -1,8 +1,14 @@
 package com.microservice.user;
 
 import com.microservice.authentication.common.model.Authority;
+import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
+import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.user.model.User;
 import com.microservice.user.repository.UserRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.net.ssl.HttpsURLConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.CommandLineRunner;
@@ -16,11 +22,6 @@ import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventL
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-
-import javax.net.ssl.HttpsURLConnection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @SpringBootApplication
@@ -87,4 +88,9 @@ public class UserServiceApplication {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+    @Bean
+    ReactivePreAuthenticatedAuthenticationManager customReactiveAuthenticationManager(
+        SharedAuthenticationService sharedAuthenticationService) {
+        return new ReactivePreAuthenticatedAuthenticationManager(sharedAuthenticationService);
+    }
 }

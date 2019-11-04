@@ -1,7 +1,6 @@
 package com.microservice.authentication.autoconfigure;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +21,5 @@ public class AuthenticationCommonMongoConfiguration {
     @Bean
     SharedAuthenticationService sharedAuthenticationService(AuthenticationCommonRepository authenticationCommonRepository) {
         return new SharedAuthenticationServiceImpl(authenticationCommonRepository);
-    }
-
-    @Bean
-    ReactivePreAuthenticatedAuthenticationManager customReactiveAuthenticationManager(SharedAuthenticationService sharedAuthenticationService) {
-        return new ReactivePreAuthenticatedAuthenticationManager(sharedAuthenticationService);
     }
 }

@@ -36,13 +36,6 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
 
-const redis   = require("redis");
-const session = require('express-session');
-const redisStore = require('connect-redis')(session);
-
-// Session Redis
-loadSessionRedis();
-
 // Spring Boot Actuator
 loadActuator();
 
@@ -136,37 +129,6 @@ function loadSleuth() {
             tokens['response-time'](req, res), 'ms'
         ].join(' ');
     }));
-}
-
-function loadSessionRedis() {
-    const redisServer = process.env.REDIS_SERVER || '127.0.0.1';
-    const redisPort = process.env.REDIS_PORT || 6379;
-
-    console.log("redisServer: ", redisServer);
-    console.log("redisPort: ", redisPort);
-
-    const client  = redis.createClient({ host: redisServer, port: redisPort});
-
-    client.on('error', (err) => {
-        console.log('Redis error: ', err);
-    });
-
-    app.use(session({
-        secret: 'spring:session:',
-        store: new redisStore({ host: redisServer, port: redisPort, client: client, ttl: 86400}),
-        saveUninitialized: false,
-        resave: false
-    }));
-
-    client.keys("spring:session:*", function(error, key){
-        key.forEach(k => {
-            if (k.startsWith('spring:session:sessions:')) {
-                console.log("Redis Key: ", k);
-                client.hkeys(k, redis.print);
-            }
-        });
-    });
-
 }
 
 function loadActuator() {

@@ -38,7 +38,7 @@ public class ConfigServerWebSecurityConfiguration extends WebSecurityConfigurerA
 
         http.csrf().disable()
             .authorizeRequests()
-            .antMatchers("/error").permitAll()
+            .antMatchers("/login", "/logout", "/error").permitAll()
             .anyRequest().access("@webSecurity.checkEncryptKey(request, authentication)")
             .and()
             .formLogin().loginPage("/login").successHandler(successHandler)

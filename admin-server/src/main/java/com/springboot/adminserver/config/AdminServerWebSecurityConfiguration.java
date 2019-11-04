@@ -1,7 +1,9 @@
 package com.springboot.adminserver.config;
 
 import com.microservice.authentication.common.service.SharedAuthenticationService;
+import de.codecentric.boot.admin.server.config.AdminServerProperties;
 import lombok.AllArgsConstructor;
+import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -13,9 +15,9 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableOAuth2Sso
 public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private static final String[] WHITELIST = {
-        "/actuator/**",
         "/**/*.js",
         "/**/*.css",
         "/**/*.html",
@@ -24,6 +26,8 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
 
     private final SharedAuthenticationService sharedAuthenticationService;
 
+    private final AdminServerProperties adminServerProperties;
+
     @Override
     protected UserDetailsService userDetailsService() {
         return sharedAuthenticationService;
@@ -31,15 +35,22 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        String adminContextPath = adminServerProperties.getContextPath();
         SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
         successHandler.setTargetUrlParameter("redirect_uri");
-        successHandler.setDefaultTargetUrl("/");
+        successHandler.setDefaultTargetUrl(adminContextPath + "/");
 
         http.csrf().disable()
             .authorizeRequests()
+            .antMatchers(adminContextPath + "/assets/**").permitAll()
+            .antMatchers(adminContextPath + "/login").permitAll()
+            .antMatchers(adminContextPath + "/logout").permitAll()
+            .antMatchers(adminContextPath + "/error").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
-            .formLogin().loginPage("/login").successHandler(successHandler)
+            .formLogin()
+                .loginPage(adminContextPath + "/login")
+            .successHandler(successHandler)
             .and()
             .logout()
             .deleteCookies("SESSIONID")

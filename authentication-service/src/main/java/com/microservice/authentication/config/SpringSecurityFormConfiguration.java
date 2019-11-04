@@ -5,9 +5,13 @@ import com.microservice.authentication.common.service.SharedAuthenticationServic
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import com.microservice.jwt.common.TokenProvider;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,20 +22,20 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
-import java.util.Map;
-
 /**
- * Spring Security Configuration
+ * Spring Security Configuration for form
  */
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
-public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
+@Order(2)
+public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapter {
     private final SharedAuthenticationService sharedAuthenticationService;
 
     private final TokenProvider tokenProvider;
@@ -54,27 +58,6 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.requestMatchers()
-            .and()
-            .requestMatchers()
-            .antMatchers("/login", "/oauth/authorize")
-            .and()
-            .authorizeRequests()
-            .anyRequest().authenticated()
-            .and()
-            .formLogin()
-            .successHandler(successHandler())
-            .permitAll()
-            .and()
-            .logout()
-            .deleteCookies("SESSIONID")
-            .invalidateHttpSession(true)
-            .and()
-            .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .ignoringAntMatchers("/oauth/**")
-
-            .and()
-            .requestMatchers()
             .antMatchers("/api/**")
             .and()
             .authorizeRequests()
@@ -92,23 +75,22 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .invalidateHttpSession(true)
             .and()
             .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .and()
+            .exceptionHandling()
+            .authenticationEntryPoint(new Http403ForbiddenEntryPoint());
 /*
             .and()
             .exceptionHandling()
             .authenticationEntryPoint(new OAuth2AuthenticationEntryPoint());
 */
 /*
-            .and()
-            .exceptionHandling()
-            .authenticationEntryPoint(new Http403ForbiddenEntryPoint());
 */
     }
 
     private AuthenticationFailureHandler authenticationFailureHandler() {
         return (request, response, exception) -> {
-            if (request.getPathInfo().startsWith("/api/")) {
+            if (validateApiPath(request)) {
                 Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(request, exception, true);
                 response.setStatus(Integer.parseInt(errorAttributes.get("status").toString()));
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -119,9 +101,14 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
         };
     }
 
+    private boolean validateApiPath(HttpServletRequest request) {
+        return StringUtils.isNotBlank(request.getPathInfo()) && request.getPathInfo().startsWith("/api/") ||
+            StringUtils.isNotBlank(request.getServletPath()) && request.getServletPath().startsWith("/api/");
+    }
+
     private AuthenticationSuccessHandler successHandler() {
         return (request, response, authentication) -> {
-            if (request.getPathInfo().startsWith("/api/")) {
+            if (validateApiPath(request)) {
                 String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), "true" .equals(request.getParameter("rememberMe")));
                 JwtTokenDto jwtToken = new JwtTokenDto(authorization);
                 response.addHeader(HttpHeaders.AUTHORIZATION, authorization);

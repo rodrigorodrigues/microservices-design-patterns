@@ -1,4 +1,5 @@
 import constants from '../constants/AppConstant';
+import Cookies from 'js-cookie';
 
 const { API_V1 } = constants;
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
@@ -16,14 +17,21 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
             response = await fetch(url, {
                 credentials: 'include',
                 headers: {
-                    'Authorization': jwt
+                    'Authorization': jwt,
+                    'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')
                 }
             });
         } else {
-            response = await fetch(url, {credentials: 'include'})
+            response = await fetch(url, {
+                credentials: 'include',
+                headers: {
+                    'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')
+                }
+            });
         }
         console.log("response status: ", response.status);
         console.log("response header content-type: ", response.headers.get('Content-type'));
+        console.log("Cookies: ", Cookies.get('XSRF-TOKEN'));
         if (response.headers.get('Content-type') !== null && response.headers.get('Content-type').startsWith('application/json')) {
             return response.json();
         } else {
@@ -40,7 +48,7 @@ export async function postWithHeaders(resource, payload, headers) {
 }
 
 export async function post(resource, payload) {
-    return processPost(resource, {'Content-Type': 'application/json'}, JSON.stringify(payload));
+    return processPost(resource, {'Content-Type': 'application/json', 'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')}, JSON.stringify(payload));
 }
 
 async function processPost(resource, headers, body) {

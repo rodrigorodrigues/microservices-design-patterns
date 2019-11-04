@@ -2,6 +2,7 @@ package com.microservice.authentication;
 
 import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
+import javax.net.ssl.HttpsURLConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.SpringApplication;
@@ -20,8 +21,6 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
-import javax.net.ssl.HttpsURLConnection;
 
 @Slf4j
 @SpringBootApplication

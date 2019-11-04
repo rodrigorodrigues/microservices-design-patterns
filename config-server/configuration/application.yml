@@ -37,7 +37,8 @@ security:
             clientSecret: secret
         resource:
             jwt:
-                keyValue: secret
+                keyValue: ${configuration.jwt.base64-secret:}
+            user-info-uri: http://localhost:9999/api/authenticatedUser
 
 ---
 spring:

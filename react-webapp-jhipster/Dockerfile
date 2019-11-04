@@ -9,9 +9,11 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN apt-get update && apt-get install netcat-openbsd -y
+COPY node_modules/ ./
 
-RUN npm install
+# RUN apt-get update && apt-get install netcat-openbsd -y
+
+# RUN npm install
 # If you are building your code for production
 # RUN npm install --only=production
 

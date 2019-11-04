@@ -2,6 +2,9 @@ package com.microservice.authentication.config;
 
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.netflix.discovery.EurekaClient;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -19,8 +22,6 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
-
-import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -43,25 +44,24 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
             .accessTokenConverter(jwtAccessTokenConverter());
     }
 
-    private String[] getListOfServices() {
+    private List<String> getListOfServices() {
         return eurekaClient.getApplications()
             .getRegisteredApplications()
             .stream()
             .flatMap(a -> a.getInstances().stream())
-            .map(a -> String.format("http://%s:%s/login", a.getIPAddr(), a.getPort()))
-            .collect(Collectors.toList())
-            .toArray(new String[] {});
+            .flatMap(a -> Stream.of(String.format("http://%s:%s/login", a.getIPAddr(), a.getPort()), String.format("http://localhost:%s/login", a.getPort())))
+            .collect(Collectors.toList());
     }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        String[] listOfServices = getListOfServices();
+        List<String> listOfServices = getListOfServices();
         log.debug("listOfServices: {}", listOfServices);
         clients.inMemory()
             .withClient("client")
             .secret(passwordEncoder.encode("secret"))
             .authorizedGrantTypes("password", "authorization_code", "refresh_token")
-            .redirectUris(listOfServices)
+            .redirectUris(listOfServices.toArray(new String[] {}))
             .autoApprove(true)
             .scopes("read", "write")
             .and()

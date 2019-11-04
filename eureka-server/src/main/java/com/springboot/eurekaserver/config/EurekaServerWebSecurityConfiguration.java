@@ -44,7 +44,7 @@ public class EurekaServerWebSecurityConfiguration extends WebSecurityConfigurerA
 
         http.csrf().disable()
             .authorizeRequests()
-            .antMatchers("/login", "/logout").permitAll()
+            .antMatchers("/login", "/logout", "/error").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
             .formLogin().loginPage("/login").successHandler(successHandler)

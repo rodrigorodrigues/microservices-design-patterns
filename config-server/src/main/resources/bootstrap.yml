@@ -34,6 +34,17 @@ management:
         health:
             show-details: when_authorized
 
+security:
+    oauth2:
+        client:
+            accessTokenUri: http://localhost:9999/oauth/token
+            userAuthorizationUri: http://localhost:9999/oauth/authorize
+            clientId: client
+            clientSecret: secret
+        resource:
+            jwt:
+                keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+            user-info-uri: http://localhost:9999/api/authenticatedUser
 
 ---
 spring:

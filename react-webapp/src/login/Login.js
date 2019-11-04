@@ -5,6 +5,7 @@ import AppNavbar from '../home/AppNavbar';
 import { postWithHeaders } from '../services/ApiService';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
+import Cookies from 'js-cookie';
 
 class Login extends Component {
   constructor(props) {
@@ -39,7 +40,7 @@ class Login extends Component {
     const loginSubmit = "username=" + encodeURIComponent(login.username) + '&password=' + encodeURIComponent(login.password);
 
     try {
-      const data = await postWithHeaders('authenticate', loginSubmit, {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'});
+      const data = await postWithHeaders('authenticate', loginSubmit, {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')});
       if (data.id_token) {
         setAuthentication(data);
         history.push('/');

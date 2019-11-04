@@ -1,364 +1,364 @@
 version: '3.2'
 services:
-    service-discovery:
-        image: eureka-server
-        container_name: service-discovery
-        environment:
-            - SPRING_REDIS_HOST=redisdb
-            - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=dev
-            - SERVER_PORT=8761
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - DEBUG=true
-        depends_on:
-          - redisdb
-          - mongodb-datasource
-        ports:
-            - 8761:8761
-        volumes:
-            - ./docker-entrypoint.sh:/docker-entrypoint.sh
-        command: sh ./docker-entrypoint.sh redisdb:6380
+  service-discovery:
+    image: eureka-server
+    container_name: service-discovery
+    environment:
+      - SPRING_REDIS_HOST=redisdb
+      - SPRING_REDIS_PORT=6380
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8761
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - DEBUG=true
+    depends_on:
+      - redisdb
+      - mongodb-datasource
+    ports:
+      - 8761:8761
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    command: sh ./docker-entrypoint.sh redisdb:6380
 
-    config-management:
-        image: config-server
-        container_name: config-management
-        environment:
-            - SPRING_REDIS_HOST=redisdb
-            - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=native
-            - SERVER_PORT=8888
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - DEBUG=true
-            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-            - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:./config
-        depends_on:
-          - service-discovery
-        ports:
-            - 8888:8888
-        volumes:
-            - ./docker-entrypoint.sh:/docker-entrypoint.sh
-            - ../config-server/configuration:/config
-        command: sh ./docker-entrypoint.sh service-discovery:8761
+  config-management:
+    image: config-server
+    container_name: config-management
+    environment:
+      - SPRING_REDIS_HOST=redisdb
+      - SPRING_REDIS_PORT=6380
+      - SPRING_PROFILES_ACTIVE=native
+      - SERVER_PORT=8888
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - DEBUG=true
+      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:./config
+    depends_on:
+      - service-discovery
+    ports:
+      - 8888:8888
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - ../config-server/configuration:/config
+    command: sh ./docker-entrypoint.sh service-discovery:8761
 
-    gateway:
-        image: edge-server
-        container_name: gateway
-        environment:
-            - SPRING_REDIS_HOST=redisdb
-            - SPRING_REDIS_PORT=6380
-            - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
-            - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
-            - SERVER_PORT=9006
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
-            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-        depends_on:
-            - service-discovery
-            - config-management
-        ports:
-            - 9006:9006
-        volumes:
-            - ./docker-entrypoint.sh:/docker-entrypoint.sh
-        command: sh ./docker-entrypoint.sh config-management:8888
+  gateway:
+    image: edge-server
+    container_name: gateway
+    environment:
+      - SPRING_REDIS_HOST=redisdb
+      - SPRING_REDIS_PORT=6380
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SERVER_PORT=9006
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
+      - DEBUG=true
+      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+    depends_on:
+      - service-discovery
+      - config-management
+    ports:
+      - 9006:9006
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    command: sh ./docker-entrypoint.sh config-management:8888
 
-    monitoring:
-        image: admin-server
-        container_name: monitoring
-        environment:
-            - SPRING_REDIS_HOST=redisdb
-            - SPRING_REDIS_PORT=6380
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
-            - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
-            - SERVER_PORT=9000
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - DEBUG=true
-            - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-        depends_on:
-          - service-discovery
-          - config-management
-        ports:
-            - 9000:9000
+  monitoring:
+    image: admin-server
+    container_name: monitoring
+    environment:
+      - SPRING_REDIS_HOST=redisdb
+      - SPRING_REDIS_PORT=6380
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SERVER_PORT=9000
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - DEBUG=true
+      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+    depends_on:
+      - service-discovery
+      - config-management
+    ports:
+      - 9000:9000
 
-## Need to fix proxy issue
-#    react-webapp-jhipster:
-#        build:
-#            args:
-#                - SERVER_PORT=3001
-#                - REACT_APP_GATEWAY_URL=http://localhost:9006
-#                - HOSTNAME=${HOSTNAME} - Test
-#            context: ../react-webapp-jhipster
-#            dockerfile: Dockerfile
-#        container_name: react-webapp
-#        ports:
-#            - 3001:9000
-#        links:
-#          - gateway
-#        volumes:
-#            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-##            - ./node_modules:/usr/src/app/
-#        command: sh /tmp/docker-entrypoint.sh gateway:9006
-#
-    react-webapp:
-        build:
-            args:
-                - PORT=3003
-# Production
-                - REACT_APP_GATEWAY_URL=https://spendingbetter.com
-                - REACT_APP_EUREKA_URL=https://spendingbetter.com/eureka
-                - REACT_APP_MONITORING_URL=https://spendingbetter.com/monitoring
-                - REACT_APP_GRAFANA_URL=https://spendingbetter.com/grafana
-                - REACT_APP_ZIPKIN_URL=https://spendingbetter.com/zipkin
-#                - REACT_APP_GATEWAY_URL=http://localhost:9006
-                - REACT_APP_HOSTNAME=${HOSTNAME} - Production
-            context: ../react-webapp
-            dockerfile: Dockerfile
-        container_name: react-webapp
-        environment:
-            - REACT_APP_GATEWAY_URL=http://localhost:9006
-            - REACT_APP_EUREKA_URL=http://localhost:8761
-            - REACT_APP_MONITORING_URL=http://localhost:9000
-            - REACT_APP_GRAFANA_URL=http://localhost:9000
-            - REACT_APP_ZIPKIN_URL=http://localhost:9000
-            - REACT_APP_HOSTNAME=${HOSTNAME} - Test
-            - NODE_ENV=development
-        ports:
-            - 3003:3003
-        links:
-            - gateway
-        volumes:
-            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#            - .:/usr/src/app
-#            - ./node_modules:/usr/src/app/node_modules
-        command: sh /tmp/docker-entrypoint.sh gateway:9006
-#
-    week-menu-api:
-        build:
-            args:
-                - SERVER_PORT=3002
-            context: ../nodejs-service
-            dockerfile: Dockerfile
-#            Production
-#            dockerfile: Dockerfile-prod
-        container_name: week-menu-api
-        environment:
-            - SPRING_PROFILES_ACTIVE=docker
-            - REDIS_SERVER=redisdb
-            - REDIS_PORT=6380
-            - CONFIG_SERVER=http://localhost:8888
-            - SERVER_PORT=3002
-            - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
-            - EUREKA_SERVER=service-discovery
-            - EUREKA_PORT=8761
-#            - DEBUG=*
-#            - NODE_DEBUG=request
-            - HOST_NAME=week-menu-api
-            - IP_ADDRESS=week-menu-api
-            - ZIPKIN_HOST=zipkin
-            - ZIPKIN_PORT=9411
-        depends_on:
-            - service-discovery
-            - config-management
-        links:
-          - service-discovery
-          - config-management
-        ports:
-            - 3002:3002
-        volumes:
-            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-        command: sh /tmp/docker-entrypoint.sh config-management:8888
+  ## Need to fix proxy issue
+  #    react-webapp-jhipster:
+  #        build:
+  #            args:
+  #                - SERVER_PORT=3001
+  #                - REACT_APP_GATEWAY_URL=http://localhost:9006
+  #                - HOSTNAME=${HOSTNAME} - Test
+  #            context: ../react-webapp-jhipster
+  #            dockerfile: Dockerfile
+  #        container_name: react-webapp
+  #        ports:
+  #            - 3001:9000
+  #        links:
+  #          - gateway
+  #        volumes:
+  #            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+  ##            - ./node_modules:/usr/src/app/
+  #        command: sh /tmp/docker-entrypoint.sh gateway:9006
+  #
+  react-webapp:
+    build:
+      args:
+        - PORT=3003
+        # Production
+        - REACT_APP_GATEWAY_URL=https://spendingbetter.com
+        - REACT_APP_EUREKA_URL=https://spendingbetter.com/eureka
+        - REACT_APP_MONITORING_URL=https://spendingbetter.com/monitoring
+        - REACT_APP_GRAFANA_URL=https://spendingbetter.com/grafana
+        - REACT_APP_ZIPKIN_URL=https://spendingbetter.com/zipkin
+        #                - REACT_APP_GATEWAY_URL=http://localhost:9006
+        - REACT_APP_HOSTNAME=${HOSTNAME} - Production
+      context: ../react-webapp
+      dockerfile: Dockerfile
+    container_name: react-webapp
+    environment:
+      - REACT_APP_GATEWAY_URL=http://localhost:9006
+      - REACT_APP_EUREKA_URL=http://localhost:8761
+      - REACT_APP_MONITORING_URL=http://localhost:9000
+      - REACT_APP_GRAFANA_URL=http://localhost:9000
+      - REACT_APP_ZIPKIN_URL=http://localhost:9000
+      - REACT_APP_HOSTNAME=${HOSTNAME} - Test
+      - NODE_ENV=development
+    ports:
+      - 3003:3003
+    links:
+      - gateway
+    volumes:
+      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+    #            - .:/usr/src/app
+    #            - ./node_modules:/usr/src/app/node_modules
+    command: sh /tmp/docker-entrypoint.sh gateway:9006
+  #
+  week-menu-api:
+    build:
+      args:
+        - SERVER_PORT=3002
+      context: ../nodejs-service
+      dockerfile: Dockerfile
+    #            Production
+    #            dockerfile: Dockerfile-prod
+    container_name: week-menu-api
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - REDIS_SERVER=redisdb
+      - REDIS_PORT=6380
+      - CONFIG_SERVER=http://localhost:8888
+      - SERVER_PORT=3002
+      - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
+      - EUREKA_SERVER=service-discovery
+      - EUREKA_PORT=8761
+      #            - DEBUG=*
+      #            - NODE_DEBUG=request
+      - HOST_NAME=week-menu-api
+      - IP_ADDRESS=week-menu-api
+      - ZIPKIN_HOST=zipkin
+      - ZIPKIN_PORT=9411
+    depends_on:
+      - service-discovery
+      - config-management
+    links:
+      - service-discovery
+      - config-management
+    ports:
+      - 3002:3002
+    volumes:
+      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+    command: sh /tmp/docker-entrypoint.sh config-management:8888
 
-    person-api:
-        image: person-service
-        container_name: person-api
-        environment:
-            - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
-            - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
-            - SERVER_PORT=8082
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
-        depends_on:
-            - service-discovery
-            - config-management
-            - mongodb-datasource
-        ports:
-            - 8082:8082
-        volumes:
-            - ./docker-entrypoint.sh:/docker-entrypoint.sh
-        command: sh ./docker-entrypoint.sh config-management:8888
+  person-api:
+    image: person-service
+    container_name: person-api
+    environment:
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SERVER_PORT=8082
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
+      - DEBUG=true
+    depends_on:
+      - service-discovery
+      - config-management
+      - mongodb-datasource
+    ports:
+      - 8082:8082
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    command: sh ./docker-entrypoint.sh config-management:8888
 
-    user-api:
-        image: user-service
-        container_name: user-api
-        environment:
-            - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
-            - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
-            - SERVER_PORT=8083
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
-        links:
-          - authentication-api
-        ports:
-            - 8083:8083
-        volumes:
-            - ./docker-entrypoint.sh:/docker-entrypoint.sh
-        command: sh ./docker-entrypoint.sh authentication-api:8081
+  user-api:
+    image: user-service
+    container_name: user-api
+    environment:
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SERVER_PORT=8083
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
+      - DEBUG=true
+    links:
+      - authentication-api
+    ports:
+      - 8083:8083
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    command: sh ./docker-entrypoint.sh authentication-api:8081
 
-    authentication-api:
-        image: authentication-service
-        container_name: authentication-api
-        environment:
-            - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_REDIS_HOST=redisdb
-            - SPRING_REDIS_PORT=6380
-            - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
-            - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
-            - SERVER_PORT=8081
-            - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
-            - SPRING_DATA_MONGODB_DATABASE=docker
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-            - DEBUG=true
-        depends_on:
-            - service-discovery
-            - config-management
-            - mongodb-datasource
-        ports:
-            - 8081:8081
-        volumes:
-            - ./docker-entrypoint.sh:/docker-entrypoint.sh
-        command: sh ./docker-entrypoint.sh config-management:8888
+  authentication-api:
+    image: authentication-service
+    container_name: authentication-api
+    environment:
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_REDIS_HOST=redisdb
+      - SPRING_REDIS_PORT=6380
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SERVER_PORT=8081
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
+      - DEBUG=true
+    depends_on:
+      - service-discovery
+      - config-management
+      - mongodb-datasource
+    ports:
+      - 8081:8081
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    command: sh ./docker-entrypoint.sh config-management:8888
 
-    mongodb-datasource:
-        image: mongo:3.4.10
-        command: mongod --port 27018
-        container_name: mongodb-datasource
-        ports:
-            - 27018:27018
+  mongodb-datasource:
+    image: mongo:3.4.10
+    command: mongod --port 27018
+    container_name: mongodb-datasource
+    ports:
+      - 27018:27018
 
-    redisdb:
-        image: redis:alpine
-        container_name: redisdb
-        command: redis-server --port 6380
-        ports:
-          - 6380:6380
+  redisdb:
+    image: redis:alpine
+    container_name: redisdb
+    command: redis-server --port 6380
+    ports:
+      - 6380:6380
 
-    prometheus:
-        image: prom/prometheus
-        container_name: prometheus
-        environment:
-          - EUREKA_SERVER=service-discovery
-          - EUREKA_PORT=8761
-        volumes:
-          - ./prometheus.yml:/etc/prometheus/prometheus.yml
-        ports:
-          - 9090:9090
-        depends_on:
-          - service-discovery
-        links:
-          - service-discovery
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    environment:
+      - EUREKA_SERVER=service-discovery
+      - EUREKA_PORT=8761
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    depends_on:
+      - service-discovery
+    links:
+      - service-discovery
 
-    grafana:
-      image: grafana/grafana
-      container_name: grafana
-      ports:
-        - 3000:3000
-      environment:
-#        - GF_AUTH_ANONYMOUS_ENABLED=true
-#        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-        - GF_SERVER_ROOT_URL=http://localhost:3000/grafana
-        - GF_SERVER_SERVE_FROM_SUB_PATH=true
-        - GF_AUTH_PROXY_ENABLED=true
-        - GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER
-        - GF_AUTH_PROXY_AUTO_SIGN_UP=false
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      #        - GF_AUTH_ANONYMOUS_ENABLED=true
+      #        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SERVER_ROOT_URL=http://localhost:3000/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_AUTH_PROXY_ENABLED=true
+      - GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER
+      - GF_AUTH_PROXY_AUTO_SIGN_UP=false
 
-    setup_grafana_datasource:
-        image: appropriate/curl
-        container_name: setup_grafana_datasource
-        depends_on:
-          - grafana
-        volumes:
-          - ./create-datasource-and-dashboard.sh:/create.sh:ro
-        command: /create.sh
+  setup_grafana_datasource:
+    image: appropriate/curl
+    container_name: setup_grafana_datasource
+    depends_on:
+      - grafana
+    volumes:
+      - ./create-datasource-and-dashboard.sh:/create.sh:ro
+    command: /create.sh
 
-    zipkin-mysql:
-        image: openzipkin/zipkin-mysql
-        container_name: zipkin-mysql
-        # Uncomment to expose the storage port for testing
-        # ports:
-        #   - 3306:3306
+  zipkin-mysql:
+    image: openzipkin/zipkin-mysql
+    container_name: zipkin-mysql
+    # Uncomment to expose the storage port for testing
+    # ports:
+    #   - 3306:3306
 
-    # The zipkin process services the UI, and also exposes a POST endpoint that
-    # instrumentation can send trace data to. Scribe is disabled by default.
-    zipkin:
-        #image: openzipkin/zipkin
-        container_name: zipkin
-        build:
-          context: ../openzipkin-eureka
-        # Environment settings are defined here https://github.com/openzipkin/zipkin/tree/1.19.0/zipkin-server#environment-variables
-        environment:
-            - EUREKA_SERVER=http://service-discovery:8761/eureka/
-            - STORAGE_TYPE=mysql
-            # Point the zipkin at the storage backend
-            - MYSQL_HOST=zipkin-mysql
-            - SERVER_PORT=9411
-            - MYSQL_USER=zipkin
-            - MYSQL_PASS=zipkin
-            - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
-            - DEBUG=true
-            - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
-            # Uncomment to enable scribe
-            # - SCRIBE_ENABLED=true
-            # Uncomment to enable self-tracing
-            # - SELF_TRACING_ENABLED=true
-            # Uncomment to enable debug logging
-            # - JAVA_OPTS=-Dlogging.level.zipkin=DEBUG -Dlogging.level.zipkin2=DEBUG
-        ports:
-            # Port used for the Zipkin UI and HTTP Api
-            - 9411:9411
-            # Uncomment if you set SCRIBE_ENABLED=true
-            # - 9410:9410
-        depends_on:
-            - zipkin-mysql
+  # The zipkin process services the UI, and also exposes a POST endpoint that
+  # instrumentation can send trace data to. Scribe is disabled by default.
+  zipkin:
+    #image: openzipkin/zipkin
+    container_name: zipkin
+    build:
+      context: ../openzipkin-eureka
+    # Environment settings are defined here https://github.com/openzipkin/zipkin/tree/1.19.0/zipkin-server#environment-variables
+    environment:
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - STORAGE_TYPE=mysql
+      # Point the zipkin at the storage backend
+      - MYSQL_HOST=zipkin-mysql
+      - SERVER_PORT=9411
+      - MYSQL_USER=zipkin
+      - MYSQL_PASS=zipkin
+      - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
+      - DEBUG=true
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+      # Uncomment to enable scribe
+      # - SCRIBE_ENABLED=true
+      # Uncomment to enable self-tracing
+      # - SELF_TRACING_ENABLED=true
+      # Uncomment to enable debug logging
+      # - JAVA_OPTS=-Dlogging.level.zipkin=DEBUG -Dlogging.level.zipkin2=DEBUG
+    ports:
+      # Port used for the Zipkin UI and HTTP Api
+      - 9411:9411
+      # Uncomment if you set SCRIBE_ENABLED=true
+      # - 9410:9410
+    depends_on:
+      - zipkin-mysql
 
-    # Adds a cron to process spans since midnight every hour, and all spans each day
-    # This data is served by http://192.168.99.100:8080/dependency
-    #
-    # For more details, see https://github.com/openzipkin/docker-zipkin-dependencies
-    zipkin-dependencies:
-        image: openzipkin/zipkin-dependencies
-        container_name: zipkin-dependencies
-        entrypoint: crond -f
-        environment:
-            - STORAGE_TYPE=mysql
-            - MYSQL_HOST=zipkin-mysql
-            # Add the baked-in username and password for the zipkin-mysql image
-            - MYSQL_USER=zipkin
-            - MYSQL_PASS=zipkin
-            # Uncomment to see dependency processing logs
-            # - ZIPKIN_LOG_LEVEL=DEBUG
-            # Uncomment to adjust memory used by the dependencies job
-            - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
-        depends_on:
-            - zipkin-mysql
+  # Adds a cron to process spans since midnight every hour, and all spans each day
+  # This data is served by http://192.168.99.100:8080/dependency
+  #
+  # For more details, see https://github.com/openzipkin/docker-zipkin-dependencies
+  zipkin-dependencies:
+    image: openzipkin/zipkin-dependencies
+    container_name: zipkin-dependencies
+    entrypoint: crond -f
+    environment:
+      - STORAGE_TYPE=mysql
+      - MYSQL_HOST=zipkin-mysql
+      # Add the baked-in username and password for the zipkin-mysql image
+      - MYSQL_USER=zipkin
+      - MYSQL_PASS=zipkin
+      # Uncomment to see dependency processing logs
+      # - ZIPKIN_LOG_LEVEL=DEBUG
+      # Uncomment to adjust memory used by the dependencies job
+      - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
+    depends_on:
+      - zipkin-mysql
