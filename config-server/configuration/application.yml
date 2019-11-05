@@ -31,25 +31,14 @@ spring:
 security:
     oauth2:
         client:
-            accessTokenUri: http://localhost:9999/oauth/token
-            userAuthorizationUri: http://localhost:9999/oauth/authorize
-            clientId: client
-            clientSecret: secret
+            accessTokenUri: ${ACCESS_TOKEN_URI:http://localhost:9999/oauth/token}
+            userAuthorizationUri: ${AUTHORIZATION_URL:http://localhost:9999/oauth/authorize}
+            clientId: ${OAUTH_CLIENT_ID:client}
+            clientSecret: ${OAUTH_CLIENT_SECRET:secret}
         resource:
             jwt:
                 keyValue: ${configuration.jwt.base64-secret:}
-            user-info-uri: http://localhost:9999/api/authenticatedUser
-
----
-spring:
-    profiles: integration-tests-certs
-
-configuration:
-    jwt:
-        base64-secret:
-        keystore: ${KEYSTORE:}
-        keystoreAlias: ${KEYSTORE_ALIAS:}
-        keystorePassword: ${KEYSTORE_PASSWORD:}
+            user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}
 
 ---
 spring:
@@ -65,16 +54,33 @@ spring:
         sampler:
             probability: 0.1
 
-security:
-    basic:
-        enabled: false
+configuration:
+    jwt:
+        base64-secret:
+        keystore: ${KEYSTORE:}
+        keystoreAlias: ${KEYSTORE_ALIAS:}
+        keystorePassword: ${KEYSTORE_PASSWORD:}
 
-eureka:
-    instance:
-        preferIpAddress: ${PREFER_IP_ADDRESS:true}
-        nonSecurePortEnabled: ${NON_SECURE_PORT_ENABLED:false}
-        securePortEnabled: ${SECURE_PORT_ENABLED:true}
-        securePort: ${server.port}
+security:
+    oauth2:
+        client:
+            accessTokenUri: ${ACCESS_TOKEN_URI:https://www.spendingbetter.com/oauth/token}
+            userAuthorizationUri: ${AUTHORIZATION_URL:https://www.spendingbetter.com/oauth/authorize}
+            clientId: ${OAUTH_CLIENT_ID:client}
+            clientSecret: ${OAUTH_CLIENT_SECRET:secret}
+        resource:
+            jwt:
+                key-store: ${configuration.jwt.keystore:}
+                key-store-password: ${configuration.jwt.keystorePassword:}
+                key-alias: ${configuration.jwt.keystoreAlias:}
+            user-info-uri: ${USER_INFO_URI:https://www.spendingbetter.com/api/authenticatedUser}
+
+#eureka:
+#    instance:
+#        preferIpAddress: ${PREFER_IP_ADDRESS:true}
+#        nonSecurePortEnabled: ${NON_SECURE_PORT_ENABLED:false}
+#        securePortEnabled: ${SECURE_PORT_ENABLED:true}
+#        securePort: ${server.port}
 #        secureHealthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
 #        healthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
 #        statusPageUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:info}

@@ -37,6 +37,11 @@ zuul:
             serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:
+#        authenticated-oauth-service:
+#            path: /oauth/**
+#            serviceId: authentication-service
+#            stripPrefix: false
+#            sensitiveHeaders:
 #        grafana-service:
 #            path: /grafana/**
 #            url: ${GRAFANA_URL:http://localhost:3000}
