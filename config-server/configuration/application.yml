@@ -64,8 +64,8 @@ configuration:
 security:
     oauth2:
         client:
-            accessTokenUri: ${ACCESS_TOKEN_URI:https://www.spendingbetter.com/oauth/token}
-            userAuthorizationUri: ${AUTHORIZATION_URL:https://www.spendingbetter.com/oauth/authorize}
+            accessTokenUri: ${ACCESS_TOKEN_URI:https://www.spendingbetter.com/auth/oauth/token}
+            userAuthorizationUri: ${AUTHORIZATION_URL:https://www.spendingbetter.com/auth/oauth/authorize}
             clientId: ${OAUTH_CLIENT_ID:client}
             clientSecret: ${OAUTH_CLIENT_SECRET:secret}
         resource:
@@ -73,7 +73,7 @@ security:
                 key-store: ${configuration.jwt.keystore:}
                 key-store-password: ${configuration.jwt.keystorePassword:}
                 key-alias: ${configuration.jwt.keystoreAlias:}
-            user-info-uri: ${USER_INFO_URI:https://www.spendingbetter.com/api/authenticatedUser}
+            user-info-uri: ${USER_INFO_URI:https://www.spendingbetter.com/auth/api/authenticatedUser}
 
 #eureka:
 #    instance:
