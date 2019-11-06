@@ -2,9 +2,6 @@ package com.microservice.authentication.config;
 
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.netflix.discovery.EurekaClient;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +20,11 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Slf4j
 @Configuration
 @EnableAuthorizationServer
@@ -36,6 +38,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     private final PasswordEncoder passwordEncoder;
 
     private final EurekaClient eurekaClient;
+
+    private final AuthenticationProperties authenticationProperties;
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
@@ -56,6 +60,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         List<String> listOfServices = getListOfServices();
+        setAuthorizeUrls(listOfServices);
         log.debug("listOfServices: {}", listOfServices);
         clients.inMemory()
             .withClient("client")
@@ -71,6 +76,13 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
             .autoApprove(true)
             .authorities("ADMIN")
             .scopes("actuator");
+    }
+
+    private void setAuthorizeUrls(List<String> listOfServices) {
+        List<String> authorizeUrls = authenticationProperties.getAuthorizeUrls();
+        authorizeUrls.stream()
+            .flatMap(s -> Arrays.stream(s.split(";")))
+            .forEach(listOfServices::add);
     }
 
     @Bean

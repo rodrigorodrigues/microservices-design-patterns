@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: eu.gcr.io/spring-boot-gke-243520/admin-server:6.0
+          image: eu.gcr.io/spring-boot-gke-243520/admin-server:7.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -43,13 +43,16 @@ spec:
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
+            - name: spendingbetter-jks
+              mountPath: "/etc/ssl_certs_jks"
+              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "9000"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
             - name: SPRING_DATA_MONGODB_URI
@@ -62,6 +65,12 @@ spec:
               value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
+            - name: X_ENCRYPT_KEY
+              value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+            - name: OAUTH_CLIENT_ID
+              value: actuator
+            - name: OAUTH_CLIENT_SECRET
+              value: actuator_password
 #            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
 #              value: debug
 #            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
@@ -70,6 +79,21 @@ spec:
               value: /monitoring
             - name: SERVER_USE_FORWARD_HEADERS
               value: "true"
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs_jks/www.spendingbetter.com.jks
+            - name: KEYSTORE_ALIAS
+              value: spring-boot
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
+            - name: ACCESS_TOKEN_URI
+              value: https://spendingbetter.com/auth/oauth/token
+            - name: AUTHORIZATION_URL
+              value: https://spendingbetter.com/auth/oauth/authorize
+            - name: USER_INFO_URI
+              value: https://spendingbetter.com/auth/api/authenticatedUsers
 #            - name: SERVER_SSL_KEY_STORE
 #              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
 #            - name: SERVER_SSL_KEY_STORE_PASSWORD
@@ -104,3 +128,6 @@ spec:
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt
+        - name: spendingbetter-jks
+          secret:
+            secretName: spendingbetter-jks

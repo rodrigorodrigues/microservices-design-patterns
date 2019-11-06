@@ -34,10 +34,10 @@ spec:
               mountPath: "/etc/ssl_certs_key"
               readOnly: true
           env:
-            - name: GF_AUTH_ANONYMOUS_ENABLED
-              value: "true"
-            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
-              value: Admin
+#            - name: GF_AUTH_ANONYMOUS_ENABLED
+#              value: "true"
+#            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+#              value: Admin
             - name: GF_SERVER_DOMAIN
               value: spendingbetter.com
             - name: GF_SERVER_ROOT_URL
@@ -46,6 +46,22 @@ spec:
 #              value: https
             - name: GF_SERVER_SERVE_FROM_SUB_PATH
               value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_ENABLED
+              value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_SCOPES
+              value: read
+            - name: GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+              value: client
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+              value: secret
+            - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
+              value: https://spendingbetter.com/auth/oauth/authorize
+            - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+              value: https://spendingbetter.com/auth/oauth/token
+            - name: GF_AUTH_GENERIC_OAUTH_API_URL
+              value: https://spendingbetter.com/auth/api/authenticatedUser
 #            - name: GF_SERVER_CERT_FILE
 #              value: /etc/crt/www.spendingbetter.com.crt
 #            - name: GF_SERVER_CERT_KEY

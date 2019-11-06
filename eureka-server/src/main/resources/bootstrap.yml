@@ -34,18 +34,40 @@ security:
         resource:
             jwt:
                 keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
-                key-store:
             user-info-uri: http://localhost:9999/api/authenticatedUser
 
 ---
 spring:
     profiles: prod
-eureka:
-    instance:
-        preferIpAddress: ${PREFER_IP_ADDRESS:true}
-        nonSecurePortEnabled: ${NON_SECURE_PORT_ENABLED:false}
-        securePortEnabled: ${SECURE_PORT_ENABLED:true}
-        securePort: ${server.port}
+
+configuration:
+    jwt:
+        base64-secret:
+        keystore: ${KEYSTORE:}
+        keystoreAlias: ${KEYSTORE_ALIAS:}
+        keystorePassword: ${KEYSTORE_PASSWORD:}
+
+security:
+    oauth2:
+        client:
+            accessTokenUri: ${ACCESS_TOKEN_URI:https://spendingbetter.com/auth/oauth/token}
+            userAuthorizationUri: ${AUTHORIZATION_URL:https://spendingbetter.com/auth/oauth/authorize}
+            clientId: ${OAUTH_CLIENT_ID:client}
+            clientSecret: ${OAUTH_CLIENT_SECRET:secret}
+        resource:
+            jwt:
+                keyValue:
+                key-store: ${configuration.jwt.keystore:}
+                key-store-password: ${configuration.jwt.keystorePassword:}
+                key-alias: ${configuration.jwt.keystoreAlias:}
+            user-info-uri: ${USER_INFO_URI:https://spendingbetter.com/auth/api/authenticatedUser}
+
+#eureka:
+#    instance:
+#        preferIpAddress: ${PREFER_IP_ADDRESS:true}
+#        nonSecurePortEnabled: ${NON_SECURE_PORT_ENABLED:false}
+#        securePortEnabled: ${SECURE_PORT_ENABLED:true}
+#        securePort: ${server.port}
 #        secureHealthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
 #        healthCheckUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:health}
 #        statusPageUrl: https://${spring.cloud.client.hostname}:${management.server.port}${management.server.servlet.context-path:}/${endpoints.health.id:info}

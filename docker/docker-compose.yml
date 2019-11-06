@@ -83,7 +83,10 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
       - SPRING_DATA_MONGODB_DATABASE=docker
       - DEBUG=true
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+      - OAUTH_CLIENT_ID=actuator
+      - OAUTH_CLIENT_SECRET=actuator_password
     depends_on:
       - service-discovery
       - config-management
@@ -119,7 +122,7 @@ services:
         - REACT_APP_MONITORING_URL=https://spendingbetter.com/monitoring
         - REACT_APP_GRAFANA_URL=https://spendingbetter.com/grafana
         - REACT_APP_ZIPKIN_URL=https://spendingbetter.com/zipkin
-        #                - REACT_APP_GATEWAY_URL=http://localhost:9006
+#        - REACT_APP_GATEWAY_URL=http://localhost:9006
         - REACT_APP_HOSTNAME=${HOSTNAME} - Production
       context: ../react-webapp
       dockerfile: Dockerfile
@@ -222,7 +225,7 @@ services:
       - 8083:8083
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh authentication-api:8081
+    command: sh ./docker-entrypoint.sh authentication-api:9999
 
   authentication-api:
     image: authentication-service
@@ -234,18 +237,19 @@ services:
       - SPRING_REDIS_PORT=6380
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
-      - SERVER_PORT=8081
+      - SERVER_PORT=9999
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
       - SPRING_DATA_MONGODB_DATABASE=docker
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
+      - CONFIGURATION_AUTHORIZE_URLS=http://localhost:3000/grafana/login/generic_oauth
     depends_on:
       - service-discovery
       - config-management
       - mongodb-datasource
     ports:
-      - 8081:8081
+      - 9999:9999
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh config-management:8888
@@ -289,9 +293,14 @@ services:
       #        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_SERVER_ROOT_URL=http://localhost:3000/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
-      - GF_AUTH_PROXY_ENABLED=true
-      - GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER
-      - GF_AUTH_PROXY_AUTO_SIGN_UP=false
+      - GF_AUTH_GENERIC_OAUTH_ENABLED=true
+      - GF_AUTH_GENERIC_OAUTH_SCOPES=read
+      - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID=client
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=secret
+      - GF_AUTH_GENERIC_OAUTH_AUTH_URL=http://localhost:9999/oauth/authorize
+      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=http://localhost:9999/oauth/token
+      - GF_AUTH_GENERIC_OAUTH_API_URL=http://localhost:9999/api/authenticatedUser
 
   setup_grafana_datasource:
     image: appropriate/curl

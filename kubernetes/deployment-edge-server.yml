@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: edge-server
-          image: eu.gcr.io/spring-boot-gke-243520/edge-server:4.0
+          image: eu.gcr.io/spring-boot-gke-243520/edge-server:5.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -44,13 +44,16 @@ spec:
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
+            - name: spendingbetter-jks
+              mountPath: "/etc/ssl_certs_jks"
+              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "9006"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -65,6 +68,21 @@ spec:
 #              value: "false"
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs_jks/www.spendingbetter.com.jks
+            - name: KEYSTORE_ALIAS
+              value: spring-boot
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
+            - name: ACCESS_TOKEN_URI
+              value: https://spendingbetter.com/auth/oauth/token
+            - name: AUTHORIZATION_URL
+              value: https://spendingbetter.com/auth/oauth/authorize
+            - name: USER_INFO_URI
+              value: https://spendingbetter.com/auth/api/authenticatedUsers
 #            - name: DEBUG
 #              value: "true"
 #            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
@@ -108,3 +126,6 @@ spec:
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt
+        - name: spendingbetter-jks
+          secret:
+            secretName: spendingbetter-jks

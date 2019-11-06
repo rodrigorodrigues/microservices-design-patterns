@@ -250,7 +250,7 @@ function validateJwt(req, res, next) {
         console.log("Headers", req.headers);
         let token = req.headers.authorization;
         if (!token) {
-            throw err("Token Not found");
+            throw Error("Token Not found");
         }
         token = token.replace("Bearer ", "");
         jwt.verify(token, new Buffer(secretKey, 'base64'), function(err, decoded) {

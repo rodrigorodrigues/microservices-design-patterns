@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: week-menu-api
-          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:5.0
+          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:6.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:

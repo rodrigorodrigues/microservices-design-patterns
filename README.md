@@ -191,7 +191,7 @@ eureka-server - PORT=8761
 config-server - PORT=8888
 edge-server - PORT=9006
 admin-server - PORT=9000
-authentication-service - PORT=8081
+authentication-service - PORT=9999
 person-service - PORT=8082
 user-service - PORT=8083
 ```
@@ -309,6 +309,10 @@ kubectl get pods --show-labels
 #create config map
 kubectl create configmap prometheus --from-file=../docker/prometheus-prod.yml
 
+kubectl create configmap grafana-dashboard --from-file=../docker/create-datasource-and-dashboard.sh
+
+kubectl create configmap grafana-datasource --from-file=../docker/grafana-datasource.yaml
+
 #port forward
 kubectl port-forward $(kubectl get pod --selector="app=eureka-server" --output jsonpath='{.items[0].metadata.name}') 8761:8761
 
@@ -344,6 +348,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Add Redis for Shared Session between applications
 * [X] Java - Add Authentication for all applications
 * [X] Java - Add Prometheus/Grafana for docker compose
+* [X] Java - Add Oauth2 Security layer
 * [X] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [ ] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language

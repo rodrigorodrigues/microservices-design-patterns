@@ -30,20 +30,24 @@ spec:
     spec:
       containers:
         - name: eureka-server-peer
-          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:6.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
+          volumeMounts:
+            - name: spendingbetter-jks
+              mountPath: "/etc/ssl_certs_jks"
+              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "8761"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
             - name: SPRING_DATA_MONGODB_URI
@@ -54,6 +58,21 @@ spec:
               value: redis
             - name: EUREKA_SERVER
               value: http://eureka-server:${server.port}/eureka/eureka
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs_jks/www.spendingbetter.com.jks
+            - name: KEYSTORE_ALIAS
+              value: spring-boot
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
+            - name: ACCESS_TOKEN_URI
+              value: https://spendingbetter.com/auth/oauth/token
+            - name: AUTHORIZATION_URL
+              value: https://spendingbetter.com/auth/oauth/authorize
+            - name: USER_INFO_URI
+              value: https://spendingbetter.com/auth/api/authenticatedUsers
           command: ["/bin/sh"]
           args: ["-c", "$JAVA_CMD"]
           ports:
@@ -65,3 +84,7 @@ spec:
               port: 8761
             initialDelaySeconds: 200
             periodSeconds: 5
+      volumes:
+        - name: spendingbetter-jks
+          secret:
+            secretName: spendingbetter-jks

@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/spring-boot-gke-243520/user-service:3.0
+          image: eu.gcr.io/spring-boot-gke-243520/user-service:4.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -48,13 +48,16 @@ spec:
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
+            - name: spendingbetter-jks
+              mountPath: "/etc/ssl_certs_jks"
+              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "8083"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -71,6 +74,15 @@ spec:
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+            - name: KEYSTORE
+              value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
+            - name: KEYSTORE_ALIAS
+              value: spring-boot
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: KEYSTORE_PASSWORD
 #            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
 #              value: "false"
 #            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED
@@ -108,3 +120,6 @@ spec:
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt
+        - name: spendingbetter-jks
+          secret:
+            secretName: spendingbetter-jks

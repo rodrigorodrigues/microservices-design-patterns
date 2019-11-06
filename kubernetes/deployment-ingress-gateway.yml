@@ -1,33 +1,33 @@
-#apiVersion: extensions/v1beta1
-#kind: Ingress
-#metadata:
-#  name: ingress-gateway-forward-https
-#  annotations:
-#    kubernetes.io/ingress.class: nginx
-##    ingress.kubernetes.io/force-ssl-redirect: "true"
-##    kubernetes.io/ingress.allow-http: "false"
-##    nginx.ingress.kubernetes.io/rewrite-target: /
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-gateway-forward-https
+  annotations:
+    kubernetes.io/ingress.class: nginx
+#    ingress.kubernetes.io/force-ssl-redirect: "true"
+#    kubernetes.io/ingress.allow-http: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
 #    nginx.ingress.kubernetes.io/configuration-snippet: |
 #      if ($http_x_forwarded_proto = "http") {
 #         return 301 https://$host$request_uri;
 #      }
-#spec:
-#  tls:
-#  - secretName: ingress-tls
-#    hosts:
-#      - spendingbetter.com
-#  rules:
-#    - host: spendingbetter.com
-#      http:
-#        paths:
+spec:
+  tls:
+  - secretName: ingress-tls
+    hosts:
+      - spendingbetter.com
+  rules:
+    - host: spendingbetter.com
+      http:
+        paths:
 #          - path: /grafana
 #            backend:
 #              serviceName: grafana
 #              servicePort: 3000
-##          - path: /config/(.*)
-##            backend:
-##              serviceName: config-server
-##              servicePort: http-port
+          - path: /auth/(.*)
+            backend:
+              serviceName: authentication-service
+              servicePort: http-port
 
 ---
 apiVersion: extensions/v1beta1
@@ -61,6 +61,10 @@ spec:
             backend:
               serviceName: eureka-server
               servicePort: http-port
+#          - path: /auth/
+#            backend:
+#              serviceName: authentication-service
+#              servicePort: http-port
           - path: /api/
             backend:
               serviceName: edge-server

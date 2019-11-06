@@ -1,12 +1,13 @@
 package com.microservice.authentication;
 
+import com.microservice.authentication.config.AuthenticationProperties;
 import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
-import javax.net.ssl.HttpsURLConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -22,11 +23,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.net.ssl.HttpsURLConnection;
+
 @Slf4j
 @SpringBootApplication
 @EnableDiscoveryClient
 @Import(ActuatorResourceServerConfiguration.class)
 @EnableRedisHttpSession
+@EnableConfigurationProperties(AuthenticationProperties.class)
 public class AuthenticationServiceApplication {
 
     static {

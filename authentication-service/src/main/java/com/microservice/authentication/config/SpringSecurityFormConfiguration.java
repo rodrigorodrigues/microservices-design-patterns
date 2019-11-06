@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -44,6 +45,8 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
+    private final ServerProperties serverProperties;
+
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -57,19 +60,20 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        String contextPath = (serverProperties.getServlet() != null && StringUtils.isNotBlank(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "");
         http.requestMatchers()
-            .antMatchers("/api/**")
+            .antMatchers(contextPath + "/api/**")
             .and()
             .authorizeRequests()
             .anyRequest().authenticated()
             .and()
             .formLogin()
-            .loginProcessingUrl("/api/authenticate").permitAll()
+            .loginProcessingUrl(contextPath + "/api/authenticate").permitAll()
             .successHandler(successHandler())
             .failureHandler(authenticationFailureHandler())
             .and()
             .logout()
-            .logoutUrl("/api/logout").permitAll()
+            .logoutUrl(contextPath + "/api/logout").permitAll()
             .deleteCookies("SESSIONID")
             .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
             .invalidateHttpSession(true)
@@ -79,13 +83,6 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             .and()
             .exceptionHandling()
             .authenticationEntryPoint(new Http403ForbiddenEntryPoint());
-/*
-            .and()
-            .exceptionHandling()
-            .authenticationEntryPoint(new OAuth2AuthenticationEntryPoint());
-*/
-/*
-*/
     }
 
     private AuthenticationFailureHandler authenticationFailureHandler() {
