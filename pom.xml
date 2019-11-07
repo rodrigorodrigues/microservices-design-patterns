@@ -39,6 +39,7 @@
         <module>admin-server</module>
         <module>authentication-common</module>
         <module>ssl-client-configuration</module>
+        <module>kotlin-service</module>
     </modules>
 
     <dependencyManagement>
