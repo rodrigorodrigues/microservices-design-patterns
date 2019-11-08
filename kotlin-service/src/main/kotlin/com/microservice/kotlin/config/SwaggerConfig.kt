@@ -1,4 +1,4 @@
-package com.microservice.kotlin
+package com.microservice.kotlin.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.info.BuildProperties
@@ -33,7 +33,7 @@ class SwaggerConfig {
                 .apiInfo(apiInfo(version))
                 .select()
                 .apis(RequestHandlerSelectors.any())
-                .paths{ it.equals("/persons")}
+                .paths{ it.equals("/api/tasks")}
                 .build()
                 .useDefaultResponseMessages(false)
                 .forCodeGeneration(true)
@@ -44,8 +44,8 @@ class SwaggerConfig {
     }
     private fun apiInfo(version: String): ApiInfo {
         return ApiInfoBuilder()
-                .title("API - Person Service")
-                .description("Persons Management")
+                .title("API - Task Service")
+                .description("Tasks Management")
                 .version(version)
                 .build()
     }
