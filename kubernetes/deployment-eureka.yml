@@ -34,7 +34,7 @@ spec:
 #          - "spendingbetter.com"
       containers:
         - name: eureka-server
-          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:6.0
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:7.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -75,7 +75,7 @@ spec:
             - name: AUTHORIZATION_URL
               value: https://spendingbetter.com/auth/oauth/authorize
             - name: USER_INFO_URI
-              value: https://spendingbetter.com/auth/api/authenticatedUsers
+              value: https://spendingbetter.com/auth/api/authenticatedUser
 #            - name: SERVER_SSL_KEY_STORE
 #              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
 #            - name: SERVER_SSL_KEY_STORE_PASSWORD

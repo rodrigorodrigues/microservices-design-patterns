@@ -5,15 +5,13 @@ import com.microservice.authentication.common.service.SharedAuthenticationServic
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import com.microservice.jwt.common.TokenProvider;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,13 +19,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  * Spring Security Configuration for form
@@ -45,8 +43,6 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
-    private final ServerProperties serverProperties;
-
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -60,22 +56,22 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        String contextPath = (serverProperties.getServlet() != null && StringUtils.isNotBlank(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "");
         http.requestMatchers()
-            .antMatchers(contextPath + "/api/**")
+            .antMatchers("/api/**")
             .and()
             .authorizeRequests()
             .anyRequest().authenticated()
             .and()
             .formLogin()
-            .loginProcessingUrl(contextPath + "/api/authenticate").permitAll()
+            .loginProcessingUrl("/api/authenticate").permitAll()
             .successHandler(successHandler())
             .failureHandler(authenticationFailureHandler())
             .and()
             .logout()
-            .logoutUrl(contextPath + "/api/logout").permitAll()
+            .logoutUrl("/api/logout")
             .deleteCookies("SESSIONID")
             .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+            .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
             .invalidateHttpSession(true)
             .and()
             .csrf()

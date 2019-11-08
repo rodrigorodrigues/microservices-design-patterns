@@ -350,7 +350,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Add Prometheus/Grafana for docker compose
 * [X] Java - Add Oauth2 Security layer
 * [X] Java - Fix Zuul/Edge Server for working with NodeJS Service
-* [ ] Kotlin - Add Service using Kotlin Language
+* [X] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
 * [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
@@ -378,3 +378,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Junit 5](https://medium.com/@GalletVictor/migration-from-junit-4-to-junit-5-d8fe38644abe)
 
 [Keytool Commands](https://www.sslshopper.com/article-most-common-java-keytool-keystore-commands.html)
+
+[Spring Boot Kotlin Example](https://github.com/spring-petclinic/spring-petclinic-kotlin)

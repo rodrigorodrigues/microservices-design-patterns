@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: eureka-server-peer
-          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:6.0
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:7.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -72,7 +72,7 @@ spec:
             - name: AUTHORIZATION_URL
               value: https://spendingbetter.com/auth/oauth/authorize
             - name: USER_INFO_URI
-              value: https://spendingbetter.com/auth/api/authenticatedUsers
+              value: https://spendingbetter.com/auth/api/authenticatedUser
           command: ["/bin/sh"]
           args: ["-c", "$JAVA_CMD"]
           ports:
