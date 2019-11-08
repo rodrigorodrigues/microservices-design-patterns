@@ -16,16 +16,11 @@ import java.util.*
 class TaskRepositoryTest(@Autowired private val taskRepository: TaskRepository) {
     @BeforeEach
     fun setup() {
-        val listOf = arrayListOf<Task>()
-        var task = Task(UUID.randomUUID().toString(), "Fix Computer", "rodrigo", lastModifiedByUser = "rodrigo")
-        listOf.add(task)
-
-        task = Task(UUID.randomUUID().toString(), "Fix Laptop", "gustavo", lastModifiedByUser = "rodrigo")
-        listOf.add(task)
-
-        task = Task(UUID.randomUUID().toString(), "Fix TV", "rodrigo", lastModifiedByUser = "rodrigo")
-        listOf.add(task)
-
+        val listOf = arrayListOf(
+            Task(UUID.randomUUID().toString(), "Fix Computer", "rodrigo", lastModifiedByUser = "rodrigo"),
+            Task(UUID.randomUUID().toString(), "Fix Laptop", "gustavo", lastModifiedByUser = "rodrigo"),
+            Task(UUID.randomUUID().toString(), "Fix TV", "rodrigo", lastModifiedByUser = "rodrigo")
+        )
         taskRepository.saveAll(listOf)
     }
 

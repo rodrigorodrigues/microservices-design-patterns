@@ -13,17 +13,17 @@ data class Task(
 
     @NotEmpty
     @Size(min = 5, max = 200)
-    val name: String,
+    var name: String,
 
     @CreatedBy
-    val createdByUser: String? = null,
+    var createdByUser: String? = null,
 
     @CreatedDate
-    val createdDate: Instant = Instant.now(),
+    var createdDate: Instant = Instant.now(),
 
     @LastModifiedBy
-    val lastModifiedByUser: String? = null,
+    var lastModifiedByUser: String? = null,
 
     @LastModifiedDate
-    val lastModifiedDate: Instant = Instant.now()
+    var lastModifiedDate: Instant = Instant.now()
 )

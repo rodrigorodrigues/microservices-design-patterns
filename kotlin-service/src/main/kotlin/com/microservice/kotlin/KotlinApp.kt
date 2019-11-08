@@ -28,16 +28,11 @@ class KotlinApp {
     fun loadInitialData(taskRepository: TaskRepository) : CommandLineRunner {
         return CommandLineRunner {
             if (taskRepository.count() == 0L) {
-                val listOf = arrayListOf<Task>()
-                var task = Task(UUID.randomUUID().toString(), "Learn new technologies")
-                listOf.add(task)
-
-                task = Task(UUID.randomUUID().toString(), "Travel around the world")
-                listOf.add(task)
-
-                task = Task(UUID.randomUUID().toString(), "Fix Laptop")
-                listOf.add(task)
-
+                val listOf = arrayListOf(
+                    Task(UUID.randomUUID().toString(), "Learn new technologies"),
+                    Task(UUID.randomUUID().toString(), "Travel around the world"),
+                    Task(UUID.randomUUID().toString(), "Fix Laptop")
+                )
                 taskRepository.saveAll(listOf)
             }
         }
