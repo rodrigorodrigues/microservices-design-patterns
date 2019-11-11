@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Container, Table, UncontrolledAlert } from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
@@ -8,6 +8,8 @@ import { errorMessage } from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
+import classnames from 'classnames';
+import Iframe from 'react-iframe';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
@@ -15,14 +17,23 @@ class PersonList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      persons: [], 
-      isLoading: true, 
-      jwt: props.jwt, 
-      displayError: null, 
+      persons: [],
+      isLoading: true,
+      jwt: props.jwt,
+      displayError: null,
       authorities: props.authorities,
-      displayAlert: false
+      displayAlert: false,
+      displaySwagger: false,
+      activeTab: '1'
     };
     this.remove = this.remove.bind(this);
+    this.toggle = this.toggle.bind(this);
+  }
+
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({ activeTab: tab });
+    }
   }
 
   componentDidMount() {
@@ -36,24 +47,24 @@ class PersonList extends Component {
 
       eventSource.addEventListener("open", result => {
         console.log('EventSource open: ', result);
-        this.setState({isLoading: false});
+        this.setState({ isLoading: false, displaySwagger: true });
       });
 
       eventSource.addEventListener("message", result => {
         const data = JSON.parse(result.data);
         this.state.persons.push(data);
-        this.setState({persons: this.state.persons});
+        this.setState({ persons: this.state.persons });
       });
 
       eventSource.addEventListener("error", err => {
         console.log('EventSource error: ', err);
         eventSource.close();
-        this.setState({isLoading: false});
+        this.setState({ isLoading: false });
         if (err.status === 401) {
-          this.setState({displayAlert: true});
+          this.setState({ displayAlert: true });
         } else {
           if (this.state.persons.length === 0) {
-            this.setState({displayError: errorMessage(JSON.stringify(err))});
+            this.setState({ displayError: errorMessage(JSON.stringify(err)) });
           }
         }
       });
@@ -73,17 +84,17 @@ class PersonList extends Component {
         credentials: 'include'
       }).then((err) => {
         if (err.status !== 200) {
-          this.setState({displayError: errorMessage(err)});
+          this.setState({ displayError: errorMessage(err) });
         } else {
           let persons = [...this.state.persons].filter(i => i.id !== id);
-          this.setState({persons: persons});
+          this.setState({ persons: persons });
         }
       });
     }
   }
-  
+
   render() {
-    const {persons, isLoading, displayError, authorities, displayAlert} = this.state;
+    const { persons, isLoading, displayError, authorities, displayAlert, displaySwagger } = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
@@ -99,7 +110,7 @@ class PersonList extends Component {
       const address = `${person.address.address || ''} ${person.address.city || ''} ${person.address.stateOrProvince || ''}`;
       return <tr key={person.id}>
         <th scope="row">{person.id}</th>
-        <td style={{whiteSpace: 'nowrap'}}>{person.fullName}</td>
+        <td style={{ whiteSpace: 'nowrap' }}>{person.fullName}</td>
         <td>{person.createdByUser}</td>
         <td>{person.dateOfBirth}</td>
         <td>{person.children ? <ChildModal person={person} /> : 'No Child'}</td>
@@ -107,7 +118,7 @@ class PersonList extends Component {
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/persons/" + person.id} disabled={!hasSaveAccess}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({'id': person.id, 'name': person.fullName})} disabled={!hasDeleteAccess}>Delete</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({ 'id': person.id, 'name': person.fullName })} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -116,44 +127,74 @@ class PersonList extends Component {
     const displayContent = () => {
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
-        401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
-      </UncontrolledAlert>
+          401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
+        </UncontrolledAlert>
       } else {
-        return <Table striped responsive>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Created By User</th>
-          <th>Date of Birth</th>
-          <th>Children List</th>
-          <th>Location</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        {personList}
-        </tbody>
-      </Table>
+        return <div>
+          <Nav tabs>
+            <NavItem>
+              <NavLink
+                className={classnames({ active: this.state.activeTab === '1' })}
+                onClick={() => { this.toggle('1'); }}>
+                Persons
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink
+                className={classnames({ active: this.state.activeTab === '2' })}
+                onClick={() => { this.toggle('2'); }}>
+                Swagger UI
+              </NavLink>
+            </NavItem>
+          </Nav>
+          <TabContent activeTab={this.state.activeTab}>
+            <TabPane tabId="1">
+              <div className="float-right">
+                <Button color="success" tag={Link} to="/persons/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
+              </div>
+              <Table striped responsive>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Created By</th>
+                    <th>Date of Birth</th>
+                    <th>Children List</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {personList}
+                </tbody>
+              </Table>
+            </TabPane>
+            <TabPane tabId="2">
+              {displaySwagger ?
+                <Iframe url="http://localhost:9007/swagger/person-service/swagger-ui.html"
+                  position="absolute"
+                  width="100%"
+                  id="myId"
+                  className="mt-4"
+                  height="100%" />
+                : null}
+            </TabPane>
+          </TabContent>
+        </div>
       }
     }
 
     return (
-        <div>
-          <AppNavbar/>
-          <Container fluid>
-            <HomeContent notDisplayMessage={true}></HomeContent>
-            <br />
-            <div className="float-right">
-              <Button color="success" tag={Link} to="/persons/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
-            </div>
-            <div className="float-left">
-            <h3>Persons</h3>
+      <div>
+        <AppNavbar />
+        <Container fluid>
+          <HomeContent notDisplayMessage={true}></HomeContent>
+          <div className="float-left">
             {displayContent()}
             <MessageAlert {...displayError}></MessageAlert>
-            </div>
-          </Container>
-        </div>
+          </div>
+        </Container>
+      </div>
     );
   }
 }

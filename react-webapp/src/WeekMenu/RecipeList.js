@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Button, ButtonGroup, Container, Table} from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
@@ -7,12 +7,28 @@ import {errorMessage} from '../common/Util';
 import {get} from "../services/ApiService";
 import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
+import classnames from 'classnames';
+import Iframe from 'react-iframe';
 
 class RecipeList extends Component {
   constructor(props) {
     super(props);
-    this.state = {recipes: [], isLoading: true, jwt: props.jwt, displayError: null};
+    this.state = {
+      recipes: [], 
+      isLoading: true, 
+      jwt: props.jwt, 
+      displayError: null,
+      displayAlert: false,
+      displaySwagger: false,
+      activeTab: '1'
+    };
     this.remove = this.remove.bind(this);
+  }
+
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({ activeTab: tab });
+    }
   }
 
   async componentDidMount() {
@@ -22,7 +38,7 @@ class RecipeList extends Component {
         let data = await get('week-menu/v2/recipe', true, false, jwt)
         if (data) {
           if (Array.isArray(data)) {
-            this.setState({isLoading: false, recipes: data});
+            this.setState({isLoading: false, recipes: data, displaySwagger: true});
           } else {
             this.setState({isLoading: false, displayError: errorMessage(data)});
           }
@@ -57,7 +73,7 @@ class RecipeList extends Component {
   }
 
   render() {
-    const {recipes, isLoading, displayError} = this.state;
+    const { recipes, isLoading, displayError, displayAlert, displaySwagger } = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
@@ -77,31 +93,70 @@ class RecipeList extends Component {
       </tr>
     });
 
+    const displayContent = () => {
+      if (displayAlert) {
+        return <UncontrolledAlert color="danger">
+        401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
+      </UncontrolledAlert>
+      } else {
+        return <div>
+        <Nav tabs>
+          <NavItem>
+            <NavLink
+              className={classnames({ active: this.state.activeTab === '1' })}
+              onClick={() => { this.toggle('1'); }}>
+              Recipes
+            </NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink
+              className={classnames({ active: this.state.activeTab === '2' })}
+              onClick={() => { this.toggle('2'); }}>
+              Swagger UI
+            </NavLink>
+          </NavItem>
+        </Nav>
+        <TabContent activeTab={this.state.activeTab}>
+          <TabPane tabId="1">
+            <div className="float-right">
+              <Button color="success" tag={Link} to="/recipes/new">Add Recipe</Button>
+            </div>
+
+            <Table striped responsive>
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Categories</th>
+              </tr>
+              </thead>
+              <tbody>
+              {recipeList}
+              </tbody>
+            </Table>
+          </TabPane>
+          <TabPane tabId="2">
+            {displaySwagger ?
+              <Iframe url="http://localhost:9007/swagger/user-service/swagger-ui.html"
+                position="absolute"
+                width="100%"
+                id="myId"
+                className="mt-4"
+                height="100%" />
+              : null}
+          </TabPane>
+        </TabContent>
+      </div>
+      }
+    }
+
     return (
       <div>
         <AppNavbar/>
         <Container fluid>
-          <div className="float-right">
-            <Button color="success" tag={Link} to="/recipes/new">Add Recipe</Button>
-          </div>
-          <div className="float-left">
           <HomeContent notDisplayMessage={true}></HomeContent>
-          </div>
-          <div className="float-right">
-          <h3>Recipes</h3>
-          <Table className="mt-4">
-            <thead>
-            <tr>
-              <th width="30%">Name</th>
-              <th width="62%">Categories</th>
-            </tr>
-            </thead>
-            <tbody>
-            {recipeList}
-            </tbody>
-          </Table>
+          {displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
-          </div>
         </Container>
       </div>
     );

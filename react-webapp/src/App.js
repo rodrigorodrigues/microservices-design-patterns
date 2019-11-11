@@ -40,14 +40,15 @@ class App extends Component {
 
   async componentDidMount() {
     try {
-      console.log("UseCookies: ", Cookies.get());
       if (this.state.isAuthenticated === false) {
           let data = await getWithCredentials('authenticatedUser', false);
           console.log("User is Authenticated?", data);
+          console.log("Href", window.location.href);
           if (data.id_token) {
             this.setAuthentication(data);
           } else {
             this.redirectToIndexPage();
+            this.setState({ displayError: errorMessage(data), isLoading: false});
           }
         }
     } catch (e) {
@@ -58,8 +59,12 @@ class App extends Component {
   }
 
   redirectToIndexPage() {
-    if (this.props.history !== undefined) {
-      this.props.history.push('/');
+    if (!window.location.href.endsWith('/') && !window.location.href.endsWith('/login')) {
+      if (this.props.history !== undefined) {
+        this.props.history.push('/');
+      } else {
+        window.location.href = '/';
+      }
     }
   }
 
@@ -70,6 +75,7 @@ class App extends Component {
 
   setAuthentication = (data) => {
     let token = data.id_token;
+    this.setState({ displayError: null });
     this.decodeJwt(token);
   }
 

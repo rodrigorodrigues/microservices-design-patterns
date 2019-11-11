@@ -42,3 +42,7 @@
 .disabled-link {
   pointer-events: none;
 }
+
+.nav-link {
+  cursor: pointer
+}
