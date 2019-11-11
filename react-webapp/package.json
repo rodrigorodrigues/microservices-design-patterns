@@ -16,7 +16,9 @@
     "event-source-polyfill": "1.0.5",
     "react-datepicker": "2.2.0",
     "reactstrap-confirm": "1.0.4",
-    "js-cookie": "2.2.1"
+    "js-cookie": "2.2.1",
+    "moment": "2.24.0",
+    "react-iframe": "1.8.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -24,7 +26,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:9006",
+  "proxy": "http://localhost:9007",
   "eslintConfig": {
     "extends": "react-app"
   },

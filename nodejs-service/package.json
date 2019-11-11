@@ -36,7 +36,9 @@
         "zipkin-instrumentation-express": "0.16.2",
         "zipkin-context-cls": "0.16.0",
         "zipkin-transport-http": "0.16.2",
-        "express-jwt-permissions": "1.2.3"
+        "express-jwt-permissions": "1.2.3",
+        "swagger-jsdoc": "3.4.0",
+        "swagger-tools": "0.10.4"
     },
     "devDependencies": {
         "chai": "3.5.0",

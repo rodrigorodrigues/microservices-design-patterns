@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Button, ButtonGroup, Container, Table, UncontrolledAlert} from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
@@ -7,14 +7,31 @@ import {errorMessage} from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
+import classnames from 'classnames';
+import Iframe from 'react-iframe';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class UserList extends Component {
   constructor(props) {
     super(props);
-    this.state = {users: [], isLoading: true, jwt: props.jwt, displayError: null, displayAlert: false};
+    this.state = {
+      users: [], 
+      isLoading: true, 
+      jwt: props.jwt, 
+      displayError: null, 
+      displayAlert: false,
+      displaySwagger: false,
+      activeTab: '1'
+    };
     this.remove = this.remove.bind(this);
+    this.toggle = this.toggle.bind(this);
+  }
+
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({ activeTab: tab });
+    }
   }
 
   componentDidMount() {
@@ -28,7 +45,7 @@ class UserList extends Component {
 
       eventSource.addEventListener("open", result => {
         console.log('EventSource open: ', result);
-        this.setState({isLoading: false});
+        this.setState({isLoading: false, displaySwagger: true});
       });
 
       eventSource.addEventListener("message", result => {
@@ -75,7 +92,7 @@ class UserList extends Component {
   }
 
   render() {
-    const {users, isLoading, displayError, displayAlert} = this.state;
+    const { users, isLoading, displayError, displayAlert, displaySwagger} = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
@@ -86,6 +103,7 @@ class UserList extends Component {
         <th scope="row">{user.id}</th>
         <td style={{whiteSpace: 'nowrap'}}>{user.email}</td>
         <td>{user.fullName}</td>
+        <th>{user.createdByUser}</th>
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/users/" + user.id}>Edit</Button>
@@ -101,18 +119,55 @@ class UserList extends Component {
         401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
       </UncontrolledAlert>
       } else {
-        return <Table striped responsive>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th>Email</th>
-          <th>Test Name</th>
-        </tr>
-        </thead>
-        <tbody>
-        {userList}
-        </tbody>
-      </Table>
+        return <div>
+        <Nav tabs>
+          <NavItem>
+            <NavLink
+              className={classnames({ active: this.state.activeTab === '1' })}
+              onClick={() => { this.toggle('1'); }}>
+              Users
+            </NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink
+              className={classnames({ active: this.state.activeTab === '2' })}
+              onClick={() => { this.toggle('2'); }}>
+              Swagger UI
+            </NavLink>
+          </NavItem>
+        </Nav>
+        <TabContent activeTab={this.state.activeTab}>
+          <TabPane tabId="1">
+            <div className="float-right">
+              <Button color="success" tag={Link} to="/users/new" disabled={displayAlert}>Add User</Button>
+            </div>
+            <Table striped responsive>
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Created By</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              {userList}
+              </tbody>
+            </Table>
+          </TabPane>
+          <TabPane tabId="2">
+            {displaySwagger ?
+              <Iframe url="http://localhost:9007/swagger/user-service/swagger-ui.html"
+                position="absolute"
+                width="100%"
+                id="myId"
+                className="mt-4"
+                height="100%" />
+              : null}
+          </TabPane>
+        </TabContent>
+      </div>
       }
     }
 
@@ -121,15 +176,8 @@ class UserList extends Component {
         <AppNavbar/>
         <Container fluid>
           <HomeContent notDisplayMessage={true}></HomeContent>
-          <br />
-          <div className="float-right">
-            <Button color="success" tag={Link} to="/users/new" disabled={displayAlert}>Add User</Button>
-          </div>
-          <div className="float-left">
-          <h3>Users</h3>
           {displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
-          </div>
         </Container>
       </div>
     );

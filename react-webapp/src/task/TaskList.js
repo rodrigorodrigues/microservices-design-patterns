@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Container, Table } from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
@@ -7,12 +7,31 @@ import { errorMessage } from '../common/Util';
 import { get } from "../services/ApiService";
 import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
+import classnames from 'classnames';
+import Iframe from 'react-iframe';
+const moment = require('moment');
 
 class TaskList extends Component {
   constructor(props) {
     super(props);
-    this.state = { tasks: [], isLoading: true, jwt: props.jwt, displayError: null };
+    this.state = {
+      tasks: [],
+      isLoading: true,
+      jwt: props.jwt,
+      displayError: null,
+      activeTab: '1',
+      authorities: props.authorities,
+      displayAlert: false,
+      displaySwagger: false
+    };
     this.remove = this.remove.bind(this);
+    this.toggle = this.toggle.bind(this);
+  }
+
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({ activeTab: tab });
+    }
   }
 
   async componentDidMount() {
@@ -22,8 +41,11 @@ class TaskList extends Component {
         let data = await get('tasks', true, false, jwt);
         if (data) {
           if (Array.isArray(data)) {
-            this.setState({ isLoading: false, tasks: data });
+            this.setState({ isLoading: false, tasks: data, displaySwagger: true });
           } else {
+            if (data.status === 401) {
+              this.setState({displayAlert: true});
+            }
             this.setState({ isLoading: false, displayError: errorMessage(data) });
           }
         }
@@ -56,55 +78,103 @@ class TaskList extends Component {
   }
 
   render() {
-    const { tasks, isLoading, displayError } = this.state;
+    const { tasks, isLoading, displayError, authorities, displayAlert, displaySwagger } = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
     }
 
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE');
+
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_SAVE');
+
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_DELETE');
+
     const taskList = tasks.map(task => {
       return <tr key={task.id}>
+        <th scope="row">{task.id}</th>
         <td style={{ whiteSpace: 'nowrap' }}>{task.name}</td>
         <td>{task.createdByUser}</td>
-        <td>{task.createdDate}</td>
+        <td>{moment.unix(task.createdDate).format()}</td>
         <td>{task.lastModifiedByUser}</td>
-        <td>{task.lastModifiedDate}</td>
+        <td>{moment.unix(task.lastModifiedDate).format()}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/tasks/" + task.id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({ 'id': task.id, 'name': task.name })}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/tasks/" + task.id} disabled={!hasSaveAccess}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({ 'id': task.id, 'name': task.name })} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
     });
 
+    const displayContent = () => {
+      if (displayAlert) {
+        return <UncontrolledAlert color="danger">
+        401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
+      </UncontrolledAlert>
+      } else {
+        return <div>
+          <Nav tabs>
+        <NavItem>
+          <NavLink
+            className={classnames({ active: this.state.activeTab === '1' })}
+            onClick={() => { this.toggle('1'); }}>
+            Tasks
+        </NavLink>
+        </NavItem>
+        <NavItem>
+          <NavLink
+            className={classnames({ active: this.state.activeTab === '2' })}
+            onClick={() => { this.toggle('2'); }}>
+            Swagger UI
+        </NavLink>
+        </NavItem>
+      </Nav>
+      <TabContent activeTab={this.state.activeTab}>
+        <TabPane tabId="1">
+          <div className="float-right">
+            <Button color="success" tag={Link} to="/tasks/new" disabled={!hasCreateAccess || displayAlert}>Add Task</Button>
+          </div>
+          <Table striped responsive>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Created By</th>
+                <th>Created Date</th>
+                <th>Last Modified By User</th>
+                <th>Last Modified By Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {taskList}
+            </tbody>
+          </Table>
+        </TabPane>
+        <TabPane tabId="2">
+          {/*this.state.activeTab === 2 ? <h3>Tab 2 Contents</h3> : null*/}
+          {displaySwagger ?
+          <Iframe url="http://localhost:9007/swagger/kotlin-service/swagger-ui.html"
+            position="absolute"
+            width="100%"
+            id="myId"
+            className="mt-4"
+            height="100%" />
+            : null}
+        </TabPane>
+      </TabContent>
+      </div>
+      }
+    }
+
     return (
       <div>
         <AppNavbar />
         <Container fluid>
-          <div className="float-right">
-            <Button color="success" tag={Link} to="/tasks/new">Add Task</Button>
-            <Button color="warning" tag={Link} to="/tasks/new">Try Swagger</Button>
-          </div>
           <div className="float-left">
             <HomeContent notDisplayMessage={true}></HomeContent>
-          </div>
-          <div className="float-right">
-            <h3>Tasks</h3>
-            <Table className="mt-4">
-              <thead>
-                <tr>
-                  <th width="40%">Name</th>
-                  <th width="15%">Created By</th>
-                  <th width="15%">Created Date</th>
-                  <th width="15%">Last Modified By User</th>
-                  <th width="15%">Last Modified By Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {taskList}
-              </tbody>
-            </Table>
+            {displayContent()}
             <MessageAlert {...displayError}></MessageAlert>
           </div>
         </Container>

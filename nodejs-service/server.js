@@ -36,6 +36,9 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
 
+//Swagger
+loadSwagger();
+
 // Spring Boot Actuator
 loadActuator();
 
@@ -66,9 +69,8 @@ app.use(function (req, res, next) {
 
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
-    } else if (req.path === '/sharedSessions') {
-        console.log("SessionId: ", req.sessionID);
-        res.status(200).send(req.session);
+    } else if (req.path === '/docs') {
+        loadSwaggerUI();
     } else {
         validateJwt(req, res, next);
     }
@@ -134,6 +136,63 @@ function loadSleuth() {
 function loadActuator() {
     var actuator = require('express-actuator');
     app.use(actuator('/actuator'));
+}
+
+function loadSwagger() {
+    const swaggerJSDoc = require('swagger-jsdoc');
+
+    const options = {
+        definition: {
+          openapi: '3.0.0', // Specification (optional, defaults to swagger: '2.0')
+          info: {
+            title: 'Hello World', // Title (required)
+            version: '1.0.0', // Version (required)
+          },
+        },
+        // Path to the API docs
+        apis: ['./routes/category.route.js'],
+      };
+      
+      // Initialize swagger-jsdoc -> returns validated swagger spec in json format
+      const swaggerSpec = swaggerJSDoc(options);
+
+      app.get('/api-docs.json', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(swaggerSpec);
+      });
+}
+
+async function loadSwaggerUI() {
+    var swaggerTools = require('swagger-tools');
+
+    // swaggerRouter configuration
+    var options = {
+        controllers: './controllers',
+        useStubs: process.env.NODE_ENV === 'development' ? true : false // Conditionally turn on stubs (mock mode)
+    };
+
+    var fs = require("fs");
+    var request = require('request');
+    await request.get('http://localhost:${port}/api-docs.json').pipe(fs.createWriteStream("swagger.json"));
+    // let jsonDoc = '{"openapi":"3.0.0","info":{"title":"Hello World","version":"1.0.0"},"paths":{},"components":{},"tags":[]}';
+    var swaggerDoc = require('swagger.json');
+
+    console.log("swaggerDoc", swaggerDoc);
+
+    // Initialize the Swagger middleware
+    swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
+        // Interpret Swagger resources and attach metadata to request - must be first in swagger-tools middleware chain
+        app.use(middleware.swaggerMetadata());
+    
+        // Validate Swagger requests
+        app.use(middleware.swaggerValidator());
+    
+        // Route validated requests to appropriate controller
+        app.use(middleware.swaggerRouter(options));
+    
+        // Serve the Swagger documents and Swagger UI
+        app.use(middleware.swaggerUi());
+    });
 }
 
 function loadPrometheus() {
