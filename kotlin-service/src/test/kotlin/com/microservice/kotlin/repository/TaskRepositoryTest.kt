@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @DataMongoTest
@@ -17,9 +16,9 @@ class TaskRepositoryTest(@Autowired private val taskRepository: TaskRepository) 
     @BeforeEach
     fun setup() {
         val listOf = arrayListOf(
-            Task(UUID.randomUUID().toString(), "Fix Computer", "rodrigo", lastModifiedByUser = "rodrigo"),
-            Task(UUID.randomUUID().toString(), "Fix Laptop", "gustavo", lastModifiedByUser = "rodrigo"),
-            Task(UUID.randomUUID().toString(), "Fix TV", "rodrigo", lastModifiedByUser = "rodrigo")
+            Task(name = "Fix Computer", createdByUser =  "rodrigo", lastModifiedByUser = "rodrigo"),
+            Task(name = "Fix Laptop", createdByUser = "gustavo", lastModifiedByUser = "rodrigo"),
+            Task(name = "Fix TV", createdByUser = "rodrigo", lastModifiedByUser = "rodrigo")
         )
         taskRepository.saveAll(listOf)
     }

@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import springfox.documentation.annotations.ApiIgnore
 import java.net.URI
 import java.util.*
 import javax.validation.Valid
@@ -23,29 +24,36 @@ import javax.validation.Valid
 @RequestMapping("/api/tasks")
 class TaskController(@Autowired val repository: TaskRepository) {
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE')")
     fun findById(@PathVariable id: String,
-                 @AuthenticationPrincipal authentication : Authentication): Task = repository.findById(id)
+                 @ApiIgnore @AuthenticationPrincipal authentication: Authentication): Task = repository.findById(id)
         .map {
-            if (authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN")) || it.createdByUser == authentication.name) {
-                return@map it
+            if (authentication.hasAdminAuthority() || it.wasCreatedBy(authentication.name)) {
+                it
             } else {
                 throw ResponseStatusException(HttpStatus.FORBIDDEN, "User(${authentication.name}) does not have access to this resource")
             }
         }
-        .orElseThrow{ResponseStatusException(HttpStatus.NOT_FOUND)}
+        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
 
-    @GetMapping
+    @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE', 'TASK_DELETE', 'TASK_CREATE')")
     @PostFilter("hasRole('ADMIN') or filterObject.createdByUser == authentication.name")
-    fun findAll(): List<Task> = repository.findAll().toList()
+    fun findAll(): List<Task> {
+        val findAll = repository.findAll()
+        return if (findAll.count() == 0) {
+            mutableListOf()
+        } else {
+            findAll.toList()
+        }
+    }
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_CREATE')")
     fun create(@RequestBody @Valid @ApiParam(required = true) task: Task): ResponseEntity<Task> {
         if (StringUtils.isNotBlank(task.id)) {
-            return update(task, task.id)
+            return update(task, task.id!!)
         }
         task.id = UUID.randomUUID().toString()
         repository.save(task)
@@ -65,13 +73,17 @@ class TaskController(@Autowired val repository: TaskRepository) {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_DELETE')")
-    fun delete(@PathVariable @ApiParam(required = true) id : String,
-               @AuthenticationPrincipal authentication : Authentication) = repository.findById(id)
-            .map {
-                if (authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN")) || it.createdByUser == authentication.name) {
-                    repository.deleteById(id)
-                } else {
-                    throw ResponseStatusException(HttpStatus.FORBIDDEN, "User(${authentication.name}) does not have access to this resource")
-                }
+    fun delete(@PathVariable @ApiParam(required = true) id: String,
+               @ApiIgnore @AuthenticationPrincipal authentication: Authentication) = repository.findById(id)
+        .map {
+            if (authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN")) || it.createdByUser == authentication.name) {
+                repository.deleteById(id)
+            } else {
+                throw ResponseStatusException(HttpStatus.FORBIDDEN, "User(${authentication.name}) does not have access to this resource")
             }
+        }
+
+    private fun Authentication.hasAdminAuthority() = SimpleGrantedAuthority("ROLE_ADMIN") in this.authorities
+
+    private fun Task.wasCreatedBy(name: String) = this.createdByUser == name
 }

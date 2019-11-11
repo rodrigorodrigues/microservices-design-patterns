@@ -9,7 +9,7 @@ import javax.validation.constraints.Size
 @Document(collection = "tasks")
 data class Task(
     @Id
-    var id: String,
+    var id: String? = null,
 
     @NotEmpty
     @Size(min = 5, max = 200)
@@ -19,11 +19,11 @@ data class Task(
     var createdByUser: String? = null,
 
     @CreatedDate
-    var createdDate: Instant = Instant.now(),
+    var createdDate: Instant? = null,
 
     @LastModifiedBy
     var lastModifiedByUser: String? = null,
 
     @LastModifiedDate
-    var lastModifiedDate: Instant = Instant.now()
+    var lastModifiedDate: Instant? = null
 )

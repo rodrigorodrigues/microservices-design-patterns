@@ -2,6 +2,7 @@ package com.microservice.kotlin.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.jwt.common.TokenProvider
+import com.microservice.kotlin.config.CustomDefaultErrorAttributes
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
 import org.hamcrest.Matchers.containsInAnyOrder
@@ -10,11 +11,15 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers
+import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
 import org.springframework.http.MediaType.APPLICATION_JSON
@@ -26,10 +31,19 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.*
 
+@Configuration
+internal class MockCustomErrorAttributes {
+    @Bean
+    fun customDefaultErrorAttributes(): CustomDefaultErrorAttributes = CustomDefaultErrorAttributes()
+}
+
 @ExtendWith(SpringExtension::class)
 @WebMvcTest
 @AutoConfigureMockMvc
-internal class TaskControllerTest(@Autowired val client: MockMvc, @Autowired val objectMapper: ObjectMapper) {
+@Import(MockCustomErrorAttributes::class)
+internal class TaskControllerTest(@Autowired val client: MockMvc,
+                                  @Autowired val objectMapper: ObjectMapper
+                                  ) {
     @MockBean lateinit var tokenProvider : TokenProvider
     @MockBean lateinit var taskRepository: TaskRepository
 
@@ -40,6 +54,20 @@ internal class TaskControllerTest(@Autowired val client: MockMvc, @Autowired val
             Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "rodrigo"),
             Task(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "gustavo")
         ))
+    }
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/tasks should return empty list and response 200 - OK")
+    @WithMockUser(roles = ["TASK_READ"], username = "rodrigo")
+    fun shouldReturnEmptyList() {
+        `when`(taskRepository.findAll()).thenReturn(listOf())
+
+        client.perform(get("/api/tasks")
+            .header(AUTHORIZATION, "Mock JWT"))
+            .andDo(print())
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
+            .andExpect(jsonPath("$").isEmpty)
     }
 
     @Test
