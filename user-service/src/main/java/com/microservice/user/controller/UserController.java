@@ -67,7 +67,7 @@ public class UserController {
         user.setId(id);
         return userService.findById(id)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                .flatMap(userService::save);
+                .flatMap(u -> userService.save(user));
     }
 
     @ApiOperation(value = "Api for deleting a user")

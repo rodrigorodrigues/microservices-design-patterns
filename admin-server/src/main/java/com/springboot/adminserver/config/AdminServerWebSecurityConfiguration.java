@@ -46,6 +46,7 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
             .antMatchers(adminContextPath + "/login").permitAll()
             .antMatchers(adminContextPath + "/logout").permitAll()
             .antMatchers(adminContextPath + "/error").permitAll()
+            .antMatchers(adminContextPath + "/actuator/health").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
             .formLogin()

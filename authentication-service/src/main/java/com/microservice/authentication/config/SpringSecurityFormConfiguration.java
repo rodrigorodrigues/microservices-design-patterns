@@ -57,7 +57,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.requestMatchers()
-            .antMatchers("/api/**")
+            .antMatchers("/**")
             .and()
             .authorizeRequests()
             .anyRequest().authenticated()
