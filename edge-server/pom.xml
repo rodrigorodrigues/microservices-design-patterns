@@ -75,6 +75,12 @@
             <artifactId>spring-cloud-starter-zipkin</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>ru.reliabletech</groupId>
+            <artifactId>zuul-springfox-swagger</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

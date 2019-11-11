@@ -275,8 +275,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         assertThat(keys.size()).isEqualTo(1);
 */
 
-        mockMvc.perform(post("/api/logout")
-            .with(csrf())
+        mockMvc.perform(get("/api/logout")
             .cookie(response.getCookies()))
             .andExpect(status().isOk())
             .andExpect(cookie().value("SESSIONID", is(nullValue())));

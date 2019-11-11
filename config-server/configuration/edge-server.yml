@@ -12,10 +12,22 @@ zuul:
             serviceId: user-service
             stripPrefix: false
             sensitiveHeaders:
+        swagger-users-account-service:
+            path: /swagger/user-service/**
+            serviceId: user-service
+            swaggerUri: api-documentation
+            stripPrefix: true
+            sensitiveHeaders:
         person-service:
             path: /api/persons/**
             serviceId: person-service
             stripPrefix: false
+            sensitiveHeaders:
+        swagger-person-service:
+            path: /swagger/person-service/**
+            serviceId: person-service
+            swaggerUri: api-documentation
+            stripPrefix: true
             sensitiveHeaders:
         authentication-service:
             path: /api/authenticate
@@ -36,6 +48,18 @@ zuul:
             path: /api/authenticatedUser
             serviceId: authentication-service
             stripPrefix: false
+            sensitiveHeaders:
+        task-service:
+            path: /api/tasks/**
+            serviceId: kotlin-service
+            swaggerUri: api-documentation
+            stripPrefix: false
+            sensitiveHeaders:
+        swagger-tasks-service:
+            path: /swagger/kotlin-service/**
+            serviceId: kotlin-service
+            swaggerUri: api-documentation
+            stripPrefix: true
             sensitiveHeaders:
 #        authenticated-oauth-service:
 #            path: /oauth/**

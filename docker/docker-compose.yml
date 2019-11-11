@@ -60,6 +60,7 @@ services:
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
     depends_on:
       - service-discovery
       - config-management
@@ -205,6 +206,31 @@ services:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh config-management:8888
 
+  task-api:
+    image: kotlin-service
+    container_name: task-api
+    environment:
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SERVER_PORT=9092
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_DATABASE=docker
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
+      - DEBUG=true
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+    depends_on:
+      - service-discovery
+      - config-management
+      - mongodb-datasource
+    ports:
+      - 9092:9092
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    command: sh ./docker-entrypoint.sh config-management:8888
+
   user-api:
     image: user-service
     container_name: user-api
@@ -219,6 +245,8 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+      - LOGGING_LEVEL_COM_MICROSERVICE=debug
     links:
       - authentication-api
     ports:

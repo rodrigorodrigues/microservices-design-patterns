@@ -17,6 +17,8 @@ import {getWithCredentials} from "./services/ApiService";
 import MessageAlert from './MessageAlert';
 import {errorMessage} from './common/Util';
 import Cookies from 'js-cookie'
+import TaskList from "./task/TaskList";
+import TaskEdit from "./task/TaskEdit";
 
 
 const eurekaUrl = process.env.REACT_APP_EUREKA_URL;
@@ -111,6 +113,10 @@ class App extends Component {
                    component={() => <CategoryEdit {...this.state} />} />
             <Route path='/recipes' exact={true}
                    component={() => <RecipeList {...this.state} />} />
+            <Route path='/tasks' exact={true}
+                   component={() => <TaskList {...this.state} />} />
+            <Route path='/tasks/:id'
+                   component={() => <TaskEdit {...this.state} />} />
             <Route path='/admin-eureka' component={() => {
               console.log("Eureka URL: ", eurekaUrl);
               window.location.href = `${eurekaUrl}`; 

@@ -106,7 +106,7 @@ public class PersonController {
         person.setId(id);
         return personService.findById(id)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                .flatMap(personService::save);
+                .flatMap(p -> personService.save(person));
     }
 
     @ApiOperation(value = "Api for deleting a person")

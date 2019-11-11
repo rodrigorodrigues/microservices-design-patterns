@@ -14,6 +14,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import ru.reliabletech.zuul.swagger.EnableZuulSpringfoxSwagger;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -22,6 +23,7 @@ import javax.net.ssl.HttpsURLConnection;
 @EnableDiscoveryClient
 @Import(ActuatorResourceServerConfiguration.class)
 @EnableRedisHttpSession
+@EnableZuulSpringfoxSwagger
 public class EdgeServerApplication {
 	static {
 		HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());

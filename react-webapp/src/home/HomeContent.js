@@ -14,6 +14,9 @@ function HomeContent({notDisplayMessage}) {
                     {displayButtonManageUsers(authorities)}
                 </Col>
                 <Col xs="auto">
+                    {displayButtonManageTasks(authorities)}
+                </Col>
+                <Col xs="auto">
                     {displayButtonManageCategories(authorities)}
                 </Col>
                 <Col xs="auto">
@@ -48,6 +51,7 @@ function HomeContent({notDisplayMessage}) {
         </Container>}
     </UserContext.Consumer> 
 }
+
 function displayButtonManagePeople(authorities) {
     const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
     || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE')
@@ -92,6 +96,12 @@ function displayButtonManageCategories(authorities) {
 function displayButtonManageRecipes(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
     return <Link className={"link" + (!isAdmin ? " disabled-link" : "")} to="/recipes">Manage Recipes</Link>
+}
+
+function displayButtonManageTasks(authorities) {
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
+    || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE')
+    return <Link to="/tasks" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Tasks</Link>
 }
 
 export default HomeContent
