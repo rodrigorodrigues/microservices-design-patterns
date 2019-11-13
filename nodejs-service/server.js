@@ -14,6 +14,8 @@ const db = require('./db/mongoose');
 
 const bodyParser = require('body-parser');
 
+var initializeSwagger = require('swagger-tools').initializeMiddleware;
+
 const port = process.env.PORT;
 
 const logger = function (request, response, next) {
@@ -65,12 +67,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.options('*', cors());
 
+
 app.use(function (req, res, next) {
 
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
-    } else if (req.path === '/docs') {
-        loadSwaggerUI();
+    } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
+        next();
     } else {
         validateJwt(req, res, next);
     }
@@ -117,6 +120,7 @@ db.connection.once('open', () => {
 app.listen(port, () => {
     console.log("Application started. Listening on port:" + port);
     loadSecretKey();
+    generateSwaggerJsonFile();
 });
 
 function loadSleuth() {
@@ -143,14 +147,14 @@ function loadSwagger() {
 
     const options = {
         definition: {
-          openapi: '3.0.0', // Specification (optional, defaults to swagger: '2.0')
+          swagger: '2.0', // Specification (optional, defaults to swagger: '2.0')
           info: {
             title: 'Hello World', // Title (required)
             version: '1.0.0', // Version (required)
           },
         },
         // Path to the API docs
-        apis: ['./routes/category.route.js'],
+        apis: ['./routes/*.route.js'],
       };
       
       // Initialize swagger-jsdoc -> returns validated swagger spec in json format
@@ -162,36 +166,54 @@ function loadSwagger() {
       });
 }
 
-async function loadSwaggerUI() {
-    var swaggerTools = require('swagger-tools');
-
-    // swaggerRouter configuration
-    var options = {
-        controllers: './controllers',
-        useStubs: process.env.NODE_ENV === 'development' ? true : false // Conditionally turn on stubs (mock mode)
-    };
-
-    var fs = require("fs");
+function generateSwaggerJsonFile() {
     var request = require('request');
-    await request.get('http://localhost:${port}/api-docs.json').pipe(fs.createWriteStream("swagger.json"));
-    // let jsonDoc = '{"openapi":"3.0.0","info":{"title":"Hello World","version":"1.0.0"},"paths":{},"components":{},"tags":[]}';
-    var swaggerDoc = require('swagger.json');
+    request.get(`http://localhost:${port}/api-docs.json`, function(error, response, body) {
+        var fs = require('fs');
 
+        console.log("body", body);
+
+        fs.writeFileSync("/tmp/swagger.json", body)
+
+        loadSwaggerUI();
+    });
+}
+
+function loadSwaggerUI() {
+    const swaggerDoc = require('/tmp/swagger.json');
     console.log("swaggerDoc", swaggerDoc);
 
     // Initialize the Swagger middleware
-    swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
+    initializeSwagger(swaggerDoc, function (middleware) {
+        console.log("initializeMiddleware:init");
+
         // Interpret Swagger resources and attach metadata to request - must be first in swagger-tools middleware chain
         app.use(middleware.swaggerMetadata());
-    
+
+        // Provide the security handlers
+        app.use(middleware.swaggerSecurity({
+            oauth2: function (req, def, scopes, callback) {
+            // Do real stuff here
+            }
+        }));
+
         // Validate Swagger requests
-        app.use(middleware.swaggerValidator());
-    
+        app.use(middleware.swaggerValidator({
+            validateResponse: true
+        }));
+
         // Route validated requests to appropriate controller
-        app.use(middleware.swaggerRouter(options));
-    
+        //app.use(middleware.swaggerRouter({useStubs: true, controllers: './controllers'}));
+
         // Serve the Swagger documents and Swagger UI
-        app.use(middleware.swaggerUi());
+        //   http://localhost:3000/docs => Swagger UI
+        //   http://localhost:3000/api-docs => Swagger document
+        app.use(middleware.swaggerUi({
+            //apiDocs: `http://localhost:${port}/api-docs`,
+        }));
+
+
+        console.log("initializeMiddleware:nd");
     });
 }
 
@@ -300,6 +322,12 @@ function loadSecretKey() {
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
         secretKey = config.configuration.jwt['base64-secret'];
+        if (secretKey === "" || secretKey === null || secretKey === undefined) {
+            const pathPublicKey = process.env.PATH_PUBLIC_KEY;
+            console.log("pathPublicKey: ", pathPublicKey);
+            var fs = require('fs');
+            secretKey = fs.readFileSync(pathPublicKey);
+        } 
         console.log("SecretKey: ", secretKey);
     });
 }

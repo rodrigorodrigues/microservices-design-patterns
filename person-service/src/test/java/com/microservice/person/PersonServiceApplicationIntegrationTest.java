@@ -2,11 +2,16 @@ package com.microservice.person;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.jwt.common.TokenProvider;
+import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.dto.PersonDto;
+import com.microservice.person.model.Address;
+import com.microservice.person.model.Person;
+import com.microservice.person.repository.PersonRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,9 +53,12 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
-		properties = {"configuration.swagger=false", "debug=true", "logging.level.org.springframework.security=debug"})
+		properties = {"configuration.swagger=false",
+            "debug=true",
+            "logging.level.org.springframework.security=debug",
+            "logging.level.com.microservice.person=debug"})
 @ActiveProfiles("integration-tests")
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "1s")
 @Import(PersonServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class)
 public class PersonServiceApplicationIntegrationTest {
 
@@ -68,6 +76,14 @@ public class PersonServiceApplicationIntegrationTest {
 
 	@Autowired
     PasswordEncoder passwordEncoder;
+
+	@Autowired
+    PersonRepository personRepository;
+
+	@Autowired
+    SpringSecurityAuditorAware springSecurityAuditorAware;
+
+	Person person;
 
 	Map<String, List<GrantedAuthority>> users = new HashMap<>();
 
@@ -98,15 +114,31 @@ public class PersonServiceApplicationIntegrationTest {
                 .enabled(true)
                 .build())
         .forEach(authenticationRepository::save);
+
+        Authentication authentication = authenticationRepository.findByEmail("master@gmail.com");
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(authentication, null, authentication.getAuthorities());
+
+        springSecurityAuditorAware.setCurrentAuthenticatedUser(usernamePasswordAuthenticationToken);
+
+        personRepository.save(Person.builder()
+            .fullName("Test Master")
+            .address(new Address("123", "123", "123", "123", "123"))
+            .dateOfBirth(LocalDate.now())
+            .build())
+            .subscribe(p -> {
+                assertThat(p.getCreatedByUser()).isEqualTo("master@gmail.com");
+                this.person = p;
+            });
     }
 
     @AfterEach
     public void tearDown() {
         authenticationRepository.deleteAll();
+        personRepository.delete(person).subscribe(p -> log.debug("Deleted person entity"));
     }
 
     @Test
-	@DisplayName("Test - When Calling GET - /api/persons should return list of people and response 200 - OK")
+	@DisplayName("Test - When Calling GET - /api/persons should return filter list of people and response 200 - OK")
 	public void shouldReturnListOfPersonsWhenCallApi() {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 
@@ -114,8 +146,32 @@ public class PersonServiceApplicationIntegrationTest {
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.exchange()
 				.expectStatus().isOk()
-                .expectBodyList(PersonDto.class).hasSize(3);
+                .expectBodyList(PersonDto.class).hasSize(1);
+
+        client.get().uri("/api/persons")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .exchange()
+            .expectStatus().isOk()
+            .returnResult(String.class)
+            .getResponseBody()
+            .subscribe(json -> {
+                log.debug("output: {}", json);
+                assertThat((String)JsonPath.read(json, "$.createdByUser")).isEqualTo("master@gmail.com");
+                assertThat((String)JsonPath.read(json, "$.createdDate")).isNotEmpty();
+            });
 	}
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/persons should return list of people and response 200 - OK")
+    public void shouldReturnListOfAllPersonsWhenCallApi() {
+        String authorizationHeader = authorizationHeader("admin@gmail.com");
+
+        client.get().uri("/api/persons")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBodyList(PersonDto.class).hasSize(4);
+    }
 
 	@Test
     @DisplayName("Test - When Calling POST - /api/persons should create a new person and response 201 - Created")

@@ -65,6 +65,10 @@ spec:
 #            backend:
 #              serviceName: authentication-service
 #              servicePort: http-port
+          - path: /swagger/
+            backend:
+              serviceName: edge-server
+              servicePort: http-port
           - path: /api/
             backend:
               serviceName: edge-server

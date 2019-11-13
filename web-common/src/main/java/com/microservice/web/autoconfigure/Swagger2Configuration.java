@@ -1,6 +1,9 @@
 package com.microservice.web.autoconfigure;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +27,13 @@ import java.util.List;
 @Configuration
 @EnableSwagger2WebFlux
 public class Swagger2Configuration {
+
+    @Autowired
+    private BuildProperties build;
+
+    @Autowired
+    private GitProperties git;
+
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -37,12 +47,13 @@ public class Swagger2Configuration {
     }
 
     private ApiInfo apiEndPointsInfo() {
+        String version = String.format("%s-%s-%s", build.getVersion(), git.getShortCommitId(), git.getBranch());
         return new ApiInfoBuilder().title("Java 8 Learning - Spring Boot 2")
                 .description("REST API")
                 .contact(new Contact("Rodrigo Santos", "https://github.com/rodrigorodrigues/springboot2-cloud-webflux-node-react.git", "rodrigorodriguesweb@gmail.com"))
                 .license("Apache 2.0")
                 .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
-                .version("1.0.0")
+                .version(version)
                 .build();
     }
 

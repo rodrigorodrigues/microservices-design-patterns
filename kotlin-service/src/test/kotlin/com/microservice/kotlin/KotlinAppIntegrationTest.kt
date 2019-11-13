@@ -16,8 +16,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [KotlinApp::class], properties = ["configuration.swagger=false", "debug=true", "logging.level.org.springframework.security=debug"],
@@ -48,7 +46,6 @@ class KotlinAppIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(JsonPath.read<List<String>>(responseEntity.body, "$..id")).hasSize(3)
         assertThat(JsonPath.read<List<String>>(responseEntity.body, "$..createdByUser").distinct()).containsExactly("default@admin.com")
-        assertThat(JsonPath.read<String>(responseEntity.body, "$.createdDate[0]")).startsWith(DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
     }
 
     @Test

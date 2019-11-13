@@ -10,6 +10,8 @@ import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
 
+const recipeSwaggerUrl = process.env.REACT_APP_RECIPE_SWAGGER_URL;
+
 class RecipeList extends Component {
   constructor(props) {
     super(props);
@@ -137,7 +139,7 @@ class RecipeList extends Component {
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?
-              <Iframe url="http://localhost:9007/swagger/user-service/swagger-ui.html"
+              <Iframe url={`${recipeSwaggerUrl}`}
                 position="absolute"
                 width="100%"
                 id="myId"

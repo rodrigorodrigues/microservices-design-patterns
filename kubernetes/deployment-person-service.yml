@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: person-service
-          image: eu.gcr.io/spring-boot-gke-243520/person-service:5.0
+          image: eu.gcr.io/spring-boot-gke-243520/person-service:11.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -79,6 +79,8 @@ spec:
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK
+#              value: debug
 #            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
 #              value: "false"
 #            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED

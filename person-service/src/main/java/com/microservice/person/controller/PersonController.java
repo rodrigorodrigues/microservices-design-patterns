@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -59,8 +60,16 @@ public class PersonController {
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE')")
-    public Flux<PersonDto> findAll() {
-        return personService.findAll();
+//    @PostFilter("hasRole('ADMIN') or filterObject.createdByUser == authentication.name")
+    public Flux<PersonDto> findAll(@AuthenticationPrincipal Authentication authentication) {
+        if (hasRoleAdmin(authentication)) {
+            return personService.findAll();
+        } else {
+            return personService.findAll()
+                .filter(p -> p.getCreatedByUser().equals(authentication.getName()))
+                .collectList()
+                .flatMapMany(Flux::fromIterable);
+        }
     }
 
     private Integer generateLastEventId(String lastEventIdHeader, String lastEventIdRequestParam) {
@@ -80,8 +89,16 @@ public class PersonController {
     @ApiOperation(value = "Api for return a person by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE')")
-    public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id) {
+    public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id,
+                                    @AuthenticationPrincipal Authentication authentication) {
         return personService.findById(id)
+            .flatMap(p -> {
+                if (hasRoleAdmin(authentication) || p.getCreatedByUser().equals(authentication.getName())) {
+                    return Mono.just(p);
+                } else {
+                    return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("User(%s) does not have access to this resource", authentication.getName())));
+                }
+            })
             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
@@ -115,4 +132,9 @@ public class PersonController {
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
         return personService.deleteById(id);
     }
+
+    private boolean hasRoleAdmin(@AuthenticationPrincipal Authentication authentication) {
+        return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"));
+    }
+
 }

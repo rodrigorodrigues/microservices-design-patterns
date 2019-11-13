@@ -10,6 +10,8 @@ import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
 
+const categorySwaggerUrl = process.env.REACT_APP_CATEGORY_SWAGGER_URL;
+
 class CategoryList extends Component {
   constructor(props) {
     super(props);
@@ -141,7 +143,7 @@ class CategoryList extends Component {
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?
-              <Iframe url="http://localhost:9007/swagger/user-service/swagger-ui.html"
+              <Iframe url={`${categorySwaggerUrl}`}
                 position="absolute"
                 width="100%"
                 id="myId"

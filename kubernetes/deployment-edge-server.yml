@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: edge-server
-          image: eu.gcr.io/spring-boot-gke-243520/edge-server:5.0
+          image: eu.gcr.io/spring-boot-gke-243520/edge-server:11.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -89,6 +89,8 @@ spec:
 #              value: "true"
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+              value: debug
 #            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
 #              value: "false"
 #            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED

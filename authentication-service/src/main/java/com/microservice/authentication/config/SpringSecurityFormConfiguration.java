@@ -6,6 +6,7 @@ import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import com.microservice.jwt.common.TokenProvider;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ import java.util.Map;
 /**
  * Spring Security Configuration for form
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
@@ -56,10 +58,12 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        log.debug("SpringSecurityFormConfiguration:Set paths");
         http.requestMatchers()
-            .antMatchers("/**")
+            .antMatchers("/api/**", "/", "/error")
             .and()
             .authorizeRequests()
+            .antMatchers("/error").permitAll()
             .anyRequest().authenticated()
             .and()
             .formLogin()

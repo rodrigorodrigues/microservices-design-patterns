@@ -29,13 +29,15 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: eu.gcr.io/spring-boot-gke-243520/admin-server:8.0
+          image: eu.gcr.io/spring-boot-gke-243520/admin-server:11.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
+              cpu: "50m"
             limits:
-              memory: "512Mi"
+              memory: "256Mi"
+              cpu: "100m"
           volumeMounts:
             - name: spendingbetter-p12
               mountPath: "/etc/ssl_certs_p12"
@@ -48,7 +50,7 @@ spec:
               readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xms256m -Xmx512m
+              value: -Xms128m -Xm256m
             - name: SERVER_PORT
               value: "9000"
             - name: SPRING_PROFILES_ACTIVE

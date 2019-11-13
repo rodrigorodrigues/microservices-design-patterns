@@ -11,6 +11,8 @@ import classnames from 'classnames';
 import Iframe from 'react-iframe';
 const moment = require('moment');
 
+const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
+
 class TaskList extends Component {
   constructor(props) {
     super(props);
@@ -155,7 +157,7 @@ class TaskList extends Component {
         <TabPane tabId="2">
           {/*this.state.activeTab === 2 ? <h3>Tab 2 Contents</h3> : null*/}
           {displaySwagger ?
-          <Iframe url="http://localhost:9007/swagger/kotlin-service/swagger-ui.html"
+          <Iframe url={`${taskSwaggerUrl}`}
             position="absolute"
             width="100%"
             id="myId"

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -25,6 +26,9 @@ public class PersonDto {
     private List<ChildrenDto> children;
     private Address address;
     private String createdByUser;
+    private Instant createdDate;
+    private String lastModifiedByUser;
+    private Instant lastModifiedDate;
 
     @Data
     @NoArgsConstructor

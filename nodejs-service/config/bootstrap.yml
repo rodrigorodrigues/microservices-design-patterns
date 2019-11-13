@@ -22,7 +22,7 @@ spring:
             endpoint: http://config-management:8888
 
 ---
-profiles: google
+profiles: prod
 spring:
     cloud:
         config:

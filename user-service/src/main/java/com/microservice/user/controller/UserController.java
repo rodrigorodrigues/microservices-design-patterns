@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -37,8 +38,15 @@ public class UserController {
 
     @ApiOperation(value = "Api for return list of users")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<UserDto> findAll() {
-        return userService.findAll();
+    public Flux<UserDto> findAll(@AuthenticationPrincipal Authentication authentication) {
+        if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"))) {
+            return userService.findAll();
+        } else {
+            return userService.findAll()
+                    .filter(p -> p.getCreatedByUser().equals(authentication.getName()))
+                    .collectList()
+                    .flatMapMany(Flux::fromIterable);
+        }
     }
 
     @ApiOperation(value = "Api for return a user by id")

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.List;
 
 @Builder
@@ -20,6 +21,9 @@ public class UserDto {
     private String email;
     private String fullName;
     private String createdByUser;
+    private Instant createdDate;
+    private String lastModifiedByUser;
+    private Instant lastModifiedDate;
 
     private List<AuthorityDto> authorities;
 

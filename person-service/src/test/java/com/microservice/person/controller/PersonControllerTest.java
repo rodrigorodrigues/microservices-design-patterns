@@ -90,8 +90,8 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons with valid authorization the response should be a list of People - 200 - OK")
-    @WithMockUser(roles = "PERSON_READ")
+    @DisplayName("Test - When Calling GET - /api/persons with admin role the response should be a list of People - 200 - OK")
+    @WithMockUser(roles = "ADMIN")
     public void whenCallFindAllShouldReturnListOfPersons() {
         PersonDto person = new PersonDto();
         person.setId("100");
@@ -111,11 +111,35 @@ public class PersonControllerTest {
     }
 
     @Test
+    @DisplayName("Test - When Calling GET - /api/persons with person_read role the response should be filtered - 200 - OK")
+    @WithMockUser(roles = "PERSON_READ", username = "me")
+    public void whenCallShouldFilterListOfPersons() {
+        PersonDto person = new PersonDto();
+        person.setId("100");
+        person.setCreatedByUser("me");
+        PersonDto person2 = new PersonDto();
+        person2.setCreatedByUser("someone");
+        person2.setId("200");
+        when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
+
+        ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
+
+        client.get().uri("/api/persons")
+            .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM_VALUE)
+            .expectBodyList(type)
+            .hasSize(1);
+    }
+
+    @Test
     @DisplayName("Test - When Calling GET - /api/persons/{id} with valid authorization the response should be person - 200 - OK")
-    @WithMockUser(roles = "PERSON_READ")
+    @WithMockUser(roles = "PERSON_READ", username = "me")
     public void whenCallFindByIdShouldReturnPerson() {
         PersonDto person = new PersonDto();
         person.setId("100");
+        person.setCreatedByUser("me");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
 
         client.get().uri("/api/persons/{id}", 100)

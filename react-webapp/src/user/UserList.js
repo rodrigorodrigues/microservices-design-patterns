@@ -11,6 +11,7 @@ import classnames from 'classnames';
 import Iframe from 'react-iframe';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
+const userSwaggerUrl = process.env.REACT_APP_USER_SWAGGER_URL;
 
 class UserList extends Component {
   constructor(props) {
@@ -104,6 +105,9 @@ class UserList extends Component {
         <td style={{whiteSpace: 'nowrap'}}>{user.email}</td>
         <td>{user.fullName}</td>
         <th>{user.createdByUser}</th>
+        <td>{user.createdDate}</td>
+        <td>{user.lastModifiedByUser}</td>
+        <td>{user.lastModifiedDate}</td>
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/users/" + user.id}>Edit</Button>
@@ -148,6 +152,9 @@ class UserList extends Component {
                 <th>Email</th>
                 <th>Name</th>
                 <th>Created By</th>
+                <th>Created Date</th>
+                <th>Last Modified By User</th>
+                <th>Last Modified By Date</th>
                 <th>Actions</th>
               </tr>
               </thead>
@@ -158,7 +165,7 @@ class UserList extends Component {
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?
-              <Iframe url="http://localhost:9007/swagger/user-service/swagger-ui.html"
+              <Iframe url={`${userSwaggerUrl}`}
                 position="absolute"
                 width="100%"
                 id="myId"

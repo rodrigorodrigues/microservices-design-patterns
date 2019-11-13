@@ -12,6 +12,7 @@ import classnames from 'classnames';
 import Iframe from 'react-iframe';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
+const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
 
 class PersonList extends Component {
   constructor(props) {
@@ -112,6 +113,9 @@ class PersonList extends Component {
         <th scope="row">{person.id}</th>
         <td style={{ whiteSpace: 'nowrap' }}>{person.fullName}</td>
         <td>{person.createdByUser}</td>
+        <td>{person.createdDate}</td>
+        <td>{person.lastModifiedByUser}</td>
+        <td>{person.lastModifiedDate}</td>
         <td>{person.dateOfBirth}</td>
         <td>{person.children ? <ChildModal person={person} /> : 'No Child'}</td>
         <td>{address}</td>
@@ -158,6 +162,9 @@ class PersonList extends Component {
                     <th>#</th>
                     <th>Name</th>
                     <th>Created By</th>
+                    <th>Created Date</th>
+                    <th>Last Modified By User</th>
+                    <th>Last Modified By Date</th>
                     <th>Date of Birth</th>
                     <th>Children List</th>
                     <th>Location</th>
@@ -171,7 +178,7 @@ class PersonList extends Component {
             </TabPane>
             <TabPane tabId="2">
               {displaySwagger ?
-                <Iframe url="http://localhost:9007/swagger/person-service/swagger-ui.html"
+                <Iframe url={`${personSwaggerUrl}`}
                   position="absolute"
                   width="100%"
                   id="myId"

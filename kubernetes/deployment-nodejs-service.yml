@@ -30,13 +30,15 @@ spec:
     spec:
       containers:
         - name: week-menu-api
-          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:6.0
+          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:12.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
+              cpu: "50m"
             limits:
-              memory: "512Mi"
+              memory: "256Mi"
+              cpu: "100m"
           volumeMounts:
             - name: spendingbetter-p12
               mountPath: "/etc/ssl_certs_p12"
@@ -44,13 +46,16 @@ spec:
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
+            - name: spendingbetter-pub-key
+              mountPath: "/etc/ssl_certs_pub"
+              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "3002"
             - name: SPRING_PROFILES_ACTIVE
-              value: google
+              value: prod
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/docker
             - name: REDIS_SERVER
@@ -65,6 +70,12 @@ spec:
               value: week-menu-api
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
+            - name: PATH_PUBLIC_KEY
+              value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
+            - name: NODE_DEBUG
+              value: request
+            - name: NODE_ENV
+              value: production
 #            - name: KEYSTORE_PASSWORD
 #              valueFrom:
 #                secretKeyRef:
@@ -88,3 +99,6 @@ spec:
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt
+        - name: spendingbetter-pub-key
+          secret:
+            secretName: spendingbetter-pub-key

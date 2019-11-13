@@ -1,36 +1,40 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: config-server
+  name: kotlin-service
   annotations:
     cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
-    app: config-server
+    app: kotlin-service
 spec:
   ports:
     - name: https-port
       port: 8443
     - name: http-port
-      port: 8888
+      port: 9092
   selector:
-    app: config-server
+    app: kotlin-service
   type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: config-server
+  name: kotlin-service
+  labels:
+    app: kotlin-service
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: kotlin-service
   template:
     metadata:
       labels:
-        app: config-server
-        version: v1
+        app: kotlin-service
     spec:
       containers:
-        - name: config-server
-          image: eu.gcr.io/spring-boot-gke-243520/config-server:11.0
+        - name: kotlin-service
+          image: eu.gcr.io/spring-boot-gke-243520/kotlin-service:11.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -51,13 +55,9 @@ spec:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "8888"
+              value: "9092"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
-#            - name: DEBUG
-#              value: "true"
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -66,8 +66,16 @@ spec:
               value: redis
             - name: EUREKA_SERVER
               value: http://eureka-server:8761/eureka/eureka/
+            - name: SPRING_CLOUD_CONFIG_URI
+              value: http://config-server:8888
+#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+#              value: "false"
+            - name: X_ENCRYPT_KEY
+              value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
             - name: KEYSTORE
-              value: file:/etc/ssl_certs_jks/www.spendingbetter.com.jks
+              value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS
               value: spring-boot
             - name: KEYSTORE_PASSWORD
@@ -75,39 +83,34 @@ spec:
                 secretKeyRef:
                   name: secrets
                   key: KEYSTORE_PASSWORD
-            - name: ACCESS_TOKEN_URI
-              value: https://spendingbetter.com/auth/oauth/token
-            - name: AUTHORIZATION_URL
-              value: https://spendingbetter.com/auth/oauth/authorize
-            - name: USER_INFO_URI
-              value: https://spendingbetter.com/auth/api/authenticatedUser
-#            - name: SERVER_SSL_KEY_STORE
-#              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
-#            - name: SERVER_SSL_KEY_STORE_PASSWORD
+#            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
+#              value: "false"
+#            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED
+#              value: "true"
+#            - name: EUREKA_INSTANCE_SECURE_PORT
+#              value: "8443"
+#            - name: EUREKA_INSTANCE_STATUS_PAGE_URL
+#              value: https://localhost:${server.port}/actuator/info
+#            - name: EUREKA_INSTANCE_HEALTH_CHECK_URL
+#              value: https://localhost:${server.port}/actuator/health
+#            - name: EUREKA_INSTANCE_HOME_PAGE_URL
+#              value: https://localhost:${server.port}/
+#            - name: KEYSTORE_PASSWORD
 #              valueFrom:
 #                secretKeyRef:
 #                  name: secrets
 #                  key: KEYSTORE_PASSWORD
-#            - name: SERVER_SSL_KEY_STORE_TYPE
-#              value: PKCS12
-#            - name: SPRING_CLOUD_CLIENT_HOSTNAME
-#              value: config-management.spendingbetter.com
-#            - name: SERVICE_SECURITY_TRUSTSTOREPATH
-#              value: /etc/ssl/truststore.jks
-#            - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
-#              value: ${SERVER_SSL_KEY_STORE_PASSWORD}
-#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK
-#              value: debug
+#            - name: KEYSTORE_FILE
+#              value: "/etc/ssl_certs/spendingbetter.com.jks"
           command: ["/bin/sh"]
           args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
-#          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
           ports:
-            - containerPort: 8888
+            - containerPort: 9092
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health
-              port: 8888
+              port: 9092
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
