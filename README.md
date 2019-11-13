@@ -318,6 +318,10 @@ kubectl port-forward $(kubectl get pod --selector="app=eureka-server" --output j
 
 #delete specific ingress
 kubectl delete ingress ingress-gateway-forward-https
+
+#cpu usage
+kubectl get nodes --show-labels
+kubectl describe nodes gke-your-first-cluster
 ```
 
 [Enable Ingress](https://cloud.google.com/community/tutorials/nginx-ingress-gke)

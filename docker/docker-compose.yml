@@ -83,11 +83,12 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - DEBUG=true
       - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - OAUTH_CLIENT_ID=actuator
       - OAUTH_CLIENT_SECRET=actuator_password
+      - CONTEXTPATH=/monitoring
+      - LOGGING_LEVEL_COM_MICROSERVICE=debug
     depends_on:
       - service-discovery
       - config-management

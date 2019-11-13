@@ -28,6 +28,18 @@ spec:
             backend:
               serviceName: authentication-service
               servicePort: http-port
+          - path: /swagger/week-menu/(.*)
+            backend:
+              serviceName: week-menu-api
+              servicePort: http-port
+          - path: /swagger/persons/(.*)
+            backend:
+              serviceName: person-service
+              servicePort: http-port
+          - path: /swagger/users/(.*)
+            backend:
+              serviceName: user-service
+              servicePort: http-port
 
 ---
 apiVersion: extensions/v1beta1

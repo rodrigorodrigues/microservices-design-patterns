@@ -33,11 +33,9 @@ spec:
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "50m"
-            limits:
               memory: "256Mi"
-              cpu: "100m"
+            limits:
+              memory: "512Mi"
           volumeMounts:
             - name: spendingbetter-p12
               mountPath: "/etc/ssl_certs_p12"
@@ -50,7 +48,7 @@ spec:
               readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xms128m -Xm256m
+              value: -Xms256m -Xm512m
             - name: SERVER_PORT
               value: "9000"
             - name: SPRING_PROFILES_ACTIVE
@@ -73,11 +71,15 @@ spec:
               value: actuator
             - name: OAUTH_CLIENT_SECRET
               value: actuator_password
-#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
-#              value: debug
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+              value: debug
+            - name: LOGGING_LEVEL_COM_MICROSERVICE
+              value: debug
 #            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
 #              value: "false"
             - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
+              value: /monitoring
+            - name: SERVER_SERVLET_CONTEXT_PATH
               value: /monitoring
             - name: SERVER_USE_FORWARD_HEADERS
               value: "true"

@@ -25,14 +25,14 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:11.0
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:12.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              memory: "128Mi"
+              memory: "256Mi"
               cpu: "50m"
             limits:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "100m"
           env:
             - name: PORT
