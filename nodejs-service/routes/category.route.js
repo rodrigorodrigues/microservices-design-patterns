@@ -64,56 +64,6 @@ router.get("/category/migration/rec/24", (request, response, next) => {
     handleResponse(response, "ok *** *** **", 200);
 });
 
-/**
- * @swagger
- *
- * definitions:
- *   Category:
- *     type: object
- *     required:
- *       - name
- *       - insertDate
- *     properties:
- *       name:
- *         type: string
- *       insertDate:
- *         type: string
- *         format: date
- *       products:
- *         $ref: '#/definitions/Product'
- *   Product:
- *     type: object
- *     required:
- *       - name
- *       - insertDate
- *     properties:
- *       name:
- *         type: string
- *       insertDate:
- *         type: string
- *         format: date
- *       completed:
- *         type: boolean
- *       quantity:
- *         type: integer
- *         default: 1
- */
-
-/**
- * @swagger
- * /category:
- *   get:
- *     description: Return Categories
- *     produces:
- *      - application/json
- *     responses:
- *       200:
- *         description: categories
- *         schema:
- *           type: array
- *           items:
- *             $ref: '#/definitions/Category'
- */
 router.get("/category", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
     Category.find()
         .populate('ingredients')
@@ -205,6 +155,7 @@ router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEG
             }).catch(reason => wmHandleError(response, reason));
     }
 });
+
 router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ']), (request, response, next) => {
 
     Category.find()
@@ -345,9 +296,10 @@ router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), (re
         });
 });
 
-router.delete('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_DELETE']), (req, res, next) => {
+router.delete('/category/:id', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_DELETE']), (req, res, next) => {
+    log.logExceptOnTest("category id", req.params.id);
 
-    Category.findByIdAndRemove(req.body._id)
+    Category.findByIdAndRemove(req.params.id)
         .then((doc) => {
             handleResponse(res, doc, 204);
         }, (reason) => {

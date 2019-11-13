@@ -149,7 +149,7 @@ function loadSwagger() {
         definition: {
           swagger: '2.0', // Specification (optional, defaults to swagger: '2.0')
           info: {
-            title: 'Hello World', // Title (required)
+            title: 'API - Week Menu Service', // Title (required)
             version: '1.0.0', // Version (required)
           },
         },

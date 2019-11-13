@@ -7,31 +7,34 @@ import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 
 class CategoryEdit extends Component {
-  emptyUser = {
-    email: '',
-    password: '',
-    confirmPassword: '',
-    authorities: [],
+  emptyCategory = {
+    name: ''
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      user: this.emptyUser,
-      displayError: null
+      category: this.emptyCategory,
+      displayError: null,
+      jwt: props.jwt
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   async componentDidMount() {
-    if (this.props.match.params.id !== 'new') {
-      try {
-        const user = await (await fetch(`/api/week-menu/v2/category/${this.props.match.params.id}`)).json();
-        user.authorities.forEach((authority, index) => {user.authorities[index] = authority.role});
-        this.setState({user: user});
-      } catch (error) {
-        this.setState({ displayError: errorMessage(error)});
+    let jwt = this.state.jwt;
+    if (jwt) {
+      if (this.props.match.params.id !== 'new') {
+        try {
+          const category = await (await fetch(`/api/week-menu/v2/category/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            'Content-Type': 'application/json',
+            'Authorization': jwt
+          }})).json();
+          this.setState({category: category});
+        } catch (error) {
+          this.setState({ displayError: errorMessage(error)});
+        }
       }
     }
   }
@@ -40,27 +43,31 @@ class CategoryEdit extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let person = {...this.state.user};
-    person[name] = value;
-    this.setState({user: person});
+    let category = {...this.state.category};
+    category[name] = value;
+    this.setState({category: category});
   }
 
   async handleSubmit(event) {
     event.preventDefault();
-    const {user, jwt} = this.state;
+    const {category, jwt} = this.state;
 
     await fetch('/api/week-menu/v2/category', {
-      method: (user.id) ? 'PUT' : 'POST',
+      method: (category._id) ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': jwt
       },
-      body: JSON.stringify(user),
+      body: JSON.stringify(category),
       credentials: 'include'
-    }).then(response => response.json())
+    }).then(response => {
+      console.log("Data json response: ", response);
+      return response.json();
+    })
         .then(data => {
-          if (data.id) {
-            this.props.history.push('/users');
+          console.log("Data response: ", data);
+          if (data._id) {
+            this.props.history.push('/categories');
           } else {
             this.setState({ displayError: errorMessage(data)});
           }
@@ -71,8 +78,8 @@ class CategoryEdit extends Component {
   }
 
   render() {
-    const {user, displayError} = this.state;
-    const title = <h2>{user.id ? 'Edit Category' : 'Add Category'}</h2>;
+    const {category, displayError} = this.state;
+    const title = <h2>{category._id ? 'Edit Category' : 'Add Category'}</h2>;
 
     return <div>
       <AppNavbar/>
@@ -81,7 +88,7 @@ class CategoryEdit extends Component {
         <AvForm onValidSubmit={this.handleSubmit}>
           <AvGroup>
             <Label for="name">Name</Label>
-            <AvInput type="text" name="name" id="name" value={user.name || ''}
+            <AvInput type="text" name="name" id="name" value={category.name || ''}
                    onChange={this.handleChange} placeholder="Name"
                      required/>
             <AvFeedback>
@@ -90,15 +97,14 @@ class CategoryEdit extends Component {
           </AvGroup>
           <AvGroup>
             <Label for="products">Products</Label>
-            <AvInput type="text" name="products" id="products" value={user.products || ''}
-                   onChange={this.handleChange} placeholder="Products"
-                     required/>
+            <AvInput type="text" name="products" id="products" value={category.products || ''}
+                   onChange={this.handleChange} placeholder="Products" />
             <AvFeedback>
               This field is invalid
             </AvFeedback>
           </AvGroup>
           <AvGroup>
-            <Button color="primary" type="submit">{user.id ? 'Save' : 'Create'}</Button>{' '}
+            <Button color="primary" type="submit">{category._id ? 'Save' : 'Create'}</Button>{' '}
             <Button color="secondary" tag={Link} to="/categories">Cancel</Button>
           </AvGroup>
           <MessageAlert {...displayError}></MessageAlert>

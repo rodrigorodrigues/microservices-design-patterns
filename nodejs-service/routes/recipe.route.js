@@ -27,6 +27,32 @@ const utility = require('../utils/utility');
 
 const checkPermissionRoute = require('./checkPermissionRoute');
 
+/**
+ * @swagger
+ * /recipe:
+ *   get:
+ *     description: Return Recipies
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: recipies
+ *         schema:
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/Recipe'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
+
 router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE']), (req, res) => {
 
     Recipe

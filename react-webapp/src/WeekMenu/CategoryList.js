@@ -57,7 +57,7 @@ class CategoryList extends Component {
     if (confirm) {
       let id = category.id;
       let jwt = this.state.jwt;
-      await fetch(`/api/week-menu/v2/categories/${id}`, {
+      await fetch(`/api/week-menu/v2/category/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt

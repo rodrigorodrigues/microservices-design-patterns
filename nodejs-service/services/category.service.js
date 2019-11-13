@@ -41,6 +41,19 @@ function CategoryService() {
                 .sort({ 'name': 1 })
                 .then(UtilService.sortAllProductCategory)
                 .catch(reason => Promise.reject(reason));
+        },
+        getById(id) {
+            return Category
+            .findOne({ _id: id })
+            .sort({ 'name': 1 })
+            .then(category => category)
+            .catch(reason => Promise.reject(reason));
+        },
+        deleteById(id) {
+            return Category
+            .findByIdAndRemove(id)
+            .then(category => category)
+            .catch(reason => Promise.reject(reason));
         }
     }
 }
