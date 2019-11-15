@@ -1,7 +1,14 @@
 package com.microservice.authentication.config;
 
+import com.microservice.authentication.common.model.Authentication;
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.netflix.discovery.EurekaClient;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -10,20 +17,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -92,7 +97,17 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     @Bean
     JwtAccessTokenConverter jwtAccessTokenConverter() {
-        JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
+        JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter() {
+            @Override
+            public OAuth2AccessToken enhance(
+                OAuth2AccessToken accessToken,
+                OAuth2Authentication authentication) {
+                Map<String, Object> additionalInfo = new HashMap<>();
+                additionalInfo.put("name", ((Authentication)authentication.getUserAuthentication().getPrincipal()).getFullName());
+                ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
+                return super.enhance(accessToken, authentication);
+            }
+        };
         Java8SpringConfigurationProperties.Jwt jwt = configurationProperties.getJwt();
         if (StringUtils.isNotBlank(jwt.getBase64Secret())) {
             jwtAccessTokenConverter.setSigningKey(jwt.getBase64Secret());
