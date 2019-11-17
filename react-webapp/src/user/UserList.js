@@ -9,6 +9,7 @@ import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
+import FooterContent from '../home/FooterContent';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 const userSwaggerUrl = process.env.REACT_APP_USER_SWAGGER_URL;
@@ -23,7 +24,8 @@ class UserList extends Component {
       displayError: null, 
       displayAlert: false,
       displaySwagger: false,
-      activeTab: '1'
+      activeTab: '1',
+      authorities: props.authorities
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -36,6 +38,11 @@ class UserList extends Component {
   }
 
   componentDidMount() {
+    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN')) {
+      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      return;
+    }
     let jwt = this.state.jwt;
     if (jwt) {
       const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/users`, {
@@ -185,6 +192,7 @@ class UserList extends Component {
           <HomeContent notDisplayMessage={true}></HomeContent>
           {displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
+          <FooterContent></FooterContent>
         </Container>
       </div>
     );

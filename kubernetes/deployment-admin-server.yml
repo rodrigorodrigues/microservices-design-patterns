@@ -37,9 +37,6 @@ spec:
             limits:
               memory: "512Mi"
           volumeMounts:
-            - name: spendingbetter-p12
-              mountPath: "/etc/ssl_certs_p12"
-              readOnly: true
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
@@ -75,8 +72,6 @@ spec:
               value: debug
             - name: LOGGING_LEVEL_COM_MICROSERVICE
               value: debug
-#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-#              value: "false"
             - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
               value: /monitoring
             - name: SERVER_SERVLET_CONTEXT_PATH
@@ -98,24 +93,8 @@ spec:
               value: https://spendingbetter.com/auth/oauth/authorize
             - name: USER_INFO_URI
               value: https://spendingbetter.com/auth/api/authenticatedUser
-#            - name: SERVER_SSL_KEY_STORE
-#              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
-#            - name: SERVER_SSL_KEY_STORE_PASSWORD
-#              valueFrom:
-#                secretKeyRef:
-#                  name: secrets
-#                  key: KEYSTORE_PASSWORD
-#            - name: SERVER_SSL_KEY_STORE_TYPE
-#              value: PKCS12
-#            - name: SPRING_CLOUD_CLIENT_HOSTNAME
-#              value: config-management.spendingbetter.com
-#            - name: SERVICE_SECURITY_TRUSTSTOREPATH
-#              value: /etc/ssl/truststore.jks
-#            - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
-#              value: ${SERVER_SSL_KEY_STORE_PASSWORD}
           command: ["/bin/sh"]
           args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
-#          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
           ports:
             - containerPort: 9000
           livenessProbe:
@@ -126,9 +105,6 @@ spec:
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-p12
-          secret:
-            secretName: spendingbetter-p12
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt

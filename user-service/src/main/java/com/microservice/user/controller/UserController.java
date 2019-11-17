@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URI;
 
@@ -38,7 +39,7 @@ public class UserController {
 
     @ApiOperation(value = "Api for return list of users")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<UserDto> findAll(@AuthenticationPrincipal Authentication authentication) {
+    public Flux<UserDto> findAll(@ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"))) {
             return userService.findAll();
         } else {
@@ -59,7 +60,7 @@ public class UserController {
     @ApiOperation(value = "Api for creating a user")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<UserDto>> create(@RequestBody @ApiParam(required = true) UserDto user,
-                                                @AuthenticationPrincipal Authentication authentication) {
+                                                @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         return userService.save(user)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/users/%s", p.getId())))
@@ -69,8 +70,8 @@ public class UserController {
     @ApiOperation(value = "Api for updating a user")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<UserDto> update(@RequestBody @ApiParam(required = true) UserDto user,
-                                                   @PathVariable @ApiParam(required = true) String id,
-                                @AuthenticationPrincipal Authentication authentication) {
+                                @PathVariable @ApiParam(required = true) String id,
+                                @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         user.setId(id);
         return userService.findById(id)

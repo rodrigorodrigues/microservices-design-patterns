@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
@@ -15,18 +16,16 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.filter.GenericFilterBean
-import org.springframework.web.server.ResponseStatusException
 import javax.servlet.FilterChain
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-class SpringSecurityConfiguration(@Autowired val tokenProvider: TokenProvider,
-                                  @Autowired val customDefaultErrorAttributes: CustomDefaultErrorAttributes
-                                  ) : WebSecurityConfigurerAdapter() {
+class SpringSecurityConfiguration(@Autowired val tokenProvider: TokenProvider) : WebSecurityConfigurerAdapter() {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val WHITELIST = arrayOf(
@@ -60,12 +59,20 @@ class SpringSecurityConfiguration(@Autowired val tokenProvider: TokenProvider,
         return object: GenericFilterBean() {
             override fun doFilter(request: ServletRequest, response: ServletResponse, filter: FilterChain) {
                 var authorizationHeader = (request as HttpServletRequest).getHeader(HttpHeaders.AUTHORIZATION)
-                if (authorizationHeader.isNotBlank()) {
-                    authorizationHeader = authorizationHeader.replaceFirst("Bearer ", "")
+
+                if (authorizationHeader.isBlank()) {
+                    authorizationHeader = request.getHeader("authorization")
                 }
+
+                if (authorizationHeader.isBlank() || !authorizationHeader.startsWith("Bearer ")) {
+                    unauthorized(response as HttpServletResponse)
+                    return
+                }
+                authorizationHeader = authorizationHeader.replaceFirst("Bearer ", "")
                 log.debug("Authorization header: {}", authorizationHeader)
                 if (tokenProvider.validateToken(authorizationHeader).not()) {
-                    throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid JWT")
+                    unauthorized(response as HttpServletResponse)
+                    return
                 }
                 val authentication = tokenProvider.getAuthentication(authorizationHeader)
                 if (authentication != null) {
@@ -74,6 +81,11 @@ class SpringSecurityConfiguration(@Autowired val tokenProvider: TokenProvider,
                 filter.doFilter(request, response)
             }
         }
+    }
+
+    private fun unauthorized(response: HttpServletResponse) {
+        response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid JWT")
     }
 
     override fun configure(web: WebSecurity) {

@@ -9,6 +9,7 @@ import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
+import FooterContent from '../home/FooterContent';
 
 const categorySwaggerUrl = process.env.REACT_APP_CATEGORY_SWAGGER_URL;
 
@@ -22,7 +23,8 @@ class CategoryList extends Component {
       displayError: null,
       displayAlert: false,
       displaySwagger: false,
-      activeTab: '1'
+      activeTab: '1',
+      authorities: props.authorities
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -35,6 +37,14 @@ class CategoryList extends Component {
   }
 
   async componentDidMount() {
+    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
+      || item === 'ROLE_CATEGORY_READ' || item === 'ROLE_CATEGORY_CREATE' 
+      || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')) {
+      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      return;
+    }
+
     let jwt = this.state.jwt;
     if (jwt) {
       try {
@@ -163,6 +173,7 @@ class CategoryList extends Component {
           <HomeContent notDisplayMessage={true}></HomeContent>
           {displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
+          <FooterContent></FooterContent>
         </Container>
       </div>
     );

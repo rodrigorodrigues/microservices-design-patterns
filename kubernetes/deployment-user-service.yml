@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/spring-boot-gke-243520/user-service:11.0
+          image: eu.gcr.io/spring-boot-gke-243520/user-service:14.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -42,9 +42,6 @@ spec:
             limits:
               memory: "512Mi"
           volumeMounts:
-            - name: spendingbetter-p12
-              mountPath: "/etc/ssl_certs_p12"
-              readOnly: true
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
@@ -64,12 +61,16 @@ spec:
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
+#            - name: EUREKA_CLIENT_ENABLED
+#              value: "false"
+#            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+#              value: "false"
+#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+#              value: "false"
             - name: EUREKA_SERVER
               value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
-#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-#              value: "false"
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
@@ -83,25 +84,12 @@ spec:
                 secretKeyRef:
                   name: secrets
                   key: KEYSTORE_PASSWORD
-#            - name: EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED
-#              value: "false"
-#            - name: EUREKA_INSTANCE_SECURE_PORT_ENABLED
-#              value: "true"
-#            - name: EUREKA_INSTANCE_SECURE_PORT
-#              value: "8443"
-#            - name: EUREKA_INSTANCE_STATUS_PAGE_URL
-#              value: https://localhost:${server.port}/actuator/info
-#            - name: EUREKA_INSTANCE_HEALTH_CHECK_URL
-#              value: https://localhost:${server.port}/actuator/health
-#            - name: EUREKA_INSTANCE_HOME_PAGE_URL
-#              value: https://localhost:${server.port}/
-#            - name: KEYSTORE_PASSWORD
-#              valueFrom:
-#                secretKeyRef:
-#                  name: secrets
-#                  key: KEYSTORE_PASSWORD
-#            - name: KEYSTORE_FILE
-#              value: "/etc/ssl_certs/spendingbetter.com.jks"
+            - name: SPRING_ZIPKIN_ENABLED
+              value: "true"
+            - name: SPRING_ZIPKIN_BASE_URL
+              value: http://zipkin-server:9411
+            - name: LOGGING_LEVEL_COM_MICROSERVICE
+              value: debug
           command: ["/bin/sh"]
           args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
           ports:
@@ -114,9 +102,6 @@ spec:
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-p12
-          secret:
-            secretName: spendingbetter-p12
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt

@@ -36,10 +36,10 @@ spec:
               mountPath: "/etc/ssl_certs_key"
               readOnly: true
           env:
-#            - name: GF_AUTH_ANONYMOUS_ENABLED
-#              value: "true"
-#            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
-#              value: Admin
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
             - name: GF_SERVER_DOMAIN
               value: spendingbetter.com
             - name: GF_SERVER_ROOT_URL

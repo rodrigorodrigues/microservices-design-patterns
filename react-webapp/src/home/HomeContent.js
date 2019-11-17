@@ -89,13 +89,15 @@ function displayButtonAdmin(authorities) {
 }
 
 function displayButtonManageCategories(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    return <Link to="/categories" className={"link" + (!isAdmin ? " disabled-link" : "")}>Manage Categories</Link>
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
+    || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')
+    return <Link to="/categories" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Categories</Link>
 }
 
 function displayButtonManageRecipes(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    return <Link className={"link" + (!isAdmin ? " disabled-link" : "")} to="/recipes">Manage Recipes</Link>
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_RECIPE_READ' 
+    || item === 'ROLE_RECIPE_CREATE' || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')
+    return <Link className={"link" + (!hasManageReadAccess ? " disabled-link" : "")} to="/recipes">Manage Recipes</Link>
 }
 
 function displayButtonManageTasks(authorities) {

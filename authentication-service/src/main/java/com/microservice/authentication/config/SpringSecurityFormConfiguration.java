@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
+import com.microservice.jwt.common.TokenProvider;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -23,19 +20,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  * Spring Security Configuration for form
@@ -47,6 +38,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Order(2)
 public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapter {
     private final SharedAuthenticationService sharedAuthenticationService;
+
+    private final TokenProvider tokenProvider;
 
     private final ObjectMapper objectMapper;
 
@@ -110,46 +103,10 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             StringUtils.isNotBlank(request.getServletPath()) && request.getServletPath().startsWith("/api/");
     }
 
-    /**
-     * #      - GF_AUTH_ANONYMOUS_ENABLED=true
-     * #      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-     *       - GF_SERVER_ROOT_URL=http://localhost:3000/grafana
-     *       - GF_SERVER_SERVE_FROM_SUB_PATH=true
-     *       - GF_AUTH_OAUTH_AUTO_LOGIN=true
-     *       - GF_AUTH_DISABLE_LOGIN_FORM=true
-     *       - GF_AUTH_GENERIC_OAUTH_ENABLED=true
-     *       - GF_AUTH_GENERIC_OAUTH_SCOPES=read
-     *       - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false
-     *       - GF_AUTH_GENERIC_OAUTH_CLIENT_ID=client
-     *       - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=secret
-     *       - GF_AUTH_GENERIC_OAUTH_AUTH_URL=http://localhost:9999/oauth/authorize
-     *       - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=http://localhost:9999/oauth/token
-     *       - GF_AUTH_GENERIC_OAUTH_API_URL=http://localhost:9999/api/authenticatedUser
-     *       - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=authorities
-     *       - GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH=name
-     * @return
-     */
-
     private AuthenticationSuccessHandler successHandler() {
         return (request, response, authentication) -> {
             if (validateApiPath(request)) {
-                JwtAccessTokenConverter jwtAccessTokenConverter = getApplicationContext().getBean(JwtAccessTokenConverter.class);
-
-                OAuth2Request oAuth2RequestRequest= new OAuth2Request(null, "client", null, true, null,
-                    null, null, null, null);
-
-                OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2RequestRequest, authentication);
-
-                Map<String, String> map = new HashMap<>();
-                map.put(DefaultOAuth2AccessToken.ACCESS_TOKEN, UUID.randomUUID().toString());
-                map.put(DefaultOAuth2AccessToken.TOKEN_TYPE, DefaultOAuth2AccessToken.BEARER_TYPE);
-                map.put(DefaultOAuth2AccessToken.EXPIRES_IN, "30");
-                map.put(DefaultOAuth2AccessToken.SCOPE, "read");
-                OAuth2AccessToken accessToken = DefaultOAuth2AccessToken.valueOf(map);
-
-                OAuth2AccessToken oAuth2AccessToken = jwtAccessTokenConverter.enhance(accessToken, oAuth2Authentication);
-
-                String authorization = String.format("%s %s", oAuth2AccessToken.getTokenType(), oAuth2AccessToken.getValue());
+                String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), "true" .equals(request.getParameter("rememberMe")));
                 JwtTokenDto jwtToken = new JwtTokenDto(authorization);
                 response.addHeader(HttpHeaders.AUTHORIZATION, authorization);
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);

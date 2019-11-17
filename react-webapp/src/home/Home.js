@@ -4,6 +4,7 @@ import AppNavbar from './AppNavbar';
 import HomeContent from './HomeContent';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
+import FooterContent from './FooterContent';
 
 class Home extends Component {
 
@@ -21,6 +22,7 @@ class Home extends Component {
         <AppNavbar />
         <HomeContent></HomeContent>
         {this.displayMessage()}
+        <FooterContent></FooterContent>
       </div>
     );
   }

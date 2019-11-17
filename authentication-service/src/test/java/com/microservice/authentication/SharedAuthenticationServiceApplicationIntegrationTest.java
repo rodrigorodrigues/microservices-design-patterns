@@ -1,22 +1,5 @@
 package com.microservice.authentication;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
@@ -27,12 +10,6 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.shared.Application;
 import com.netflix.discovery.shared.Applications;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -58,12 +35,32 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import redis.embedded.RedisServer;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -174,7 +171,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         formData.add("password", "password123");
         formData.add("grant_type", "password");
         formData.add("scope", "read");
-        String token = objectMapper.readValue(mockMvc.perform(post("/oauth/token")
+        OAuth2AccessToken token = objectMapper.readValue(mockMvc.perform(post("/oauth/token")
             .params(formData))
             .andDo(print())
             .andExpect(status().isOk())
@@ -183,9 +180,14 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .andExpect(jsonPath("$.token_type", is(notNullValue())))
             .andReturn()
             .getResponse()
-            .getContentAsString(), OAuth2AccessToken.class).getValue();
+            .getContentAsString(), OAuth2AccessToken.class);
 
-        assertThat(token).isNotEmpty();
+        assertThat(token).isNotNull();
+        assertThat(token.getValue()).isNotEmpty();
+
+        TokenStore tokenStore = context.getBean(TokenStore.class);
+        OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(token.getValue());
+        assertThat(oAuth2AccessToken.getExpiration()).isAfterOrEqualsTo(Date.from(ZonedDateTime.now().plusMinutes(30).toInstant()));
     }
 
     @Test

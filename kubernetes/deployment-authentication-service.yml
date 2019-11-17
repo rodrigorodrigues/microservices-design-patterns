@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: eu.gcr.io/spring-boot-gke-243520/authentication-service:11.0
+          image: eu.gcr.io/spring-boot-gke-243520/authentication-service:15.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -38,9 +38,6 @@ spec:
             limits:
               memory: "512Mi"
           volumeMounts:
-            - name: spendingbetter-p12
-              mountPath: "/etc/ssl_certs_p12"
-              readOnly: true
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
@@ -54,14 +51,18 @@ spec:
               value: "9999"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
+#            - name: EUREKA_CLIENT_ENABLED
+#              value: "false"
+#            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+#              value: "false"
+#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+#              value: "false"
             - name: EUREKA_SERVER
               value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
@@ -69,7 +70,7 @@ spec:
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: CONFIGURATION_AUTHORIZE_URLS
-              value: "https://spendingbetter.com/grafana/login/generic_oauth;https://spendingbetter.com/eureka/login;https://spendingbetter.com/monitoring/login;https://spendingbetter.com/login"
+              value: "https://spendingbetter.com/grafana/login/generic_oauth;https://spendingbetter.com/eureka/login;https://spendingbetter.com/monitoring/monitoring/login;https://spendingbetter.com/login"
             - name: KEYSTORE
               value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS
@@ -83,26 +84,8 @@ spec:
                 secretKeyRef:
                   name: secrets
                   key: KEYSTORE_PASSWORD
-#            - name: SERVER_SERVLET_CONTEXT_PATH
-#              value: /auth
-#            - name: SERVER_SSL_KEY_STORE
-#              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
-#            - name: SERVER_SSL_KEY_STORE_PASSWORD
-#              valueFrom:
-#                secretKeyRef:
-#                  name: secrets
-#                  key: KEYSTORE_PASSWORD
-#            - name: SERVER_SSL_KEY_STORE_TYPE
-#              value: PKCS12
-#            - name: SPRING_CLOUD_CLIENT_HOSTNAME
-#              value: authentication-service.spendingbetter.com
-#            - name: SERVICE_SECURITY_TRUSTSTOREPATH
-#              value: file:/etc/ssl/truststore.jks
-#            - name: SERVICE_SECURITY_TRUSTSTOREPASSWORD
-#              value: ${SERVER_SSL_KEY_STORE_PASSWORD}
           command: ["/bin/sh"]
           args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
-#          && keytool -import -file /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -keystore /etc/ssl/truststore.jks -storepass $(SERVER_SSL_KEY_STORE_PASSWORD) -alias kubernetes_ca -noprompt
           ports:
             - containerPort: 9999
           livenessProbe:
@@ -113,9 +96,6 @@ spec:
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-p12
-          secret:
-            secretName: spendingbetter-p12
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt

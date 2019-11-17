@@ -9,6 +9,7 @@ import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
+import FooterContent from '../home/FooterContent';
 
 const recipeSwaggerUrl = process.env.REACT_APP_RECIPE_SWAGGER_URL;
 
@@ -159,6 +160,7 @@ class RecipeList extends Component {
           <HomeContent notDisplayMessage={true}></HomeContent>
           {displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
+          <FooterContent></FooterContent>
         </Container>
       </div>
     );

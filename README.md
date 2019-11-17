@@ -276,6 +276,13 @@ kubectl describe secret ingress-tls
 kubectl get ing
 kubectl describe ingress
 
+
+# Istio
+# Get Grafana Configuration
+kubectl get service grafana --namespace istio-system -o yaml
+
+# Update Grafana Configuration
+kubectl edit service grafana --namespace istio-system
 ```
 
 Deployment
@@ -384,3 +391,10 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Keytool Commands](https://www.sslshopper.com/article-most-common-java-keytool-keystore-commands.html)
 
 [Spring Boot Kotlin Example](https://github.com/spring-petclinic/spring-petclinic-kotlin)
+
+[Istio with SDS - Manual Instalation](https://github.com/knative/docs/blob/master/docs/install/installing-istio.md#installing-istio-with-SDS-to-secure-the-ingress-gateway)
+
+[Istio on GKE](https://cloud.google.com/istio/docs/istio-on-gke/overview)
+
+[Istio Gateway](https://medium.com/@tufin/test-7daa5ee3782b)
+

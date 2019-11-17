@@ -1,8 +1,11 @@
 package com.microservice.web.autoconfigure;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -10,9 +13,13 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
+@Slf4j
 @Configuration
 @EnableWebFlux
 public class WebConfiguration implements WebFluxConfigurer {
+    @Autowired
+    private Environment environment;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/swagger-ui.html**")
@@ -39,8 +46,16 @@ public class WebConfiguration implements WebFluxConfigurer {
 
     @Bean
     CorsWebFilter corsWebFilter() {
+        log.debug("active profiles: {}", environment.getActiveProfiles());
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.applyPermitDefaultValues().addAllowedMethod(HttpMethod.DELETE);
+        corsConfig.setAllowCredentials(true);
+        if (environment.acceptsProfiles(Profiles.of("prod"))) {
+            corsConfig.addAllowedOrigin("https://spendingbetter.com");
+        } else {
+            corsConfig.addAllowedOrigin("*");
+        }
+        corsConfig.addAllowedHeader("*");
+        corsConfig.addAllowedMethod("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);

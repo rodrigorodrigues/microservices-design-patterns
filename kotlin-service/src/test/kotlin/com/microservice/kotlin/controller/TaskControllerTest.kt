@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers
-import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -63,7 +62,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findAll()).thenReturn(listOf())
 
         client.perform(get("/api/tasks")
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
@@ -75,7 +74,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     @WithMockUser(roles = ["TASK_READ"], username = "rodrigo")
     fun shouldReturnListOfTasksAndFilterByUserWhenCallingApi() {
         client.perform(get("/api/tasks")
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
@@ -87,7 +86,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     @WithMockUser(roles = ["ADMIN"], username = "anyone")
     fun shouldReturnListOfAllTasksWhenCallingApi() {
         client.perform(get("/api/tasks")
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
@@ -98,7 +97,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     @DisplayName("Test - When Calling GET - /api/tasks without user should response 403 - Forbidden")
     fun shouldResponseForbiddenWhenCallingApiWithoutUser() {
         client.perform(get("/api/tasks")
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().is4xxClientError)
     }
@@ -110,7 +109,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "test")))
 
         client.perform(get("/api/tasks/{id}", 999)
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
@@ -124,7 +123,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "test")))
 
         client.perform(get("/api/tasks/{id}", 999)
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().isForbidden)
     }
@@ -136,7 +135,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(Task(UUID.randomUUID().toString(), name = "Test")))
 
         client.perform(get("/api/tasks/{id}", 999)
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andDo(print())
             .andExpect(status().is4xxClientError)
     }
@@ -146,13 +145,13 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     @DisplayName("Test - When Calling POST - /api/tasks/ should create task and response 201 - Created")
     fun testCreate() {
         client.perform(post("/api/tasks")
-            .header(AUTHORIZATION, "Mock JWT")
+            .header(AUTHORIZATION, "Bearer Mock JWT")
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(Task(id = "", name = "New Task"))))
             .andDo(print())
             .andExpect(status().isCreated)
             .andExpect(header().exists(LOCATION))
-            .andExpect(jsonPath("$.id").isNotEmpty)
+            .andExpect(jsonPath("$.createdByUser").value("admin"))
             .andExpect(jsonPath("$.name").value("New Task"))
 
         verify(taskRepository).save(ArgumentMatchers.any(Task::class.java))
@@ -167,7 +166,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.save(any(Task::class.java))).thenReturn(task.copy(name = "Updated Task"))
 
         client.perform(put("/api/tasks/{id}", 999)
-            .header(AUTHORIZATION, "Mock JWT")
+            .header(AUTHORIZATION, "Bearer Mock JWT")
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(Task(id = task.id, name = "Updated Task", createdByUser = "test"))))
             .andDo(print())
@@ -186,7 +185,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
 
         client.perform(put("/api/tasks/{id}", 999)
-            .header(AUTHORIZATION, "Mock JWT")
+            .header(AUTHORIZATION, "Bearer Mock JWT")
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(Task(id = task.id, name = "Updated Task", createdByUser = "test"))))
             .andDo(print())
@@ -204,7 +203,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
 
         client.perform(delete("/api/tasks/{id}", id)
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andExpect(status().isOk)
 
         verify(taskRepository).deleteById(id)
@@ -219,7 +218,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
 
         client.perform(delete("/api/tasks/{id}", id)
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andExpect(status().is4xxClientError)
 
         verify(taskRepository, never()).deleteById(id)
@@ -234,7 +233,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
 
         client.perform(delete("/api/tasks/{id}", id)
-            .header(AUTHORIZATION, "Mock JWT"))
+            .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andExpect(status().isOk)
 
         verify(taskRepository).deleteById(id)

@@ -40,3 +40,4 @@ transaction-logs
 *.jasper
 .attach_*
 */.vscode
+kubernetes/istio-*

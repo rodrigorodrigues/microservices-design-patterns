@@ -12,8 +12,10 @@ spec:
       resources:
         requests:
           memory: "128Mi"
+          cpu: "30m"
         limits:
           memory: "256Mi"
+          cpu: "30m"
       volumeMounts:
         - name: grafana-configmap
           mountPath: "/opt/grafana_dashboard"

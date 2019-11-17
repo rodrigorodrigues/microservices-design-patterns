@@ -7,6 +7,7 @@ import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import HomeContent from '../home/HomeContent';
+import FooterContent from '../home/FooterContent';
 import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
@@ -200,6 +201,7 @@ class PersonList extends Component {
             {displayContent()}
             <MessageAlert {...displayError}></MessageAlert>
           </div>
+          <FooterContent></FooterContent>
         </Container>
       </div>
     );

@@ -6,6 +6,7 @@ import { postWithHeaders } from '../services/ApiService';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 import Cookies from 'js-cookie';
+import FooterContent from '../home/FooterContent';
 
 class Login extends Component {
   constructor(props) {
@@ -24,7 +25,12 @@ class Login extends Component {
 
   async componentDidMount() {
     if (this.state.isAuthenticated) {
-      this.props.history.push('/');
+      if (window.localStorage.getItem('redirectToPreviousPage') !== null) {
+        window.localStorage.removeItem('redirectToPreviousPage');
+        window.location = window.localStorage.getItem('redirectToPreviousPage');
+      } else {
+        this.props.history.push('/');
+      }      
     }
   }
 
@@ -40,10 +46,17 @@ class Login extends Component {
     const loginSubmit = "username=" + encodeURIComponent(login.username) + '&password=' + encodeURIComponent(login.password);
 
     try {
+      const redirectToPreviousPage = window.localStorage.getItem('redirectToPreviousPage');
+      console.log("redirectToPreviousPage: ", redirectToPreviousPage);
       const data = await postWithHeaders('authenticate', loginSubmit, {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')});
       if (data.id_token) {
         setAuthentication(data);
-        history.push('/');
+        if (redirectToPreviousPage !== null) {
+          window.localStorage.removeItem('redirectToPreviousPage');
+          window.location = redirectToPreviousPage;
+        } else {
+          history.push('/');
+        }
       } else {
         this.setState({ displayError: errorMessage(data)});
       }
@@ -94,6 +107,7 @@ class Login extends Component {
           </FormGroup>
           <MessageAlert {...displayError}></MessageAlert>
         </Form>
+        <FooterContent></FooterContent>
       </Container>
     </div>
   }

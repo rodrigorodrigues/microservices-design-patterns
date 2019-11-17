@@ -1,10 +1,12 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
-import {Button, Container, Label} from 'reactstrap';
+import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
+import HomeContent from '../home/HomeContent';
+import FooterContent from '../home/FooterContent';
 
 class CategoryEdit extends Component {
   emptyCategory = {
@@ -16,13 +18,22 @@ class CategoryEdit extends Component {
     this.state = {
       category: this.emptyCategory,
       displayError: null,
-      jwt: props.jwt
+      jwt: props.jwt,
+      authorities: props.authorities,
+      isLoading: true,
+      displayAlert: false
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   async componentDidMount() {
+    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE')) {
+      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      return;
+    }
+
     let jwt = this.state.jwt;
     if (jwt) {
       if (this.props.match.params.id !== 'new') {
@@ -31,10 +42,12 @@ class CategoryEdit extends Component {
             'Content-Type': 'application/json',
             'Authorization': jwt
           }})).json();
-          this.setState({category: category});
+          this.setState({isLoading: false, category: category});
         } catch (error) {
-          this.setState({ displayError: errorMessage(error)});
+          this.setState({ displayAlert: true, displayError: errorMessage(error)});
         }
+      } else {
+        this.setState({isLoading: false});
       }
     }
   }
@@ -78,37 +91,55 @@ class CategoryEdit extends Component {
   }
 
   render() {
-    const {category, displayError} = this.state;
+    const {category, displayError, displayAlert, isLoading} = this.state;
     const title = <h2>{category._id ? 'Edit Category' : 'Add Category'}</h2>;
+
+    if (isLoading) {
+      return <p>Loading...</p>;
+    }
+
+    const displayContent = () => {
+      if (displayAlert) {
+        return <UncontrolledAlert color="danger">
+        401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
+      </UncontrolledAlert>
+      } else {
+        return <div>
+          {title}
+          <AvForm onValidSubmit={this.handleSubmit}>
+            <AvGroup>
+              <Label for="name">Name</Label>
+              <AvInput type="text" name="name" id="name" value={category.name || ''}
+                    onChange={this.handleChange} placeholder="Name"
+                      required/>
+              <AvFeedback>
+                This field is invalid
+              </AvFeedback>
+            </AvGroup>
+            <AvGroup>
+              <Label for="products">Products</Label>
+              <AvInput type="text" name="products" id="products" value={category.products || ''}
+                    onChange={this.handleChange} placeholder="Products" />
+              <AvFeedback>
+                This field is invalid
+              </AvFeedback>
+            </AvGroup>
+            <AvGroup>
+              <Button color="primary" type="submit">{category._id ? 'Save' : 'Create'}</Button>{' '}
+              <Button color="secondary" tag={Link} to="/categories">Cancel</Button>
+            </AvGroup>
+          </AvForm>
+        </div>
+      }
+    }
 
     return <div>
       <AppNavbar/>
-      <Container>
-        {title}
-        <AvForm onValidSubmit={this.handleSubmit}>
-          <AvGroup>
-            <Label for="name">Name</Label>
-            <AvInput type="text" name="name" id="name" value={category.name || ''}
-                   onChange={this.handleChange} placeholder="Name"
-                     required/>
-            <AvFeedback>
-              This field is invalid
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Label for="products">Products</Label>
-            <AvInput type="text" name="products" id="products" value={category.products || ''}
-                   onChange={this.handleChange} placeholder="Products" />
-            <AvFeedback>
-              This field is invalid
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
-            <Button color="primary" type="submit">{category._id ? 'Save' : 'Create'}</Button>{' '}
-            <Button color="secondary" tag={Link} to="/categories">Cancel</Button>
-          </AvGroup>
-          <MessageAlert {...displayError}></MessageAlert>
-        </AvForm>
+      <Container fluid>
+        <HomeContent notDisplayMessage={true}></HomeContent>
+        {displayContent()}
+        <MessageAlert {...displayError}></MessageAlert>
+        <FooterContent></FooterContent>
       </Container>
     </div>
   }

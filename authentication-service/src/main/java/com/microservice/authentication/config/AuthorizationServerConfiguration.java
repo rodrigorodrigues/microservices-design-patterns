@@ -3,15 +3,13 @@ package com.microservice.authentication.config;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.netflix.discovery.EurekaClient;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -30,11 +28,15 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Slf4j
 @Configuration
 @EnableAuthorizationServer
 @AllArgsConstructor
-public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
+public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter implements ApplicationContextAware {
 
     private final AuthenticationManager authenticationManager;
 
@@ -42,9 +44,9 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     private final PasswordEncoder passwordEncoder;
 
-    private final EurekaClient eurekaClient;
-
     private final AuthenticationProperties authenticationProperties;
+
+    private ApplicationContext applicationContext;
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
@@ -54,12 +56,18 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     }
 
     private List<String> getListOfServices() {
-        return eurekaClient.getApplications()
-            .getRegisteredApplications()
-            .stream()
-            .flatMap(a -> a.getInstances().stream())
-            .flatMap(a -> Stream.of(String.format("http://%s:%s/login", a.getIPAddr(), a.getPort()), String.format("http://localhost:%s/login", a.getPort())))
-            .collect(Collectors.toList());
+        try {
+            EurekaClient eurekaClient = applicationContext.getBean(EurekaClient.class);
+            return eurekaClient.getApplications()
+                .getRegisteredApplications()
+                .stream()
+                .flatMap(a -> a.getInstances().stream())
+                .flatMap(a -> Stream.of(String.format("http://%s:%s/login", a.getIPAddr(), a.getPort()), String.format("http://localhost:%s/login", a.getPort())))
+                .collect(Collectors.toList());
+        } catch (NoSuchBeanDefinitionException ne) {
+            log.debug("Not registered with eureka");
+            return new ArrayList<>();
+        }
     }
 
     @Override
@@ -125,5 +133,10 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
             .allowFormAuthenticationForClients()
             .tokenKeyAccess("permitAll()")
             .checkTokenAccess("isAuthenticated()");
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

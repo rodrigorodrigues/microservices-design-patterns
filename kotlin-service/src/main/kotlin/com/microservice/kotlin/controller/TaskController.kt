@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import springfox.documentation.annotations.ApiIgnore
 import java.net.URI
-import java.util.*
+import java.time.Instant
 import javax.validation.Valid
 
 @RestController
@@ -51,11 +51,13 @@ class TaskController(@Autowired val repository: TaskRepository) {
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_CREATE')")
-    fun create(@RequestBody @Valid @ApiParam(required = true) task: Task): ResponseEntity<Task> {
+    fun create(@RequestBody @Valid @ApiParam(required = true) task: Task,
+               @ApiIgnore @AuthenticationPrincipal authentication: Authentication): ResponseEntity<Task> {
         if (StringUtils.isNotBlank(task.id)) {
             return update(task, task.id!!)
         }
-        task.id = UUID.randomUUID().toString()
+        task.createdByUser = authentication.name
+        task.createdDate = Instant.now()
         repository.save(task)
         return ResponseEntity.created(URI.create("/api/tasks/${task.id}"))
             .body(task)

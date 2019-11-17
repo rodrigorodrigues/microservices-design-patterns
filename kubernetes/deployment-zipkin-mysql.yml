@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-mysql
+  labels:
+    appdb: zipkin-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      appdb: zipkin-mysql
+  template:
+    metadata:
+      labels:
+        appdb: zipkin-mysql
+    spec:
+      containers:
+        - name: zipkin-mysql
+          image: openzipkin/zipkin-mysql
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 3306
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-mysql
+  labels:
+    app: zipkin-mysql
+spec:
+  ports:
+    - port: 3306
+      protocol: TCP
+  selector:
+    appdb: zipkin-mysql

@@ -1,22 +1,12 @@
 package com.microservice.person.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Child;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepositoryTest.MockServiceConfiguration;
-import com.microservice.person.util.ReactiveMongoMetadataUtil;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,24 +17,29 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.Disposable;
 import reactor.test.StepVerifier;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
-@Import({ReactiveMongoMetadataUtil.class, ObjectMapper.class, MockServiceConfiguration.class})
+@Import({ObjectMapper.class, MockServiceConfiguration.class})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;
-
-    @Autowired
-    ReactiveMongoMetadataUtil reactiveMongoMetadataUtil;
-
-    @Autowired
-    ReactiveMongoTemplate mongoTemplate;
 
     @TestConfiguration
     static class MockServiceConfiguration {
@@ -57,8 +52,6 @@ public class PersonRepositoryTest {
     @BeforeEach
     @Transactional
     public void setup() {
-        reactiveMongoMetadataUtil.recreateCollection(Person.class);
-
         personRepository.save(Person.builder().fullName("Rodrigo")
                 .dateOfBirth(LocalDate.now())
                 .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
@@ -121,6 +114,6 @@ public class PersonRepositoryTest {
 
     @AfterEach
     public void tearDown() {
-        mongoTemplate.dropCollection(Person.class).block();
+        personRepository.deleteAll().subscribe(a -> log.debug("Delete all persons"));
     }
 }

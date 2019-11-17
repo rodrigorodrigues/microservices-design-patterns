@@ -28,6 +28,10 @@ spec:
             backend:
               serviceName: authentication-service
               servicePort: http-port
+#          - path: /zipkin/(.*)
+#            backend:
+#              serviceName: zipkin-server
+#              servicePort: http-port
           - path: /swagger/week-menu/(.*)
             backend:
               serviceName: week-menu-api
@@ -39,6 +43,14 @@ spec:
           - path: /swagger/users/(.*)
             backend:
               serviceName: user-service
+              servicePort: http-port
+          - path: /swagger/kotlin-service/(.*)
+            backend:
+              serviceName: kotlin-service
+              servicePort: http-port
+          - path: /api/week-menu/(.*)
+            backend:
+              serviceName: week-menu-api
               servicePort: http-port
 
 ---
@@ -73,17 +85,37 @@ spec:
             backend:
               serviceName: eureka-server
               servicePort: http-port
-#          - path: /auth/
-#            backend:
-#              serviceName: authentication-service
-#              servicePort: http-port
-          - path: /swagger/
+          - path: /api/users
             backend:
-              serviceName: edge-server
+              serviceName: user-service
               servicePort: http-port
-          - path: /api/
+          - path: /api/persons
             backend:
-              serviceName: edge-server
+              serviceName: person-service
+              servicePort: http-port
+          - path: /api/tasks
+            backend:
+              serviceName: kotlin-service
+              servicePort: http-port
+          - path: /api/authenticate
+            backend:
+              serviceName: authentication-service
+              servicePort: http-port
+          - path: /api/logout
+            backend:
+              serviceName: authentication-service
+              servicePort: http-port
+          - path: /docs
+            backend:
+              serviceName: week-menu-api
+              servicePort: http-port
+          - path: /api-docs
+            backend:
+              serviceName: week-menu-api
+              servicePort: http-port
+          - path: /zipkin
+            backend:
+              serviceName: zipkin-server
               servicePort: http-port
           - path: /
             backend:

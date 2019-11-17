@@ -40,9 +40,6 @@ spec:
               memory: "256Mi"
               cpu: "100m"
           volumeMounts:
-            - name: spendingbetter-p12
-              mountPath: "/etc/ssl_certs_p12"
-              readOnly: true
             - name: spendingbetter-crt
               mountPath: "/etc/crt"
               readOnly: true
@@ -93,9 +90,6 @@ spec:
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-p12
-          secret:
-            secretName: spendingbetter-p12
         - name: spendingbetter-crt
           secret:
             secretName: spendingbetter-crt

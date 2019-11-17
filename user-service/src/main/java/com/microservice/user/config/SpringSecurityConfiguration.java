@@ -14,7 +14,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
@@ -29,8 +28,6 @@ public class SpringSecurityConfiguration {
     private final TokenProvider tokenProvider;
 
     private final HandleResponseError handleResponseError;
-
-    private final WebSessionServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
 
     private final ReactivePreAuthenticatedAuthenticationManager authenticationManager;
 
@@ -63,7 +60,6 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .httpBasic().disable()
                 .logout().disable()
-                .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(WHITELIST).permitAll()
                 .anyExchange().authenticated()
@@ -81,7 +77,6 @@ public class SpringSecurityConfiguration {
         NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
         authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));
-        authenticationWebFilter.setSecurityContextRepository(securityContextRepository);
         authenticationWebFilter.setAuthenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain().filter(webFilterExchange.getExchange())
                 .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication)));
         return authenticationWebFilter;

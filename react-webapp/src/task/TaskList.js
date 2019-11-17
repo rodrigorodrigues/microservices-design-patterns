@@ -9,6 +9,7 @@ import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
+import FooterContent from '../home/FooterContent';
 const moment = require('moment');
 
 const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
@@ -179,6 +180,7 @@ class TaskList extends Component {
             {displayContent()}
             <MessageAlert {...displayError}></MessageAlert>
           </div>
+          <FooterContent></FooterContent>
         </Container>
       </div>
     );

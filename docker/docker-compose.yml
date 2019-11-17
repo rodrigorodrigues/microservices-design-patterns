@@ -61,6 +61,7 @@ services:
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+      - SPRING_ZIPKIN_ENABLED=true
     depends_on:
       - service-discovery
       - config-management

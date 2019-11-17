@@ -21,6 +21,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -65,6 +66,46 @@ class UserServiceApplicationIntegrationTest {
                 .expectBody()
                 .jsonPath("$.id").isNotEmpty()
                 .jsonPath("$.createdByUser").isEqualTo("admin@gmail.com");
+    }
+
+    @Test
+    @DisplayName("Test - When Calling PUT - /api/users should update a user and response 200 - OK")
+    public void shouldUpdateExistingUserWhenCallApi() throws Exception {
+        String authorizationHeader = authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        UserDto userDto = createUserDto();
+        userDto.setEmail("new@gmail.com");
+
+        String id = client.post().uri("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(fromObject(convertToJson(userDto)))
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
+                .expectBody(UserDto.class)
+                .returnResult()
+                .getResponseBody()
+                .getId();
+
+        assertThat(id).isNotEmpty();
+
+        userDto.setFullName("New Name");
+        userDto.setPassword(null);
+        userDto.setConfirmPassword(null);
+
+        client.put().uri("/api/users/{id}", id)
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(fromObject(convertToJson(userDto)))
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectHeader().doesNotExist(HttpHeaders.LOCATION)
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(id)
+                .jsonPath("$.fullName").isEqualTo("New Name");
     }
 
     private String authorizationHeader(List<SimpleGrantedAuthority> permissions) {

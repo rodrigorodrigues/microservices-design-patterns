@@ -45,6 +45,7 @@ class App extends Component {
           console.log("User is Authenticated?", data);
           console.log("Href", window.location.href);
           if (data.id_token) {
+            window.localStorage.removeItem('redirectToPreviousPage');
             this.setAuthentication(data);
           } else {
             this.redirectToIndexPage();
@@ -60,6 +61,7 @@ class App extends Component {
 
   redirectToIndexPage() {
     if (!window.location.href.endsWith('/') && !window.location.href.endsWith('/login')) {
+      window.localStorage.setItem('redirectToPreviousPage', window.location.href);
       if (this.props.history !== undefined) {
         this.props.history.push('/');
       } else {
