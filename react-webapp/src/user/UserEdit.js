@@ -33,39 +33,40 @@ class UserEdit extends Component {
   }
 
   async componentDidMount() {
-    console.log("Authorities: ", this.state.authorities);
-    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN')) {
-      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      return;
-    }
-
     let jwt = this.state.jwt;
-    if (jwt) {
-      if (this.props.match.params.id !== 'new') {
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
+
+      if (!permissions.some(item => item === 'ROLE_ADMIN')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+        return;
+      } else {
+        if (this.props.match.params.id !== 'new') {
+          try {
+            const user = await (await fetch(`/api/users/${this.props.match.params.id}`, { method: 'GET',      headers: {
+              'Content-Type': 'application/json',
+              'Authorization': jwt
+            }})).json();
+            if (Array.isArray(user.authorities)) {
+              user.authorities.forEach((authority, index) => {user.authorities[index] = authority.role});
+            }
+            this.setState({user: user, isLoading: false});
+          } catch (error) {
+            this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(error)});
+          }
+        } else {
+          this.setState({isLoading: false});
+        }
         try {
-          const user = await (await fetch(`/api/users/${this.props.match.params.id}`, { method: 'GET',      headers: {
+          const permissions = await (await fetch('/api/users/permissions', {      headers: {
             'Content-Type': 'application/json',
             'Authorization': jwt
           }})).json();
-          if (Array.isArray(user.authorities)) {
-            user.authorities.forEach((authority, index) => {user.authorities[index] = authority.role});
-          }
-          this.setState({user: user, isLoading: false});
+          this.setState({permissions: permissions});
         } catch (error) {
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(error)});
         }
-      } else {
-        this.setState({isLoading: false});
-      }
-      try {
-        const permissions = await (await fetch('/api/users/permissions', {      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': jwt
-        }})).json();
-        this.setState({permissions: permissions});
-      } catch (error) {
-        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(error)});
       }
     }
   }

@@ -28,25 +28,28 @@ class TaskEdit extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE')) {
-      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      return;
-    }
+    let jwt = this.state.jwt;
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
 
-    if (this.props.match.params.id !== 'new') {
-      try {
-        let jwt = this.state.jwt;
-        const task = await (await fetch(`/api/tasks/${this.props.match.params.id}`, { method: 'GET',      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': jwt
-        }})).json();
-        this.setState({task: task, isLoading: false});
-      } catch (error) {
-        this.setState({displayAlert: true, sLoading: false, displayError: errorMessage(error)});
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      } else {
+        if (this.props.match.params.id !== 'new') {
+          try {
+            const task = await (await fetch(`/api/tasks/${this.props.match.params.id}`, { method: 'GET',      headers: {
+              'Content-Type': 'application/json',
+              'Authorization': jwt
+            }})).json();
+            this.setState({task: task, isLoading: false});
+          } catch (error) {
+            this.setState({displayAlert: true, sLoading: false, displayError: errorMessage(error)});
+          }
+        } else {
+          this.setState({isLoading: false});
+        }
       }
-    } else {
-      this.setState({isLoading: false});
     }
   }
 

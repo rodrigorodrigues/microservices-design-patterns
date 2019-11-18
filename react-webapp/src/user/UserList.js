@@ -38,42 +38,45 @@ class UserList extends Component {
   }
 
   componentDidMount() {
-    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN')) {
-      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      return;
-    }
     let jwt = this.state.jwt;
-    if (jwt) {
-      const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/users`, {
-        headers: {
-          'Authorization': jwt
-        }
-      });
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
 
-      eventSource.addEventListener("open", result => {
-        console.log('EventSource open: ', result);
-        this.setState({isLoading: false, displaySwagger: true});
-      });
-
-      eventSource.addEventListener("message", result => {
-        const data = JSON.parse(result.data);
-        this.state.users.push(data);
-        this.setState({users: this.state.users});
-      });
-
-      eventSource.addEventListener("error", err => {
-        console.log('EventSource error: ', err);
-        eventSource.close();
-        this.setState({isLoading: false});
-        if (err.status === 401) {
-          this.setState({displayAlert: true});
-        } else {
-          if (this.state.users.length === 0) {
-            this.setState({displayError: errorMessage(JSON.stringify(err))});
+      if (!permissions.some(item => item === 'ROLE_ADMIN')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+        return;
+      } else {
+        const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/users`, {
+          headers: {
+            'Authorization': jwt
           }
-        }
-      });
+        });
+
+        eventSource.addEventListener("open", result => {
+          console.log('EventSource open: ', result);
+          this.setState({isLoading: false, displaySwagger: true});
+        });
+
+        eventSource.addEventListener("message", result => {
+          const data = JSON.parse(result.data);
+          this.state.users.push(data);
+          this.setState({users: this.state.users});
+        });
+
+        eventSource.addEventListener("error", err => {
+          console.log('EventSource error: ', err);
+          eventSource.close();
+          this.setState({isLoading: false});
+          if (err.status === 401) {
+            this.setState({displayAlert: true});
+          } else {
+            if (this.state.users.length === 0) {
+              this.setState({displayError: errorMessage(JSON.stringify(err))});
+            }
+          }
+        });
+      }
     }
   }
 

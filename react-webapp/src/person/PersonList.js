@@ -40,36 +40,45 @@ class PersonList extends Component {
 
   componentDidMount() {
     let jwt = this.state.jwt;
-    if (jwt) {
-      const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/persons`, {
-        headers: {
-          'Authorization': jwt
-        }
-      });
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
 
-      eventSource.addEventListener("open", result => {
-        console.log('EventSource open: ', result);
-        this.setState({ isLoading: false, displaySwagger: true });
-      });
-
-      eventSource.addEventListener("message", result => {
-        const data = JSON.parse(result.data);
-        this.state.persons.push(data);
-        this.setState({ persons: this.state.persons });
-      });
-
-      eventSource.addEventListener("error", err => {
-        console.log('EventSource error: ', err);
-        eventSource.close();
-        this.setState({ isLoading: false });
-        if (err.status === 401) {
-          this.setState({ displayAlert: true });
-        } else {
-          if (this.state.persons.length === 0) {
-            this.setState({ displayError: errorMessage(JSON.stringify(err)) });
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
+      || item === 'ROLE_PERSON_READ' || item === 'ROLE_PERSON_CREATE' 
+      || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      } else {
+        const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/persons`, {
+          headers: {
+            'Authorization': jwt
           }
-        }
-      });
+        });
+
+        eventSource.addEventListener("open", result => {
+          console.log('EventSource open: ', result);
+          this.setState({ isLoading: false, displaySwagger: true });
+        });
+
+        eventSource.addEventListener("message", result => {
+          const data = JSON.parse(result.data);
+          this.state.persons.push(data);
+          this.setState({ persons: this.state.persons });
+        });
+
+        eventSource.addEventListener("error", err => {
+          console.log('EventSource error: ', err);
+          eventSource.close();
+          this.setState({ isLoading: false });
+          if (err.status === 401) {
+            this.setState({ displayAlert: true });
+          } else {
+            if (this.state.persons.length === 0) {
+              this.setState({ displayError: errorMessage(JSON.stringify(err)) });
+            }
+          }
+        });
+      }
     }
   }
 

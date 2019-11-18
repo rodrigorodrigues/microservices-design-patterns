@@ -20,7 +20,8 @@
     "moment": "2.24.0",
     "react-iframe": "1.8.0",
     "dotenv": "8.2.0",
-    "dotenv-expand": "5.1.0"
+    "dotenv-expand": "5.1.0",
+    "react-toastify": "5.4.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -28,7 +29,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:9006",
+  "proxy": "http://localhost:9007",
   "eslintConfig": {
     "extends": "react-app"
   },

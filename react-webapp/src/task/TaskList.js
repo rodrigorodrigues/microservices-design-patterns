@@ -39,21 +39,30 @@ class TaskList extends Component {
 
   async componentDidMount() {
     let jwt = this.state.jwt;
-    if (jwt) {
-      try {
-        let data = await get('tasks', true, false, jwt);
-        if (data) {
-          if (Array.isArray(data)) {
-            this.setState({ isLoading: false, tasks: data, displaySwagger: true });
-          } else {
-            if (data.status === 401) {
-              this.setState({displayAlert: true});
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
+
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
+      || item === 'ROLE_TASK_READ' || item === 'ROLE_TASK_CREATE' 
+      || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      } else {
+        try {
+          let data = await get('tasks', true, false, jwt);
+          if (data) {
+            if (Array.isArray(data)) {
+              this.setState({ isLoading: false, tasks: data, displaySwagger: true });
+            } else {
+              if (data.status === 401) {
+                this.setState({displayAlert: true});
+              }
+              this.setState({ isLoading: false, displayError: errorMessage(data) });
             }
-            this.setState({ isLoading: false, displayError: errorMessage(data) });
           }
+        } catch (error) {
+          this.setState({ displayError: errorMessage(error) });
         }
-      } catch (error) {
-        this.setState({ displayError: errorMessage(error) });
       }
     }
   }

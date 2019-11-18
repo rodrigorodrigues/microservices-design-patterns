@@ -28,26 +28,27 @@ class CategoryEdit extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE')) {
-      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      return;
-    }
-
     let jwt = this.state.jwt;
-    if (jwt) {
-      if (this.props.match.params.id !== 'new') {
-        try {
-          const category = await (await fetch(`/api/week-menu/v2/category/${this.props.match.params.id}`, { method: 'GET',      headers: {
-            'Content-Type': 'application/json',
-            'Authorization': jwt
-          }})).json();
-          this.setState({isLoading: false, category: category});
-        } catch (error) {
-          this.setState({ displayAlert: true, displayError: errorMessage(error)});
-        }
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
+
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
-        this.setState({isLoading: false});
+        if (this.props.match.params.id !== 'new') {
+          try {
+            const category = await (await fetch(`/api/week-menu/v2/category/${this.props.match.params.id}`, { method: 'GET',      headers: {
+              'Content-Type': 'application/json',
+              'Authorization': jwt
+            }})).json();
+            this.setState({isLoading: false, category: category});
+          } catch (error) {
+            this.setState({ displayAlert: true, displayError: errorMessage(error)});
+          }
+        } else {
+          this.setState({isLoading: false});
+        }
       }
     }
   }

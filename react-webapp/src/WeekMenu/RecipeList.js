@@ -23,7 +23,8 @@ class RecipeList extends Component {
       displayError: null,
       displayAlert: false,
       displaySwagger: false,
-      activeTab: '1'
+      activeTab: '1',
+      authorities: props.authorities
     };
     this.remove = this.remove.bind(this);
   }
@@ -36,19 +37,28 @@ class RecipeList extends Component {
 
   async componentDidMount() {
     let jwt = this.state.jwt;
-    if (jwt) {
-      try {
-        let data = await get('week-menu/v2/recipe', true, false, jwt)
-        if (data) {
-          if (Array.isArray(data)) {
-            this.setState({isLoading: false, recipes: data, displaySwagger: true});
-          } else {
-            this.setState({isLoading: false, displayError: errorMessage(data)});
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
+
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_RECIPE_READ' 
+      || item === 'ROLE_RECIPE_READ' || item === 'ROLE_RECIPE_CREATE' 
+      || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')) {
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      } else {
+        try {
+          let data = await get('week-menu/v2/recipe', true, false, jwt)
+          if (data) {
+            if (Array.isArray(data)) {
+              this.setState({isLoading: false, recipes: data, displaySwagger: true});
+            } else {
+              this.setState({isLoading: false, displayError: errorMessage(data)});
+            }
           }
+        } catch (error) {
+          console.log("Error!");
+          this.setState({isLoading: false, displayError: errorMessage(error)});
         }
-      } catch (error) {
-        console.log("Error!");
-        this.setState({isLoading: false, displayError: errorMessage(error)});
       }
     }
   }

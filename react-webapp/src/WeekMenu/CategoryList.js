@@ -37,27 +37,28 @@ class CategoryList extends Component {
   }
 
   async componentDidMount() {
-    if (!this.state.authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
+    let jwt = this.state.jwt;
+    let permissions = this.state.authorities;
+    if (jwt && permissions) {
+
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
       || item === 'ROLE_CATEGORY_READ' || item === 'ROLE_CATEGORY_CREATE' 
       || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')) {
-      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-      this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      return;
-    }
-
-    let jwt = this.state.jwt;
-    if (jwt) {
-      try {
-        let data = await get('week-menu/v2/category', true, false, jwt);
-        if (data) {
-          if (Array.isArray(data)) {
-            this.setState({isLoading: false, categories: data, displaySwagger: true});
-          } else {
-            this.setState({isLoading: false, displayError: errorMessage(data)});
+        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+      } else {
+        try {
+          let data = await get('week-menu/v2/category', true, false, jwt);
+          if (data) {
+            if (Array.isArray(data)) {
+              this.setState({isLoading: false, categories: data, displaySwagger: true});
+            } else {
+              this.setState({isLoading: false, displayError: errorMessage(data)});
+            }
           }
+        } catch (error) {
+          this.setState({ displayError: errorMessage(error)});
         }
-      } catch (error) {
-        this.setState({ displayError: errorMessage(error)});
       }
     }
   }

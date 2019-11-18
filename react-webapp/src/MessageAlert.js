@@ -1,16 +1,26 @@
 import React from 'react';
-import { Alert } from 'reactstrap';
 import ReactJson from 'react-json-view';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-function MessageAlert({ type, message }) {
-    return message ? <Alert color={type ? type : 'success'}>
+function MessageAlert({ typeError, message }) {
+    if (typeError === undefined) {
+        typeError = "error";
+    }
+    const options = {
+        type: typeError,
+        toastId: 'Error'
+    }
+    const notify = (message, options) => toast(message, options);
+    return message ? notify(<div>Response Error:
         <ReactJson
             enableClipboard={false}
             displayObjectSize={false}
-            name={null}
+            name={false}
             displayDataTypes={false}
+            theme="bright"
             src={message} />
-    </Alert> : ''
+        </div>, options) : '';
 }
 
 export default MessageAlert
