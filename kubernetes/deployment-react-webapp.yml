@@ -10,7 +10,6 @@ spec:
       port: 3003
   selector:
     app: react-webapp
-  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -25,7 +24,7 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:15.0
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:16.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:

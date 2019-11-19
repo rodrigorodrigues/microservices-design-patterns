@@ -26,7 +26,6 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.*
 
@@ -63,7 +62,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
         client.perform(get("/api/tasks")
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
             .andExpect(jsonPath("$").isEmpty)
@@ -75,7 +73,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun shouldReturnListOfTasksAndFilterByUserWhenCallingApi() {
         client.perform(get("/api/tasks")
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
             .andExpect(jsonPath("$..name").value(containsInAnyOrder("Test")))
@@ -87,7 +84,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun shouldReturnListOfAllTasksWhenCallingApi() {
         client.perform(get("/api/tasks")
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
             .andExpect(jsonPath("$..name").value(containsInAnyOrder("Test", "Test 2")))
@@ -98,7 +94,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun shouldResponseForbiddenWhenCallingApiWithoutUser() {
         client.perform(get("/api/tasks")
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().is4xxClientError)
     }
 
@@ -110,7 +105,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
             .andExpect(jsonPath("$.name").value("Test"))
@@ -124,7 +118,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().isForbidden)
     }
 
@@ -136,7 +129,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, "Bearer Mock JWT"))
-            .andDo(print())
             .andExpect(status().is4xxClientError)
     }
 
@@ -148,7 +140,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
             .header(AUTHORIZATION, "Bearer Mock JWT")
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(Task(id = "", name = "New Task"))))
-            .andDo(print())
             .andExpect(status().isCreated)
             .andExpect(header().exists(LOCATION))
             .andExpect(jsonPath("$.createdByUser").value("admin"))
@@ -169,7 +160,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
             .header(AUTHORIZATION, "Bearer Mock JWT")
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(Task(id = task.id, name = "Updated Task", createdByUser = "test"))))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
             .andExpect(jsonPath("$.name").value("Updated Task"))
@@ -188,7 +178,6 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
             .header(AUTHORIZATION, "Bearer Mock JWT")
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(Task(id = task.id, name = "Updated Task", createdByUser = "test"))))
-            .andDo(print())
             .andExpect(status().is4xxClientError)
 
         verify(taskRepository, never()).save(ArgumentMatchers.any(Task::class.java))

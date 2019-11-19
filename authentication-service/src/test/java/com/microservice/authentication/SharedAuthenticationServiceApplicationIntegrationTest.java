@@ -59,7 +59,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
@@ -173,7 +172,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         formData.add("scope", "read");
         OAuth2AccessToken token = objectMapper.readValue(mockMvc.perform(post("/oauth/token")
             .params(formData))
-            .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.access_token", is(notNullValue())))
@@ -199,7 +197,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         MockHttpServletResponse response = mockMvc.perform(post("/login")
             .params(formData)
             .with(csrf()))
-            .andDo(print())
             .andExpect(status().is3xxRedirection())
             .andExpect(cookie().value("SESSIONID", is(notNullValue())))
             .andReturn()
@@ -211,7 +208,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .with(csrf())
             .cookie(response.getCookies()))
             .andExpect(status().isOk())
-            .andDo(print())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
             .andExpect(jsonPath("$.id_token", is(notNullValue())));
@@ -227,7 +223,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     @DisplayName("Test - When Calling GET - /api/login should display page and response 200 - OK")
     public void shouldDisplayLoginPage() throws Exception {
         mockMvc.perform(get("/login"))
-            .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
     }
@@ -236,7 +231,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     @DisplayName("Test - When Calling GET - /api/logout should response 200 - OK")
     public void shouldWorkLogoutUrl() throws Exception {
         mockMvc.perform(get("/api/logout"))
-            .andDo(print())
+//            .andDo(print())
             .andExpect(status().isOk());
     }
 
@@ -251,7 +246,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
             .params(formData)
             .with(csrf()))
-            .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
@@ -307,7 +301,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     public void shouldReturnUnauthorizedWhenCallingApiWithoutAuthorizationHeader() throws Exception {
         mockMvc.perform(get("/api/authenticatedUser")
             .with(csrf()))
-            .andDo(print())
             .andExpect(status().is4xxClientError());
     }
 
@@ -324,7 +317,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
 
         mockMvc.perform(post("/oauth/token")
             .params(formData))
-            .andDo(print())
             .andExpect(status().is4xxClientError())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
@@ -341,7 +333,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(post("/api/authenticate")
             .params(formData)
             .with(csrf()))
-            .andDo(print())
             .andExpect(status().is4xxClientError())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))

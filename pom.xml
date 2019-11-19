@@ -94,11 +94,12 @@
                 <configuration>
                     <formats>
                         <format>html</format>
+                        <format>xml</format>
                     </formats>
                     <check />
+                    <aggregate>true</aggregate>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
