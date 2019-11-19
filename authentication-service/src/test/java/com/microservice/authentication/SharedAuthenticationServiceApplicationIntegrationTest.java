@@ -65,9 +65,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
-    properties = {"configuration.swagger=false", "debug=debug",
+    properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
-        "logging.level.org.springframework.security=debug",
+        "logging.level.root=error",
         "spring.redis.port=6370"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient

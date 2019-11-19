@@ -19,7 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [KotlinApp::class], properties = ["configuration.swagger=false", "debug=true", "logging.level.org.springframework.security=debug"],
+@SpringBootTest(classes = [KotlinApp::class], properties = ["configuration.swagger=false", "logging.level.root=error"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class KotlinAppIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
                                @Autowired val tokenProvider: TokenProvider) {

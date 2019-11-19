@@ -27,7 +27,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
-        properties = {"configuration.swagger=false", "debug=true", "logging.level.org.springframework.security=debug"})
+        properties = {"configuration.swagger=false", "logging.level.root=debug"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 class UserServiceApplicationIntegrationTest {

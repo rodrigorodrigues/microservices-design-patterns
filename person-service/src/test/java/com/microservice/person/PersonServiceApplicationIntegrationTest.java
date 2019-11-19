@@ -54,8 +54,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "debug=true",
-            "logging.level.org.springframework.security=debug",
+            "logging.level.root=error",
             "logging.level.com.microservice.person=debug"})
 @ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient(timeout = "1s")
