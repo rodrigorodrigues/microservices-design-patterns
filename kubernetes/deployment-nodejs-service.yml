@@ -58,9 +58,9 @@ spec:
             - name: REDIS_SERVER
               value: redis
             - name: EUREKA_PATH
-              value: /eureka/eureka/apps/
+              value: /eureka/apps/
             - name: EUREKA_SERVER
-              value: eureka-server
+              value: eureka-server-peer
             - name: HOST_NAME
               value: week-menu-api
             - name: IP_ADDRESS

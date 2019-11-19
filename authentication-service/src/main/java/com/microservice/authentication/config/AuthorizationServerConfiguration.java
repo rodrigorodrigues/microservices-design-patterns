@@ -85,7 +85,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
             .and()
             .withClient("actuator")
             .secret(passwordEncoder.encode("actuator_password"))
-            .authorizedGrantTypes("client_credentials")
+            .authorizedGrantTypes("client_credentials", "password", "authorization_code", "refresh_token")
+            .redirectUris(listOfServices.toArray(new String[] {}))
             .autoApprove(true)
             .authorities("ADMIN")
             .scopes("actuator");

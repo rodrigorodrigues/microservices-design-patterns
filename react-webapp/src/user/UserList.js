@@ -10,6 +10,7 @@ import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
+import { toast } from 'react-toastify';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 const userSwaggerUrl = process.env.REACT_APP_USER_SWAGGER_URL;
@@ -38,6 +39,7 @@ class UserList extends Component {
   }
 
   componentDidMount() {
+    toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
     if (jwt && permissions) {
@@ -45,7 +47,6 @@ class UserList extends Component {
       if (!permissions.some(item => item === 'ROLE_ADMIN')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-        return;
       } else {
         const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/users`, {
           headers: {

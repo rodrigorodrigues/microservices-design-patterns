@@ -10,6 +10,7 @@ import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
+import { toast } from 'react-toastify';
 const moment = require('moment');
 
 const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
@@ -38,6 +39,7 @@ class TaskList extends Component {
   }
 
   async componentDidMount() {
+    toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
     if (jwt && permissions) {
@@ -184,11 +186,9 @@ class TaskList extends Component {
       <div>
         <AppNavbar />
         <Container fluid>
-          <div className="float-left">
-            <HomeContent notDisplayMessage={true}></HomeContent>
-            {displayContent()}
-            <MessageAlert {...displayError}></MessageAlert>
-          </div>
+          <HomeContent notDisplayMessage={true}></HomeContent>
+          {displayContent()}
+          <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
         </Container>
       </div>

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -106,6 +107,23 @@ class UserServiceApplicationIntegrationTest {
                 .expectBody()
                 .jsonPath("$.id").isEqualTo(id)
                 .jsonPath("$.fullName").isEqualTo("New Name");
+    }
+
+    @Test
+    public void shouldReturnListOfPermissions() {
+        String authorizationHeader = authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("SOME_ROLE")));
+
+        client.get().uri("/api/users/permissions")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$..type")
+                .value(containsInAnyOrder("Admin Permission", "Person Permissions",
+                        "Product Permissions", "Ingredient Permissions",
+                        "Category Permissions", "Recipe Permissions",
+                        "Task Permissions"));
     }
 
     private String authorizationHeader(List<SimpleGrantedAuthority> permissions) {

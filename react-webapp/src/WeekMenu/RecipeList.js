@@ -10,6 +10,7 @@ import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
+import { toast } from 'react-toastify';
 
 const recipeSwaggerUrl = process.env.REACT_APP_RECIPE_SWAGGER_URL;
 
@@ -36,6 +37,7 @@ class RecipeList extends Component {
   }
 
   async componentDidMount() {
+    toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
     if (jwt && permissions) {

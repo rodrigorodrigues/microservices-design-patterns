@@ -11,6 +11,7 @@ import FooterContent from '../home/FooterContent';
 import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
+import { toast } from 'react-toastify';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
@@ -39,6 +40,7 @@ class PersonList extends Component {
   }
 
   componentDidMount() {
+    toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
     if (jwt && permissions) {
@@ -206,10 +208,8 @@ class PersonList extends Component {
         <AppNavbar />
         <Container fluid>
           <HomeContent notDisplayMessage={true}></HomeContent>
-          <div className="float-left">
-            {displayContent()}
-            <MessageAlert {...displayError}></MessageAlert>
-          </div>
+          {displayContent()}
+          <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
         </Container>
       </div>

@@ -7,6 +7,7 @@ import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
 import Cookies from 'js-cookie';
 import FooterContent from '../home/FooterContent';
+import { toast } from 'react-toastify';
 
 class Login extends Component {
   constructor(props) {
@@ -24,6 +25,7 @@ class Login extends Component {
   }
 
   async componentDidMount() {
+    toast.dismiss('Error');
     if (this.state.isAuthenticated) {
       if (window.localStorage.getItem('redirectToPreviousPage') !== null) {
         window.localStorage.removeItem('redirectToPreviousPage');

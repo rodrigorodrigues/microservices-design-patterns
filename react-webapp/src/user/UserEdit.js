@@ -7,6 +7,7 @@ import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
+import Switch from "react-switch";
 
 class UserEdit extends Component {
   emptyUser = {
@@ -40,7 +41,6 @@ class UserEdit extends Component {
       if (!permissions.some(item => item === 'ROLE_ADMIN')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-        return;
       } else {
         if (this.props.match.params.id !== 'new') {
           try {
@@ -63,6 +63,7 @@ class UserEdit extends Component {
             'Content-Type': 'application/json',
             'Authorization': jwt
           }})).json();
+          console.log("Permissions: ", permissions);
           this.setState({permissions: permissions});
         } catch (error) {
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(error)});
@@ -123,6 +124,19 @@ class UserEdit extends Component {
       return <p>Loading...</p>;
     }
 
+    const switchToggle = (permissions, user) => {
+      return permissions.map((e, i) => 
+        <div>
+          <AvGroup>
+            <Label for="permissions{i}"><b>{e.type}: </b></Label> 
+            {e.permissions.map((p, k) => <label>
+            <span>{p}</span>
+            <Switch onChange={this.handleChange} checked={user.authorities && user.authorities.some(item => item === p)} />
+            </label>)}
+          </AvGroup>
+        </div>);
+    }
+
     const displayContent = () => {
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
@@ -171,7 +185,8 @@ class UserEdit extends Component {
               This field is invalid - Please enter a correct email.
             </AvFeedback>
           </AvGroup>
-          <AvGroup>
+            {switchToggle(permissions, user)}
+            {/*
             <Label for="authorities">Permissions</Label>
             <AvInput type="select" name="authorities" id="authorities" value={user.authorities || ''}
                      required
@@ -183,6 +198,7 @@ class UserEdit extends Component {
               This field is invalid - Please select at least one permission.
             </AvFeedback>
           </AvGroup>
+            */}
           <AvGroup>
             <Button color="primary" type="submit">{user.id ? 'Save' : 'Create'}</Button>{' '}
             <Button color="secondary" tag={Link} to="/users">Cancel</Button>
