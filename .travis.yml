@@ -20,7 +20,7 @@ env:
 script: echo "This should be running tests for continuous integration"
 
 install:
- - mvn clean install -qB docker:build
+ - mvn clean install -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR docker:build
 
 # Deploy  to Google Kubernetes Engine
 after_success:
