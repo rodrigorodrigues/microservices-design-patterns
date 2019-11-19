@@ -1,9 +1,16 @@
 package com.microservice.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.jwt.common.TokenProvider;
 import com.microservice.user.dto.UserDto;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,14 +24,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
@@ -110,6 +109,7 @@ class UserServiceApplicationIntegrationTest {
     }
 
     @Test
+    @DisplayName("Test - When Calling GET - /api/users/permissions should return list of permissions and response 200 - OK")
     public void shouldReturnListOfPermissions() {
         String authorizationHeader = authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("SOME_ROLE")));
 
@@ -138,8 +138,8 @@ class UserServiceApplicationIntegrationTest {
         return UserDto.builder()
                 .email("new_user@gmail.com")
                 .fullName("Admin")
-                .password("12345")
-                .confirmPassword("12345")
+                .password("Password12345")
+                .confirmPassword("Password12345")
                 .authorities(Arrays.asList(new UserDto.AuthorityDto("READ")))
                 .build();
     }

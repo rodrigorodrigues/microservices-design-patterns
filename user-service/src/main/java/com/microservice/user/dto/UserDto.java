@@ -1,13 +1,12 @@
 package com.microservice.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
-import java.util.List;
 
 @Builder
 @Data
@@ -16,6 +15,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto {
     private String id;
+    private String currentPassword;
     private String password;
     private String confirmPassword;
     private String email;

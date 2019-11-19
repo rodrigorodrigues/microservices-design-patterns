@@ -28,20 +28,34 @@ public class UserServiceImpl implements UserService {
     public Mono<UserDto> save(UserDto userDto) {
         boolean newUser = StringUtils.isBlank(userDto.getId());
         if (newUser) {
-            if (!StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword()) || StringUtils.isBlank(userDto.getConfirmPassword())) {
+            if (StringUtils.isBlank(userDto.getPassword()) || StringUtils.isBlank(userDto.getConfirmPassword())) {
+                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must not be null!"));
+            }
+
+            if (!StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword())) {
                 return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!"));
             }
-            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        } else if ((StringUtils.isNotBlank(userDto.getPassword()) || StringUtils.isNotBlank(userDto.getConfirmPassword()))  && !StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword()))  {
-            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!"));
         }
         User user = userMapper.dtoToEntity(userDto);
-        if (newUser || StringUtils.isNotBlank(user.getPassword())) {
+        if (newUser) {
+            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
             return userMapper.entityToDto(userRepository.save(user));
         } else {
             return userRepository.findById(userDto.getId())
                     .flatMap(u -> {
-                        user.setPassword(u.getPassword());
+                        if (StringUtils.isNotBlank(userDto.getPassword())) {
+                            if (!passwordEncoder.matches(userDto.getCurrentPassword(), u.getPassword())) {
+                                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect!"));
+                            }
+
+                            if (!StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword()))  {
+                                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!"));
+                            }
+
+                            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+                        } else {
+                            user.setPassword(u.getPassword());
+                        }
                         return userMapper.entityToDto(userRepository.save(user));
                     });
         }

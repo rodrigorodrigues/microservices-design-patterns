@@ -81,11 +81,15 @@ class UserEdit extends Component {
     this.setState({user: user});
   }
 
-  handleAuthorityChange(event) {
-    const selectedValues = [...event.target.selectedOptions].map(o => o.value);
-    console.log("handleAuthorityChange:selectedValues", selectedValues);
+  handleAuthorityChange(checked, event, id) {
+    let copyAuthorities = [...this.state.user.authorities];
+    if (checked) {
+      copyAuthorities.push(id);
+    } else {
+      copyAuthorities = copyAuthorities.filter(item => item !== id);
+    }
     let user = {...this.state.user};
-    user.authorities = selectedValues;
+    user.authorities = copyAuthorities;
     this.setState({user: user});
   }
 
@@ -125,13 +129,13 @@ class UserEdit extends Component {
     }
 
     const switchToggle = (permissions, user) => {
-      return permissions.map((e, i) => 
+      return permissions.map(e => 
         <div>
           <AvGroup>
-            <Label for="permissions{i}"><b>{e.type}: </b></Label> 
+            <p><b>{e.type}: </b></p>
             {e.permissions.map((p, k) => <label>
             <span>{p}</span>
-            <Switch onChange={this.handleChange} checked={user.authorities && user.authorities.some(item => item === p)} />
+            <Switch onChange={this.handleAuthorityChange} id={p} checked={user.authorities && user.authorities.some(item => item === p)} />
             </label>)}
           </AvGroup>
         </div>);
@@ -158,6 +162,14 @@ class UserEdit extends Component {
               This field is invalid - Your Full Name must be between 5 and 100 characters.
             </AvFeedback>
           </AvGroup>
+          {user.id ?
+          <AvGroup>
+            <Label for="currentPassword">Current Password</Label>
+            <AvInput type="password" name="currentPassword" id="currentPassword" 
+                     onChange={this.handleChange} placeholder="Current Password"
+                     />
+          </AvGroup>
+          : ''}
           <AvGroup>
             <Label for="password">Password</Label>
             <AvInput type="password" name="password" id="password" value={user.password || ''}
@@ -180,25 +192,13 @@ class UserEdit extends Component {
             <Label for="name">Email</Label>
             <AvInput type="email" name="email" id="email" value={user.email || ''}
                      required
+                     validate={{email: true}}
                      onChange={this.handleChange} placeholder="your_email@email.com"/>
             <AvFeedback>
               This field is invalid - Please enter a correct email.
             </AvFeedback>
           </AvGroup>
             {switchToggle(permissions, user)}
-            {/*
-            <Label for="authorities">Permissions</Label>
-            <AvInput type="select" name="authorities" id="authorities" value={user.authorities || ''}
-                     required
-                     multiple
-                     onChange={this.handleAuthorityChange}>
-              {permissions.map(role => <option value={role} key={role}>{role}</option>)}
-            </AvInput>
-            <AvFeedback>
-              This field is invalid - Please select at least one permission.
-            </AvFeedback>
-          </AvGroup>
-            */}
           <AvGroup>
             <Button color="primary" type="submit">{user.id ? 'Save' : 'Create'}</Button>{' '}
             <Button color="secondary" tag={Link} to="/users">Cancel</Button>

@@ -79,7 +79,7 @@ class Login extends Component {
 
     return <div>
       <AppNavbar />
-      <Container>
+      <Container fluid>
         <h2>Login</h2>
         <Form onSubmit={this.handleSubmit}>
           <FormGroup className="col-md-3 mb-3">

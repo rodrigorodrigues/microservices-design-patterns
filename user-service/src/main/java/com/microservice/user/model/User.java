@@ -1,20 +1,24 @@
 package com.microservice.user.model;
 
 import com.microservice.authentication.common.model.Authority;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.List;
 
 @Builder
 @Data
@@ -34,6 +38,7 @@ public class User implements Serializable {
     private String fullName;
 
     @NotEmpty
+    @Pattern(regexp = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{4,}$", message = " Password must be at least 4 characters, at least one upper case letter, one lower case letter, and one numeric digit.")
     private String password;
 
     @NotEmpty @Valid

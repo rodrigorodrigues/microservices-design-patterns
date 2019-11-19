@@ -1,5 +1,8 @@
 package com.microservice.web.autoconfigure;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.info.BuildProperties;
@@ -10,15 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.*;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.Contact;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2WebFlux;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Swagger Configuration
@@ -48,9 +51,9 @@ public class Swagger2Configuration {
 
     private ApiInfo apiEndPointsInfo() {
         String version = String.format("%s-%s-%s", build.getVersion(), git.getShortCommitId(), git.getBranch());
-        return new ApiInfoBuilder().title("Java 8 Learning - Spring Boot 2")
+        return new ApiInfoBuilder()
                 .description("REST API")
-                .contact(new Contact("Rodrigo Santos", "https://github.com/rodrigorodrigues/springboot2-cloud-webflux-node-react.git", "rodrigorodriguesweb@gmail.com"))
+                .contact(new Contact("Rodrigo Santos", "https://github.com/rodrigorodrigues/microservices-design-patterns", "rodrigorodriguesweb@gmail.com"))
                 .license("Apache 2.0")
                 .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
                 .version(version)
