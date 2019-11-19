@@ -17,12 +17,13 @@ env:
   # Do not prompt for user input when using any SDK methods.
   - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
-script: echo "This should be running tests for continuous integration"
+before_install: echo "This should be running tests for continuous integration"
 
 install:
- - mvn clean install -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error docker:build
+ - mvn clean install -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error && mvn cobertura:cobertura
 
-after_script: mvn cobertura:cobertura
+after_deploy:
+  - if [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then docker:build ; fi ;
 
 # Deploy  to Google Kubernetes Engine
 after_success:
