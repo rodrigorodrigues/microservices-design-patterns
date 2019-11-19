@@ -1,18 +1,16 @@
 language: java
 
-script: "mvn clean install docker:build"
+services:
+- docker
 
 branches:
   only:
   - master
 
-cache:
-  directories:
+#cache:
+#  directories:
   # We cache the SDK so we don't have to download it again on subsequent builds.
-  - $HOME/google-cloud-sdk
-
-services:
-- docker
+#  - $HOME/google-cloud-sdk
 
 env:
   global:
@@ -21,6 +19,9 @@ env:
 
 script: echo "This should be running tests for continuous integration"
 
+before_install:
+ - mvn clean install docker:build
+
 # Deploy  to Google Kubernetes Engine
-after_success:
-- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ./deploy.sh; fi
+#after_success:
+#- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ./deploy.sh; fi
