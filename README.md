@@ -1,5 +1,7 @@
 # Microservice Architecture with Multiple Languages
 
+[![Build Status](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns.svg?branch=master)](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns)
+
 The main idea of this project is how to apply `Microservice Architecture by Chris Richardson` in multiple languages.
 
 Most all services are made in `Java with Spring Boot 2 + Webflux(Reactive Programming) + MongoDB` but there is one in `NodeJS` and web app using `React`. 
