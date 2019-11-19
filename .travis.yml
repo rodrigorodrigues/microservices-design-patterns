@@ -19,7 +19,7 @@ env:
 
 script: echo "This should be running tests for continuous integration"
 
-before_install:
+install:
  - mvn clean install docker:build
 
 # Deploy  to Google Kubernetes Engine
