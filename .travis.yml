@@ -1,7 +1,8 @@
+dist: trusty
+
 language: java
 
-script:
-  - jdk_switcher use oraclejdk8
+jdk: openjdk8
 
 services:
 - docker

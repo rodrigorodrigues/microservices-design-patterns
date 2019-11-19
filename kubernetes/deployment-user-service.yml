@@ -14,7 +14,6 @@ spec:
       port: 8083
   selector:
     app: user-service
-  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -34,7 +33,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/spring-boot-gke-243520/user-service:14.0
+          image: eu.gcr.io/spring-boot-gke-243520/user-service:15.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
