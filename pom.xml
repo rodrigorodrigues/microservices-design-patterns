@@ -129,11 +129,6 @@
                             <value>COVEREDRATIO</value>
                             <minimum>0.8</minimum>
                           </limit>
-                          <limit>
-                            <counter>CLASS</counter>
-                            <value>MISSEDRATIO</value>
-                            <maximum>0.1</maximum>
-                          </limit>
                         </limits>
                       </rule>
                     </rules>

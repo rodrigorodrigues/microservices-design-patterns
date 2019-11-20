@@ -14,7 +14,6 @@ spec:
       port: 8761
   selector:
     app: eureka-server
-  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
