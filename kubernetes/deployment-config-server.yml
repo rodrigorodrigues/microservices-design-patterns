@@ -14,7 +14,6 @@ spec:
       port: 8888
   selector:
     app: config-server
-  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment

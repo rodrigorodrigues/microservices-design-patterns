@@ -14,7 +14,6 @@ spec:
       port: 8082
   selector:
     app: person-service
-  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
