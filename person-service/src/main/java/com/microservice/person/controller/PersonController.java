@@ -6,6 +6,7 @@ import com.microservice.person.service.PersonService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import java.net.URI;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,12 +17,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.net.URI;
 
 /**
  * Rest API for persons.
@@ -72,6 +78,7 @@ public class PersonController {
         }
     }
 
+/*
     private Integer generateLastEventId(String lastEventIdHeader, String lastEventIdRequestParam) {
         Integer lastEventId = 0;
         try {
@@ -85,6 +92,7 @@ public class PersonController {
         }
         return lastEventId;
     }
+*/
 
     @ApiOperation(value = "Api for return a person by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

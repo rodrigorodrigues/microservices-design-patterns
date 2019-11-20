@@ -1,5 +1,9 @@
 package com.microservice.person;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -12,6 +16,14 @@ import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,31 +44,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "logging.level.root=error",
             "logging.level.com.microservice.person=debug"})
-@ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient(timeout = "1s")
 @Import(PersonServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class)
 public class PersonServiceApplicationIntegrationTest {

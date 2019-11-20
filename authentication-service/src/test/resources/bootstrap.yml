@@ -1,8 +1,23 @@
+configuration:
+  jwt:
+    # This token must be encoded using Base64 (you can type `echo 'secret-key'|base64` on your command line)
+    base64-secret: dGVzdC1zcHJpbmctYm9vdC1hcHBsaWNhdGlvbi13aXRoLXJlYWN0LXNpbmdsZS1wYWdlLWFwcGxpY2F0aW9uCg==
+    # Token is valid 24 hours
+    token-validity-in-seconds: 86400
+    token-validity-in-seconds-for-remember-me: 2592000
+#        keystore: ${KEYSTORE:/etc/sslmate/www.spendingbetter.com.jks}
+#        keystoreAlias: ${KEYSTORE_ALIAS:spring-boot}
+#        keystorePassword: ${KEYSTORE_PASSWORD:Cert20!9}
+
 eureka:
   client:
     enabled: false
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: authentication-service
   cloud:
     discovery:
       enabled: false

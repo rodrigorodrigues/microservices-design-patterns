@@ -2,6 +2,8 @@ eureka:
   client:
     enabled: false
 spring:
+  application:
+    name: kotlin-service
   cloud:
     discovery:
       enabled: false

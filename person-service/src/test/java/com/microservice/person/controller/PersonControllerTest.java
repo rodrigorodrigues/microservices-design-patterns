@@ -1,5 +1,12 @@
 package com.microservice.person.controller;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
@@ -13,6 +20,9 @@ import com.microservice.person.model.Person;
 import com.microservice.person.service.PersonService;
 import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,16 +41,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.UUID;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {
@@ -87,6 +87,26 @@ public class PersonControllerTest {
         client.get().uri("/api/persons")
                 .exchange()
                 .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/persons with different user should return empty list and response 200 - OK")
+    @WithMockUser(roles = "PERSON_READ", username = "test")
+    public void whenCallFindAllShouldReturnEmptyList() {
+        PersonDto person = new PersonDto();
+        person.setId("100");
+        person.setCreatedByUser("anotherUser");
+        PersonDto person2 = new PersonDto();
+        person2.setCreatedByUser("anotherUser");
+        person2.setId("200");
+        when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
+
+        client.get().uri("/api/persons")
+            .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM_VALUE)
+            .expectBody().isEmpty();
     }
 
     @Test
@@ -148,6 +168,22 @@ public class PersonControllerTest {
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody().jsonPath("$.id").value(equalTo("100"));
+    }
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/persons/{id} with different user should response 403 - Forbidden")
+    @WithMockUser(roles = "PERSON_READ", username = "test")
+    public void whenCallFindByIdShouldResponseForbidden() {
+        PersonDto person = new PersonDto();
+        person.setId("100");
+        person.setCreatedByUser("test1");
+        when(personService.findById(anyString())).thenReturn(Mono.just(person));
+
+        client.get().uri("/api/persons/{id}", 100)
+            .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+            .exchange()
+            .expectStatus().isForbidden()
+            .expectBody().jsonPath("$.message").value(containsString("User(test) does not have access to this resource"));
     }
 
     @Test

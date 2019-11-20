@@ -1,6 +1,7 @@
 # Microservice Architecture with Multiple Languages
 
 [![Build Status](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns.svg?branch=master)](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns)
+[![codecov](https://codecov.io/gh/rodrigorodrigues/microservices-design-patterns/branch/master/graph/badge.svg)](https://codecov.io/gh/rodrigorodrigues/microservices-design-patterns)
 
 The main idea of this project is how to apply `Microservice Architecture by Chris Richardson` in multiple languages.
 

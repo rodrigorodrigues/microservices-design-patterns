@@ -21,14 +21,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
-        properties = {"configuration.swagger=false", "logging.level.root=debug"})
-@ActiveProfiles("integration-tests")
+        properties = {"configuration.swagger=false"})
 @AutoConfigureWebTestClient
 class UserServiceApplicationIntegrationTest {
     @Autowired

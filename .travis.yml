@@ -24,7 +24,7 @@ env:
 before_install: echo "This should be running tests for continuous integration"
 
 install:
- - mvn clean cobertura:cobertura install -q
+ - mvn clean install -Dspring.profiles.active=travis
 
 after_deploy:
   - if [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then docker:build ; fi ;

@@ -1,5 +1,21 @@
 package com.microservice.authentication;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
@@ -10,6 +26,14 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.shared.Application;
 import com.netflix.discovery.shared.Applications;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -36,39 +60,18 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import redis.embedded.RedisServer;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
-        "logging.level.root=error",
         "spring.redis.port=6370"})
-@ActiveProfiles("integration-tests")
 @AutoConfigureWebTestClient
 @Import({SharedAuthenticationServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class, SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
 @AutoConfigureMockMvc

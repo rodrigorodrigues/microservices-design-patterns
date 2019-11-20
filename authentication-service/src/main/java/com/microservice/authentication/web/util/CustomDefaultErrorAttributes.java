@@ -16,7 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 @AllArgsConstructor
 public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
-    public Map<String, Object> getErrorAttributes(HttpServletRequest request, Throwable throwable,  boolean includeStackTrace) {
+    public Map<String, Object> getErrorAttributes(HttpServletRequest request, Throwable throwable, boolean includeStackTrace) {
         Map<String, Object> errorAttributes = super.getErrorAttributes(new ServletWebRequest(request), includeStackTrace);
         HttpStatus status = getHttpStatusError(throwable);
         errorAttributes.put("status", status.value());

@@ -2,7 +2,6 @@ package com.microservice.kotlin.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.jwt.common.TokenProvider
-import com.microservice.kotlin.config.CustomDefaultErrorAttributes
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
 import org.hamcrest.Matchers.containsInAnyOrder
@@ -16,9 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
 import org.springframework.http.MediaType.APPLICATION_JSON
@@ -29,19 +25,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.*
 
-@Configuration
-internal class MockCustomErrorAttributes {
-    @Bean
-    fun customDefaultErrorAttributes(): CustomDefaultErrorAttributes = CustomDefaultErrorAttributes()
-}
-
 @ExtendWith(SpringExtension::class)
 @WebMvcTest
 @AutoConfigureMockMvc
-@Import(MockCustomErrorAttributes::class)
 internal class TaskControllerTest(@Autowired val client: MockMvc,
                                   @Autowired val objectMapper: ObjectMapper
-                                  ) {
+) {
     @MockBean lateinit var tokenProvider : TokenProvider
     @MockBean lateinit var taskRepository: TaskRepository
 
@@ -144,6 +133,23 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
             .andExpect(header().exists(LOCATION))
             .andExpect(jsonPath("$.createdByUser").value("admin"))
             .andExpect(jsonPath("$.name").value("New Task"))
+
+        verify(taskRepository).save(ArgumentMatchers.any(Task::class.java))
+    }
+
+    @Test
+    @WithMockUser(roles = ["ADMIN"], username = "admin")
+    @DisplayName("Test - When Calling POST - /api/tasks/ with id should update task and response 200 - OK")
+    fun testCreateShouldUpdateWhenIdExists() {
+        val task = Task("999", name = "Test", createdByUser = "test")
+        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
+
+        client.perform(post("/api/tasks")
+            .header(AUTHORIZATION, "Bearer Mock JWT")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(Task(id = "999", name = "New Task"))))
+            .andExpect(status().isOk)
+            .andExpect(header().doesNotExist(LOCATION))
 
         verify(taskRepository).save(ArgumentMatchers.any(Task::class.java))
     }
