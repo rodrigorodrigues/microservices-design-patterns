@@ -3,13 +3,11 @@
 [![Build Status](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns.svg?branch=master)](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns)
 [![codecov](https://codecov.io/gh/rodrigorodrigues/microservices-design-patterns/branch/master/graph/badge.svg)](https://codecov.io/gh/rodrigorodrigues/microservices-design-patterns)
 
-The main idea of this project is how to apply `Microservice Architecture by Chris Richardson` in multiple languages.
+The main idea for this project is to show a case of `Microservice Architecture` using multiple languages.
 
-Most all services are made in `Java with Spring Boot 2 + Webflux(Reactive Programming) + MongoDB` but there is one in `NodeJS` and web app using `React`. 
+Most all services are made in `Java with Spring Boot 2 + Webflux(Reactive Programming) + MongoDB` but there is one in `NodeJS`, `Kotlin` and web app using `React`. 
 
-This pattern could be applied for any language.
-
-Inspired from the book [Microservices Patterns](https://www.manning.com/books/microservices-patterns) by `Chris Richardson - @crichardson`.
+Inspired by book [Microservices Patterns](https://www.manning.com/books/microservices-patterns)(`Chris Richardson - @crichardson`).
 
 ## Contents
 
@@ -33,8 +31,6 @@ Inspired from the book [Microservices Patterns](https://www.manning.com/books/mi
 
 ### Microservice Patterns
 
-It is implemented so far the following list of patterns:
-
  * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` folder, Added `<artifactId>eureka-consul-adapter</artifactId>` for `scraping data for Prometheus`
  
  * **Client-side service discovery** - Used [Spring Cloud Eureka Client][https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html] and all microservices(`admin-server, user-service, person-service, etc`) are running as a client service discovery
@@ -45,17 +41,17 @@ It is implemented so far the following list of patterns:
  
  * **Exception Tracking** - Used [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/) on `admin-server` folder
  
- * **Access token** - [JSON Web Token](https://jwt.io) for `Authentication/Authorization` on services(`user-service, person-service, authentication-service, nodejs-service`)
+ * **Access token** - [JSON Web Token](https://jwt.io) using `Oauth2 - authentication-service` and client services(`user-service, person-service, nodejs-service, kotin-service`)
  
- * **Health Check API** - All `Java microservices` are using [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) - `<artifactId>spring-boot-starter-actuator</artifactId>` and NodeJS is using `express-actuator`
+ * **Health Check API** - All `Java microservices` are using [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) - `<artifactId>spring-boot-starter-actuator</artifactId>` and `NodeJS` using `express-actuator`
  
- * **Distributed tracing** - All `Java microservices` are using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) `<artifactId>spring-cloud-starter-sleuth</artifactId>`, Zipkin `<artifactId>spring-cloud-starter-zipkin</artifactId>` and NodeJS is using `morgan, zipkin, zipkin-transport-http and zipkin-context-cls`
+ * **Distributed tracing** - All `Java microservices` are using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) `<artifactId>spring-cloud-starter-sleuth</artifactId>`, Zipkin `<artifactId>spring-cloud-starter-zipkin</artifactId>` and `NodeJS` using `morgan, zipkin, zipkin-transport-http and zipkin-context-cls`
  
- * **Application metrics** - All `Java microservices` are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and NodeJS is using `express-prom-bundle`
+ * **Application metrics** - All `Java microservices` are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and `NodeJS` using `express-prom-bundle`
  
  * **Database per service** - All services are using `MongoDB` as a separately database
  
- * **Shared database** - `Redis` is used for sharing database session for services `Eureka Server, Config Server, Edge Server and Spring Boot`, login depends on users registered on `MongoDB` database
+ * **Shared database** - `Redis` is used for sharing sessions for services `Eureka Server, Config Server, Edge Server and Spring Boot`, login depends on users registered on `MongoDB` database
 
 To know more about each pattern find at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
@@ -352,7 +348,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Split Person and User in different entities
 * [X] Java - Split back-end and front-end in two different folders
 * [X] Java - Split Java 8 Learning in another folder
-* [ ] ~~Java - Add Cloud Foundry for deploy~~
+* [X] Deploy - Google Cloud
 * [ ] Java - Add Heroku for deploy
 * [X] Java - Add Test for Users Classes
 * [X] Java - Add Spring Cloud Config
@@ -369,14 +365,14 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] C# - Add Service using C# Language
 * [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
 * [X] React - Create User List
-* [ ] React - Create User Page
-* [ ] React - Create User Edit
-* [ ] React - Create Categories Edit
+* [X] React - Create User Page
+* [X] React - Create User Edit
+* [X] React - Create Categories Edit
 * [ ] React - Create Recipes Edit
-* [ ] React - Fix User Create/Edit
-* [ ] React - Fix Person Create/Edit
+* [X] React - Fix User Create/Edit
+* [X] React - Fix Person Create/Edit
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
-* [X] React - Fix Docker to use Nginx
+* [X] React - Fix Docker Web App to use Nginx
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
@@ -400,4 +396,3 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Istio on GKE](https://cloud.google.com/istio/docs/istio-on-gke/overview)
 
 [Istio Gateway](https://medium.com/@tufin/test-7daa5ee3782b)
-
