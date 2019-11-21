@@ -19,10 +19,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [KotlinApp::class], properties = ["configuration.swagger=false"],
+@SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KotlinAppIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
-                               @Autowired val tokenProvider: TokenProvider) {
+class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
+                                       @Autowired val tokenProvider: TokenProvider) {
 
     @Test
     @DisplayName("When Calling POST - /api/tasks should create task response 201 - Created")

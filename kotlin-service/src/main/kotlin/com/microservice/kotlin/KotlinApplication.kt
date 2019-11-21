@@ -6,8 +6,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient
 
 @SpringBootApplication
 @EnableDiscoveryClient
-class KotlinApp
+class KotlinApplication
 
     fun main(args: Array<String>) {
-        runApplication<KotlinApp>(*args)
+        runApplication<KotlinApplication>(*args)
     }

@@ -25,9 +25,10 @@ Inspired by book [Microservices Patterns](https://www.manning.com/books/microser
   12. [Accessing React Web App](#accessing-react-app)
   13. [List of default users](#default-users)
   14. [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
-  15. [TODO-LIST](#todo-list)
-  16. [References](#references)
-  17. [Postman Collection](docs/postman_collection.json?raw=true)
+  15. [Travis CI/CD](#travis-cicd)
+  16. [TODO-LIST](#todo-list)
+  17. [References](#references)
+  18. [Postman Collection](docs/postman_collection.json?raw=true)
 
 ### Microservice Patterns
 
@@ -242,7 +243,7 @@ The code is deployed at `Google Cloud Platform`, to access it go through `https:
 
 Following useful commands for kubernetes
 
-Install
+Installation
 
 ```
 #helm create ingress - RBAC enabled
@@ -331,11 +332,24 @@ kubectl describe nodes gke-your-first-cluster
 ```
 
 [Enable Ingress](https://cloud.google.com/community/tutorials/nginx-ingress-gke)
+
 [Example Ingress Configuration](https://github.com/GoogleCloudPlatform/community/blob/master/tutorials/nginx-ingress-gke/ingress-resource.yaml)
+
 [Install Helm](https://helm.sh/docs/using_helm/#installing-helm)
+
 [Kubernetes + Zuul](https://stackoverflow.com/questions/52066141/zuul-unable-to-route-traffic-to-service-on-kubernetes)
+
 [Example Spring Boot 2 + Kubernestes + Zuul](https://piotrminkowski.wordpress.com/2018/08/02/quick-guide-to-microservices-with-kubernetes-spring-boot-2-0-and-docker/)
-https://piotrminkowski.wordpress.com/2018/05/21/secure-discovery-with-spring-cloud-netflix-eureka/
+
+[Secure Discovery Example](https://piotrminkowski.wordpress.com/2018/05/21/secure-discovery-with-spring-cloud-netflix-eureka/)
+
+### Travis CI/CD
+
+Automatic Continuous Integration/Deployment using [travis-ci](https://travis-ci.org).
+
+Used `Google Cloud Platform` for deployment the `docker images`.
+
+More details look at [.travis.yml](.travis.yml) and [gcloud folder](gcloud).
 
 ### Swagger UI
 
@@ -348,8 +362,6 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Split Person and User in different entities
 * [X] Java - Split back-end and front-end in two different folders
 * [X] Java - Split Java 8 Learning in another folder
-* [X] Deploy - Google Cloud
-* [ ] Java - Add Heroku for deploy
 * [X] Java - Add Test for Users Classes
 * [X] Java - Add Spring Cloud Config
 * [X] Java - Add Service Discovery(Eureka)
@@ -363,7 +375,6 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
-* [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
 * [X] React - Create User List
 * [X] React - Create User Page
 * [X] React - Create User Edit
@@ -373,6 +384,10 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] React - Fix Person Create/Edit
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
 * [X] React - Fix Docker Web App to use Nginx
+* [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
+* [X] Deploy - Google Cloud
+* [X] CI/CD - Add Travis
+* [ ] ~~Deploy - Add Herokuy~~
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
