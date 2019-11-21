@@ -37,13 +37,11 @@ install:
 script: echo "Continuous Integration/Deployment of Commit ID(${COMMIT_ID}) for Author(${AUTHOR_NAME}) Email(${COMMITTER_EMAIL})"
 
 before_script:
-  - if [ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]; then export DIFF_FILES="$(git diff $COMMIT_ID --name-only)"; chmod +x ./gcloud/check-diff-files.sh && ./gcloud/check-diff-files.sh; fi
+  - if [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then export DIFF_FILES="$(git diff $COMMIT_ID --name-only)"; chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - if [ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]; then mvn docker:build ; fi ;
 #- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ./deploy.sh; fi
-
 
 
 # Install Google Cloud and deploy docker images

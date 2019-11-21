@@ -26,24 +26,28 @@ do
     fi
   elif [[ "$BUILD_AUTHENTICATION_SERVICE_IMAGE" == "false" ]] && [[ "$i" == authentication-service* ]]; then
     if [[ "$i" =~ \.(java|yml)$ ]]; then
+      mvn -f ../authentication-service/pom.xml docker:build
       IMAGES_TO_BUILD+="authentication-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_AUTHENTICATION_SERVICE_IMAGE=true
     fi
   elif [[ "$BUILD_USER_SERVICE_IMAGE" == "false" ]] && [[ "$i" == user-service* ]]; then
     if [[ "$i" =~ \.(java|yml)$ ]]; then
+      mvn -f ../user-service/pom.xml docker:build
       IMAGES_TO_BUILD+="user-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_USER_SERVICE_IMAGE=true
     fi
   elif [[ "$BUILD_PERSON_SERVICE_IMAGE" == "false" ]] && [[ "$i" == person-service* ]]; then
     if [[ "$i" =~ \.(java|yml)$ ]]; then
+      mvn -f ../person-service/pom.xml docker:build
       IMAGES_TO_BUILD+="person-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_PERSON_SERVICE_IMAGE=true
     fi
   elif [[ "$BUILD_KOTLIN_SERVICE_IMAGE" == "false" ]] && [[ "$i" == kotlin-service* ]]; then
     if [[ "$i" =~ \.(java|yml|kt)$ ]]; then
+      mvn -f ../kotlin-service/pom.xml docker:build
       IMAGES_TO_BUILD+="kotlin-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_KOTLIN_SERVICE_IMAGE=true
@@ -67,4 +71,4 @@ echo "Should build new docker image for kotlin-service? ${BUILD_KOTLIN_SERVICE_I
 echo "List of images to build: $IMAGES_TO_BUILD"
 
 export BUILD_NEW_DOCKER_IMAGE="$BUILD_NEW_DOCKER_IMAGE";
-export IMAGES_TO_BUILD="$IMAGES_TO_BUILD"
+export IMAGES_TO_BUILD="${IMAGES_TO_BUILD}"
