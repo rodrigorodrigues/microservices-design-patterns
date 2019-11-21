@@ -31,8 +31,9 @@ before_install:
 install:
  - mvn clean install -q -Dspring.profiles.active=travis
 
+script: echo "Continuous Integration/Deployment of Commit ID($COMMIT_ID) for Author($AUTHOR_NAME) Email($COMMITTER_EMAIL)"
+
 before_script:
-  - echo "Continuous Integration/Deployment of Commit ID($COMMIT_ID) for Author($AUTHOR_NAME) Email($COMMITTER_EMAIL)"
   - if [ "$TRAVIS_COMMIT_MESSAGE" == *"trigger build"* ]; then export DIFF_FILES="$(git diff $COMMIT_ID --name-only)"; chmod +x ./gcloud/check-diff-files.sh && ./gcloud/check-diff-files.sh; fi
 
 after_success:
