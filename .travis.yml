@@ -26,31 +26,30 @@ before_install:
   - export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
   - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
   - export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"
-  - echo "Continuous Integration/Deployment of Commit ID($COMMIT_ID) for Author($AUTHOR_NAME) Email($COMMITTER_EMAIL)"
   - export BUILD_NEW_DOCKER_IMAGE=false
 
 install:
  - mvn clean install -q -Dspring.profiles.active=travis
 
 before_script:
+  - echo "Continuous Integration/Deployment of Commit ID($COMMIT_ID) for Author($AUTHOR_NAME) Email($COMMITTER_EMAIL)"
   - if [ "$TRAVIS_COMMIT_MESSAGE" == *"trigger build"* ]; then export DIFF_FILES="$(git diff $COMMIT_ID --name-only)"; chmod +x ./gcloud/check-diff-files.sh && ./gcloud/check-diff-files.sh; fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  -
   - if [ "$TRAVIS_COMMIT_MESSAGE" == *"trigger build"* ]; then mvn docker:build ; fi ;
 #- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ./deploy.sh; fi
 
 
 
-    # Install Google Cloud and set execute permissions
+# Install Google Cloud and deploy docker images
 before_deploy:
-  - if [ "$BUILD_NEW_DOCKER_IMAGE" == *"trigger build"* ]; then chmod +x ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; fi
+  - if [ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]; then chmod +x ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/install-google-cloud-sdk.sh; fi
 
 # Deploy to Google Kubernetes Engine
-deploy:
-  - provider: script
-    script: ./gcloud/install-google-cloud-sdk.sh && ./cloud/deploy-prod.sh
-    skip_cleanup: true
-    on:
-      branch: master
+#deploy:
+#  - provider: script
+#    script: ./gcloud/install-google-cloud-sdk.sh && ./cloud/deploy-prod.sh
+#    skip_cleanup: true
+#    on:
+#      branch: master
