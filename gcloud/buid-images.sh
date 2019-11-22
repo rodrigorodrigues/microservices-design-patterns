@@ -53,6 +53,8 @@ do
       IMAGES_TO_BUILD+="kotlin-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_KOTLIN_SERVICE_IMAGE=true
+    else
+      echo "Here"
     fi
   fi
 

@@ -44,7 +44,11 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
         "configuration.initialLoad=false",
         "configuration.mongo=false"},
         controllers = UserController.class, excludeAutoConfiguration = MongoReactiveAutoConfiguration.class)
-@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomReactiveDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class, JwtCommonAutoConfiguration.class})
+@Import({SpringSecurityConfiguration.class,
+        HandleResponseError.class,
+        CustomReactiveDefaultErrorAttributes.class,
+        ErrorWebFluxAutoConfiguration.class,
+        JwtCommonAutoConfiguration.class})
 public class UserControllerTest {
 
     @Autowired
