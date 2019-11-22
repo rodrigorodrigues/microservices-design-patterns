@@ -16,7 +16,6 @@ spring:
                 multiplier: 2
             headers:
                 X-Encrypt-Key: ${X_ENCRYPT_KEY:}
-
 eureka:
     client:
         serviceUrl:

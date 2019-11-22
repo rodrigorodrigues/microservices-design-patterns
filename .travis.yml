@@ -37,7 +37,7 @@ install:
 script: echo "Continuous Integration/Deployment of Commit ID(${COMMIT_ID}) for Author(${AUTHOR_NAME}) Email(${COMMITTER_EMAIL})"
 
 before_script:
-  - if [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then export DIFF_FILES="$(git diff $COMMIT_ID --name-only)"; chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
+        - if [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then export DIFF_FILES="$(git diff $COMMIT_ID --name-only)"; echo "Git Diff Files: ${DIFF_FILES}"; chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
