@@ -18,9 +18,9 @@ cache:
 
 env:
   global:
-  # Do not prompt for user input when using any SDK methods.
-  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
-  - GCP_PROJECT_ID=spring-boot-gke-243520
+    # Do not prompt for user input when using any SDK methods.
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+    - GCP_PROJECT_ID=spring-boot-gke-243520
 
 before_install:
   - export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
@@ -29,12 +29,12 @@ before_install:
   - export BUILD_NEW_DOCKER_IMAGE=false
   - echo $TRAVIS_COMMIT_MESSAGE
   - export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error
-  - export DIFF_FILES="$(git diff ${COMMIT_ID} --name-only)"
+  - export DIFF_FILES="$(git diff $(git log -1 $TRAVIS_COMMIT --pretty="%H") --name-only)"
 
 install:
  - mvn clean install -B -Dspring.profiles.active=travis
 
-script: echo "Continuous Integration/Deployment of Commit ID(${COMMIT_ID}) for Author(${AUTHOR_NAME}) Email(${COMMITTER_EMAIL})"
+script: echo "Continuous Integration/Deployment of Commit ID(${COMMIT_ID}) Branch(${TRAVIS_BRANCH}) for Author(${AUTHOR_NAME} - ${COMMITTER_EMAIL})"
 
 before_script:
         - if [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
@@ -46,7 +46,7 @@ after_success:
 
 # Install Google Cloud and deploy docker images
 before_deploy:
-  - if [ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]; then chmod +x ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/install-google-cloud-sdk.sh; else exit 1; fi
+  - if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then chmod +x ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/install-google-cloud-sdk.sh; else exit 1; fi
 
 # Deploy to Google Kubernetes Engine
 deploy:

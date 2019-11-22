@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -16,7 +18,6 @@ import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.config.SpringSecurityConfiguration;
 import com.microservice.person.dto.PersonDto;
-import com.microservice.person.model.Person;
 import com.microservice.person.service.PersonService;
 import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
@@ -244,14 +245,29 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling DELETE - /api/persons/{id} with valid authorization the response should be 200 - OK")
     @WithMockUser(roles = "PERSON_DELETE")
     public void whenCallDeleteShouldDeleteById() {
-        when(personService.deleteById(anyString())).thenReturn(Mono.empty());
-        Person person = new Person();
+        PersonDto person = new PersonDto();
         person.setId("12345");
+        when(personService.findById(anyString())).thenReturn(Mono.just(person));
+        when(personService.deleteById(anyString())).thenReturn(Mono.empty());
 
         client.delete().uri("/api/persons/{id}", person.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();
+    }
+
+    @Test
+    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with id that does not exist should response 404 - Not Found")
+    @WithMockUser(roles = "PERSON_DELETE")
+    public void whenCallDeleteShouldResponseNotFound() {
+        when(personService.findById(anyString())).thenReturn(Mono.empty());
+
+        client.delete().uri("/api/persons/{id}", "12345")
+            .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+            .exchange()
+            .expectStatus().isNotFound();
+
+        verify(personService, never()).deleteById(anyString());
     }
 
     private String convertToJson(Object object) throws JsonProcessingException {

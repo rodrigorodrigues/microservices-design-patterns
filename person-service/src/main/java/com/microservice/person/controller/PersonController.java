@@ -9,7 +9,6 @@ import io.swagger.annotations.ApiParam;
 import java.net.URI;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -138,7 +137,9 @@ public class PersonController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE')")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
-        return personService.deleteById(id);
+        return personService.findById(id)
+            .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+            .flatMap(u -> personService.deleteById(id));
     }
 
     private boolean hasRoleAdmin(@AuthenticationPrincipal Authentication authentication) {
