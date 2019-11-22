@@ -10,6 +10,8 @@ BUILD_USER_SERVICE_IMAGE=false
 BUILD_PERSON_SERVICE_IMAGE=false
 BUILD_KOTLIN_SERVICE_IMAGE=false
 
+echo "Git Diff Files: $DIFF_FILES"
+
 for i in $(echo $DIFF_FILES | tr " " "\n")
 do
   if [[ "$BUILD_REACT_WEBAPP_IMAGE" == "false" ]] && [[ "$i" == *"react-webapp/"* ]] ; then
