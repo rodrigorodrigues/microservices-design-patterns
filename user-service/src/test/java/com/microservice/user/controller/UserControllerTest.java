@@ -178,14 +178,28 @@ public class UserControllerTest {
     @DisplayName("Test - When Calling DELETE - /api/users/{id} with valid authorization the response should be 200 - OK")
     @WithMockUser(roles = "ADMIN")
     public void whenCallDeleteShouldDeleteById() {
-        when(userService.deleteById(anyString())).thenReturn(Mono.empty());
         UserDto userDto = new UserDto();
         userDto.setId("12345");
+        when(userService.findById(anyString())).thenReturn(Mono.just(userDto));
+        when(userService.deleteById(anyString())).thenReturn(Mono.empty());
 
         client.delete().uri("/api/users/{id}", userDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();
+    }
+
+    @Test
+    @DisplayName("Test - When Calling DELETE - /api/users/{id} with id that does not exist should response 404 - Not Found")
+    @WithMockUser(roles = "ADMIN")
+    public void whenCallDeleteShouldResponseNotFound() {
+        when(userService.findById(anyString())).thenReturn(Mono.empty());
+        when(userService.deleteById(anyString())).thenReturn(Mono.empty());
+
+        client.delete().uri("/api/users/{id}", "12345")
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+                .exchange()
+                .expectStatus().isNotFound();
     }
 
     private String convertToJson(Object object) throws JsonProcessingException {
