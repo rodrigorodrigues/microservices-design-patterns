@@ -55,6 +55,10 @@ function HomeContent({notDisplayMessage}) {
                 <Table size="sm" borderless>
                     <tbody>
                         <tr>
+                            <td><b>User</b></td>
+                            <td>{user}</td>
+                        </tr>
+                        <tr>
                             <td><b>Permissions</b></td>
                             <td>{authorities}</td>
                         </tr>
