@@ -2,6 +2,8 @@
 
 set -e
 
+TRAVIS_COMMIT=$1
+echo "Travis CI Env: $TRAVIS_COMMIT"
 export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
 export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"

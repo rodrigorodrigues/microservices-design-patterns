@@ -29,10 +29,10 @@ install:
  - mvn clean install -B -Dspring.profiles.active=travis
 
 script:
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then echo "Continuous Integration/Deployment for Commit ID(${COMMIT_ID}) from Author(${AUTHOR_NAME} - ${COMMITTER_EMAIL})"; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then echo "Continuous Integration/Deployment for Commit ID($COMMIT_ID) from Author($AUTHOR_NAME - $COMMITTER_EMAIL)"; fi
 
 before_script:
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh $TRAVIS_COMMIT; fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
