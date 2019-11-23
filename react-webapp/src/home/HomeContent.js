@@ -52,7 +52,7 @@ function HomeContent({notDisplayMessage}) {
                 <Table size="sm" borderless>
                     <thread>
                         <tr>
-                            <th>User Permission Details</th>
+                            <th colSpan="2">User Permission Details</th>
                         </tr>
                     </thread>
                     <tbody>
