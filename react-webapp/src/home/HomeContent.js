@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Row, Col, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Table } from 'reactstrap';
+import { Container, Row, Col, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Table, Jumbotron } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import UserContext from '../UserContext';
 
@@ -48,13 +48,11 @@ function HomeContent({notDisplayMessage}) {
         if (notDisplayMessage || !user) {
             return "";
         }
-        return (
+        return (<div>
+            <Jumbotron>
+                <h1 className="display-3">User Details Permission</h1>
+                <hr className="my-2" />
                 <Table size="sm" borderless>
-                    <thread>
-                        <tr>
-                            <th colSpan="2">User Details Permission</th>
-                        </tr>
-                    </thread>
                     <tbody>
                         <tr>
                             <td><b>Permissions</b></td>
@@ -66,6 +64,8 @@ function HomeContent({notDisplayMessage}) {
                         </tr>
                     </tbody>
                 </Table>
+            </Jumbotron>
+        </div>
         )
     }
     return <UserContext.Consumer >

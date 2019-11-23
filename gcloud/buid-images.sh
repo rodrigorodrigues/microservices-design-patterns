@@ -3,11 +3,6 @@
 set -e
 
 TRAVIS_COMMIT=$1
-TRAVIS_PULL_REQUEST=$2
-TRAVIS_BRANCH=$3
-export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
-export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
-export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"
 
 BUILD_NEW_DOCKER_IMAGE=false
 BUILD_REACT_WEBAPP_IMAGE=false
@@ -17,8 +12,6 @@ BUILD_USER_SERVICE_IMAGE=false
 BUILD_PERSON_SERVICE_IMAGE=false
 BUILD_KOTLIN_SERVICE_IMAGE=false
 DIFF_FILES="$(git diff $TRAVIS_COMMIT --name-only)"
-
-echo "Continuous Integration/Deployment for Commit ID($COMMIT_ID) from Author($AUTHOR_NAME - $COMMITTER_EMAIL)";
 
 echo "Git Diff Files: $DIFF_FILES"
 
@@ -82,7 +75,7 @@ echo "Should build new docker image for kotlin-service? ${BUILD_KOTLIN_SERVICE_I
 
 echo "List of images to build: $IMAGES_TO_BUILD"
 
-if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then
+if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
   ./install-google-cloud-sdk.sh && ./deploy-prod.sh;
 else
   exit 1;

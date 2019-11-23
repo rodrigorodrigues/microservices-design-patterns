@@ -24,16 +24,19 @@ env:
 
 before_install:
   - export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error
+  - export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
+  - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
+  - export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"
   - echo "Travis CI Env ${TRAVIS_COMMIT}"
   - echo "Travis Pull Request ${TRAVIS_PULL_REQUEST}"
   - echo "Travis Branch ${TRAVIS_BRANCH}"
-
+  - echo "Continuous Integration/Deployment for Commit ID($COMMIT_ID) from Author($AUTHOR_NAME - $COMMITTER_EMAIL)";
 
 install:
  - mvn clean install -B -Dspring.profiles.active=travis
 
 before_script:
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then chmod +x ./gcloud/buid-images.sh ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/buid-images.sh ${TRAVIS_COMMIT} ${TRAVIS_PULL_REQUEST} ${TRAVIS_BRANCH}; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then chmod +x ./gcloud/buid-images.sh ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/buid-images.sh $TRAVIS_COMMIT; fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
