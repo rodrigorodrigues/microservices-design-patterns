@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Row, Col, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { Container, Row, Col, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Table } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import UserContext from '../UserContext';
 
@@ -44,10 +44,35 @@ function HomeContent({notDisplayMessage}) {
             <h2>Welcome, {user}!</h2> :
             <p>Please log in to manage.</p>;
     }
+    const displayUserPermissions = (user, jwt, authorities) => {
+        if (notDisplayMessage || !user) {
+            return "";
+        }
+        return (
+                <Table size="sm" borderless>
+                    <thread>
+                        <tr>
+                            <th>User Permission Details</th>
+                        </tr>
+                    </thread>
+                    <tbody>
+                        <tr>
+                            <td><b>Permissions</b></td>
+                            <td>{authorities}</td>
+                        </tr>
+                        <tr>
+                            <td><b>JWT</b></td>
+                            <td>{jwt}</td>
+                        </tr>
+                    </tbody>
+                </Table>
+        )
+    }
     return <UserContext.Consumer >
-        {({user, isAuthenticated, authorities}) => <Container fluid>
+        {({user, isAuthenticated, authorities, jwt}) => <Container fluid>
             {displayMessage(user)}
             {displayButton(isAuthenticated, authorities)}
+            {displayUserPermissions(user, jwt, authorities)}
         </Container>}
     </UserContext.Consumer> 
 }

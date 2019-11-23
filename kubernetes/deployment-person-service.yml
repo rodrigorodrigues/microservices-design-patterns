@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: person-service
-          image: eu.gcr.io/spring-boot-gke-243520/person-service:13.0
+          image: eu.gcr.io/spring-boot-gke-243520/person-service:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:

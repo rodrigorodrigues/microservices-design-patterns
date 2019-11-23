@@ -2,6 +2,10 @@
 
 set -e
 
+export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
+export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
+export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"
+
 BUILD_NEW_DOCKER_IMAGE=false
 BUILD_REACT_WEBAPP_IMAGE=false
 BUILD_NODE_IMAGE=false
@@ -9,6 +13,9 @@ BUILD_AUTHENTICATION_SERVICE_IMAGE=false
 BUILD_USER_SERVICE_IMAGE=false
 BUILD_PERSON_SERVICE_IMAGE=false
 BUILD_KOTLIN_SERVICE_IMAGE=false
+DIFF_FILES="$(git diff $(git log -1 $TRAVIS_COMMIT --pretty="%H") --name-only)"
+
+echo "Git Diff Files: $DIFF_FILES"
 
 for i in $(echo $DIFF_FILES | tr " " "\n")
 do

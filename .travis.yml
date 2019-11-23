@@ -23,21 +23,16 @@ env:
     - GCP_PROJECT_ID=spring-boot-gke-243520
 
 before_install:
-  - export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
-  - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
-  - export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"
-  - export BUILD_NEW_DOCKER_IMAGE=false
-  - echo $TRAVIS_COMMIT_MESSAGE
   - export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error
-  - export DIFF_FILES="$(git diff $(git log -1 $TRAVIS_COMMIT --pretty="%H") --name-only)"
 
 install:
  - mvn clean install -B -Dspring.profiles.active=travis
 
-script: echo "Continuous Integration/Deployment of Commit ID(${COMMIT_ID}) Branch(${TRAVIS_BRANCH}) for Author(${AUTHOR_NAME} - ${COMMITTER_EMAIL})"
+script:
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then echo "Continuous Integration/Deployment for Commit ID(${COMMIT_ID}) from Author(${AUTHOR_NAME} - ${COMMITTER_EMAIL})"; fi
 
 before_script:
-        - if [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]]; then chmod +x ./gcloud/buid-images.sh && ./gcloud/buid-images.sh; fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
@@ -46,7 +41,7 @@ after_success:
 
 # Install Google Cloud and deploy docker images
 before_deploy:
-  - if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then chmod +x ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/install-google-cloud-sdk.sh; else exit 1; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then chmod +x ./gcloud/deploy-prod.sh ./gcloud/install-google-cloud-sdk.sh; && ./gcloud/install-google-cloud-sdk.sh; else exit 1; fi
 
 # Deploy to Google Kubernetes Engine
 deploy:
