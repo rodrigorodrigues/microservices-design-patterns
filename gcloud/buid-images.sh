@@ -5,9 +5,6 @@ set -e
 TRAVIS_COMMIT=$1
 TRAVIS_PULL_REQUEST=$2
 TRAVIS_BRANCH=$3
-echo "Travis CI Env: $TRAVIS_COMMIT"
-echo "Travis Pull Request: $TRAVIS_PULL_REQUEST"
-echo "Travis Branch: $TRAVIS_BRANCH"
 export COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
 export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 export COMMIT_ID="$(git log -1 $TRAVIS_COMMIT --pretty="%H")"
