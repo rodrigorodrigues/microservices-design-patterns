@@ -16,10 +16,8 @@ public interface PersonRepository extends ReactiveMongoRepository<Person, String
 //    @Tailable
     Flux<Person> findAllByFullNameIgnoreCaseStartingWith(String name);
 
-//    @Tailable
     Flux<Person> findByChildrenExists(boolean exists);
 
-//    @Tailable
     @Query("{}")
     Flux<Person> findAllStream();
 }

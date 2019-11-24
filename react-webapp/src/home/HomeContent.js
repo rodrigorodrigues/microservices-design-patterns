@@ -101,16 +101,16 @@ function displayButtonAdmin(authorities) {
                 </DropdownToggle>
                 <DropdownMenu>
                 <DropdownItem>
-                    <Link to="/admin-eureka" className={"link" + (!isAdmin ? " disabled-link" : "")}>Service Discovery - Eureka</Link>
+                    <Link to="/admin-eureka" className={"link" + (!isAdmin ? " disabled-link" : "")}>Eureka Server</Link>
                 </DropdownItem>
                 <DropdownItem>
-                    <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Monitoring - Spring Boot Admin</Link>
+                    <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Spring Boot Admin</Link>
                 </DropdownItem>
                 <DropdownItem>
-                    <Link to="/admin-grafana" className={"link" + (!isAdmin ? " disabled-link" : "")}>Metrics - Grafana</Link>
+                    <Link to="/admin-grafana" className={"link" + (!isAdmin ? " disabled-link" : "")}>Grafana</Link>
                 </DropdownItem>
                 <DropdownItem>
-                    <Link to="/admin-tracing" className={"link" + (!isAdmin ? " disabled-link" : "")}>Tracing - Zipkin</Link>
+                    <Link to="/admin-tracing" className={"link" + (!isAdmin ? " disabled-link" : "")}>Zipkin</Link>
                 </DropdownItem>
             </DropdownMenu>
             </UncontrolledDropdown>

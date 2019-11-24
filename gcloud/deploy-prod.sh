@@ -29,28 +29,28 @@ do
     fi
   elif [[ "$BUILD_AUTHENTICATION_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "authentication-service/"* ]] && [[ "$i" != *"/test/"* ]]; then
     if [[ "$i" =~ \.(java|yml|xml)$ ]]; then
-      mvn -B -f ../authentication-service/pom.xml docker:build
+      mvn -B -f ./authentication-service/pom.xml docker:build
       IMAGES_TO_BUILD+="authentication-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_AUTHENTICATION_SERVICE_IMAGE=true
     fi
   elif [[ "$BUILD_USER_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "user-service/"* ]] && [[ "$i" != *"/test/"* ]]; then
     if [[ "$i" =~ \.(java|yml|xml)$ ]]; then
-      mvn -B -f ../user-service/pom.xml docker:build
+      mvn -B -f ./user-service/pom.xml docker:build
       IMAGES_TO_BUILD+="user-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_USER_SERVICE_IMAGE=true
     fi
   elif [[ "$BUILD_PERSON_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "person-service/"* ]] && [[ "$i" != *"/test/"* ]]; then
     if [[ "$i" =~ \.(java|yml|xml)$ ]]; then
-      mvn -B -f ../person-service/pom.xml docker:build
+      mvn -B -f ./person-service/pom.xml docker:build
       IMAGES_TO_BUILD+="person-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_PERSON_SERVICE_IMAGE=true
     fi
   elif [[ "$BUILD_KOTLIN_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "kotlin-service/"* ]] && [[ "$i" != *"/test/"* ]]; then
     if [[ "$i" =~ \.(java|yml|kt|xml)$ ]]; then
-      mvn -B -f ../kotlin-service/pom.xml docker:build
+      mvn -B -f ./kotlin-service/pom.xml docker:build
       IMAGES_TO_BUILD+="kotlin-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_KOTLIN_SERVICE_IMAGE=true
@@ -76,7 +76,7 @@ echo "List of images to build: $IMAGES_TO_BUILD"
 if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
   # Install Google Sdk
   if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
-    rm -rf $HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash;
+    rm -rf $HOME/google-cloud-sdk; curl -s https://sdk.cloud.google.com | bash;
   fi
 
   source /home/travis/google-cloud-sdk/path.bash.inc
@@ -95,10 +95,10 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
     echo "Preparing to deploy docker image $DOCKER_IMAGE"
     if [ "$DOCKER_IMAGE" == "react-webapp" ]; then
       echo "Building Docker React Web App Image..."
-      docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ../react-webapp
+      docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp
     elif [ "$DOCKER_IMAGE" == "week-menu-api" ]; then
       echo "Building Docker NodeJS Service Image..."
-      docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ../nodejs-service
+      docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./nodejs-service
     else
       echo "Tagging docker image $DOCKER_IMAGE..."
       docker tag ${DOCKER_IMAGE}:latest eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT

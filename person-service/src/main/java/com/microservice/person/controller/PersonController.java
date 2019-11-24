@@ -6,7 +6,6 @@ import com.microservice.person.service.PersonService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.net.URI;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,17 +15,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 /**
  * Rest API for persons.
@@ -65,7 +59,6 @@ public class PersonController {
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE')")
-//    @PostFilter("hasRole('ADMIN') or filterObject.createdByUser == authentication.name")
     public Flux<PersonDto> findAll(@AuthenticationPrincipal Authentication authentication) {
         if (hasRoleAdmin(authentication)) {
             return personService.findAll();
@@ -106,7 +99,7 @@ public class PersonController {
                     return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("User(%s) does not have access to this resource", authentication.getName())));
                 }
             })
-            .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
+            .switchIfEmpty(responseNotFound());
     }
 
     @ApiOperation(value = "Api for creating a person")
@@ -129,7 +122,7 @@ public class PersonController {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         person.setId(id);
         return personService.findById(id)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+                .switchIfEmpty(responseNotFound())
                 .flatMap(p -> personService.save(person));
     }
 
@@ -138,12 +131,16 @@ public class PersonController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE')")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
         return personService.findById(id)
-            .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+            .switchIfEmpty(responseNotFound())
             .flatMap(u -> personService.deleteById(id));
     }
 
     private boolean hasRoleAdmin(@AuthenticationPrincipal Authentication authentication) {
         return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"));
+    }
+
+    private Mono<PersonDto> responseNotFound() {
+        return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
 }
