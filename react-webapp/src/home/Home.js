@@ -18,7 +18,7 @@ class Home extends Component {
 
   render() {
     return (
-      <div>
+      <div className="content">
         <AppNavbar />
         <HomeContent></HomeContent>
         {this.displayMessage()}

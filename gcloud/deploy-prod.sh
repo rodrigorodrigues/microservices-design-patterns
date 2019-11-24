@@ -13,6 +13,7 @@ DIFF_FILES="$(git log -1 --name-only --pretty=format:)"
 
 echo "Git Diff Files: $DIFF_FILES"
 
+#Build images according to changes
 for i in $(echo $DIFF_FILES | tr " " "\n")
 do
   if [[ "$BUILD_REACT_WEBAPP_IMAGE" == "false" ]] && [[ "$i" == *"react-webapp/"* ]] && [[ "$i" != *"/test/"* ]]; then
@@ -87,7 +88,7 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
 
   gcloud --quiet components update kubectl
 
-  #Deploy Image
+  #Deploying docker images to Google Cloud
   echo "Images to build: $IMAGES_TO_BUILD"
 
   for DOCKER_IMAGE in $(echo $IMAGES_TO_BUILD | tr ";" "\n")

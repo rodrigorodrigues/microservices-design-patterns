@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/spring-boot-gke-243520/user-service:16.0
+          image: eu.gcr.io/spring-boot-gke-243520/user-service:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:

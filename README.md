@@ -411,3 +411,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Istio on GKE](https://cloud.google.com/istio/docs/istio-on-gke/overview)
 
 [Istio Gateway](https://medium.com/@tufin/test-7daa5ee3782b)
+
+[Automatic Deployment using Travis and GKE](https://engineering.hexacta.com/automatic-deployment-of-multiple-docker-containers-to-google-container-engine-using-travis-e5d9e191d5ad)

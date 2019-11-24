@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: eu.gcr.io/spring-boot-gke-243520/authentication-service:15.0
+          image: eu.gcr.io/spring-boot-gke-243520/authentication-service:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -76,8 +76,8 @@ spec:
               value: spring-boot
             - name: LOGGING_LEVEL_COM_MICROSERVICE
               value: debug
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
-              value: debug
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+#              value: debug
             - name: KEYSTORE_PASSWORD
               valueFrom:
                 secretKeyRef:
