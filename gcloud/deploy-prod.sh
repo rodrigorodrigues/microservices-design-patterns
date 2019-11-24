@@ -99,7 +99,7 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
       docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp
     elif [ "$DOCKER_IMAGE" == "week-menu-api" ]; then
       echo "Building Docker NodeJS Service Image..."
-      npm --prefix ./react-webapp install ./react-webapp
+      npm --prefix ./nodejs-service install ./nodejs-service
       docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./nodejs-service
     else
       echo "Tagging docker image $DOCKER_IMAGE..."
@@ -110,9 +110,9 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
     gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
 
     gcloud --quiet config set project $GCP_PROJECT_ID
-    #gcloud --quiet config set container/cluster $CLUSTER
-    #gcloud --quiet config set compute/zone ${ZONE}
-    #gcloud --quiet container clusters get-credentials $CLUSTER
+    gcloud --quiet config set container/cluster $GCP_CLUSTER
+    gcloud --quiet config set compute/zone $GCP_ZONE
+    gcloud --quiet container clusters get-credentials $GCP_CLUSTER
 
     echo "Pushing docker image $DOCKER_IMAGE..."
     gcloud docker -- push eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}
