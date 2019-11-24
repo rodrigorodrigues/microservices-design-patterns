@@ -42,8 +42,6 @@ class App extends Component {
     try {
       if (this.state.isAuthenticated === false) {
           let data = await getWithCredentials('authenticatedUser', false);
-          console.log("User is Authenticated?", data);
-          console.log("Href", window.location.href);
           if (data.id_token) {
             window.localStorage.removeItem('redirectToPreviousPage');
             this.setAuthentication(data);
@@ -53,7 +51,6 @@ class App extends Component {
           }
         }
     } catch (e) {
-      console.log("Error when trying to connect to Session Redis", e);
       this.setState({ displayError: errorMessage(`{"error": "${e}"}`)});
       this.redirectToIndexPage();
     }
@@ -71,7 +68,6 @@ class App extends Component {
   }
 
   removeSessionIdCookie() {
-    console.log("UseCookies: ", Cookies.get('SESSIONID'));
     Cookies.remove('SESSIONID');
   }
 
@@ -91,6 +87,17 @@ class App extends Component {
     console.log("JWT Decoded: ", jwtDecoded);
     console.log("JWT Token: ", token);
     this.setState({ isAuthenticated: true, user: jwtDecoded.name, jwt: token, authorities: jwtDecoded.authorities });
+  }
+
+  adminLink = (link) => {
+    let state = {...this.state};
+    if (!state.isAuthenticated || !state.authorities.some(item => item === "ROLE_ADMIN")) {
+      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+      this.setState({ displayError: errorMessage(JSON.stringify(jsonError)), isLoading: false});
+    } else {
+      window.location.href = link; 
+    }
+    return null;
   }
 
   render() {
@@ -125,26 +132,10 @@ class App extends Component {
                    component={() => <TaskList {...this.state} />} />
             <Route path='/tasks/:id'
                    component={() => <TaskEdit {...this.state} />} />
-            <Route path='/admin-eureka' component={() => {
-              console.log("Eureka URL: ", eurekaUrl);
-              window.location.href = `${eurekaUrl}`; 
-              return null;
-            }} />
-            <Route path='/admin-monitoring' component={() => {
-              console.log("Monitoring URL: ", monitoringUrl);
-              window.location.href = `${monitoringUrl}`; 
-              return null;
-            }} />
-            <Route path='/admin-grafana' component={() => {
-              console.log("Grafana URL: ", grafanaUrl);
-              window.location.href = `${grafanaUrl}`; 
-              return null;
-            }} />
-            <Route path='/admin-tracing' component={() => {
-              console.log("Zipkin URL: ", zipkinUrl);
-              window.location.href = `${zipkinUrl}`; 
-              return null;
-            }} />
+            <Route path='/admin-eureka' component={() => this.adminLink(eurekaUrl)} />
+            <Route path='/admin-monitoring' component={() => this.adminLink(monitoringUrl)} />
+            <Route path='/admin-grafana' component={() => this.adminLink(grafanaUrl)} />
+            <Route path='/admin-tracing' component={() => this.adminLink(zipkinUrl)} />
           </Switch>
         </Router>
         <div>

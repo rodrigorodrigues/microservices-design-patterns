@@ -116,6 +116,7 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
     gcloud docker -- push eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}
 
     echo "Adding tag image to latest container image $DOCKER_IMAGE..."
+    gcloud components install beta --quiet
     yes | gcloud beta container images add-tag eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:latest
 
     kubectl config view
@@ -124,6 +125,4 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
     echo "Deploying new docker image $DOCKER_IMAGE..."
     kubectl patch deployment ${DOCKER_IMAGE} -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
   done
-else
-  exit 1;
 fi
