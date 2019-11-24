@@ -2,8 +2,6 @@
 
 set -e
 
-TRAVIS_COMMIT=$1
-
 BUILD_NEW_DOCKER_IMAGE=false
 BUILD_REACT_WEBAPP_IMAGE=false
 BUILD_NODE_IMAGE=false
@@ -11,7 +9,7 @@ BUILD_AUTHENTICATION_SERVICE_IMAGE=false
 BUILD_USER_SERVICE_IMAGE=false
 BUILD_PERSON_SERVICE_IMAGE=false
 BUILD_KOTLIN_SERVICE_IMAGE=false
-DIFF_FILES="$(git diff $TRAVIS_COMMIT --name-only)"
+DIFF_FILES="$(git log -1 --name-only --pretty=format:)"
 
 echo "Git Diff Files: $DIFF_FILES"
 

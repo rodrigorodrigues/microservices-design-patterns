@@ -50,7 +50,7 @@ function HomeContent({notDisplayMessage}) {
         }
         return (<div>
             <Jumbotron>
-                <h1 className="display-3">User Details Permission</h1>
+                <h1 className="display-3">User Details</h1>
                 <hr className="my-2" />
                 <Table size="sm" borderless>
                     <tbody>
