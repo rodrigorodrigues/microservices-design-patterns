@@ -9,7 +9,8 @@ const FooterContent = () => {
                     <tr>
                         <td>Microservice Design Patterns</td>
                         <td><a href="https://github.com/rodrigorodrigues/microservices-design-patterns">GitHub</a></td>
-                        <td>Version: <b>{process.env.REACT_APP_VERSION}</b></td>
+                        <td><b>{process.env.REACT_APP_VERSION}</b></td>
+                        <td><b>{process.env.REACT_APP_HOSTNAME}</b></td>
                     </tr>
                 </Table>
             </div>

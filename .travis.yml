@@ -36,13 +36,14 @@ before_install:
   - echo "Travis CI Env ${TRAVIS_COMMIT}"
   - echo "Travis Pull Request ${TRAVIS_PULL_REQUEST}"
   - echo "Travis Branch ${TRAVIS_BRANCH}"
-  - echo "Continuous Integration/Deployment for Commit ID($COMMIT_ID) from Author($AUTHOR_NAME - $COMMITTER_EMAIL)";
 
 install:
  - mvn clean install -B -Dspring.profiles.active=travis
 
 before_script:
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy]"* ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then chmod +x ./gcloud/deploy-prod.sh && ./gcloud/deploy-prod.sh; fi
+
+script: echo "Continuous Integration/Deployment for Commit ID($COMMIT_ID) from Author($AUTHOR_NAME - $COMMITTER_EMAIL)";
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
