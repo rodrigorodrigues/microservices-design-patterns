@@ -54,7 +54,7 @@ public class UserController {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<UserDto> findById(@ApiParam(required = true) @PathVariable String id) {
         return userService.findById(id)
-            .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
+            .switchIfEmpty(responseNotFound());
     }
 
     @ApiOperation(value = "Api for creating a user")
@@ -75,7 +75,7 @@ public class UserController {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         user.setId(id);
         return userService.findById(id)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+                .switchIfEmpty(responseNotFound())
                 .flatMap(u -> userService.save(user));
     }
 
@@ -83,7 +83,11 @@ public class UserController {
     @DeleteMapping("/{id}")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
         return userService.findById(id)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+                .switchIfEmpty(responseNotFound())
                 .flatMap(u -> userService.deleteById(id));
+    }
+
+    private Mono<UserDto> responseNotFound() {
+        return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }
