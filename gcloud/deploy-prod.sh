@@ -95,9 +95,11 @@ if [[ "$BUILD_NEW_DOCKER_IMAGE" == "true" ]]; then
     echo "Preparing to deploy docker image $DOCKER_IMAGE"
     if [ "$DOCKER_IMAGE" == "react-webapp" ]; then
       echo "Building Docker React Web App Image..."
+      npm --prefix ./react-webapp install ./react-webapp
       docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp
     elif [ "$DOCKER_IMAGE" == "week-menu-api" ]; then
       echo "Building Docker NodeJS Service Image..."
+      npm --prefix ./react-webapp install ./react-webapp
       docker build --quiet -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./nodejs-service
     else
       echo "Tagging docker image $DOCKER_IMAGE..."

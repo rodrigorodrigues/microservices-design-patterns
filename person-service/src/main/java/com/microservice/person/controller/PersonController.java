@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URI;
 
@@ -90,7 +91,7 @@ public class PersonController {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE')")
     public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id,
-                                    @AuthenticationPrincipal Authentication authentication) {
+                                    @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         return personService.findById(id)
             .flatMap(p -> {
                 if (hasRoleAdmin(authentication) || p.getCreatedByUser().equals(authentication.getName())) {
@@ -106,7 +107,7 @@ public class PersonController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE')")
     public Mono<ResponseEntity<PersonDto>> create(@RequestBody @ApiParam(required = true) PersonDto person,
-                                                  @AuthenticationPrincipal Authentication authentication) {
+                                                  @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         return personService.save(person)
                 .map(p -> ResponseEntity.created(URI.create(String.format("/api/persons/%s", p.getId())))
@@ -118,7 +119,7 @@ public class PersonController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_SAVE')")
     public Mono<PersonDto> update(@RequestBody @ApiParam(required = true) PersonDto person,
                                   @PathVariable @ApiParam(required = true) String id,
-                                  @AuthenticationPrincipal Authentication authentication) {
+                                  @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         person.setId(id);
         return personService.findById(id)
@@ -135,7 +136,7 @@ public class PersonController {
             .flatMap(u -> personService.deleteById(id));
     }
 
-    private boolean hasRoleAdmin(@AuthenticationPrincipal Authentication authentication) {
+    private boolean hasRoleAdmin(Authentication authentication) {
         return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"));
     }
 

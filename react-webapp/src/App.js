@@ -92,7 +92,7 @@ class App extends Component {
   adminLink = (link) => {
     let state = {...this.state};
     if (!state.isAuthenticated || !state.authorities.some(item => item === "ROLE_ADMIN")) {
-      const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+      const jsonError = { 'error': 'Only user with ADMIN role can access this page!' };
       this.setState({ displayError: errorMessage(JSON.stringify(jsonError)), isLoading: false});
     } else {
       window.location.href = link; 
