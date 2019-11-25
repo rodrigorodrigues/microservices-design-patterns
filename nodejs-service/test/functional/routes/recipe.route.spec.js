@@ -24,6 +24,26 @@ const ingredientNames = [
     "from_rec_ingredient1"
 ];
 
+const nock = require('nock')
+
+nock('http://localhost:8761')
+    .post('/')
+    .reply(200, {
+        'status' : 'ok'
+    });
+
+nock('http://localhost:8888')
+  .get('/week-menu-api/dev%2C%3FX-Encrypt-Key%3Db7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53')
+  .reply(200, {
+    response: {
+      configuration: {
+          jwt: {
+            'base64-secret': 'Test'
+          }
+      }
+    },
+  });
+
 const Q = require('q');
 
 const recipes = [

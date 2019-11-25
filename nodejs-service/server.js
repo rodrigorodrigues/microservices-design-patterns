@@ -321,6 +321,7 @@ function loadZipkin() {
 function loadSecretKey() {
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
+        console.log("Spring Config response", config);
         secretKey = config.configuration.jwt['base64-secret'];
         if (secretKey === "" || secretKey === null || secretKey === undefined) {
             const pathPublicKey = process.env.PATH_PUBLIC_KEY;

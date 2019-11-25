@@ -7,7 +7,8 @@
         "start": "node server.js",
         "dev": "nodemon --exec 'npm start'",
         "test-func": "export NODE_ENV=test && mocha test/funcional/**/*.js",
-        "test": "mocha test/unit/**/*.js",
+        "test": "mocha --require test/prepare --delay && cross-env NODE_DEBUG=* NODE_ENV=test jest --testTimeout=1000",
+        "pretest": "cross-env NODE_ENV=test",
         "test-watch": "nodemon --exec 'npm test-func'"
     },
     "keywords": [],
@@ -42,8 +43,19 @@
     },
     "devDependencies": {
         "chai": "3.5.0",
+        "cross-env": "^6.0.3",
         "expect": "^1.20.2",
+        "jest": "^24.9.0",
         "mocha": "3.1.2",
+        "mocha-prepare": "^0.1.0",
+        "mongodb-memory-server-core": "^6.0.1",
+        "nock": "^11.7.0",
         "supertest": "^2.0.1"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "coveragePathIgnorePatterns": [
+            "/node_modules/"
+        ]
     }
 }
