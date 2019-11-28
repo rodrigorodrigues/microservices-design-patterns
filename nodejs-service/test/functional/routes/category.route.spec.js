@@ -27,28 +27,24 @@ let recipeName = 'recipe_test_cat_spec';
 
 const nock = require('nock');
 
-nock('http://localhost:8761')
-    .post(/\/eureka\/(.*?)/)
-    .reply(200, {
-        'status' : 'ok'
-    });
-
-nock('http://localhost:8888')
-  .get(/\/week-menu-api\/(.*?)/)
-  .reply(200, {
-    response: {
-      configuration: {
-          jwt: {
-            'base64-secret': 'VGVzdAo='
-          }
-      }
-    },
-  });
+import sleep from 'await-sleep';
 
 const Q = require('q');
 
+var mochaAsync = (fn) => {
+    return async (done) => {
+        try {
+            await fn();
+            done();
+        } catch (err) {
+            done(err);
+        }
+    };
+};
+
 describe("Category", () => {
 
+    /*
     beforeEach(done => {
 
         function removeAll() {
@@ -217,19 +213,41 @@ describe("Category", () => {
         }
         removeAll();
     });
+    */
 
-    it("should get category list", (done) => {
-        const authorizationHeader = jwt.sign({authorities: ['ROLE_ADMIN']}, 'VGVzdAo=');
-        console.log("test:jwt", authorizationHeader);
-        request(app)
-            .get('/category')
-            .set('Authorization', authorizationHeader)
+    beforeAll(mochaAsync(async () => {
+        console.log('Waiting for 3 secs');
+ 
+        await sleep(3000);
+        
+        await request(app)
+            .get('/actuator/health')
+            .expect(200);
+    }));
+
+    it("should get category list", mochaAsync(async () => {
+        /*
+        nock('http://localhost:8888')
+        .get(/\/week-menu-api\/(.*?)/)
+        .reply(200, {
+            response: {
+            configuration: {
+                jwt: {
+                    'base64-secret': 'VGVzdAo='
+                }
+            }
+            },
+        });*/
+    
+        await request(app)
+            .get('/v2/category')
+            .set('Authorization', jwt.sign({authorities: ['ROLE_ADMIN']}, 'VGVzdAo='))
             .expect(200)
             .expect((res) => {
+                console.log(`JSON Response: ${res.body}`);
                 expect(res.body.length >= 2).toBe(true);
-            })
-            .end(done);
-    });
+            });
+    }));
 
     it.skip("should get category list and ingredient marked", (done) => {
 

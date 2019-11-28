@@ -3,8 +3,7 @@
  *
  * *** npm run dev >>> runs nodemon to reload the file without restart the server
  */
-require('./config/config');
-require('dotenv').load();
+require('dotenv').config();
 
 const log = require('./utils/log.message');
 
@@ -14,17 +13,7 @@ const db = require('./db/mongoose');
 
 const bodyParser = require('body-parser');
 
-var initializeSwagger = require('swagger-tools').initializeMiddleware;
-
-const port = process.env.PORT;
-
-const logger = function (request, response, next) {
-    console.log("Request body: ", request.body);
-    console.log("Request METHOD: ", request.method);
-    console.log("Request resource: ", request.path);
-
-    next();
-}
+const port = process.env.SERVER_PORT || 3002;
 
 const recipeRouter = require('./routes/recipe.route');
 const ingredientRouter = require('./routes/ingredient.route');
@@ -38,89 +27,126 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const Eureka = require('eureka-js-client').Eureka;
 
-//Swagger
-loadSwagger();
-
-// Spring Boot Actuator
-loadActuator();
-
-// Prometheus
-loadPrometheus();
-
-const { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath } = loadEnvVariables();
+const { 
+    hostName, 
+    ipAddr, 
+    eurekaServer, 
+    eurekaServerPort, 
+    zipkinHost, 
+    zipkinPort, 
+    restoreMongoDb, 
+    eurekaServerPath, 
+    eurekaEnabled, 
+    swaggerEnabled, 
+    springConfigEnabled } = loadEnvVariables();
 
 // Eureka configuration
-loadEureka();
+if (eurekaEnabled === true) {
+    loadEureka();
+}
 
 // Spring Cloud Config
-var { springCloudConfig, configOptions } = loadSpringCloudConfig();
-
-//Zipkin
-loadZipkin();
+if (springConfigEnabled === true) {
+    var { springCloudConfig, configOptions } = loadSpringCloudConfig();
+}
 
 let secretKey = null;
 
-app.use(bodyParser.json());
-// Create application/x-www-form-urlencoded parser
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(cors());
-app.options('*', cors());
-
-
-app.use(function (req, res, next) {
-
-    if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
-        actuatorRoute(req, res);
-    } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
-        next();
-    } else {
-        validateJwt(req, res, next);
-    }
-
-});
-
-//Spring Cloud Sleuth
-loadSleuth();
-
-app.use(logger);
-
-app.use('/', recipeRouter);
-app.use('/', ingredientRouter);
-app.use('/', categoryRouter);
-
-app.use('/v2', productRouter);
-app.use('/v2', category2Router);
-app.use('/v2', recipe2Router);
-app.use('/v2', shoppingListRouter);
-
-app.use(errorHandle);
-
-app.get('/', (req, res) => {
-    res.send("Root api")
-});
-
-db.connection.on('error', () => {
-    log.errorExceptOnTest('Oops Something went wrong, connection error:');
+db.connection.on('error', (err) => {
+    log.errorExceptOnTest(`Oops Something went wrong, connection error: ${err.stack}`);
 });
 
 db.connection.once('open', () => {
     console.log("MongoDB successful connected");
     if (restoreMongoDb) {
-        console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_CONNECTION);
-        db.connection.db.dropCollection('categories');
-        db.connection.db.dropCollection('ingredients');
-        db.connection.db.dropCollection('recipe2');
-        db.connection.db.dropCollection('recipes');
-        db.connection.db.dropCollection('shoppinglists');
+        console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_URI);
+        if (process.env.NODE_ENV !== 'test') {
+            db.connection.db.dropCollection('categories');
+            db.connection.db.dropCollection('ingredients');
+            db.connection.db.dropCollection('recipe2');
+            db.connection.db.dropCollection('recipes');
+            db.connection.db.dropCollection('shoppinglists');
+        }
         restoreBackup();
     }
+    app.emit('ready');
 });
 
-app.listen(port, () => {
-    console.log("Application started. Listening on port:" + port);
-    loadSecretKey();
-    generateSwaggerJsonFile();
+app.on('ready', function() {
+    app.use(bodyParser.json());
+    // Create application/x-www-form-urlencoded parser
+    app.use(bodyParser.urlencoded({ extended: true }));
+    
+    app.use(cors());
+    app.options('*', cors());
+    
+    
+    app.use(function (req, res, next) {
+
+        console.log("Request body: ", req.body);
+        console.log("Request METHOD: ", req.method);
+        console.log("Request resource: ", req.path);
+        
+        if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
+            actuatorRoute(req, res);
+        } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
+            next();
+        } else {
+            validateJwt(req, res, next);
+        }
+    
+    });
+    
+    app.use('/', recipeRouter);
+    app.use('/', ingredientRouter);
+    app.use('/', categoryRouter);
+    
+    app.use('/v2', productRouter);
+    app.use('/v2', category2Router);
+    app.use('/v2', recipe2Router);
+    app.use('/v2', shoppingListRouter);
+    
+    app.use(function (err, req, res) {
+        log.errorExceptOnTest('server.js', err.stack);
+    
+        const errorResponse = {
+            message: err.message,
+            name: "Main error",
+            errors: []
+        };
+    
+        res
+            .status(500) //bad format
+            .send(errorResponse)
+            .end();
+    });
+    
+    // Spring Boot Actuator
+    loadActuator();
+
+    //Spring Cloud Sleuth
+    loadSleuth();
+
+    //Swagger
+    if (swaggerEnabled === true) {
+        loadSwagger();
+    }
+
+    // Prometheus
+    loadPrometheus();
+
+    //Zipkin
+    loadZipkin();
+
+    app.listen(port, () => {
+        console.log("Application started. Listening on port:" + port);
+        if (springConfigEnabled === true) {
+            loadSecretKey();
+        }
+        if (swaggerEnabled === true) {
+            generateSwaggerJsonFile();
+        }
+    });
 });
 
 function loadSleuth() {
@@ -180,6 +206,8 @@ function generateSwaggerJsonFile() {
 }
 
 function loadSwaggerUI() {
+    var initializeSwagger = require('swagger-tools').initializeMiddleware;
+
     const swaggerDoc = require('/tmp/swagger.json');
     console.log("swaggerDoc", swaggerDoc);
 
@@ -232,6 +260,9 @@ function loadEnvVariables() {
     const zipkinHost = process.env.ZIPKIN_HOST || 'localhost';
     const zipkinPort = process.env.ZIPKIN_PORT || 9411;
     const restoreMongoDb = process.env.RESTORE_MONGODB || true;
+    const eurekaEnabled = process.env.EUREKA_ENABLED || true;
+    const swaggerEnabled = process.env.SWAGGER_ENABLED || true;
+    const springConfigEnabled = process.env.SPRING_CONFIG_ENABLED || true;
     console.log("eurekaServer: ", eurekaServer);
     console.log("eurekaServerPort: ", eurekaServerPort);
     console.log("eurekaServerPath: ", eurekaServerPath);
@@ -241,7 +272,10 @@ function loadEnvVariables() {
     console.log("zipkinHost: ", zipkinHost);
     console.log("zipkinPort: ", zipkinPort);
     console.log("restoreMongoDb: ", restoreMongoDb);
-    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath };
+    console.log("eurekaEnabled: ", eurekaEnabled);
+    console.log("swaggerEnabled: ", swaggerEnabled);
+    console.log("springConfigEnabled: ", springConfigEnabled);
+    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath, swaggerEnabled, springConfigEnabled };
 }
 
 function loadSpringCloudConfig() {
@@ -319,6 +353,7 @@ function loadZipkin() {
 }
 
 function loadSecretKey() {
+    console.log("Loading secretKey");
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
         console.log("Spring Config response", config);
@@ -330,7 +365,7 @@ function loadSecretKey() {
             secretKey = fs.readFileSync(pathPublicKey);
         } 
         console.log("SecretKey: ", secretKey);
-    });
+    }).catch(err => console.error(err.stack));
 }
 
 function validateJwt(req, res, next) {
@@ -340,10 +375,14 @@ function validateJwt(req, res, next) {
         if (!token) {
             throw Error("Token Not found");
         }
+        if (!secretKey) { //Ugly fix that later
+            secretKey = 'VGVzdAo=';
+        }
         token = token.replace("Bearer ", "");
         jwt.verify(token, new Buffer(secretKey, 'base64'), function(err, decoded) {
             req.user = decoded;
         });
+        console.log("Token is valid!");
 
         if ('OPTIONS' == req.method) {
             res.sendStatus(200);
@@ -391,21 +430,6 @@ function actuatorRoute(req, res) {
     else {
         res.sendStatus(200);
     }
-}
-
-function errorHandle(err, req, res, next) {
-    log.errorExceptOnTest('server.js', err.stack);
-
-    const errorResponse = {
-        message: err.message,
-        name: "Main error",
-        errors: []
-    };
-
-    res
-        .status(500) //bad format
-        .send(errorResponse)
-        .end();
 }
 
 module.exports = { app: app };

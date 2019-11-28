@@ -59,11 +59,6 @@ router.get("/category/migration/cat/23", (request, response, next) => {
     })
 });
 
-router.get("/category/migration/rec/24", (request, response, next) => {
-    restoreBackup();
-    handleResponse(response, "ok *** *** **", 200);
-});
-
 router.get("/category", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
     Category.find()
         .populate('ingredients')
