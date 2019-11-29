@@ -31,5 +31,5 @@ www/build/
 platforms/
 plugins/
 Thumbs.db
-
 .env
+.history/

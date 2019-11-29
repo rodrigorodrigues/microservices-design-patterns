@@ -123,7 +123,7 @@ services:
       dockerfile: Dockerfile
     container_name: react-webapp
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
     ports:
       - 3003:3003
     links:
@@ -136,8 +136,6 @@ services:
   #
   week-menu-api:
     build:
-      args:
-        - SERVER_PORT=3002
       context: ../nodejs-service
       dockerfile: Dockerfile
     #            Production

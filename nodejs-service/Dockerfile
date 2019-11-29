@@ -1,5 +1,4 @@
 FROM node:10.15.3-slim
-ARG SERVER_PORT
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -11,17 +10,11 @@ COPY package*.json ./
 
 RUN apt-get update && apt-get install netcat-openbsd -y
 
-RUN npm install
-# If you are building your code for production
-# RUN npm install --only=production
+RUN npm install --only=production
 
 # Bundle app source
 COPY . .
 
-ENV JAVA_CMD="npm start"
+ENV JAVA_CMD="node server.js"
 
-ENV PORT=$SERVER_PORT
-
-EXPOSE $SERVER_PORT
-
-CMD [ "npm", "start" ]
+CMD [ "node", "server.js" ]

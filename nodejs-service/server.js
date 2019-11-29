@@ -50,6 +50,71 @@ if (springConfigEnabled === true) {
     var { springCloudConfig, configOptions } = loadSpringCloudConfig();
 }
 
+app.use(bodyParser.json());
+// Create application/x-www-form-urlencoded parser
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(cors());
+app.options('*', cors());
+
+
+app.use(function (req, res, next) {
+
+    console.log("Request body: ", req.body);
+    console.log("Request METHOD: ", req.method);
+    console.log("Request resource: ", req.path);
+    
+    if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
+        actuatorRoute(req, res);
+    } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
+        next();
+    } else {
+        validateJwt(req, res, next);
+    }
+
+});
+
+app.use('/', recipeRouter);
+app.use('/', ingredientRouter);
+app.use('/', categoryRouter);
+
+app.use('/v2', productRouter);
+app.use('/v2', category2Router);
+app.use('/v2', recipe2Router);
+app.use('/v2', shoppingListRouter);
+
+app.use(function (err, req, res) {
+    log.errorExceptOnTest('server.js', err.stack);
+
+    const errorResponse = {
+        message: err.message,
+        name: "Main error",
+        errors: []
+    };
+
+    res
+        .status(500) //bad format
+        .send(errorResponse)
+        .end();
+});
+
+// Spring Boot Actuator
+loadActuator();
+
+//Spring Cloud Sleuth
+loadSleuth();
+
+//Swagger
+if (swaggerEnabled === true) {
+    loadSwagger();
+}
+
+// Prometheus
+loadPrometheus();
+
+//Zipkin
+loadZipkin();
+
 let secretKey = null;
 
 db.connection.on('error', (err) => {
@@ -73,71 +138,6 @@ db.connection.once('open', () => {
 });
 
 app.on('ready', function() {
-    app.use(bodyParser.json());
-    // Create application/x-www-form-urlencoded parser
-    app.use(bodyParser.urlencoded({ extended: true }));
-    
-    app.use(cors());
-    app.options('*', cors());
-    
-    
-    app.use(function (req, res, next) {
-
-        console.log("Request body: ", req.body);
-        console.log("Request METHOD: ", req.method);
-        console.log("Request resource: ", req.path);
-        
-        if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
-            actuatorRoute(req, res);
-        } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
-            next();
-        } else {
-            validateJwt(req, res, next);
-        }
-    
-    });
-    
-    app.use('/', recipeRouter);
-    app.use('/', ingredientRouter);
-    app.use('/', categoryRouter);
-    
-    app.use('/v2', productRouter);
-    app.use('/v2', category2Router);
-    app.use('/v2', recipe2Router);
-    app.use('/v2', shoppingListRouter);
-    
-    app.use(function (err, req, res) {
-        log.errorExceptOnTest('server.js', err.stack);
-    
-        const errorResponse = {
-            message: err.message,
-            name: "Main error",
-            errors: []
-        };
-    
-        res
-            .status(500) //bad format
-            .send(errorResponse)
-            .end();
-    });
-    
-    // Spring Boot Actuator
-    loadActuator();
-
-    //Spring Cloud Sleuth
-    loadSleuth();
-
-    //Swagger
-    if (swaggerEnabled === true) {
-        loadSwagger();
-    }
-
-    // Prometheus
-    loadPrometheus();
-
-    //Zipkin
-    loadZipkin();
-
     app.listen(port, () => {
         console.log("Application started. Listening on port:" + port);
         if (springConfigEnabled === true) {

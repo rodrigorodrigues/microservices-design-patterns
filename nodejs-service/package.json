@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon --exec 'npm start'",
-        "test": "cross-env EUREKA_ENABLED=false SWAGGER_ENABLED=false SPRING_CONFIG_ENABLED=false NODE_ENV=test jest --runInBand --testTimeout=5000 --detectOpenHandles",
+        "test": "cross-env EUREKA_ENABLED=false SWAGGER_ENABLED=false SPRING_CONFIG_ENABLED=false NODE_ENV=test jest --runInBand --detectOpenHandles",
         "pretest": "cross-env NODE_ENV=test",
         "test-watch": "nodemon --exec 'npm test-func'"
     },
@@ -49,9 +49,7 @@
         "expect": "^1.20.2",
         "jest": "^24.9.0",
         "mongodb-memory-server-core": "^6.0.1",
-        "nock": "^11.7.0",
-        "supertest": "^2.0.1",
-        "mocha": "3.1.2"
+        "supertest": "^2.0.1"
     },
     "jest": {
         "globalSetup": "./test/jest-global-setup.js",
@@ -59,6 +57,9 @@
         "testEnvironment": "node",
         "coveragePathIgnorePatterns": [
             "/node_modules/"
+        ],
+        "setupFilesAfterEnv": [
+            "./test/jest-default-timeout.js"
         ]
     }
 }

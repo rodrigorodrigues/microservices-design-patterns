@@ -25,229 +25,38 @@ const ingredientNames = [
 
 let recipeName = 'recipe_test_cat_spec';
 
-const nock = require('nock');
-
 import sleep from 'await-sleep';
 
-const Q = require('q');
+beforeAll(async () => {
+    console.log('Waiting for 2 secs');
 
-var mochaAsync = (fn) => {
-    return async (done) => {
-        try {
-            await fn();
-            done();
-        } catch (err) {
-            done(err);
-        }
-    };
-};
+    await sleep(2000);
+/*    
+    await request(app)
+        .get('/actuator/health')
+        .expect(200); */
+});
 
-describe("Category", () => {
-
+test("should get category list", async () => {
     /*
-    beforeEach(done => {
-
-        function removeAll() {
-
-            IngredientRecipeAttributes.remove({}).then(() => {
-                Ingredient.remove({}).then(() => {
-                    Category.remove({}).then(() => {
-                        Recipe.remove({}).then(() => {
-                            kickOff();
-                        });
-                    });
-                })
-
-            });
-        }
-
-        function kickOff() {
-
-            insertManyCategory()
-                .then(saveRecipe)
-                .then(saveIngredients)
-                .then(saveAttributesRecipes);
-
-            function insertManyCategory() {
-
-                let result = {categories : null, recipeId: null};
-
-                let deferred = Q.defer();
-
-                const categories = [
-                    {name : categoryNames[0]},
-                    {name : categoryNames[1]},
-                ];
-
-                Category
-                    .insertMany(categories)
-                    .then(docs => {
-
-                        result.categories = docs;
-
-                        deferred.resolve(result);
-
-                    }).catch((reason) => deferred.reject(reason));
-
-                return deferred.promise;
-
-            }
-
-            function saveRecipe(paramResult) {
-
-                let deferred = Q.defer();
-
-                let recipe = new Recipe({
-                    name: recipeName,
-                });
-
-                //Save first
-                recipe.save()
-                    .then(docRec => {
-
-                        let result = {
-                            recipeId: docRec._id,
-                            categories: paramResult.categories
-                        };
-
-                        Recipe
-                            .findOne({_id: docRec._id})
-                            .then(recipe => {
-
-                                //Add category
-                                paramResult.categories.forEach((cat) => {
-                                    recipe.categories.push(cat);
-                                });
-
-                                //save again
-                                recipe.save()
-                                    .then(() => {
-                                        deferred.resolve(result);
-                                    });
-
-                            }, (reason) => deferred.reject(reason));
-
-                    }).catch(reason => deferred.reject(reason));
-
-                return deferred.promise;
-            }
-
-            function saveIngredients(paramResult) {
-                let result = {
-                    ingredientIds : [],
-                    recipeId: paramResult.recipeId
-                };
-
-                let deferred = Q.defer();
-
-                let count = paramResult.categories.length;
-
-                //loop max index == 2
-                paramResult.categories.forEach(function(category, index){
-
-                    //tempRecipeLinkIndicator the the link with recipe
-                    let ingredient = new Ingredient({
-                        name : ingredientNames[index],
-                        _creator :  category._id,
-                    });
-
-                    ingredient.save()
-                        .then(ing => {
-
-                            result.ingredientIds.push(ing._id);
-
-                            Category.findOne({_id: category._id})
-                                .then(category => {
-
-                                    category.ingredients.push(ing);
-
-                                    //Add recipe too
-                                    category.recipes.push(paramResult.recipeId)
-
-                                    category.save().then(() => {
-
-                                        //TODO review this logic
-                                        if(--count === 0) {
-
-                                            deferred.resolve(result);
-                                        }
-
-                                    });
-
-                                });
-                        });
-                });
-
-                return deferred.promise;
-            }
-
-            function saveAttributesRecipes(paramResult) {
-
-                Recipe.findOne({_id: paramResult.recipeId})
-                    .then(rec => {
-
-                        let ingRecipe = new IngredientRecipeAttributes({
-                            labelQuantity: 'kg',
-                            name: rec.name,
-                            ingredientId: paramResult.ingredientIds[0],
-                            recipeId: paramResult.recipeId,
-                            itemSelectedForShopping: true
-                        });
-
-                        ingRecipe.save()
-                            .then(() => {
-
-                                Ingredient.findOne({_id: paramResult.ingredientIds[0]})
-                                    .then(ingredient => {
-
-                                        ingredient.attributes.push(ingRecipe);
-
-                                        ingredient.save()
-                                            .then(() => {
-                                                done();
-                                            }).catch(reason => done(reason));
-                                    }).catch(reason => done(reason));
-                            }).catch(reason => done(reason));
-                    });
+    nock('http://localhost:8888')
+    .get(/\/week-menu-api\/(.*?)/)
+    .reply(200, {
+        response: {
+        configuration: {
+            jwt: {
+                'base64-secret': 'VGVzdAo='
             }
         }
-        removeAll();
-    });
-    */
+        },
+    });*/
 
-    beforeAll(mochaAsync(async () => {
-        console.log('Waiting for 3 secs');
- 
-        await sleep(3000);
-        
-        await request(app)
-            .get('/actuator/health')
-            .expect(200);
-    }));
-
-    it("should get category list", mochaAsync(async () => {
-        /*
-        nock('http://localhost:8888')
-        .get(/\/week-menu-api\/(.*?)/)
-        .reply(200, {
-            response: {
-            configuration: {
-                jwt: {
-                    'base64-secret': 'VGVzdAo='
-                }
-            }
-            },
-        });*/
-    
-        await request(app)
-            .get('/v2/category')
-            .set('Authorization', jwt.sign({authorities: ['ROLE_ADMIN']}, 'VGVzdAo='))
-            .expect(200)
-            .expect((res) => {
-                console.log(`JSON Response: ${res.body}`);
-                expect(res.body.length >= 2).toBe(true);
-            });
-    }));
+    await request.agent(app)
+        .get('/v2/category')
+        .set('Authorization', jwt.sign({authorities: ['ROLE_ADMIN']}, 'VGVzdAo='))
+        .expect(200)
+        .expect((res) => expect(res.body.length >= 2).toBe(true));
+});
 
     it.skip("should get category list and ingredient marked", (done) => {
 
@@ -512,4 +321,3 @@ describe("Category", () => {
         });
 
     });
-});
