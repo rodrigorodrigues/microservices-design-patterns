@@ -83,21 +83,6 @@ app.use('/v2', category2Router);
 app.use('/v2', recipe2Router);
 app.use('/v2', shoppingListRouter);
 
-app.use(function (err, req, res) {
-    log.errorExceptOnTest('server.js', err.stack);
-
-    const errorResponse = {
-        message: err.message,
-        name: "Main error",
-        errors: []
-    };
-
-    res
-        .status(500) //bad format
-        .send(errorResponse)
-        .end();
-});
-
 // Spring Boot Actuator
 loadActuator();
 
@@ -118,7 +103,7 @@ loadZipkin();
 let secretKey = null;
 
 db.connection.on('error', (err) => {
-    log.errorExceptOnTest(`Oops Something went wrong, connection error: ${err.stack}`);
+    log.error(`Oops Something went wrong, connection error: ${err.stack}`);
 });
 
 db.connection.once('open', () => {
@@ -142,6 +127,9 @@ app.on('ready', function() {
         console.log("Application started. Listening on port:" + port);
         if (springConfigEnabled === true) {
             loadSecretKey();
+        } else {
+            secretKey = process.env.SECRET_TOKEN;
+            console.log(`Using secretKey from env: ${secretKey}`);
         }
         if (swaggerEnabled === true) {
             generateSwaggerJsonFile();
@@ -213,8 +201,6 @@ function loadSwaggerUI() {
 
     // Initialize the Swagger middleware
     initializeSwagger(swaggerDoc, function (middleware) {
-        console.log("initializeMiddleware:init");
-
         // Interpret Swagger resources and attach metadata to request - must be first in swagger-tools middleware chain
         app.use(middleware.swaggerMetadata());
 
@@ -239,9 +225,6 @@ function loadSwaggerUI() {
         app.use(middleware.swaggerUi({
             //apiDocs: `http://localhost:${port}/api-docs`,
         }));
-
-
-        console.log("initializeMiddleware:nd");
     });
 }
 
@@ -375,14 +358,22 @@ function validateJwt(req, res, next) {
         if (!token) {
             throw Error("Token Not found");
         }
-        if (!secretKey) { //Ugly fix that later
-            secretKey = 'VGVzdAo=';
+        if (!secretKey) {
+            throw Error("secretKey Not found");
+        }
+        if (!token.startsWith("Bearer ")) {
+            throw Error("Invalid Token: it should start with 'Bearer'");
         }
         token = token.replace("Bearer ", "");
-        jwt.verify(token, new Buffer(secretKey, 'base64'), function(err, decoded) {
-            req.user = decoded;
+        jwt.verify(token, Buffer.from(secretKey, 'base64'), function(err, decoded) {
+            if (err) {
+                console.log(`Token with error!: ${err}`);
+                throw Error(err);
+            } else {
+                console.log(`Token is valid!: ${decoded}`);
+                req.user = decoded;
+            }
         });
-        console.log("Token is valid!");
 
         if ('OPTIONS' == req.method) {
             res.sendStatus(200);
@@ -392,7 +383,7 @@ function validateJwt(req, res, next) {
         }
     } catch (e) {
         console.log("Error validate JWT", e);
-        res.status(401).send("Error on validate JWT: " + e);
+        res.status(401).send(`Error on validate JWT: ${e}`);
     }
 }
 

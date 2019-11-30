@@ -8,7 +8,7 @@
         "dev": "nodemon --exec 'npm start'",
         "test": "cross-env EUREKA_ENABLED=false SWAGGER_ENABLED=false SPRING_CONFIG_ENABLED=false NODE_ENV=test jest --forceExit --runInBand --detectOpenHandles",
         "pretest": "cross-env NODE_ENV=test",
-        "test-watch": "nodemon --exec 'npm test-func'"
+        "test:watch": "jest --watch"
     },
     "keywords": [],
     "author": "",
@@ -44,12 +44,12 @@
     "devDependencies": {
         "@babel/core": "^7.7.4",
         "@babel/preset-env": "^7.7.4",
-        "chai": "3.5.0",
         "cross-env": "^6.0.3",
         "expect": "^1.20.2",
         "jest": "^24.9.0",
         "mongodb-memory-server-core": "^6.0.1",
-        "supertest": "^2.0.1"
+        "supertest": "^2.0.1",
+        "nock": "11.7.0"
     },
     "jest": {
         "globalSetup": "./test/jest-global-setup.js",

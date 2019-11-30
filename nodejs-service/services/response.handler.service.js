@@ -3,7 +3,7 @@ const HandlerService = () => {
 
     const sendRequest = (statusCode, response, doc) => {
         if(!response) {
-            log.logExceptOnTest('Alert -> response object null');
+            log.logOnRoutes('Alert -> response object null');
         }
         response
             .status(statusCode) 
@@ -11,7 +11,7 @@ const HandlerService = () => {
             .end();
     };
     const send =  (response, options) => {
-        log.logExceptOnTest("Response status code=", options.status);
+        log.logOnRoutes("Response status code=", options.status);
     
         const status = options.status || 200;
         const doc = options.doc || [];
@@ -19,8 +19,8 @@ const HandlerService = () => {
         sendRequest(status, response, doc);     
     };
     const error = (response, options) => {
-        log.errorExceptOnTest('======== response handler service =======');
-        log.errorExceptOnTest(options);
+        log.error('======== response handler service =======');
+        log.error(options);
     
         const errorResponse = {
             message: options.message || 'Internal server error',

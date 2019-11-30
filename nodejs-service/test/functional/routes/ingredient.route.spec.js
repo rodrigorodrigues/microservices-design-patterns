@@ -4,6 +4,7 @@
 
 const request = require("supertest");
 const expect = require("expect");
+const jwt = require('jsonwebtoken');
 
 const app = require('../../../server').app;
 
@@ -40,6 +41,8 @@ const attributeName = 'global_attribute_name';
 
 const nock = require('nock')
 
+import sleep from 'await-sleep';
+
 nock('http://localhost:8761')
     .post('/')
     .reply(200, {
@@ -61,132 +64,19 @@ nock('http://localhost:8888')
 const Q = require('q');
 
 describe("Ingredient", () => {
-
-    beforeEach((done) => {
-
-        function removeAll() {
-
-            IngredientRecipeAttributes.remove({}).then(() => {
-                Ingredient.remove({}).then(() => {
-                    Category.remove({}).then(() => {
-                        Recipe.remove({}).then(() => {
-                            kickOff();
-                        })
-                    });
-                })
-
-            });
-        }
-
-        function kickOff() {
-
-            insertManyCategory()
-                .then(saveRecipe)
-                .then(saveIngredients)
-                .then(saveAttributesRecipes);
-
-
-            function insertManyCategory() {
-
-                let result = {docs : null, recipeId: null};
-
-                let deferred = Q.defer();
-
-                Category
-                    .insertMany(categories)
-                    .then(docs => {
-
-                        result.docs = docs;
-
-                        deferred.resolve(result);
-
-                    }).catch((reason) => deferred.reject(reason));
-
-                return deferred.promise;
-
-            }
-
-            function saveIngredients(paramResult) {
-                let result = {
-                    ingredientIds : [],
-                    recipeId: paramResult.recipeId
-                };
-
-                let deferred = Q.defer();
-
-                let count = 0;
-
-                paramResult.docs.forEach(function(item, index){
-
-                    let ingredient = new Ingredient({
-                        name : ingredientNames[index],
-                        _creator :  item._id
-                    });
-
-                    ingredient.save()
-                        .then((ing) => {
-
-                            result.ingredientIds.push(ing._id);
-
-                            if(++count === 2) {
-                                deferred.resolve(result);
-                            }
-                        })
-                });
-
-                return deferred.promise;
-            }
-
-            function saveRecipe(paramResult) {
-
-                let deferred = Q.defer();
-
-                let recipe = new Recipe({
-                    name: recipeName
-                });
-
-                recipe.save().then(docRec => {
-
-                    let result = {
-                        recipeId: paramResult.recipeId,
-                        docs: paramResult.docs
-                    };
-
-                    result.recipeId = docRec._id;
-
-                    deferred.resolve(result);
-
-                }).catch(reason => deferred.reject(reason));
-
-                return deferred.promise;
-            }
-
-            function saveAttributesRecipes(paramResult) {
-                IngredientRecipeAttributes.remove({})
-                    .then(() => {
-
-                        let ingRecipe = new IngredientRecipeAttributes({
-                            labelQuantity: 'kg',
-                            name: attributeName,
-                            ingredientId: paramResult.ingredientIds[0],
-                            recipeId: paramResult.recipeId,
-                            itemSelectedForShopping: true
-
-                        });
-
-                        ingRecipe.save().then(() => { done() });
-                    })
-                    .catch(reason => done())
-            }
-        }
-
-        removeAll();
+    beforeAll(async done => {
+        console.log('Waiting for 5 secs');
+    
+        await sleep(5000);
+    
+        done();
     });
 
-    it("should get ingredient list", (done) => {
+    it("should get ingredient list", async done => {
 
-        request(app)
+        await request(app)
             .get('/ingredient')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .expect((res) => {
                 expect(res.body.length > 1).toBe(true);
@@ -194,16 +84,17 @@ describe("Ingredient", () => {
             .end(done);
     });
 
-    it('should load ingredient by passing an Id', (done) => {
+    it('should load ingredient by passing an Id', async done => {
 
         const ingredient = new Ingredient({
             name : ingredientNames[2],
         });
 
-        ingredient.save()
+        await ingredient.save()
             .then((doc) => {
                 request(app)
                     .get('/ingredient/' + doc._id)
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .expect(200)
                     .expect((res) => {
                         expect(res.body._id).toBe(doc._id.toString());
@@ -211,13 +102,14 @@ describe("Ingredient", () => {
             }).catch(err => done(err));
     });
 
-    it('should load ingredient/attributes', (done) => {
+    it('should load ingredient/attributes', async done => {
 
-        loadIdsToRecAttributes()
+        await loadIdsToRecAttributes()
             .then( result => {
 
                 request(app)
                     .get('/ingredient/recipe/'+result.ingredientId+"/"+result.recipeId)
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .expect(200)
                     .expect((res) => {
 
@@ -230,9 +122,9 @@ describe("Ingredient", () => {
             });
     });
 
-    it("should save a ingredient", (done) => {
+    it("should save a ingredient", async done => {
 
-        Category.find({})
+        await Category.find({})
             .then( (docs) => {
 
                 let categoryId = docs[0]._id;
@@ -253,6 +145,7 @@ describe("Ingredient", () => {
 
                         request(app)
                             .post('/ingredient')
+                            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                             .send(ingredientCommand)
                             .expect(201)
                             .end((err, res) => {
@@ -331,10 +224,11 @@ describe("Ingredient", () => {
             });
     });
 
-    it("should fail to save/post a ingredient", (done) => {
+    it("should fail to save/post a ingredient", async done => {
 
-        request(app)
+        await request(app)
             .post('/ingredient')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
             .end((err, res) => {
 
@@ -392,6 +286,7 @@ describe("Ingredient", () => {
 
                     request(app)
                         .post('/ingredient')
+                        .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                         .send(param)
                         .expect(400)
                         .expect((res) => {
@@ -407,6 +302,7 @@ describe("Ingredient", () => {
 
         request(app)
             .post('/ingredient')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .send({ingredient: {name : ingredientNames[4]}})
             .expect(400)
             .expect((res) => {
@@ -432,6 +328,7 @@ describe("Ingredient", () => {
 
                    request(app)
                        .put('/ingredient')
+                       .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                        .send(ingredientCommand)
                        .expect(204)
                        .end((err, res) => {
@@ -488,6 +385,7 @@ describe("Ingredient", () => {
 
                         request(app)
                             .put('/ingredient')
+                            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                             .send(ingCommand)
                             .expect(204)
                             .end((err, res) => {
@@ -517,6 +415,7 @@ describe("Ingredient", () => {
 
                 request(app)
                     .put('/ingredient/attribute')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({_id: attribute._id, itemSelectedForShopping: false})
                     .expect(204)
                     .end( (err, res) => {
@@ -540,6 +439,7 @@ describe("Ingredient", () => {
 
                 request(app)
                     .put('/ingredient/attribute/many')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send([{_id: attribute._id, itemSelectedForShopping: false}])
                     .expect(204)
                     .end( (err, res) => {
@@ -564,6 +464,7 @@ describe("Ingredient", () => {
             .then((doc) => {
                 request(app)
                     .delete('/ingredient')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({_id : doc._id})
                     .expect(204)
                     .expect((res) => {

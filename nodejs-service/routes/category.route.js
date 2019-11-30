@@ -196,7 +196,7 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
 
 router.get("/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE']), (req, res, next) => {
 
-    log.logExceptOnTest("category name", req.params.id);
+    log.logOnRoutes("category name", req.params.id);
 
     Category.findOne({ _id: req.params.id })
         .then((doc) => {
@@ -292,7 +292,7 @@ router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), (re
 });
 
 router.delete('/category/:id', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_DELETE']), (req, res, next) => {
-    log.logExceptOnTest("category id", req.params.id);
+    log.logOnRoutes("category id", req.params.id);
 
     Category.findByIdAndRemove(req.params.id)
         .then((doc) => {
@@ -306,8 +306,8 @@ checkPermissionRoute(router);
 
 function handleResponse(response, doc, status) {
 
-    log.logExceptOnTest("Response Category Route ----");
-    log.logExceptOnTest("Response doc", doc);
+    log.logOnRoutes("Response Category Route ----");
+    log.logOnRoutes("Response doc", doc);
 
     response
         .status(status)
@@ -316,7 +316,7 @@ function handleResponse(response, doc, status) {
 }
 
 function wmHandleError(res, reason) {
-    log.errorExceptOnTest("handle error", reason.message);
+    log.error("handle error", reason.message);
     var errorResponse = {
         message: reason.message,
         name: reason.name,

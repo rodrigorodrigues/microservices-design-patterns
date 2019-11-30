@@ -9,11 +9,7 @@ module.exports = async () => {
 
   mongoose.Promise = Promise;
 
-  mongoServer = new MongoMemoryServer({
-    binary :{
-      systemBinary: 'C:/Users/46456/.embedmongo/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.3/bin/mongod.exe'
-    }
-  });
+  mongoServer = new MongoMemoryServer();
   await mongoServer
     .getConnectionString()
     .then((mongoUri) => {
@@ -29,7 +25,9 @@ module.exports = async () => {
         } else {
           var fs = require('fs');
 
-          fs.writeFileSync(".env", `MONGODB_URI = ${mongoUri}`);
+          const secretKey = 'YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=';
+
+          fs.writeFileSync(".env", `MONGODB_URI = ${mongoUri}\nSECRET_TOKEN = ${secretKey}`);
 
           console.log(`Connected to MongoDb in Memory: ${mongoUri} and created temp .env file with mongo uri`);
         }

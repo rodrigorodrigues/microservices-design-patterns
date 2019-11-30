@@ -1,7 +1,7 @@
 /**
  * Legacy code, very messy
  */
-
+require('dotenv').config();
 const request = require("supertest");
 const expect = require("expect");
 const jwt = require('jsonwebtoken');
@@ -27,38 +27,47 @@ let recipeName = 'recipe_test_cat_spec';
 
 import sleep from 'await-sleep';
 
-beforeAll(async () => {
-    console.log('Waiting for 2 secs');
+describe("Category", () => {
+    beforeAll(async done => {
+        console.log('Waiting for 5 secs');
+    
+        await sleep(5000);
+    
+        done();
+    });
 
-    await sleep(2000);
-/*    
-    await request(app)
-        .get('/actuator/health')
-        .expect(200); */
-});
+    test("should return 403 when calling api with not valid role", (done) => {
+        request.agent(app)
+            .get('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_TEST'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
+            .expect(403)
+            .end(done);
+    });
+    
 
-test("should get category list", async () => {
-    /*
-    nock('http://localhost:8888')
-    .get(/\/week-menu-api\/(.*?)/)
-    .reply(200, {
-        response: {
-        configuration: {
-            jwt: {
-                'base64-secret': 'VGVzdAo='
+    test("should get category list", async done => {
+        /* // How to use nock?
+        nock('http://localhost:8888')
+        .get(/\/week-menu-api\/(.*?)/)
+        .reply(200, {
+            response: {
+            configuration: {
+                jwt: {
+                    'base64-secret': 'VGVzdAo='
+                }
             }
-        }
-        },
-    });*/
+            },
+        });*/
+        const res = await request.agent(app)
+            .get('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }));
 
-    await request.agent(app)
-        .get('/v2/category')
-        .set('Authorization', jwt.sign({authorities: ['ROLE_ADMIN']}, 'VGVzdAo='))
-        .expect(200)
-        .expect((res) => expect(res.body.length >= 2).toBe(true));
-});
+        expect(res.status).toBe(200);
+        //expect(res.body.message).toBe("Ok"); TODO How to test response?
+        done();
+    });
 
-    it.skip("should get category list and ingredient marked", (done) => {
+    it("should get category list and ingredient marked", async done => {
 
         let testPassed = false;
 
@@ -69,6 +78,7 @@ test("should get category list", async () => {
 
                     request(app)
                         .get('/category/check/'+recipe._id)
+                        .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                         .expect(200)
                         .end((err, res) => {
 
@@ -100,13 +110,13 @@ test("should get category list", async () => {
             });
     });
 
-    it.skip('should load category by passing an Id', (done) => {
+    it('should load category by passing an Id', async done => {
 
-        Category.findOne({name: categoryNames[0]})
+        await Category.findOne({name: categoryNames[0]})
             .then(doc => {
-
                 request(app)
                     .get('/category/' + doc._id)
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .expect(200)
                     .expect((res) => {
                         expect(res.body._id).toBe(doc._id.toString())
@@ -115,15 +125,15 @@ test("should get category list", async () => {
 
     });
 
-    it.skip("should save/post a category", (done) => {
+    it("should save/post a category", async done => {
 
         let name = 'new cat';
 
-        Recipe.findOne({name: recipeName})
+        await Recipe.findOne({name: recipeName})
             .then(recipe => {
-
                 request(app)
                     .post('/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({'name' : name, recipeId: recipe._id})
                     .expect(201)
                     .end( (err, res) => {
@@ -150,10 +160,11 @@ test("should get category list", async () => {
             });
     });
 
-    it.skip("should fail to save/post a category", (done) => {
+    it("should fail to save/post a category", async done => {
 
-        request(app)
+        await request(app)
             .post('/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
             .expect((res) => {
                 expect(res.body).toIncludeKeys(['message', 'errors', 'name']);
@@ -171,10 +182,11 @@ test("should get category list", async () => {
 
     });
 
-    it.skip("should fail to save/post a duplicate category", (done) => {
+    it("should fail to save/post a duplicate category", async done => {
 
-        request(app)
+        await request(app)
             .post('/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .send({name : categoryNames[0]})
             .expect(400)
             .expect((res) => {
@@ -182,18 +194,19 @@ test("should get category list", async () => {
             }).end(done)
     });
 
-    it.skip("should update a category", (done) => {
+    it("should update a category", async done => {
 
         //update date
         let nameTestUpdate = categoryNames[0];
 
-        Category.findOne({name: nameTestUpdate})
+        await Category.findOne({name: nameTestUpdate})
             .then(doc => {
 
                 nameTestUpdate += 'updateName';
 
                 request(app)
                     .put('/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({name: nameTestUpdate, _id: doc._id})
                     .expect(204)
                     .end(err => {
@@ -213,15 +226,16 @@ test("should get category list", async () => {
             });
     });
 
-    it.skip("should delete a category", (done) => {
+    it("should delete a category", async done => {
 
-        Category.find({})
+        await Category.find({})
             .then((docs) => {
 
                 let category = docs[0];
 
                 request(app)
                     .delete('/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({_id : category._id})
                     .expect(204)
                     .end((err, res) => {
@@ -244,11 +258,12 @@ test("should get category list", async () => {
 
     });
 
-    it.skip("should get category along ingredient populated", (done) => {
+    it("should get category along ingredient populated", async done => {
 
         //FIXME review test
-        request(app)
+        await request(app)
             .get('/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .end((err, res) => {
 
@@ -271,10 +286,11 @@ test("should get category list", async () => {
             });
     });
 
-    it.skip("should get category/ingredient for the shopping week", done => {
+    it("should get category/ingredient for the shopping week", async done => {
 
-        request(app)
+        await request(app)
             .get('/category/week/shopping')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .end((err, res) => {
 
@@ -302,22 +318,4 @@ test("should get category list", async () => {
             });
     });
 
-    it.skip("SHOULD JUST BE A TEST", done => {
-
-        let promisess = [];
-
-        let arrouu = ['ID_1','ID2', 'ID_4']
-
-        arrouu.forEach(item => {
-            let promise = Promise.resolve(item);
-            promisess.push(promise)
-        })
-
-
-        Promise.all(promisess).then(values => {
-            //console.log("***************************", values); // [true, 3]
-
-            done()
-        });
-
-    });
+});
