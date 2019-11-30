@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon --exec 'npm start'",
-        "test": "cross-env EUREKA_ENABLED=false SWAGGER_ENABLED=false SPRING_CONFIG_ENABLED=false NODE_ENV=test jest --runInBand --detectOpenHandles",
+        "test": "cross-env EUREKA_ENABLED=false SWAGGER_ENABLED=false SPRING_CONFIG_ENABLED=false NODE_ENV=test jest --forceExit --runInBand --detectOpenHandles",
         "pretest": "cross-env NODE_ENV=test",
         "test-watch": "nodemon --exec 'npm test-func'"
     },
@@ -55,6 +55,8 @@
         "globalSetup": "./test/jest-global-setup.js",
         "globalTeardown": "./test/jest-global-teardown.js",
         "testEnvironment": "node",
+        "coverageDirectory": "./node_modules/coverage/",
+        "collectCoverage": true,
         "coveragePathIgnorePatterns": [
             "/node_modules/"
         ],
