@@ -5,10 +5,9 @@ services:
     container_name: service-discovery
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_REDIS_PORT=6380
       - SPRING_PROFILES_ACTIVE=dev
       - SERVER_PORT=8761
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - DEBUG=true
     depends_on:
@@ -18,18 +17,17 @@ services:
       - 8761:8761
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh redisdb:6380
+    command: sh ./docker-entrypoint.sh redisdb:6379
 
   config-management:
     image: config-server
     container_name: config-management
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_REDIS_PORT=6380
       - SPRING_PROFILES_ACTIVE=native
       - SERVER_PORT=8888
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
@@ -48,14 +46,13 @@ services:
     container_name: gateway
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_REDIS_PORT=6380
       - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
       - SERVER_PORT=9006
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
@@ -76,13 +73,12 @@ services:
     container_name: monitoring
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_REDIS_PORT=6380
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
       - SERVER_PORT=9000
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
@@ -143,11 +139,9 @@ services:
     container_name: week-menu-api
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - REDIS_SERVER=redisdb
-      - REDIS_PORT=6380
       - CONFIG_SERVER=http://localhost:8888
       - SERVER_PORT=3002
-      - MONGODB_URI=mongodb://mongodb-datasource:27018/docker
+      - MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - EUREKA_SERVER=service-discovery
       - EUREKA_PORT=8761
       #            - DEBUG=*
@@ -177,7 +171,7 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
       - SERVER_PORT=8082
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -201,7 +195,7 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
       - SERVER_PORT=9092
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -226,7 +220,7 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
       - SERVER_PORT=8083
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -248,11 +242,10 @@ services:
       - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_REDIS_PORT=6380
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
       - SERVER_PORT=9999
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27018
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -271,17 +264,16 @@ services:
 
   mongodb-datasource:
     image: mongo:3.4.10
-    command: mongod --port 27018
+    command: mongod --port 27017
     container_name: mongodb-datasource
     ports:
-      - 27018:27018
+      - 27017:27017
 
   redisdb:
     image: redis:alpine
     container_name: redisdb
-    command: redis-server --port 6380
     ports:
-      - 6380:6380
+      - 6379:6379
 
   prometheus:
     image: prom/prometheus
