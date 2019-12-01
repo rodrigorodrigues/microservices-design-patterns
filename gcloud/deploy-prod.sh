@@ -25,7 +25,7 @@ else
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_REACT_WEBAPP_IMAGE=true
     elif [[ "$BUILD_NODE_IMAGE" == "false" ]] && [[ "$i" == "nodejs-service"  ]]; then
-      IMAGES_TO_BUILD+="week-menu-api"
+      IMAGES_TO_BUILD+="week-menu-api;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_NODE_IMAGE=true
     elif [[ "$BUILD_AUTHENTICATION_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "authentication-service" ]]; then
