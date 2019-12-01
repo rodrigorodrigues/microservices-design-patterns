@@ -33,7 +33,7 @@ router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], 
 
 router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
-    log.logExceptOnTest("ingredient name", request.params.id);
+    log.logOnRoutes("ingredient name", request.params.id);
 
     Ingredient.findOne({_id: request.params.id})
         .then((doc) => {
@@ -47,8 +47,8 @@ router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ
 
 router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
-    log.logExceptOnTest("params", request.params.ingredientId);
-    log.logExceptOnTest("params", request.params.recipeId);
+    log.logOnRoutes("params", request.params.ingredientId);
+    log.logOnRoutes("params", request.params.recipeId);
 
     IngredientRecipeAttributes.findOne({
         ingredientId:request.params.ingredientId,
@@ -65,7 +65,7 @@ router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMI
 //FIXME deprecated ??
 router.get("/ingredient/recipe/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
-    log.logExceptOnTest("params", request.params.recipeId);
+    log.logOnRoutes("params", request.params.recipeId);
 
     IngredientRecipeAttributes.find({
         recipeId:request.params.recipeId
@@ -415,8 +415,8 @@ function findCategoryAndAddToIt(recipeId, ingredient) {
 //TODO move to utils
 function handleResponse(response, doc, status) {
 
-    log.logExceptOnTest("Response Ingredient Route ----");
-    log.logExceptOnTest("Response doc", doc);
+    log.logOnRoutes("Response Ingredient Route ----");
+    log.logOnRoutes("Response doc", doc);
 
     response
         .status(status)

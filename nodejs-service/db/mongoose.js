@@ -6,9 +6,20 @@
     'use strict'
 
     var mongoose = require('mongoose');
+    const mongoDbUri = process.env.MONGODB_URI;
+
+    console.log(`Connecting to Mongodb: ${mongoDbUri}`);
 
     mongoose.Promise = global.Promise;
-    mongoose.connect(process.env.MONGODB_CONNECTION);
+    mongoose.connect(mongoDbUri);
+
+    if (process.env.NODE_ENV === 'test') {
+        mongoose.set("debug", (collectionName, method, query, doc) => {
+            if (!method.startsWith("insert")) {
+                console.log(`Debug Mongo: ${collectionName}.${method}`, JSON.stringify(query), doc);
+            }
+        });
+    }
 
     module.exports = {
         mongoose : mongoose,

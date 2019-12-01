@@ -4,7 +4,7 @@ import { Table } from 'reactstrap';
 const FooterContent = () => {
     return (
         <footer>
-            <div className="float-left">
+            <div className="footer float-left">
                 <Table size="sm" borderless>
                     <tr>
                         <td>Microservice Design Patterns</td>
@@ -14,7 +14,7 @@ const FooterContent = () => {
                     </tr>
                 </Table>
             </div>
-            <div className="float-right"><a href="https://spendingbetter.com">https://spendingbetter.com</a></div>
+            <div className="footer float-right"><a href="https://spendingbetter.com">https://spendingbetter.com</a></div>
         </footer>
     )
 }

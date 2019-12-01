@@ -5,11 +5,11 @@ const CustomValidation = () => {
     return {
         // TODO add test this here
         messageValidation(errorObject) {
-            log.logExceptOnTest('========= Validator Error Message =========');
-            log.logExceptOnTest(errorObject ? errorObject.message : errorObject);
-            log.logExceptOnTest('error code =>',errorObject.code);
-            log.logExceptOnTest('Full stack trace =>', errorObject);
-            log.logExceptOnTest('End full stack trace =========');
+            log.logOnRoutes('========= Validator Error Message =========');
+            log.logOnRoutes(errorObject ? errorObject.message : errorObject);
+            log.logOnRoutes('error code =>',errorObject.code);
+            log.logOnRoutes('Full stack trace =>', errorObject);
+            log.logOnRoutes('End full stack trace =========');
 
             const message = VALIDATION[errorObject.code];
 

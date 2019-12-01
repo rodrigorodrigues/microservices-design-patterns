@@ -37,7 +37,7 @@ const sortList= function (recipes) {
 }
 
 const handleResponse =  (res, doc, status) => {
-    log.logExceptOnTest("Response status code=", status);
+    log.logOnRoutes("Response status code=", status);
     res
         .status(status)
         .json(doc)
@@ -45,7 +45,7 @@ const handleResponse =  (res, doc, status) => {
 }
 
 const wmHandleError = function (res, reason) {
-    log.errorExceptOnTest("handle error", reason.message);
+    log.error("handle error", reason.message);
     var errorResponse = {
         message : reason.message,
         name: reason.name,

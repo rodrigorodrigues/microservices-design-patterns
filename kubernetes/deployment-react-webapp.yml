@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:16.0
+          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:

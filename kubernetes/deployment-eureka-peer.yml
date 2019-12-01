@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: eureka-server-peer
-          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:11.0
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:

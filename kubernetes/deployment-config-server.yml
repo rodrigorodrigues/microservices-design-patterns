@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: eu.gcr.io/spring-boot-gke-243520/config-server:11.0
+          image: eu.gcr.io/spring-boot-gke-243520/config-server:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:

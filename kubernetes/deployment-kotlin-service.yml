@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: kotlin-service
-          image: eu.gcr.io/spring-boot-gke-243520/kotlin-service:18.0
+          image: eu.gcr.io/spring-boot-gke-243520/kotlin-service:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:

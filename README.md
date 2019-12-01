@@ -351,6 +351,10 @@ Used `Google Cloud Platform` for deployment the `docker images`.
 
 More details look at [.travis.yml](.travis.yml) and [gcloud folder](gcloud).
 
+To deploy using Travis create first a `Pull Request` then add in the commit message `[trigger deploy SERVICE_NAME]`.
+
+i.e.: `[trigger deploy authentication-service;react-webapp]`.
+
 ### Swagger UI
 
 Swagger UI is available for `Authentication, Person and User Services`
@@ -411,3 +415,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Istio on GKE](https://cloud.google.com/istio/docs/istio-on-gke/overview)
 
 [Istio Gateway](https://medium.com/@tufin/test-7daa5ee3782b)
+
+[Automatic Deployment using Travis and GKE](https://engineering.hexacta.com/automatic-deployment-of-multiple-docker-containers-to-google-container-engine-using-travis-e5d9e191d5ad)

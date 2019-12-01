@@ -1,9 +1,9 @@
 /**
  * Legacy code, very messy
  */
-
+require('dotenv').config();
 const request = require("supertest");
-const expect = require("expect");
+const jwt = require('jsonwebtoken');
 
 const app = require('../../../server').app;
 
@@ -24,203 +24,63 @@ const ingredientNames = [
 
 let recipeName = 'recipe_test_cat_spec';
 
-const Q = require('q');
+import sleep from 'await-sleep';
+
+import 'jest-extended';
 
 describe("Category", () => {
-
-    beforeEach(done => {
-
-        function removeAll() {
-
-            IngredientRecipeAttributes.remove({}).then(() => {
-                Ingredient.remove({}).then(() => {
-                    Category.remove({}).then(() => {
-                        Recipe.remove({}).then(() => {
-                            kickOff();
-                        });
-                    });
-                })
-
-            });
-        }
-
-        function kickOff() {
-
-            insertManyCategory()
-                .then(saveRecipe)
-                .then(saveIngredients)
-                .then(saveAttributesRecipes);
-
-            function insertManyCategory() {
-
-                let result = {categories : null, recipeId: null};
-
-                let deferred = Q.defer();
-
-                const categories = [
-                    {name : categoryNames[0]},
-                    {name : categoryNames[1]},
-                ];
-
-                Category
-                    .insertMany(categories)
-                    .then(docs => {
-
-                        result.categories = docs;
-
-                        deferred.resolve(result);
-
-                    }).catch((reason) => deferred.reject(reason));
-
-                return deferred.promise;
-
-            }
-
-            function saveRecipe(paramResult) {
-
-                let deferred = Q.defer();
-
-                let recipe = new Recipe({
-                    name: recipeName,
-                });
-
-                //Save first
-                recipe.save()
-                    .then(docRec => {
-
-                        let result = {
-                            recipeId: docRec._id,
-                            categories: paramResult.categories
-                        };
-
-                        Recipe
-                            .findOne({_id: docRec._id})
-                            .then(recipe => {
-
-                                //Add category
-                                paramResult.categories.forEach((cat) => {
-                                    recipe.categories.push(cat);
-                                });
-
-                                //save again
-                                recipe.save()
-                                    .then(() => {
-                                        deferred.resolve(result);
-                                    });
-
-                            }, (reason) => deferred.reject(reason));
-
-                    }).catch(reason => deferred.reject(reason));
-
-                return deferred.promise;
-            }
-
-            function saveIngredients(paramResult) {
-                let result = {
-                    ingredientIds : [],
-                    recipeId: paramResult.recipeId
-                };
-
-                let deferred = Q.defer();
-
-                let count = paramResult.categories.length;
-
-                //loop max index == 2
-                paramResult.categories.forEach(function(category, index){
-
-                    //tempRecipeLinkIndicator the the link with recipe
-                    let ingredient = new Ingredient({
-                        name : ingredientNames[index],
-                        _creator :  category._id,
-                    });
-
-                    ingredient.save()
-                        .then(ing => {
-
-                            result.ingredientIds.push(ing._id);
-
-                            Category.findOne({_id: category._id})
-                                .then(category => {
-
-                                    category.ingredients.push(ing);
-
-                                    //Add recipe too
-                                    category.recipes.push(paramResult.recipeId)
-
-                                    category.save().then(() => {
-
-                                        //TODO review this logic
-                                        if(--count === 0) {
-
-                                            deferred.resolve(result);
-                                        }
-
-                                    });
-
-                                });
-                        });
-                });
-
-                return deferred.promise;
-            }
-
-            function saveAttributesRecipes(paramResult) {
-
-                Recipe.findOne({_id: paramResult.recipeId})
-                    .then(rec => {
-
-                        let ingRecipe = new IngredientRecipeAttributes({
-                            labelQuantity: 'kg',
-                            name: rec.name,
-                            ingredientId: paramResult.ingredientIds[0],
-                            recipeId: paramResult.recipeId,
-                            itemSelectedForShopping: true
-                        });
-
-                        ingRecipe.save()
-                            .then(() => {
-
-                                Ingredient.findOne({_id: paramResult.ingredientIds[0]})
-                                    .then(ingredient => {
-
-                                        ingredient.attributes.push(ingRecipe);
-
-                                        ingredient.save()
-                                            .then(() => {
-                                                done();
-                                            }).catch(reason => done(reason));
-                                    }).catch(reason => done(reason));
-                            }).catch(reason => done(reason));
-                    });
-            }
-        }
-        removeAll();
+    beforeAll(async done => {
+        console.log('Waiting for 5 secs');
+    
+        await sleep(5000);
+    
+        done();
     });
 
-    it("should get category list", (done) => {
-
+    test("should return 403 when calling api with not valid role", (done) => {
         request(app)
-            .get('/category')
-            .expect(200)
-            .expect((res) => {
+            .get('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_TEST'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
+            .expect(403)
+            .end(done);
+    });
+    
 
-                expect(res.body.length >= 2).toBe(true);
+    test("should get category list", (done) => {
+        /* // How to use nock?
+        nock('http://localhost:8888')
+        .get(/\/week-menu-api\/(.*?)/)
+        .reply(200, {
+            response: {
+            configuration: {
+                jwt: {
+                    'base64-secret': 'VGVzdAo='
+                }
+            }
+            },
+        });*/
+        request(app)
+            .get('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
+            .expect(200)
+            .expect(res => {
+                expect(res.body).toEqual(expect.toBeArray())
             })
             .end(done);
-
     });
 
     it("should get category list and ingredient marked", (done) => {
 
         let testPassed = false;
 
-        IngredientRecipeAttributes.findOne({name: recipeName})
+        IngredientRecipeAttributes.findOne()
             .then((attr) => {
 
-                Recipe.findOne({name: recipeName}).then(recipe => {
+                Recipe.findOne().then(recipe => {
 
                     request(app)
-                        .get('/category/check/'+recipe._id)
+                        .get('/v2/category/check/'+recipe._id)
+                        .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                         .expect(200)
                         .end((err, res) => {
 
@@ -254,11 +114,11 @@ describe("Category", () => {
 
     it('should load category by passing an Id', (done) => {
 
-        Category.findOne({name: categoryNames[0]})
+        Category.findOne()
             .then(doc => {
-
                 request(app)
-                    .get('/category/' + doc._id)
+                    .get('/v2/category/' + doc._id)
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .expect(200)
                     .expect((res) => {
                         expect(res.body._id).toBe(doc._id.toString())
@@ -271,11 +131,11 @@ describe("Category", () => {
 
         let name = 'new cat';
 
-        Recipe.findOne({name: recipeName})
+        Recipe.findOne()
             .then(recipe => {
-
                 request(app)
-                    .post('/category')
+                    .post('/v2/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({'name' : name, recipeId: recipe._id})
                     .expect(201)
                     .end( (err, res) => {
@@ -305,7 +165,8 @@ describe("Category", () => {
     it("should fail to save/post a category", (done) => {
 
         request(app)
-            .post('/category')
+            .post('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
             .expect((res) => {
                 expect(res.body).toIncludeKeys(['message', 'errors', 'name']);
@@ -326,7 +187,8 @@ describe("Category", () => {
     it("should fail to save/post a duplicate category", (done) => {
 
         request(app)
-            .post('/category')
+            .post('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .send({name : categoryNames[0]})
             .expect(400)
             .expect((res) => {
@@ -339,13 +201,14 @@ describe("Category", () => {
         //update date
         let nameTestUpdate = categoryNames[0];
 
-        Category.findOne({name: nameTestUpdate})
+        Category.findOne()
             .then(doc => {
 
                 nameTestUpdate += 'updateName';
 
                 request(app)
-                    .put('/category')
+                    .put('/v2/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({name: nameTestUpdate, _id: doc._id})
                     .expect(204)
                     .end(err => {
@@ -367,13 +230,12 @@ describe("Category", () => {
 
     it("should delete a category", (done) => {
 
-        Category.find({})
-            .then((docs) => {
-
-                let category = docs[0];
+        Category.findOne()
+            .then((category) => {
 
                 request(app)
-                    .delete('/category')
+                    .delete('/v2/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({_id : category._id})
                     .expect(204)
                     .end((err, res) => {
@@ -400,7 +262,8 @@ describe("Category", () => {
 
         //FIXME review test
         request(app)
-            .get('/category')
+            .get('/v2/category')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .end((err, res) => {
 
@@ -423,10 +286,11 @@ describe("Category", () => {
             });
     });
 
-    it("should get category/ingredient for the shopping week", done => {
+    it("should get category/ingredient for the shopping week", (done) => {
 
         request(app)
-            .get('/category/week/shopping')
+            .get('/v2/category/week/shopping')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .end((err, res) => {
 
@@ -454,23 +318,4 @@ describe("Category", () => {
             });
     });
 
-    it("SHOULD JUST BE A TEST", done => {
-
-        let promisess = [];
-
-        let arrouu = ['ID_1','ID2', 'ID_4']
-
-        arrouu.forEach(item => {
-            let promise = Promise.resolve(item);
-            promisess.push(promise)
-        })
-
-
-        Promise.all(promisess).then(values => {
-            //console.log("***************************", values); // [true, 3]
-
-            done()
-        });
-
-    });
 });

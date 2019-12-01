@@ -81,7 +81,7 @@ router.get("/recipe/week", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ']), (r
 
 router.get("/recipe/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']), (req, res) => {
 
-    log.logExceptOnTest("Recipe name", req.params.id);
+    log.logOnRoutes("Recipe name", req.params.id);
 
     Recipe.findOne({_id: req.params.id})
         .then((doc) => {
@@ -450,7 +450,7 @@ function setItemSelectedForShopping(recipeId, flag) {
                 //not treating if failed .save(), it will do for now
                 attr.save()
                     .catch(reason => {
-                        log.logExceptOnTest("Failed to save attribute flag", attr._id);
+                        log.logOnRoutes("Failed to save attribute flag", attr._id);
                         listIdsFailed.push(attr._id);
                     });
             });

@@ -13,14 +13,19 @@ code {
     monospace;
 }
 
-@media only screen and (min-width: 800px) {
-  footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background-color: #282c34;
-    align-items: center;
-    justify-content: center;
-    color: white;
-  }
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content {
+  flex: 1 0 auto;
+  padding: 10px;
+}
+
+.footer {
+  flex-shrink: 0;
+  text-align: center;
+  color: #282c34;
 }

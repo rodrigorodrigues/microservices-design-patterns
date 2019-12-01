@@ -5,7 +5,7 @@
  */
 
 const request = require('supertest');
-const expect = require('expect');
+const jwt = require('jsonwebtoken');
 
 const app = require('../../../server').app;
 
@@ -24,6 +24,30 @@ const ingredientNames = [
     "from_rec_ingredient1"
 ];
 
+const nock = require('nock')
+
+import sleep from 'await-sleep';
+
+import 'jest-extended';
+
+nock('http://localhost:8761')
+    .post('/')
+    .reply(200, {
+        'status' : 'ok'
+    });
+
+nock('http://localhost:8888')
+  .get('/week-menu-api/dev%2C%3FX-Encrypt-Key%3Db7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53')
+  .reply(200, {
+    response: {
+      configuration: {
+          jwt: {
+            'base64-secret': 'Test'
+          }
+      }
+    },
+  });
+
 const Q = require('q');
 
 const recipes = [
@@ -38,147 +62,19 @@ const recipes = [
 
 
 describe('Recipe', () => {
-
-    beforeEach(done => {
-
-        function removeAll() {
-
-            IngredientRecipeAttributes.remove({})
-                .then(() => {
-                    Ingredient.remove({})
-                        .then(() => {
-                            Category.remove({})
-                                .then(() => {
-                                    Recipe.remove({})
-                                        .then(() => {
-                                            kickOff();
-                                        });
-                                });
-                        });
-                });
-        }
-
-        function kickOff() {
-
-            Recipe.insertMany(recipes)
-                .then(createCategory)
-                .then(createIngredient)
-                .then(createIngredientAttributeAndAddToArray)
-                .then(findRecipeAndLinkToCategory);
-
-            function createCategory(recs) {
-
-                const Q = require('q');
-
-                let defer = Q.defer();
-
-                let chainResult = {
-                    recipes : recs,
-                    category: null
-                };
-
-                //insert category
-                let category = new Category({
-                    name: categoryNames[0]
-                });
-
-                category.save()
-                    .then(category => {
-                        chainResult.category = category;
-
-                        defer.resolve(chainResult);
-                    })
-                    .catch(reason => defer.reject(reason));
-
-                return defer.promise;
-            }
-
-            function createIngredient(chainResult) {
-
-                let defer = Q.defer();
-
-                let ingredient = new Ingredient({
-                    name: ingredientNames[0],
-                    _creator: chainResult.category._id
-                });
-
-                ingredient.save()
-                    .then(ingredient => {
-
-                        chainResult.ingredient = ingredient;
-
-                        defer.resolve(chainResult);
-
-                    }).catch(reason => defer.reject(reason));
-
-                return defer.promise;
-            }
-
-            function createIngredientAttributeAndAddToArray(chainResult) {
-
-                let defer = Q.defer();
-
-                let ingredient = chainResult.ingredient;
-                let category = chainResult.category;
-                let attributeName = chainResult.recipes[0].name;
-                let recipeId = chainResult.recipes[0]._id;
-
-                let attribute = new IngredientRecipeAttributes({
-                    name: attributeName,
-                    ingredientId: ingredient._id,
-                    recipeId: recipeId,
-                    itemSelectedForShopping: true
-                });
-
-                attribute.save().then(() => {
-
-                    ingredient.attributes.push(attribute);
-
-                    ingredient.save()
-                        .then(() => {
-
-                            category.ingredients.push(ingredient);
-
-                            category.save().then(() => {
-
-                                defer.resolve(chainResult);
-
-                            }).catch(reason => defer.reject(reason));
-
-                        }).catch(reason => defer.reject(reason));
-
-                });
-
-                return defer.promise;
-            }
-
-            function findRecipeAndLinkToCategory(chainResult) {
-
-                let name = chainResult.recipes[0].name;
-
-                Recipe.findOne({name})
-                    .then(docFindOne => {
-
-                        docFindOne.categories.push(chainResult.category);
-
-                        docFindOne.save()
-                            .then(() => {
-                                done();
-                            }).catch((reason) => {
-                                done(reason);
-                            });
-
-                    });
-            }
-        }
-
-        removeAll();
+    beforeAll(async done => {
+        console.log('Waiting for 5 secs');
+    
+        await sleep(5000);
+    
+        done();
     });
 
     it('should get recipe list', (done) => {
 
        request(app)
            .get('/recipe')
+           .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
            .expect(200)
            .expect((res) => {
                 expect(Array.isArray(res.body)).toBe(true)
@@ -191,6 +87,7 @@ describe('Recipe', () => {
 
         request(app)
             .get('/recipe/week')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .expect((res) => {
                 expect(res.body.length).toBe(1);
@@ -206,6 +103,7 @@ describe('Recipe', () => {
 
                 request(app)
                     .get('/recipe/' + rec._id)
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .expect(200)
                     .expect((res) => {
                         expect(res.body._id).toBe(rec._id.toString())
@@ -220,6 +118,7 @@ describe('Recipe', () => {
         Recipe.remove({name}).then( () => {
             request(app)
                 .post('/recipe')
+                .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                 .send({'name' : name})
                 .expect(201)
                 .expect((res) => {
@@ -242,6 +141,7 @@ describe('Recipe', () => {
 
         request(app)
             .post('/recipe')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
             .end((err, res) => {
 
@@ -264,6 +164,7 @@ describe('Recipe', () => {
 
         request(app)
             .post('/recipe')
+            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .send({name : recipes[0].name})
             .expect(400)
             .expect((res) => {
@@ -280,6 +181,7 @@ describe('Recipe', () => {
 
                 request(app)
                     .put('/recipe')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({name: nameTestUpdate, _id: rec._id})
                     .expect(204)
                     .end((err, res) => {
@@ -310,6 +212,7 @@ describe('Recipe', () => {
 
                 request(app)
                     .get('/recipe/category/'+ docFindOne._id)
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .expect(200)
                     .end((err, res) => {
 
@@ -361,6 +264,7 @@ describe('Recipe', () => {
 
                 request(app)
                     .put('/recipe/ingredient')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({_id: recFindOne._id, ingredient : ingredient})
                     .expect(204)
                     .end((err, res) => {
@@ -376,6 +280,7 @@ describe('Recipe', () => {
             let getInto = false;
             request(app)
                 .get('/recipe/category/'+ id)
+                .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                 .expect(200)
                 .end((err, res) => {
 
@@ -410,6 +315,7 @@ describe('Recipe', () => {
 
             request(app)
                 .get('/recipe/category/currentAttribute/'+rec._id)
+                .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                 .expect(200)
                 .expect(res => {
                     let recipe = res.body;
@@ -440,6 +346,7 @@ describe('Recipe', () => {
             .then((doc) => {
                 request(app)
                     .delete('/recipe')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                     .send({_id : doc._id})
                     .expect(204)
                     .expect((res) => {

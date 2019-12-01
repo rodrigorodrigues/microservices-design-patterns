@@ -7,25 +7,24 @@
 
     const _ = require('lodash');
 
-    const logExceptOnTest = function () {
-        if (process.env.NODE_ENV !== 'test') {
+    const logOnRoutes = function () {
+        //if (process.env.NODE_ENV !== 'test') {
             if (arguments.length === 2) {
                 console.log("Log " + getLogDate(), arguments[0], filterObject(arguments[1]));
             } else {
                 console.log("Log " + getLogDate(), filterObject(arguments[0]));
             }
-        }
+        //}
     }
 
-    var errorExceptOnTest = function () {
-        if (process.env.NODE_ENV !== 'test') {
+    var error = function () {
             if (arguments.length === 2) {
                 console.error("Error " + getLogDate(), arguments[0], arguments[1]);
             } else {
                 console.error("Error " + getLogDate(), arguments[0]);
             }
-        }
     }
+
     function filterObject(object) {
         if (_.isArray(object)) {
             let result = "Total Items " + object.length + ",  \n";
@@ -43,5 +42,5 @@
         let date = new Date();
         return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
     }
-    module.exports = { logExceptOnTest, errorExceptOnTest };
+    module.exports = { logOnRoutes, error };
 })();

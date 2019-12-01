@@ -49,7 +49,7 @@ function HomeContent({notDisplayMessage}) {
             return "";
         }
         return (<div>
-            <Jumbotron>
+            <Jumbotron fluid>
                 <h1 className="display-3">User Details Permission</h1>
                 <hr className="my-2" />
                 <Table size="sm" borderless>
@@ -64,7 +64,7 @@ function HomeContent({notDisplayMessage}) {
                         </tr>
                         <tr>
                             <td><b>JWT</b></td>
-                            <td>{jwt}</td>
+                            <td style={{ whiteSpace: 'unset' }}>{jwt}</td>
                         </tr>
                     </tbody>
                 </Table>

@@ -15,7 +15,7 @@ function restoreBackup() {
         // RECIPES
         recipes.forEach(rec => {
             let cats = [];
-            console.log('-----------------------------Recipe: ', rec.name);
+            console.debug('-----------------------------Recipe: ', rec.name);
             rec.attributes.forEach(id => {
                 const attr = getAttr(id.$oid);
                 const prod = getIngredient(attr.ingredientId.$oid);
@@ -48,9 +48,9 @@ function restoreBackup() {
             recipeModel.save();
         });
     }).then(() => {
-        console.log("cats: ", cats);
+        //console.debug("cats: ", cats);
         cats.forEach(c => {
-            console.log('-----------------------------Category: ', c.name);
+            console.debug('-----------------------------Category: ', c.name);
             const categoryModel = new Category({
                 name: c.name,
                 insertDate: new Date()

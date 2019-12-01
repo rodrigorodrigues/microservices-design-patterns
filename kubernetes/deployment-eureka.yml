@@ -33,7 +33,7 @@ spec:
 #          - "spendingbetter.com"
       containers:
         - name: eureka-server
-          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:11.0
+          image: eu.gcr.io/spring-boot-gke-243520/eureka-server:latest
           imagePullPolicy: IfNotPresent
           resources:
             requests:
