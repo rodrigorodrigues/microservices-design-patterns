@@ -3,7 +3,6 @@
  */
 
 const request = require("supertest");
-const expect = require("expect");
 const jwt = require('jsonwebtoken');
 
 const app = require('../../../server').app;
@@ -42,6 +41,8 @@ const attributeName = 'global_attribute_name';
 const nock = require('nock')
 
 import sleep from 'await-sleep';
+
+import 'jest-extended';
 
 nock('http://localhost:8761')
     .post('/')

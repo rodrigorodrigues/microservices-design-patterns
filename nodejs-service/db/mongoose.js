@@ -15,7 +15,9 @@
 
     if (process.env.NODE_ENV === 'test') {
         mongoose.set("debug", (collectionName, method, query, doc) => {
-            console.log(`Debug Mongo: ${collectionName}.${method}`, JSON.stringify(query), doc);
+            if (!method.startsWith("insert")) {
+                console.log(`Debug Mongo: ${collectionName}.${method}`, JSON.stringify(query), doc);
+            }
         });
     }
 

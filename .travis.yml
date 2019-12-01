@@ -39,8 +39,8 @@ before_install:
 
 install:
  - mvn clean install -B -Dspring.profiles.active=travis
- - npm install --quiet --prefix ./nodejs-service ./nodejs-service && npm test --prefix ./nodejs-service
- - npm install --quiet --prefix ./react-webapp ./react-webapp && npm install --quiet -g jest --prefix ./react-webapp ./react-webapp && npm test --prefix ./react-webapp
+ - npm install --quiet --prefix ./nodejs-service ./nodejs-service && npm --silent test --prefix ./nodejs-service
+ - npm install --quiet --prefix ./react-webapp ./react-webapp && npm install --quiet -g jest --prefix ./react-webapp ./react-webapp && npm --silent test --prefix ./react-webapp
 
 before_script:
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == *"[trigger deploy"* ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then chmod +x ./gcloud/deploy-prod.sh && ./gcloud/deploy-prod.sh; fi

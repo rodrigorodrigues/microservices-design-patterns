@@ -20,7 +20,6 @@ function getCategoryByIdRoute(request, response) {
         .catch(reason => responseHandlerService.error(response, reason));
 }
 function getCategoryRoute(request, response) {
-    console.log(`Never been called this method: ${request}`);
     CategoryService
         .get()
         .then(doc => responseHandlerService.send(response, {doc, status: STATUS.GET_CODE}))
