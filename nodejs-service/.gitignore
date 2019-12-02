@@ -33,3 +33,4 @@ plugins/
 Thumbs.db
 .env
 .history/
+node/

@@ -73,6 +73,12 @@ describe("Ingredient", () => {
         done();
     });
 
+    afterAll(async done => {
+        app.emit('close');
+
+        done();
+    });
+
     it("should get ingredient list", async done => {
 
         await request(app)

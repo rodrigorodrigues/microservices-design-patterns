@@ -122,8 +122,9 @@ db.connection.once('open', () => {
     app.emit('ready');
 });
 
+let server;
 app.on('ready', function() {
-    app.listen(port, () => {
+    server = app.listen(port, () => {
         console.log("Application started. Listening on port:" + port);
         if (springConfigEnabled === true) {
             loadSecretKey();
@@ -135,6 +136,12 @@ app.on('ready', function() {
             generateSwaggerJsonFile();
         }
     });
+});
+
+app.on('close', function() {
+    if (server) {
+        server.close();
+    }
 });
 
 function loadSleuth() {

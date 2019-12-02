@@ -70,14 +70,20 @@ describe('Recipe', () => {
         done();
     });
 
+    afterAll(async done => {
+        app.emit('close');
+
+        done();
+    });
+
     it('should get recipe list', (done) => {
 
-       request(app)
+       return request(app)
            .get('/recipe')
            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
            .expect(200)
            .expect((res) => {
-                expect(Array.isArray(res.body)).toBe(true)
+                expect(res.body).toBeArray();
            })
            .end(done);
 
@@ -85,12 +91,12 @@ describe('Recipe', () => {
 
     it('should get recipe week list', (done) => {
 
-        request(app)
+        return request(app)
             .get('/recipe/week')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .expect((res) => {
-                expect(res.body.length).toBe(1);
+                expect(res.body).toBeArray();
             })
             .end(done)
 
@@ -98,8 +104,9 @@ describe('Recipe', () => {
 
     it('should load recipe by passing an Id', (done) => {
 
-        Recipe.findOne({name : recipes[0].name})
+        return Recipe.findOne()
             .then(rec => {
+                console.log(`Recipe resource by passing id: ${rec}`);
 
                 request(app)
                     .get('/recipe/' + rec._id)
@@ -115,14 +122,14 @@ describe('Recipe', () => {
 
         let name = 'rec_spec_post';
 
-        Recipe.remove({name}).then( () => {
+        return Recipe.remove({name}).then( () => {
             request(app)
                 .post('/recipe')
                 .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
                 .send({'name' : name})
                 .expect(201)
                 .expect((res) => {
-                    expect(res.body).toIncludeKey('_id');
+                    expect(res.body).toContainKey('_id');
                     let id = res.body._id;
 
                     Recipe.findOne({_id: id})
@@ -139,7 +146,7 @@ describe('Recipe', () => {
 
     it("should fail to create a recipe, empty name", (done) => {
 
-        request(app)
+        return request(app)
             .post('/recipe')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
@@ -147,10 +154,10 @@ describe('Recipe', () => {
 
                 if (err) return done(err);
 
-                Recipe.find({})
+                Recipe.findOne()
                     .then( () => {
 
-                        expect(res.body).toIncludeKeys(['message', 'errors', 'name']);
+                        expect(res.body).toContainKeys(['message', 'errors', 'name']);
                         done();
 
                     }).catch((reason) => {
@@ -162,22 +169,27 @@ describe('Recipe', () => {
 
     it("should fail to create a duplicate recipe", (done) => {
 
-        request(app)
-            .post('/recipe')
-            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
-            .send({name : recipes[0].name})
-            .expect(400)
-            .expect((res) => {
-                expect(res.body.message).toInclude('duplicate key error')
-            }).end(done)
+        return Recipe.findOne()
+            .then(rec => {
+                console.log(`Recipe resource for duplicate: ${rec}`);
+                request(app)
+                    .post('/recipe')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
+                    .send({name : rec.name})
+                    .expect(400)
+                    .expect((res) => {
+                        expect(res.body.message).toInclude('duplicate key error')
+                    }).end(done)
+            });
     });
 
     it("should update a recipe", (done) => {
 
         let nameTestUpdate = 'from_recipe_testnameUpdate';
 
-        Recipe.findOne({name: recipes[1].name})
+        return Recipe.findOne()
             .then(rec => {
+                console.log(`Recipe resource for update: ${rec}`);
 
                 request(app)
                     .put('/recipe')
@@ -207,7 +219,7 @@ describe('Recipe', () => {
 
         let name = recipes[0].name;
 
-        Recipe.findOne({name})
+        return Recipe.findOne({name})
             .then((docFindOne) => {
 
                 request(app)
@@ -220,11 +232,11 @@ describe('Recipe', () => {
 
                         let recipe = res.body;
 
-                        expect(recipe.categories.length).toBe(1);
+                        expect(recipe.categories.length).toBeArrayOfSize(1);
 
                         recipe.categories.forEach(category => {
 
-                            expect(category.ingredients.length > 0).toBe(true);
+                            expect(category.ingredients).toSatisfy(n => n > 0);
 
                         });
 
@@ -235,9 +247,9 @@ describe('Recipe', () => {
 
     it("should link recipe to categories/ingredients and return it populated", (done) => {
 
-        let name = recipes[0].name;
-
-        Recipe.findOne({name}).then(() => {
+        return Recipe.findOne().then((recipe) => {
+            console.log(`Recipe resource to categories/ingredients: ${recipe}`);
+            const name = recipe.name;
 
             //same recipe name
             IngredientRecipeAttributes.findOne({name}).then(attr => {
@@ -311,7 +323,7 @@ describe('Recipe', () => {
 
     it("should load all ingredients and current attributes of a recipe", done => {
 
-        Recipe.findOne({name: recipes[0].name}).then(rec => {
+        return Recipe.findOne({name: recipes[0].name}).then(rec => {
 
             request(app)
                 .get('/recipe/category/currentAttribute/'+rec._id)
@@ -340,15 +352,14 @@ describe('Recipe', () => {
 
     it("should delete a recipe", (done) => {
 
-        let name = recipes[0].name;
-
-        Recipe.findOne({name})
+        return Recipe.findOne()
             .then((doc) => {
+                console.log(`Recipe resource for deletion: ${doc}`);
+                const name = doc.name;
                 request(app)
-                    .delete('/recipe')
+                    .delete('/v2/recipe/'+doc._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
-                    .send({_id : doc._id})
-                    .expect(204)
+                    .expect(200)
                     .expect((res) => {
                         Recipe.findOne({name})
                             .then(result => {

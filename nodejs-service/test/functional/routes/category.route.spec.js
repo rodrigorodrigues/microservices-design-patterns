@@ -37,8 +37,14 @@ describe("Category", () => {
         done();
     });
 
-    test("should return 403 when calling api with not valid role", (done) => {
-        request(app)
+    afterAll(async done => {
+        app.emit('close');
+
+        done();
+    });
+
+    it("should return 403 when calling api with not valid role", (done) => {
+        return request(app)
             .get('/v2/category')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_TEST'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(403)
@@ -46,7 +52,7 @@ describe("Category", () => {
     });
     
 
-    test("should get category list", (done) => {
+    it("should get category list", (done) => {
         /* // How to use nock?
         nock('http://localhost:8888')
         .get(/\/week-menu-api\/(.*?)/)
@@ -59,21 +65,23 @@ describe("Category", () => {
             }
             },
         });*/
-        request(app)
+        return request(app)
             .get('/v2/category')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
             .expect(res => {
-                expect(res.body).toEqual(expect.toBeArray())
+                expect(res.body).toBeArray()
             })
             .end(done);
     });
 
-    it("should get category list and ingredient marked", (done) => {
+    it("should get category list and ingredient marked", async (done) => {
 
         let testPassed = false;
 
-        IngredientRecipeAttributes.findOne()
+        const count = await IngredientRecipeAttributes.count();
+        console.log(`Count of IngredientRecipeAttributes: ${count}`);
+        return IngredientRecipeAttributes.findOne()
             .then((attr) => {
 
                 Recipe.findOne().then(recipe => {
@@ -114,8 +122,9 @@ describe("Category", () => {
 
     it('should load category by passing an Id', (done) => {
 
-        Category.findOne()
+        return Category.findOne()
             .then(doc => {
+                console.log(`Category Resource: ${doc}`);
                 request(app)
                     .get('/v2/category/' + doc._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -131,8 +140,9 @@ describe("Category", () => {
 
         let name = 'new cat';
 
-        Recipe.findOne()
+        return Recipe.findOne()
             .then(recipe => {
+                console.log(`Recipe Resource: ${recipe}`);
                 request(app)
                     .post('/v2/category')
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -164,14 +174,14 @@ describe("Category", () => {
 
     it("should fail to save/post a category", (done) => {
 
-        request(app)
+        return request(app)
             .post('/v2/category')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
             .expect((res) => {
                 expect(res.body).toIncludeKeys(['message', 'errors', 'name']);
 
-                Category.find({})
+                Category.findOne()
                     .then((docs) => {
 
                         expect(docs.length).toBe(2);
@@ -186,7 +196,7 @@ describe("Category", () => {
 
     it("should fail to save/post a duplicate category", (done) => {
 
-        request(app)
+        return request(app)
             .post('/v2/category')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .send({name : categoryNames[0]})
@@ -201,8 +211,9 @@ describe("Category", () => {
         //update date
         let nameTestUpdate = categoryNames[0];
 
-        Category.findOne()
+        return Category.findOne()
             .then(doc => {
+                console.log(`Category Resource for Update: ${doc}`);
 
                 nameTestUpdate += 'updateName';
 
@@ -230,14 +241,14 @@ describe("Category", () => {
 
     it("should delete a category", (done) => {
 
-        Category.findOne()
+        return Category.findOne()
             .then((category) => {
+                console.log(`Category Resource for Deletion: ${category}`);
 
                 request(app)
-                    .delete('/v2/category')
+                    .delete('/v2/category/'+category._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
-                    .send({_id : category._id})
-                    .expect(204)
+                    .expect(200)
                     .end((err, res) => {
 
                         if(err) {
@@ -261,7 +272,7 @@ describe("Category", () => {
     it("should get category along ingredient populated", (done) => {
 
         //FIXME review test
-        request(app)
+        return request(app)
             .get('/v2/category')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
@@ -288,7 +299,7 @@ describe("Category", () => {
 
     it("should get category/ingredient for the shopping week", (done) => {
 
-        request(app)
+        return request(app)
             .get('/v2/category/week/shopping')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
