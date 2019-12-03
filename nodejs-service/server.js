@@ -40,15 +40,9 @@ const {
     swaggerEnabled, 
     springConfigEnabled } = loadEnvVariables();
 
-// Eureka configuration
-if (eurekaEnabled === true) {
-    loadEureka();
-}
-
-// Spring Cloud Config
-if (springConfigEnabled === true) {
-    var { springCloudConfig, configOptions } = loadSpringCloudConfig();
-}
+if (process.env.NODE_ENV !== 'test') {
+    app.emit('ready');
+}    
 
 app.use(bodyParser.json());
 // Create application/x-www-form-urlencoded parser
@@ -83,6 +77,38 @@ app.use('/v2', category2Router);
 app.use('/v2', recipe2Router);
 app.use('/v2', shoppingListRouter);
 
+let server;
+app.on('ready', function() {
+    server = app.listen(port, () => {
+        console.log("Application started. Listening on port:" + port);
+        if (springConfigEnabled === true) {
+            loadSecretKey();
+        } else {
+            secretKey = process.env.SECRET_TOKEN;
+            console.log(`Using secretKey from env: ${secretKey}`);
+        }
+        if (swaggerEnabled === true) {
+            generateSwaggerJsonFile();
+        }
+    });
+});
+
+app.on('close', function() {
+    if (server) {
+        server.close();
+    }
+});
+
+// Eureka configuration
+if (eurekaEnabled === true) {
+    loadEureka();
+}
+
+// Spring Cloud Config
+if (springConfigEnabled === true) {
+    var { springCloudConfig, configOptions } = loadSpringCloudConfig();
+}
+
 // Spring Boot Actuator
 loadActuator();
 
@@ -111,37 +137,19 @@ db.connection.once('open', () => {
     if (restoreMongoDb) {
         console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_URI);
         if (process.env.NODE_ENV !== 'test') {
-            db.connection.db.dropCollection('categories');
-            db.connection.db.dropCollection('ingredients');
-            db.connection.db.dropCollection('recipe2');
-            db.connection.db.dropCollection('recipes');
-            db.connection.db.dropCollection('shoppinglists');
+            try {
+                db.connection.db.dropCollection('categories');
+                db.connection.db.dropCollection('ingredients');
+                db.connection.db.dropCollection('recipe2');
+                db.connection.db.dropCollection('recipes');
+                db.connection.db.dropCollection('shoppinglists');
+            } catch (err) {
+                console.error(err.stack);
+            }
         }
         restoreBackup();
     }
     app.emit('ready');
-});
-
-let server;
-app.on('ready', function() {
-    server = app.listen(port, () => {
-        console.log("Application started. Listening on port:" + port);
-        if (springConfigEnabled === true) {
-            loadSecretKey();
-        } else {
-            secretKey = process.env.SECRET_TOKEN;
-            console.log(`Using secretKey from env: ${secretKey}`);
-        }
-        if (swaggerEnabled === true) {
-            generateSwaggerJsonFile();
-        }
-    });
-});
-
-app.on('close', function() {
-    if (server) {
-        server.close();
-    }
 });
 
 function loadSleuth() {
@@ -265,7 +273,7 @@ function loadEnvVariables() {
     console.log("eurekaEnabled: ", eurekaEnabled);
     console.log("swaggerEnabled: ", swaggerEnabled);
     console.log("springConfigEnabled: ", springConfigEnabled);
-    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath, swaggerEnabled, springConfigEnabled };
+    return { hostName, ipAddr, eurekaServer, eurekaServerPath, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaEnabled, swaggerEnabled, springConfigEnabled };
 }
 
 function loadSpringCloudConfig() {

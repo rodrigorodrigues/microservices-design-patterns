@@ -222,7 +222,7 @@ describe("Ingredient", () => {
                 if(err)
                     return done(err);
 
-                expect(res.body).toIncludeKeys(['message', 'errors', 'name']);
+                expect(res.body).toContainKeys(['message', 'errors', 'name']);
 
                 Ingredient.findOne()
                     .then((docs) => {

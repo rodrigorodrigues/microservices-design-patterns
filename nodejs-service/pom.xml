@@ -62,7 +62,7 @@
                   <phase>install</phase>
 
                   <configuration>
-                      <arguments>test</arguments>
+                      <arguments>--silent test</arguments>
                   </configuration>
               </execution>              
             </executions>

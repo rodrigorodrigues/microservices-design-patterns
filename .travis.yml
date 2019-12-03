@@ -50,4 +50,3 @@ script: echo "Continuous Integration/Deployment for Commit ID($COMMIT_ID) from A
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-#- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ./deploy.sh; fi

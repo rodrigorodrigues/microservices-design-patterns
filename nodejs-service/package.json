@@ -36,7 +36,6 @@
         "spring-cloud-config": "2.0.0",
         "swagger-jsdoc": "3.4.0",
         "swagger-tools": "0.10.4",
-        "test": "^0.6.0",
         "zipkin": "0.16.2",
         "zipkin-context-cls": "0.16.0",
         "zipkin-instrumentation-express": "0.16.2",
