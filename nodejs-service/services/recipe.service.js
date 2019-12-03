@@ -49,6 +49,12 @@ const RecipeService = () => {
                 .then(recipe => recipe)
                 .catch(reason => Promise
                     .reject(CustomValidation.messageValidation(reason)));
+        },
+        deleteById(id) {
+            return Recipe2
+            .findByIdAndRemove(id)
+            .then(recipe => recipe)
+            .catch(reason => Promise.reject(reason));
         }
     }
 }
