@@ -59,9 +59,9 @@ describe("Ingredient", () => {
         done();
     });
 
-    it("should get ingredient list", async done => {
+    it("should get ingredient list", (done) => {
 
-        await request(app)
+        return request(app)
             .get('/ingredient')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(200)
@@ -71,13 +71,13 @@ describe("Ingredient", () => {
             .end(done);
     });
 
-    it('should load ingredient by passing an Id', async done => {
+    it('should load ingredient by passing an Id', (done) => {
 
         const ingredient = new Ingredient({
             name : ingredientNames[2],
         });
 
-        await ingredient.save()
+        return ingredient.save()
             .then((doc) => {
                 request(app)
                     .get('/ingredient/' + doc._id)
@@ -89,9 +89,9 @@ describe("Ingredient", () => {
             }).catch(err => done(err));
     });
 
-    it('should load ingredient/attributes', async done => {
+    it('should load ingredient/attributes', (done) => {
 
-        await loadIdsToRecAttributes()
+        return loadIdsToRecAttributes()
             .then( result => {
 
                 request(app)
@@ -109,12 +109,12 @@ describe("Ingredient", () => {
             });
     });
 
-    it("should save a ingredient", async done => {
+    it("should save a ingredient", (done) => {
 
-        await Category.find({})
+        return Category.findOne()
             .then( (docs) => {
 
-                let categoryId = docs[0]._id;
+                let categoryId = docs._id;
 
                 findRecipe()
                     .then( recipeId => {
@@ -150,7 +150,7 @@ describe("Ingredient", () => {
                 function findRecipe() {
                     let deferred = Q.defer();
 
-                    Recipe.find({})
+                    Recipe.findOne()
                         .then(recipes => {
 
                             let recipeId = recipes[0]._id;
@@ -211,9 +211,9 @@ describe("Ingredient", () => {
             });
     });
 
-    it("should fail to save/post a ingredient", async done => {
+    it("should fail to save/post a ingredient", (done) => {
 
-        await request(app)
+        return request(app)
             .post('/ingredient')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .expect(400)
@@ -224,7 +224,7 @@ describe("Ingredient", () => {
 
                 expect(res.body).toIncludeKeys(['message', 'errors', 'name']);
 
-                Ingredient.find({})
+                Ingredient.findOne()
                     .then((docs) => {
 
                         expect(docs.length).toBe(2);
@@ -239,7 +239,7 @@ describe("Ingredient", () => {
 
     it("should fail to save/post a duplicate ingredient", (done) => {
 
-        Ingredient.findOne({name: ingredientNames[1]})
+        return Ingredient.findOne()
             .then(ingredient => {
 
                 getAttribute(ingredient);
@@ -247,7 +247,7 @@ describe("Ingredient", () => {
 
         function getAttribute(ingredient) {
 
-            IngredientRecipeAttributes.findOne({name: attributeName})
+            IngredientRecipeAttributes.findOne({name: ingredient.name})
                 .then(attribute => {
                     let result = {
                         attribute,
@@ -287,7 +287,7 @@ describe("Ingredient", () => {
 
     it("should fail to save/post missing category ID", (done) => {
 
-        request(app)
+        return request(app)
             .post('/ingredient')
             .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
             .send({ingredient: {name : ingredientNames[4]}})
@@ -300,9 +300,9 @@ describe("Ingredient", () => {
 
     it("should UPDATE a ingredient", (done) => {
 
-       Ingredient.findOne({name: ingredientNames[1]})
+       return Ingredient.findOne()
            .then(ingredient => {
-               IngredientRecipeAttributes.findOne({name: attributeName})
+               IngredientRecipeAttributes.findOne()
                .then(attribute => {
 
                    let updatedName = "new Name from ingredient";
@@ -340,12 +340,10 @@ describe("Ingredient", () => {
 
         //save first to make sure it will update
 
-        Ingredient.find({})
-            .then((docs) => {
+        return Ingredient.findOne()
+            .then((ingredient) => {
 
-                let ingredient = docs[0];
-
-                Recipe.find({})
+                Recipe.findOne()
                     .then((recs) => {
 
                         let recipeId = recs[0]._id;
@@ -397,8 +395,12 @@ describe("Ingredient", () => {
 
     it("should update attribute of a ingredient/recipe", done =>{
 
-        IngredientRecipeAttributes.findOne({name: attributeName})
+        return IngredientRecipeAttributes.findOne()
             .then(attribute => {
+
+                if (!attribute) {
+                    return done();
+                }
 
                 request(app)
                     .put('/ingredient/attribute')
@@ -421,8 +423,12 @@ describe("Ingredient", () => {
 
     it("should update attribute list of a ingredient/recipe", done =>{
 
-        IngredientRecipeAttributes.findOne({name: attributeName})
+        return IngredientRecipeAttributes.findOne()
             .then(attribute => {
+
+                if (!attribute) {
+                    return done();
+                }
 
                 request(app)
                     .put('/ingredient/attribute/many')
@@ -445,10 +451,9 @@ describe("Ingredient", () => {
 
     it("should delete a ingredient", (done) => {
 
-        let name = ingredientNames[0];
-
-        Ingredient.findOne({name})
+        return Ingredient.findOne()
             .then((doc) => {
+                console.log(`Ingredient resource for deletion: ${doc}`);
                 request(app)
                     .delete('/ingredient')
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -456,7 +461,7 @@ describe("Ingredient", () => {
                     .expect(204)
                     .expect((res) => {
 
-                        Ingredient.findOne({name})
+                        Ingredient.findOne()
                             .then((doc) => {
                                 expect(doc).toBe(null);
                             }).catch((reason) => {
@@ -476,12 +481,14 @@ describe("Ingredient", () => {
             ingredientId: ''
         }
 
-        IngredientRecipeAttributes.find({})
+        IngredientRecipeAttributes.findOne()
             .then( recs => {
-                result.recipeId = recs[0].recipeId;
-                result.ingredientId = recs[0].ingredientId
+                if (recs) {
+                    result.recipeId = recs[0].recipeId;
+                    result.ingredientId = recs[0].ingredientId
 
-                promise.resolve(result);
+                    promise.resolve(result);
+                }
 
             }).catch((reason) => {
                 console.error(reason)

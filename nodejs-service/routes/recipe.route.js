@@ -74,6 +74,10 @@ router.get("/recipe/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_REA
         .populate('categories')
         .then((populated) => {
 
+            if (!populated) {
+                return utility.handleResponse(response, populated, 200);
+            }
+
             const options = {
                 path: 'categories.ingredients',
                 model: 'Ingredient',
@@ -157,17 +161,22 @@ router.get("/recipe/category/currentAttribute/:id", guard.check(['ROLE_ADMIN'], 
                     Recipe.populate(recipeDeepPopulated, options2)
                         .then(level3 => {
 
-                            //console.log("Before filter", level3.categories)
+                            if (level3 && level3.categories) {
 
-                            level3.categories.forEach(cat => {
+                                //console.log("Before filter", level3.categories)
 
-                                cat.ingredients = cat.ingredients.filter(ing => ing.attributes.length > 0);
-                            });
+                                level3.categories.forEach(cat => {
 
-                            level3.categories = level3.categories.filter(cat => cat.ingredients.length > 0);
+                                    cat.ingredients = cat.ingredients.filter(ing => ing.attributes.length > 0);
+                                });
+
+                                level3.categories = level3.categories.filter(cat => cat.ingredients.length > 0);
+
+                            }
 
                             // console.log("deep docSaved", level3.categories);
                             utility.handleResponse(response, level3, 200);
+                            
                         })
 
                 }).catch( (reason) => {

@@ -19,7 +19,7 @@ const {_} = require('lodash');
 const {STATUS} = require('../constants/status.code');
 const checkPermissionRoute = require('./checkPermissionRoute');
 
-router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
+router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE'], ['ROLE_INGREDIENT_DELETE']), (request, response, next) => {
 
     Ingredient.find()
         .sort({'name': 1})
