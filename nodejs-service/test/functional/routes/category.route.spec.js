@@ -80,7 +80,6 @@ describe("Category", () => {
         let testPassed = false;
 
         const count = await IngredientRecipeAttributes.count();
-        console.log(`Count of IngredientRecipeAttributes: ${count}`);
         if (count == 0) {
             return done();
         }
@@ -127,7 +126,6 @@ describe("Category", () => {
 
         return Category.findOne()
             .then(doc => {
-                console.log(`Category Resource: ${doc}`);
                 request(app)
                     .get('/v2/category/' + doc._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -145,7 +143,6 @@ describe("Category", () => {
 
         return Recipe2.findOne()
             .then(recipe => {
-                console.log(`Recipe Resource: ${recipe}`);
                 request(app)
                     .post('/v2/category')
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -199,19 +196,19 @@ describe("Category", () => {
 
     });
 
-    it("should fail to save/post a duplicate category", async (done) => {
+    it("should fail to save/post a duplicate category", (done) => {
 
-        const existingCategoryName = await Category.findOne().then(cat => cat.name);
-        console.log(`Existing category: ${existingCategoryName}`);
-
-        return request(app)
-            .post('/v2/category')
-            .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
-            .send({name : existingCategoryName})
-            .expect(400)
-            .expect((res) => {
-                expect(res.body.message).toInclude('duplicate key error')
-            }).end(done)
+        return Category.findOne()
+            .then(cat => {
+                request(app)
+                    .post('/v2/category')
+                    .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
+                    .send({name : cat.name})
+                    .expect(400)
+                    .expect((res) => {
+                        expect(res.body.message).toInclude('This product already exist');
+                    }).end(done)
+            });
     });
 
     it("should update a category", (done) => {
@@ -221,8 +218,6 @@ describe("Category", () => {
 
         return Category.findOne()
             .then(doc => {
-                console.log(`Category Resource for Update: ${doc}`);
-
                 nameTestUpdate += 'updateName';
 
                 request(app)
@@ -251,8 +246,6 @@ describe("Category", () => {
 
         return Category.findOne()
             .then((category) => {
-                console.log(`Category Resource for Deletion: ${category}`);
-
                 request(app)
                     .delete('/v2/category/'+category._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -288,11 +281,9 @@ describe("Category", () => {
 
                 if(err) throw err
 
-                let categories = res.body;
+                const categories = res.body.filter(cat => cat.ingredients !== undefined && cat.ingredients.length > 0);
 
-                categories = categories.filter(cat => cat.ingredients !== undefined);
-
-                if (categories) {
+                if (categories.length > 0) {
 
                     let temp = 0;
                     categories.forEach( (cat) => {
@@ -327,13 +318,14 @@ describe("Category", () => {
 
                 categories.forEach( (cat) => {
 
-                    cat.ingredients.forEach(ingredient => {
+                    if (cat.ingredients) {
+                        cat.ingredients.forEach(ingredient => {
 
-                        ingredient.attributes.forEach(attr => {
-                           expect(attr.itemSelectedForShopping).toBe(true);
+                            ingredient.attributes.forEach(attr => {
+                            expect(attr.itemSelectedForShopping).toBe(true);
+                            });
                         });
-                        //console.log("ingredient", ingredient.attributes)
-                    });
+                    }
 
                     if(--contLoopEnd === 0) {
                         done();

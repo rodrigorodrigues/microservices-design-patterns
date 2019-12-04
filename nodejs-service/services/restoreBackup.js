@@ -5,6 +5,7 @@ const recipeFile = require('../db_backup/recipes.json');
 const attrsFile = require('../db_backup/attributes.json');
 const { Recipe2 } = require('../models/recipe2.model');
 const { Category } = require('../models/category.model');
+const { Ingredient } = require('../models/ingredient.model');
 
 function restoreBackup() {
     const recipes = JSON.parse(JSON.stringify(recipeFile));
@@ -47,7 +48,22 @@ function restoreBackup() {
             });
             recipeModel.save();
         });
-    }).then(() => {
+    })
+    .then(Ingredient.remove({}).then(() => {
+        // INGREDIENTS
+        ingreds.forEach(ingredient => {
+            console.debug('-----------------------------Ingredient: ', ingredient.name);
+
+            const ingredientModel = new Ingredient({
+                name: ingredient.name,
+                insertDate: new Date(),
+                checkedInCartShopping: ingredient.checkedInCartShopping,
+                tempRecipeLinkIndicator: ingredient.tempRecipeLinkIndicator
+            });
+            ingredientModel.save();
+        });
+    }))
+    .then(() => {
         //console.debug("cats: ", cats);
         cats.forEach(c => {
             console.debug('-----------------------------Category: ', c.name);

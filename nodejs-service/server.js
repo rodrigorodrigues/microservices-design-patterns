@@ -54,10 +54,6 @@ app.options('*', cors());
 
 app.use(function (req, res, next) {
 
-    console.log("Request body: ", req.body);
-    console.log("Request METHOD: ", req.method);
-    console.log("Request resource: ", req.path);
-    
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
     } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
@@ -200,8 +196,6 @@ function generateSwaggerJsonFile() {
     request.get(`http://localhost:${port}/api-docs.json`, function(error, response, body) {
         var fs = require('fs');
 
-        console.log("body", body);
-
         fs.writeFileSync("/tmp/swagger.json", body)
 
         loadSwaggerUI();
@@ -212,7 +206,6 @@ function loadSwaggerUI() {
     var initializeSwagger = require('swagger-tools').initializeMiddleware;
 
     const swaggerDoc = require('/tmp/swagger.json');
-    console.log("swaggerDoc", swaggerDoc);
 
     // Initialize the Swagger middleware
     initializeSwagger(swaggerDoc, function (middleware) {
@@ -351,24 +344,19 @@ function loadZipkin() {
 }
 
 function loadSecretKey() {
-    console.log("Loading secretKey");
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
-        console.log("Spring Config response", config);
         secretKey = config.configuration.jwt['base64-secret'];
         if (secretKey === "" || secretKey === null || secretKey === undefined) {
             const pathPublicKey = process.env.PATH_PUBLIC_KEY;
-            console.log("pathPublicKey: ", pathPublicKey);
             var fs = require('fs');
             secretKey = fs.readFileSync(pathPublicKey);
         } 
-        console.log("SecretKey: ", secretKey);
     }).catch(err => console.error(err.stack));
 }
 
 function validateJwt(req, res, next) {
     try {
-        console.log("Headers", req.headers);
         let token = req.headers.authorization;
         if (!token) {
             throw Error("Token Not found");
@@ -382,10 +370,8 @@ function validateJwt(req, res, next) {
         token = token.replace("Bearer ", "");
         jwt.verify(token, Buffer.from(secretKey, 'base64'), function(err, decoded) {
             if (err) {
-                console.log(`Token with error!: ${err}`);
                 throw Error(err);
             } else {
-                console.log(`Token is valid!: ${decoded}`);
                 req.user = decoded;
             }
         });

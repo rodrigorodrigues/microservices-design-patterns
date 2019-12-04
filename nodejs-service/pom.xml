@@ -59,10 +59,10 @@
                       <goal>npm</goal>
                   </goals>
 
-                  <phase>install</phase>
+                  <phase>generate-resources</phase>
 
                   <configuration>
-                      <arguments>--silent test</arguments>
+                      <arguments>test</arguments>
                   </configuration>
               </execution>              
             </executions>

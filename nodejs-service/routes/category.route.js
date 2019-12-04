@@ -160,6 +160,9 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
             options: { sort: { name: 1 } }
         })
         .then((docs) => {
+            if (!docs) {
+                return handleResponse(response, docs, 200);
+            }
 
             const options = {
                 path: 'ingredients.attributes',
@@ -169,15 +172,18 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
             };
 
             Category.populate(docs, options).then(deep => {
-
                 let categories = deep.filter(category => {
 
-                    //filter based on the query above, if there didn't match any attribute the array is 0
-                    let ingredients = category.ingredients.filter(ingredient => ingredient.attributes.length > 0);
+                    if (category.ingredients) {
 
-                    category.ingredients = ingredients;
+                        //filter based on the query above, if there didn't match any attribute the array is 0
+                        let ingredients = category.ingredients.filter(ingredient => ingredient.attributes.length > 0);
 
-                    return category.ingredients.length > 0;
+                        category.ingredients = ingredients;
+
+                        return category.ingredients.length > 0;
+
+                    }
 
                 });
 
@@ -185,9 +191,13 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
                 // categories = categories.filter(cat => {
                 //     return cat.recipes.length > 0;
                 // });
+                if (categories.length > 0) {
+                    console.log(`categories for week shopping: ${categories}`);
 
-
-                handleResponse(response, categories, 200);
+                    handleResponse(response, categories, 200);
+                } else {
+                    handleResponse(response, docs, 200);
+                }
             }).catch(reason => wmHandleError(response, reason));
         }, (reason) => {
             wmHandleError(response, reason);

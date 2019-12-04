@@ -86,8 +86,6 @@ describe('Recipe', () => {
 
         return Recipe2.findOne()
             .then(rec => {
-                console.log(`Recipe resource by passing id: ${rec}`);
-
                 request(app)
                     .get('/v2/recipe/' + rec._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -151,7 +149,6 @@ describe('Recipe', () => {
 
         return Recipe2.findOne()
             .then(rec => {
-                console.log(`Recipe resource for duplicate: ${rec}`);
                 request(app)
                     .post('/v2/recipe')
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -168,12 +165,9 @@ describe('Recipe', () => {
         let nameTestUpdate = 'from_recipe_testnameUpdate';
 
         const category = await Category.findOne();
-        console.log(`Category resource for update recipe: ${category}`);
 
         return Recipe2.findOne()
             .then(rec => {
-                console.log(`Recipe resource for update: ${rec}`);
-
                 request(app)
                     .put('/v2/recipe')
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -202,8 +196,6 @@ describe('Recipe', () => {
 
         return Recipe2.findOne()
             .then((docFindOne) => {
-                console.log(`Recipe resource for ingredients along categories: ${docFindOne}`);
-
                 request(app)
                     .get('/recipe/category/'+ docFindOne._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -234,7 +226,6 @@ describe('Recipe', () => {
     it("should link recipe to categories/ingredients and return it populated", (done) => {
 
         return Recipe2.findOne().then((recipe) => {
-            console.log(`Recipe resource to categories/ingredients: ${recipe}`);
             const name = recipe.name;
 
             //same recipe name
@@ -314,8 +305,6 @@ describe('Recipe', () => {
     it("should load all ingredients and current attributes of a recipe", done => {
 
         return Recipe2.findOne().then(rec => {
-            console.log(`Recipe Resource for load all ingredients and current attributes: ${rec}`);
-
             request(app)
                 .get('/recipe/category/currentAttribute/'+rec._id)
                 .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))
@@ -347,8 +336,6 @@ describe('Recipe', () => {
 
         return Recipe2.findOne()
             .then((doc) => {
-                console.log(`Recipe resource for deletion: ${doc}`);
-                const name = doc.name;
                 request(app)
                     .delete('/v2/recipe/'+doc._id)
                     .set('Authorization', 'Bearer ' + jwt.sign({ user: 'Test', authorities: ['ROLE_ADMIN'] }, Buffer.from(process.env.SECRET_TOKEN, 'base64'), { expiresIn: '1h' }))

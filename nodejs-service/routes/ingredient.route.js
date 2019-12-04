@@ -19,6 +19,89 @@ const {_} = require('lodash');
 const {STATUS} = require('../constants/status.code');
 const checkPermissionRoute = require('./checkPermissionRoute');
 
+/**
+ * @swagger
+ *
+ * definitions:
+ *   Ingredient:
+ *     type: object
+ *     required:
+ *       - name
+ *       - insertDate
+ *     properties:
+ *       name:
+ *         type: string
+ *       insertDate:
+ *         type: string
+ *         format: date
+ *       updateDate:
+ *         type: string
+ *         format: date
+ *       categoryName:
+ *         type: string
+ *         minLength: 1
+ *       expiryDate:
+ *         type: string
+ *         format: date
+ *       updateCheckDate:
+ *         type: string
+ *         format: date
+ *       checkedInCartShopping:
+ *         type: boolean
+ *       tempRecipeLinkIndicator:
+ *         type: boolean
+ *       attributes:
+ *         $ref: '#/definitions/IngredientRecipeAttributes'
+ *   IngredientRecipeAttributes:
+ *     type: object
+ *     required:
+ *       - name
+ *       - ingredientId
+ *       - recipeId
+ *     properties:
+ *       name:
+ *         type: string
+ *       labelQuantity:
+ *         type: string
+ *       quantity:
+ *         type: number
+ *       itemSelectedForShopping:
+ *         type: boolean
+ *       ingredientId:
+ *         type: integer
+ *       recipeId:
+ *         type: integer
+ *       checkedInCartShopping:
+ *         type: boolean
+ *       isRecipeLinkedToCategory:
+ *         type: boolean
+*/
+
+/**
+ * @swagger
+ * /ingredient:
+ *   get:
+ *     description: Return Ingredients
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: ingredients
+ *         schema:
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE'], ['ROLE_INGREDIENT_DELETE']), (request, response, next) => {
 
     Ingredient.find()
@@ -31,6 +114,36 @@ router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE']
 
 });
 
+/**
+ * @swagger
+ * /ingredient/{id}:
+ *   get:
+ *     description: Return Ingredient by id
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: id
+ *        in: path
+ *        description: id
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: return ingredient by id
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logOnRoutes("ingredient name", request.params.id);
@@ -45,6 +158,41 @@ router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ
 
 });
 
+/**
+ * @swagger
+ * /ingredient/recipe/{ingredientId}/{recipeId}:
+ *   get:
+ *     description: Return Ingredients for Recipe by Ingredient id and Recipe id
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: ingredientId
+ *        in: path
+ *        description: ingredient id
+ *        required: true
+ *        type: string
+ *      - name: recipeId
+ *        in: path
+ *        description: recipe id
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: return ingredients for Recipe by Ingredient id and Recipe id
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/IngredientRecipeAttributes'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logOnRoutes("params", request.params.ingredientId);
@@ -77,6 +225,37 @@ router.get("/ingredient/recipe/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_IN
         });
 });
 
+/**
+ * @swagger
+ * /ingredient:
+ *   post:
+ *     description: Create Ingredient
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: CategoryDto
+ *        in: body
+ *        description: Create Ingredient
+ *        required: true
+ *        schema:
+ *          $ref: '#/definitions/Ingredient'
+ *     responses:
+ *       201:
+ *         description: create ingredient
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE']), (request, res, next) => {
 
     let recipeId = null;
@@ -218,6 +397,41 @@ router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'
 
 });
 
+/**
+ * @swagger
+ * /ingredient:
+ *   put:
+ *     description: Update Ingredient
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: CategoryDto
+ *        in: body
+ *        description: Update Ingredient
+ *        required: true
+ *        schema:
+ *          $ref: '#/definitions/Ingredient'
+ *     responses:
+ *       200:
+ *         description: update ingredient
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ *       204:
+ *         description: No Content
+ *       404:
+ *         description: Not Found
+ */
 router.put('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
     // ** Concept status ** use 204 No Content to indicate to the client that
     //... it doesn't need to change its current "document view".
@@ -335,9 +549,37 @@ router.put('/ingredient/attribute/many', guard.check(['ROLE_ADMIN'], ['ROLE_INGR
 
 });
 
-router.delete('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_DELETE']), (request, res, next) => {
+/**
+ * @swagger
+ * /ingredient/{id}:
+ *   delete:
+ *     description: Delete Ingredient
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: id
+ *        in: path
+ *        description: id
+ *        required: true
+ *        type: string
+ *     responses:
+ *       204:
+ *         description: Deleted Ingredient
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not Found
+ */
+router.delete('/ingredient/:id', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_DELETE']), (request, res, next) => {
 
-    Ingredient.findByIdAndRemove(request.body._id)
+    Ingredient.findByIdAndRemove(request.params.id)
         .then((doc) => {
             handleResponse(res, doc, 204);
         }, (reason) => {
