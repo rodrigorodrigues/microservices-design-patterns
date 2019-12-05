@@ -98,6 +98,7 @@ class CategoryList extends Component {
       const productName = category.products.map(product => product.name).join(", ");
       const productQuantities = category.products.map(product => ({name: product.name, quantity: product.quantity}));
       return <tr key={category._id}>
+        <th scope="row">{category._id}</th>
         <td style={{whiteSpace: 'nowrap'}}>{category.name}</td>
         <td style={{whiteSpace: 'nowrap'}}>{productName}</td>
         <td>{productQuantities}</td>

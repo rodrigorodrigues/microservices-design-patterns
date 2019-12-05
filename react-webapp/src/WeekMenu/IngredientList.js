@@ -12,13 +12,13 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 
-const recipeSwaggerUrl = process.env.REACT_APP_RECIPE_SWAGGER_URL;
+const categorySwaggerUrl = process.env.REACT_APP_CATEGORY_SWAGGER_URL;
 
-class RecipeList extends Component {
+class IngredientList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      recipes: [], 
+      ingredients: [], 
       isLoading: true, 
       jwt: props.jwt, 
       displayError: null,
@@ -28,6 +28,7 @@ class RecipeList extends Component {
       authorities: props.authorities
     };
     this.remove = this.remove.bind(this);
+    this.toggle = this.toggle.bind(this);
   }
 
   toggle(tab) {
@@ -42,35 +43,34 @@ class RecipeList extends Component {
     let permissions = this.state.authorities;
     if (jwt && permissions) {
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_RECIPE_READ' 
-      || item === 'ROLE_RECIPE_READ' || item === 'ROLE_RECIPE_CREATE' 
-      || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')) {
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_INGREDIENT_READ' 
+      || item === 'ROLE_INGREDIENT_READ' || item === 'ROLE_INGREDIENT_CREATE' 
+      || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
         try {
-          let data = await get('week-menu/v2/recipe', true, false, jwt)
+          let data = await get('week-menu/ingredient', true, false, jwt);
           if (data) {
             if (Array.isArray(data)) {
-              this.setState({isLoading: false, recipes: data, displaySwagger: true});
+              this.setState({isLoading: false, ingredients: data, displaySwagger: true});
             } else {
               this.setState({isLoading: false, displayError: errorMessage(data)});
             }
           }
         } catch (error) {
-          console.log("Error!");
-          this.setState({isLoading: false, displayError: errorMessage(error)});
+          this.setState({ displayError: errorMessage(error)});
         }
       }
     }
   }
 
-  async remove(recipe) {
-    let confirm = await confirmDialog(`Delete Recipe ${recipe.name}`, "Are you sure you want to delete this?", "Delete Recipe");
+  async remove(ingredient) {
+    let confirm = await confirmDialog(`Delete Ingredient ${ingredient.name}`, "Are you sure you want to delete this?", "Delete Ingredient");
     if (confirm) {
-      let id = recipe.id;
+      let id = ingredient.id;
       let jwt = this.state.jwt;
-      await fetch(`/api/week-menu/v2/recipe/${id}`, {
+      await fetch(`/api/week-menu/ingredient/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt
@@ -80,30 +80,28 @@ class RecipeList extends Component {
         if (err.status !== 200) {
           this.setState({displayError: errorMessage(err)});
         } else {
-          let recipes = [...this.state.recipes].filter(i => i._id !== id);
-          this.setState({recipes: recipes});
+          let ingredients = [...this.state.ingredients].filter(i => i._id !== id);
+          this.setState({ingredients: ingredients});
         }
       });
     }
   }
 
   render() {
-    const { recipes, isLoading, displayError, displayAlert, displaySwagger } = this.state;
+    const { ingredients, isLoading, displayError, displayAlert, displaySwagger } = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
     }
 
-    const recipeList = recipes.map(recipe => {
-      const categoryName = recipe.categories.map(category => category.name).join(", ");
-      return <tr key={recipe._id}>
-        <th scope="row">{recipe._id}</th>
-        <td style={{whiteSpace: 'nowrap'}}>{recipe.name}</td>
-        <td style={{whiteSpace: 'nowrap'}}>{categoryName}</td>
+    const ingredientList = ingredients.map(ingredient => {
+      return <tr key={ingredient._id}>
+        <th scope="row">{ingredient._id}</th>
+        <td style={{whiteSpace: 'nowrap'}}>{ingredient.name}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/recipes/" + recipe._id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({'id': recipe._id, 'name': recipe.name})}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/ingredients/" + ingredient._id}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': ingredient._id, 'name': ingredient.name})}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -121,7 +119,7 @@ class RecipeList extends Component {
             <NavLink
               className={classnames({ active: this.state.activeTab === '1' })}
               onClick={() => { this.toggle('1'); }}>
-              Recipes
+              Categories
             </NavLink>
           </NavItem>
           <NavItem>
@@ -135,7 +133,7 @@ class RecipeList extends Component {
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId="1">
             <div className="float-right">
-              <Button color="success" tag={Link} to="/recipes/new">Add Recipe</Button>
+              <Button color="success" tag={Link} to="/ingredients/new">Add Ingredient</Button>
             </div>
 
             <Table striped responsive>
@@ -143,17 +141,17 @@ class RecipeList extends Component {
               <tr>
                 <th>#</th>
                 <th>Name</th>
-                <th>Categories</th>
+                <th>Actions</th>
               </tr>
               </thead>
               <tbody>
-              {recipeList}
+              {ingredientList}
               </tbody>
             </Table>
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?
-              <Iframe url={`${recipeSwaggerUrl}`}
+              <Iframe url={`${categorySwaggerUrl}`}
                 position="absolute"
                 width="100%"
                 id="myId"
@@ -180,4 +178,4 @@ class RecipeList extends Component {
   }
 }
 
-export default withRouter(RecipeList);
+export default withRouter(IngredientList);
