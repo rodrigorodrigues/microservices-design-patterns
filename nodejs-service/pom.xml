@@ -25,6 +25,8 @@
                       <configuration>
                           <classifier>exec</classifier>
                           <layout>NONE</layout>
+                          <attach>false</attach>
+                          <skip>true</skip>
                       </configuration>
                   </execution>
               </executions>

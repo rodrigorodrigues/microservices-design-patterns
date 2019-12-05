@@ -1,3 +1,5 @@
+const log = require('../utils/log.message');
+
 const UtilService = {
     // TODO need to add these fields 
     addProps(paramObject) {
@@ -15,6 +17,31 @@ const UtilService = {
             return category;        
         })
         return result;
+    },
+    handleResponse(response, doc, status) {
+        log.logOnRoutes("Response Route ----");
+        log.logOnRoutes("Response doc", doc);
+        log.logOnRoutes("Response status", status);
+    
+        return response
+            .status(status)
+            .json(doc)
+            .end();
+    },
+    wmHandleError(res, reason) {
+        log.logOnRoutes("Response Bad Request Route ----");
+        log.logOnRoutes("Response reason", reason);
+
+        var errorResponse = {
+            message : reason.message,
+            name: reason.name,
+            errors: reason.errors
+        };
+    
+        return res
+            .status(400) //bad request
+            .send(errorResponse)
+            .end();
     }
 }
 module.exports = UtilService;

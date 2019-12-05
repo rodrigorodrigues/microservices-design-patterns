@@ -18,6 +18,7 @@ const {Recipe} = require('../models/recipe.model');
 const {_} = require('lodash');
 const {STATUS} = require('../constants/status.code');
 const checkPermissionRoute = require('./checkPermissionRoute');
+const UtilService = require('../services/util');
 
 /**
  * @swagger
@@ -107,9 +108,9 @@ router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE']
     Ingredient.find()
         .sort({'name': 1})
         .then((docs) => {
-            handleResponse(response, docs, 200);
+            UtilService.handleResponse(response, docs, 200);
         }, (reason) => {
-            wmHandleError(response, reason);
+            UtilService.wmHandleError(response, reason);
         });
 
 });
@@ -151,9 +152,9 @@ router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ
     Ingredient.findOne({_id: request.params.id})
         .then((doc) => {
 
-            handleResponse(res, doc, 200);
+            UtilService.handleResponse(res, doc, 200);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 
 });
@@ -203,9 +204,9 @@ router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMI
         recipeId:request.params.recipeId
     })
     .then((doc) => {
-       handleResponse(res, doc, 200);
+        UtilService.handleResponse(res, doc, 200);
     }, (reason) => {
-       wmHandleError(res, reason);
+        UtilService.wmHandleError(res, reason);
     });
 
 });
@@ -219,9 +220,9 @@ router.get("/ingredient/recipe/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_IN
         recipeId:request.params.recipeId
     }).then(doc => {
 
-            handleResponse(res, doc, 200);
+            UtilService.handleResponse(res, doc, 200);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 });
 
@@ -269,9 +270,9 @@ router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'
         .then(saveAttribute)
         .then(findCategoryAndAddToIt.bind(null, recipeId))
         .then(ingredient => {
-            handleResponse(res, ingredient, 201);
+            UtilService.handleResponse(res, ingredient, 201);
         }).catch((reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 
     function saveIngredient(ingredientCommand) {
@@ -452,17 +453,17 @@ router.put('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']),
             .then(findCategoryAndAddToIt.bind(null, recipeId))
             .then(doc => {
 
-                handleResponse(res, doc, 204);
+                UtilService.handleResponse(res, doc, 204);
             })
-            .catch(reason => wmHandleError(res, reason));
+            .catch(reason => UtilService.wmHandleError(res, reason));
 
     } else {
          updateIngredient(ingredientCommand)
              .then(resultChain => {
                 findCategoryAndAddToIt(recipeId, resultChain.ingredient)
-                    .then(doc =>  handleResponse(res, doc, 204));
+                    .then(doc =>  UtilService.handleResponse(res, doc, 204));
              })
-             .catch(reason => wmHandleError(res, reason));
+             .catch(reason => UtilService.wmHandleError(res, reason));
     }
 
 
@@ -521,8 +522,8 @@ router.put('/ingredient/attribute', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIEN
 
     IngredientRecipeAttributes.findOneAndUpdate({_id: attributeUpdate._id}, attributeUpdate)
         .then(doc => {
-            handleResponse(response, doc, 204);
-        }).catch(reason => wmHandleError(res, reason));
+            UtilService.handleResponse(response, doc, 204);
+        }).catch(reason => UtilService.wmHandleError(res, reason));
 });
 
 router.put('/ingredient/attribute/many', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, response, next) => {
@@ -540,10 +541,10 @@ router.put('/ingredient/attribute/many', guard.check(['ROLE_ADMIN'], ['ROLE_INGR
                 .then(doc => {
 
                     if(--asyncIteration === 0) {
-                        handleResponse(response, doc, 204);
+                        UtilService.handleResponse(response, doc, 204);
                     }
 
-                }).catch(reason => wmHandleError(response, reason));
+                }).catch(reason => UtilService.wmHandleError(response, reason));
         });
     }
 
@@ -581,9 +582,9 @@ router.delete('/ingredient/:id', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_D
 
     Ingredient.findByIdAndRemove(request.params.id)
         .then((doc) => {
-            handleResponse(res, doc, 204);
+            UtilService.handleResponse(res, doc, 204);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 });
 
@@ -652,33 +653,6 @@ function findCategoryAndAddToIt(recipeId, ingredient) {
         });
 
     return deferred.promise;
-}
-
-//TODO move to utils
-function handleResponse(response, doc, status) {
-
-    log.logOnRoutes("Response Ingredient Route ----");
-    log.logOnRoutes("Response doc", doc);
-
-    response
-        .status(status)
-        .json(doc)
-        .end();
-}
-
-//TODO move to utils and rename it
-function wmHandleError(res, reason) {
-
-    var errorResponse = {
-        message : reason.message,
-        name: reason.name,
-        errors: reason.errors
-    };
-
-    res
-        .status(400) //bad format
-        .send(errorResponse)
-        .end();
 }
 
 function getErrorResponse() {

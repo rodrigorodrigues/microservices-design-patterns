@@ -100,7 +100,7 @@ class IngredientList extends Component {
         <td style={{whiteSpace: 'nowrap'}}>{ingredient.name}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/ingredients/" + ingredient._id}>Edit</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/ingredients/" + ingredient._id} disabled>Edit</Button>
             <Button size="sm" color="danger" onClick={() => this.remove({'id': ingredient._id, 'name': ingredient.name})}>Delete</Button>
           </ButtonGroup>
         </td>
@@ -119,7 +119,7 @@ class IngredientList extends Component {
             <NavLink
               className={classnames({ active: this.state.activeTab === '1' })}
               onClick={() => { this.toggle('1'); }}>
-              Categories
+              Ingredients
             </NavLink>
           </NavItem>
           <NavItem>
@@ -133,7 +133,7 @@ class IngredientList extends Component {
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId="1">
             <div className="float-right">
-              <Button color="success" tag={Link} to="/ingredients/new">Add Ingredient</Button>
+              <Button color="success" tag={Link} to="/ingredients/new" disabled>Add Ingredient</Button>
             </div>
 
             <Table striped responsive>
