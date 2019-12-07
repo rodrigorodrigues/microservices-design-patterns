@@ -34,7 +34,6 @@ spec:
       containers:
         - name: kotlin-service
           image: eu.gcr.io/spring-boot-gke-243520/kotlin-service:latest
-          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"

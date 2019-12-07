@@ -30,7 +30,7 @@ spec:
       containers:
         - name: authentication-service
           image: eu.gcr.io/spring-boot-gke-243520/authentication-service:latest
-          imagePullPolicy: IfNotPresent
+#          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"

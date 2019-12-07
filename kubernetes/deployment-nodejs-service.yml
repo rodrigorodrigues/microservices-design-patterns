@@ -29,8 +29,7 @@ spec:
     spec:
       containers:
         - name: week-menu-api
-          image: eu.gcr.io/spring-boot-gke-243520/nodejs-week-menu-api:latest
-          imagePullPolicy: IfNotPresent
+          image: eu.gcr.io/spring-boot-gke-243520/week-menu-api:latest
           resources:
             requests:
               memory: "128Mi"
@@ -39,9 +38,6 @@ spec:
               memory: "256Mi"
               cpu: "100m"
           volumeMounts:
-            - name: spendingbetter-crt
-              mountPath: "/etc/crt"
-              readOnly: true
             - name: spendingbetter-pub-key
               mountPath: "/etc/ssl_certs_pub"
               readOnly: true
@@ -70,15 +66,8 @@ spec:
               value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: NODE_DEBUG
               value: request
-#            - name: NODE_ENV
-#              value: production
-#            - name: KEYSTORE_PASSWORD
-#              valueFrom:
-#                secretKeyRef:
-#                  name: secrets
-#                  key: KEYSTORE_PASSWORD
-#            - name: KEYSTORE_FILE
-#              value: "/etc/ssl/certs/www.spendingbetter.com.p12"
+            - name: NODE_ENV
+              value: production
           ports:
             - containerPort: 3002
           livenessProbe:
@@ -89,9 +78,6 @@ spec:
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:
-        - name: spendingbetter-crt
-          secret:
-            secretName: spendingbetter-crt
         - name: spendingbetter-pub-key
           secret:
             secretName: spendingbetter-pub-key

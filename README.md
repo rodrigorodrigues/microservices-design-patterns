@@ -329,6 +329,7 @@ kubectl delete ingress ingress-gateway-forward-https
 #cpu usage
 kubectl get nodes --show-labels
 kubectl describe nodes gke-your-first-cluster
+kubectl top nodes
 ```
 
 [Enable Ingress](https://cloud.google.com/community/tutorials/nginx-ingress-gke)
@@ -339,19 +340,19 @@ kubectl describe nodes gke-your-first-cluster
 
 [Kubernetes + Zuul](https://stackoverflow.com/questions/52066141/zuul-unable-to-route-traffic-to-service-on-kubernetes)
 
-[Example Spring Boot 2 + Kubernestes + Zuul](https://piotrminkowski.wordpress.com/2018/08/02/quick-guide-to-microservices-with-kubernetes-spring-boot-2-0-and-docker/)
+[Example Spring Boot 2 + Kubernetes + Zuul](https://piotrminkowski.wordpress.com/2018/08/02/quick-guide-to-microservices-with-kubernetes-spring-boot-2-0-and-docker/)
 
 [Secure Discovery Example](https://piotrminkowski.wordpress.com/2018/05/21/secure-discovery-with-spring-cloud-netflix-eureka/)
 
 ### Travis CI/CD
 
-Automatic Continuous Integration/Deployment using [travis-ci](https://travis-ci.org).
+Using [travis-ci](https://travis-ci.org) for `CI/CD`.
 
-Used `Google Cloud Platform` for deployment the `docker images`.
+Using `Google Cloud/GKE` for deployment the `docker images`.
 
-More details look at [.travis.yml](.travis.yml) and [gcloud folder](gcloud).
+More details of configuration look at [.travis.yml](.travis.yml) and for deploy [deploy-prod.sh](gcloud/deploy-prod.sh).
 
-To deploy using Travis create first a `Pull Request` then add in the commit message `[trigger deploy SERVICE_NAME]`.
+PS: To deploy using Travis first create a `Pull Request` then once when `approval/success build/code coverage` is passed then change the title and add `[trigger deploy SERVICE_NAME]`.
 
 i.e.: `[trigger deploy authentication-service;react-webapp]`.
 
@@ -389,7 +390,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] React - Fix Person List to work with `@Tailable` and `EventSource`.
 * [X] React - Fix Docker Web App to use Nginx
 * [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
-* [X] Deploy - Google Cloud
+* [X] Deploy - Google Cloud/GKE
 * [X] CI/CD - Add Travis
 * [ ] ~~Deploy - Add Herokuy~~
 

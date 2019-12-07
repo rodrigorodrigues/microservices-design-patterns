@@ -30,7 +30,6 @@ spec:
       containers:
         - name: eureka-server-peer
           image: eu.gcr.io/spring-boot-gke-243520/eureka-server:latest
-          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"

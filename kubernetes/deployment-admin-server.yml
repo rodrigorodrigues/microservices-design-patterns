@@ -29,8 +29,7 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: eu.gcr.io/spring-boot-gke-243520/admin-server:11.0
-          imagePullPolicy: IfNotPresent
+          image: eu.gcr.io/spring-boot-gke-243520/admin-server:latest
           resources:
             requests:
               memory: "256Mi"
