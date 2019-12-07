@@ -17,10 +17,7 @@ function HomeContent({notDisplayMessage}) {
                     {displayButtonManageTasks(authorities)}
                 </Col>
                 <Col xs="auto">
-                    {displayButtonManageCategories(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonManageRecipes(authorities)}
+                    {displayWeekMenu(authorities)}
                 </Col>
                 <Col xs="auto">
                     {displayButtonAdmin(authorities)}
@@ -117,16 +114,33 @@ function displayButtonAdmin(authorities) {
     )
 }
 
-function displayButtonManageCategories(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
+function displayWeekMenu(authorities) {
+    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN');
+    const hasCategoryReadAccess = authorities.some(item => item === 'ROLE_CATEGORY_READ' 
     || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')
-    return <Link to="/categories" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Categories</Link>
-}
-
-function displayButtonManageRecipes(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_RECIPE_READ' 
+    const hasRecipeReadAccess = authorities.some(item => item === 'ROLE_RECIPE_READ' 
     || item === 'ROLE_RECIPE_CREATE' || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')
-    return <Link className={"link" + (!hasManageReadAccess ? " disabled-link" : "")} to="/recipes">Manage Recipes</Link>
+    const hasIngredientReadAccess = authorities.some(item => item === 'ROLE_INGREDIENT_READ' 
+    || item === 'ROLE_INGREDIENT_CREATE' || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE')
+
+    return (
+        <UncontrolledDropdown>
+                <DropdownToggle nav caret>
+                    Week Menu
+                </DropdownToggle>
+                <DropdownMenu>
+                <DropdownItem>
+                    <Link to="/categories" className={"link" + (isAdmin || hasCategoryReadAccess ? "" : " disabled-link")}>Manage Categories</Link>
+                </DropdownItem>
+                <DropdownItem>
+                    <Link to="/recipes" className={"link" + (isAdmin || hasRecipeReadAccess ? "" : " disabled-link")}>Manage Recipes</Link>
+                </DropdownItem>
+                <DropdownItem>
+                    <Link to="/ingredients" className={"link" + (isAdmin || hasIngredientReadAccess ? "" : " disabled-link")}>Manage Ingredients</Link>
+                </DropdownItem>
+            </DropdownMenu>
+            </UncontrolledDropdown>
+    )
 }
 
 function displayButtonManageTasks(authorities) {

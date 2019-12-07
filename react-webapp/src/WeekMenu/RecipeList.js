@@ -97,11 +97,12 @@ class RecipeList extends Component {
     const recipeList = recipes.map(recipe => {
       const categoryName = recipe.categories.map(category => category.name).join(", ");
       return <tr key={recipe._id}>
+        <th scope="row">{recipe._id}</th>
         <td style={{whiteSpace: 'nowrap'}}>{recipe.name}</td>
         <td style={{whiteSpace: 'nowrap'}}>{categoryName}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/recipes/" + recipe._id}>Edit</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/recipes/" + recipe._id} disabled>Edit</Button>
             <Button size="sm" color="danger" onClick={() => this.remove({'id': recipe._id, 'name': recipe.name})}>Delete</Button>
           </ButtonGroup>
         </td>
@@ -134,7 +135,7 @@ class RecipeList extends Component {
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId="1">
             <div className="float-right">
-              <Button color="success" tag={Link} to="/recipes/new">Add Recipe</Button>
+              <Button color="success" tag={Link} to="/recipes/new" disabled>Add Recipe</Button>
             </div>
 
             <Table striped responsive>

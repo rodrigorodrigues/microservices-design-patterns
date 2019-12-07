@@ -29,7 +29,9 @@ module.exports = async () => {
 
           fs.writeFileSync(".env", `MONGODB_URI = ${mongoUri}\nSECRET_TOKEN = ${secretKey}`);
 
-          console.log(`Connected to MongoDb in Memory: ${mongoUri} and created temp .env file with mongo uri`);
+          const path = require( "path" );
+
+          console.log(`Connected to MongoDb in Memory: ${mongoUri} and created temp ${path.resolve('.env')} file with mongo uri`);
         }
       });
     });

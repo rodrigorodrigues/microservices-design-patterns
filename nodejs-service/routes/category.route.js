@@ -24,6 +24,8 @@ const restoreBackup = require("../services/restoreBackup");
 
 const checkPermissionRoute = require('./checkPermissionRoute');
 
+const UtilService = require('../services/util');
+
 router.get("/category/migration/cat/23", (request, response, next) => {
     Category.remove({}).then(() => {
         const cats = JSON.parse(JSON.stringify(categoryFile))
@@ -55,7 +57,7 @@ router.get("/category/migration/cat/23", (request, response, next) => {
             return res
         }
 
-        handleResponse(response, "ok *** *** **", 200)
+        UtilService.handleResponse(response, "ok *** *** **", 200)
     })
 });
 
@@ -63,8 +65,8 @@ router.get("/category", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['
     Category.find()
         .populate('ingredients')
         .sort({ 'name': 1 })
-        .then(categories => handleResponse(response, categories, 200))
-        .catch(reason => wmHandleError(response, reason));
+        .then(categories => UtilService.handleResponse(response, categories, 200))
+        .catch(reason => UtilService.wmHandleError(response, reason));
 });
 
 // ###### improved above 
@@ -80,7 +82,7 @@ router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEG
             linkRecipeToIngredients(allCategories);
 
         }, (reason) => {
-            wmHandleError(response, reason);
+            UtilService.wmHandleError(response, reason);
         });
 
     function linkRecipeToIngredients(allCategories) {
@@ -88,7 +90,7 @@ router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEG
         let countCat = allCategories.length;
 
         if (countCat === 0) {
-            handleResponse(response, allCategories, 200);
+            UtilService.handleResponse(response, allCategories, 200);
         }
 
         Recipe.findOne({ _id: request.params.recipeId })
@@ -107,7 +109,7 @@ router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEG
                     if (countIngredient === 0) {
 
                         if (--countCat === 0) {
-                            handleResponse(response, allCategories, 200);
+                            UtilService.handleResponse(response, allCategories, 200);
                         }
 
                     } else {
@@ -136,7 +138,7 @@ router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEG
 
                                     //console.log("Going!", countIngredient, countCat)
                                     if (--countCat === 0) {
-                                        handleResponse(response, allCategories, 200);
+                                        UtilService.handleResponse(response, allCategories, 200);
                                     }
                                 }
 
@@ -147,7 +149,7 @@ router.get("/category/check/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_CATEG
                 });
 
                 // console.log("****** CAT UPDATED", categories)
-            }).catch(reason => wmHandleError(response, reason));
+            }).catch(reason => UtilService.wmHandleError(response, reason));
     }
 });
 
@@ -160,6 +162,9 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
             options: { sort: { name: 1 } }
         })
         .then((docs) => {
+            if (!docs) {
+                return UtilService.handleResponse(response, docs, 200);
+            }
 
             const options = {
                 path: 'ingredients.attributes',
@@ -169,15 +174,18 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
             };
 
             Category.populate(docs, options).then(deep => {
-
                 let categories = deep.filter(category => {
 
-                    //filter based on the query above, if there didn't match any attribute the array is 0
-                    let ingredients = category.ingredients.filter(ingredient => ingredient.attributes.length > 0);
+                    if (category.ingredients) {
 
-                    category.ingredients = ingredients;
+                        //filter based on the query above, if there didn't match any attribute the array is 0
+                        let ingredients = category.ingredients.filter(ingredient => ingredient.attributes.length > 0);
 
-                    return category.ingredients.length > 0;
+                        category.ingredients = ingredients;
+
+                        return category.ingredients.length > 0;
+
+                    }
 
                 });
 
@@ -185,12 +193,16 @@ router.get("/category/week/shopping", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGOR
                 // categories = categories.filter(cat => {
                 //     return cat.recipes.length > 0;
                 // });
+                if (categories.length > 0) {
+                    console.log(`categories for week shopping: ${categories}`);
 
-
-                handleResponse(response, categories, 200);
-            }).catch(reason => wmHandleError(response, reason));
+                    UtilService.handleResponse(response, categories, 200);
+                } else {
+                    UtilService.handleResponse(response, docs, 200);
+                }
+            }).catch(reason => UtilService.wmHandleError(response, reason));
         }, (reason) => {
-            wmHandleError(response, reason);
+            UtilService.wmHandleError(response, reason);
         });
 });
 
@@ -200,9 +212,9 @@ router.get("/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ'], 
 
     Category.findOne({ _id: req.params.id })
         .then((doc) => {
-            handleResponse(res, doc, 200);
+            UtilService.handleResponse(res, doc, 200);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 
 });
@@ -240,9 +252,9 @@ router.post('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE']), 
     function saveCategory() {
         category.save()
             .then((doc) => {
-                handleResponse(res, doc, 201);
+                UtilService.handleResponse(res, doc, 201);
             }, (reason) => {
-                wmHandleError(res, reason);
+                UtilService.wmHandleError(res, reason);
             });
     }
 
@@ -273,21 +285,21 @@ router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), (re
                             category.recipes.push(recipe);
 
                             category.save()
-                                .then(() => handleResponse(res, category, 204))
+                                .then(() => UtilService.handleResponse(res, category, 204))
 
                         });
                 } else {
                     category.save()
-                        .then(() => handleResponse(res, category, 204))
+                        .then(() => UtilService.handleResponse(res, category, 204))
                 }
 
             } else {
                 category.save()
-                    .then(() => handleResponse(res, category, 204))
+                    .then(() => UtilService.handleResponse(res, category, 204))
             }
 
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 });
 
@@ -296,38 +308,12 @@ router.delete('/category/:id', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_DELET
 
     Category.findByIdAndRemove(req.params.id)
         .then((doc) => {
-            handleResponse(res, doc, 204);
+            UtilService.handleResponse(res, doc, 204);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 });
 
 checkPermissionRoute(router);
-
-function handleResponse(response, doc, status) {
-
-    log.logOnRoutes("Response Category Route ----");
-    log.logOnRoutes("Response doc", doc);
-
-    response
-        .status(status)
-        .json(doc)
-        .end();
-}
-
-function wmHandleError(res, reason) {
-    log.error("handle error", reason.message);
-    var errorResponse = {
-        message: reason.message,
-        name: reason.name,
-        errors: reason.errors
-    };
-
-    res
-        .status(400) //bad format
-        .send(errorResponse)
-        .end();
-}
-
 
 module.exports = router;

@@ -3,6 +3,13 @@ package com.microservice.authentication.config;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.netflix.discovery.EurekaClient;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -27,10 +34,6 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -111,9 +114,12 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
             public OAuth2AccessToken enhance(
                 OAuth2AccessToken accessToken,
                 OAuth2Authentication authentication) {
-                Map<String, Object> additionalInfo = new HashMap<>();
-                additionalInfo.put("name", ((Authentication)authentication.getUserAuthentication().getPrincipal()).getFullName());
-                ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
+                if (authentication.getUserAuthentication() instanceof Authentication) {
+                    Map<String, Object> additionalInfo = new HashMap<>();
+                    additionalInfo.put("name",
+                        ((Authentication) authentication.getUserAuthentication().getPrincipal()).getFullName());
+                    ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
+                }
                 return super.enhance(accessToken, authentication);
             }
         };

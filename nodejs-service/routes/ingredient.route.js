@@ -18,19 +18,133 @@ const {Recipe} = require('../models/recipe.model');
 const {_} = require('lodash');
 const {STATUS} = require('../constants/status.code');
 const checkPermissionRoute = require('./checkPermissionRoute');
+const UtilService = require('../services/util');
 
-router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
+/**
+ * @swagger
+ *
+ * definitions:
+ *   Ingredient:
+ *     type: object
+ *     required:
+ *       - name
+ *       - insertDate
+ *     properties:
+ *       name:
+ *         type: string
+ *       insertDate:
+ *         type: string
+ *         format: date
+ *       updateDate:
+ *         type: string
+ *         format: date
+ *       categoryName:
+ *         type: string
+ *         minLength: 1
+ *       expiryDate:
+ *         type: string
+ *         format: date
+ *       updateCheckDate:
+ *         type: string
+ *         format: date
+ *       checkedInCartShopping:
+ *         type: boolean
+ *       tempRecipeLinkIndicator:
+ *         type: boolean
+ *       attributes:
+ *         $ref: '#/definitions/IngredientRecipeAttributes'
+ *   IngredientRecipeAttributes:
+ *     type: object
+ *     required:
+ *       - name
+ *       - ingredientId
+ *       - recipeId
+ *     properties:
+ *       name:
+ *         type: string
+ *       labelQuantity:
+ *         type: string
+ *       quantity:
+ *         type: number
+ *       itemSelectedForShopping:
+ *         type: boolean
+ *       ingredientId:
+ *         type: integer
+ *       recipeId:
+ *         type: integer
+ *       checkedInCartShopping:
+ *         type: boolean
+ *       isRecipeLinkedToCategory:
+ *         type: boolean
+*/
+
+/**
+ * @swagger
+ * /ingredient:
+ *   get:
+ *     description: Return Ingredients
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: ingredients
+ *         schema:
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE'], ['ROLE_INGREDIENT_DELETE']), (request, response, next) => {
 
     Ingredient.find()
         .sort({'name': 1})
         .then((docs) => {
-            handleResponse(response, docs, 200);
+            UtilService.handleResponse(response, docs, 200);
         }, (reason) => {
-            wmHandleError(response, reason);
+            UtilService.wmHandleError(response, reason);
         });
 
 });
 
+/**
+ * @swagger
+ * /ingredient/{id}:
+ *   get:
+ *     description: Return Ingredient by id
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: id
+ *        in: path
+ *        description: id
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: return ingredient by id
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logOnRoutes("ingredient name", request.params.id);
@@ -38,13 +152,48 @@ router.get("/ingredient/:id", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ
     Ingredient.findOne({_id: request.params.id})
         .then((doc) => {
 
-            handleResponse(res, doc, 200);
+            UtilService.handleResponse(res, doc, 200);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 
 });
 
+/**
+ * @swagger
+ * /ingredient/recipe/{ingredientId}/{recipeId}:
+ *   get:
+ *     description: Return Ingredients for Recipe by Ingredient id and Recipe id
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: ingredientId
+ *        in: path
+ *        description: ingredient id
+ *        required: true
+ *        type: string
+ *      - name: recipeId
+ *        in: path
+ *        description: recipe id
+ *        required: true
+ *        type: string
+ *     responses:
+ *       200:
+ *         description: return ingredients for Recipe by Ingredient id and Recipe id
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/IngredientRecipeAttributes'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
 
     log.logOnRoutes("params", request.params.ingredientId);
@@ -55,9 +204,9 @@ router.get("/ingredient/recipe/:ingredientId/:recipeId", guard.check(['ROLE_ADMI
         recipeId:request.params.recipeId
     })
     .then((doc) => {
-       handleResponse(res, doc, 200);
+        UtilService.handleResponse(res, doc, 200);
     }, (reason) => {
-       wmHandleError(res, reason);
+        UtilService.wmHandleError(res, reason);
     });
 
 });
@@ -71,12 +220,43 @@ router.get("/ingredient/recipe/:recipeId", guard.check(['ROLE_ADMIN'], ['ROLE_IN
         recipeId:request.params.recipeId
     }).then(doc => {
 
-            handleResponse(res, doc, 200);
+            UtilService.handleResponse(res, doc, 200);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 });
 
+/**
+ * @swagger
+ * /ingredient:
+ *   post:
+ *     description: Create Ingredient
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: CategoryDto
+ *        in: body
+ *        description: Create Ingredient
+ *        required: true
+ *        schema:
+ *          $ref: '#/definitions/Ingredient'
+ *     responses:
+ *       201:
+ *         description: create ingredient
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ */
 router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE']), (request, res, next) => {
 
     let recipeId = null;
@@ -90,9 +270,9 @@ router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'
         .then(saveAttribute)
         .then(findCategoryAndAddToIt.bind(null, recipeId))
         .then(ingredient => {
-            handleResponse(res, ingredient, 201);
+            UtilService.handleResponse(res, ingredient, 201);
         }).catch((reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 
     function saveIngredient(ingredientCommand) {
@@ -218,6 +398,41 @@ router.post('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'
 
 });
 
+/**
+ * @swagger
+ * /ingredient:
+ *   put:
+ *     description: Update Ingredient
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: CategoryDto
+ *        in: body
+ *        description: Update Ingredient
+ *        required: true
+ *        schema:
+ *          $ref: '#/definitions/Ingredient'
+ *     responses:
+ *       200:
+ *         description: update ingredient
+ *         schema:
+ *           type: object
+ *           items:
+ *             $ref: '#/definitions/Ingredient'
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ *       204:
+ *         description: No Content
+ *       404:
+ *         description: Not Found
+ */
 router.put('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, res, next) => {
     // ** Concept status ** use 204 No Content to indicate to the client that
     //... it doesn't need to change its current "document view".
@@ -238,17 +453,17 @@ router.put('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']),
             .then(findCategoryAndAddToIt.bind(null, recipeId))
             .then(doc => {
 
-                handleResponse(res, doc, 204);
+                UtilService.handleResponse(res, doc, 204);
             })
-            .catch(reason => wmHandleError(res, reason));
+            .catch(reason => UtilService.wmHandleError(res, reason));
 
     } else {
          updateIngredient(ingredientCommand)
              .then(resultChain => {
                 findCategoryAndAddToIt(recipeId, resultChain.ingredient)
-                    .then(doc =>  handleResponse(res, doc, 204));
+                    .then(doc =>  UtilService.handleResponse(res, doc, 204));
              })
-             .catch(reason => wmHandleError(res, reason));
+             .catch(reason => UtilService.wmHandleError(res, reason));
     }
 
 
@@ -307,8 +522,8 @@ router.put('/ingredient/attribute', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIEN
 
     IngredientRecipeAttributes.findOneAndUpdate({_id: attributeUpdate._id}, attributeUpdate)
         .then(doc => {
-            handleResponse(response, doc, 204);
-        }).catch(reason => wmHandleError(res, reason));
+            UtilService.handleResponse(response, doc, 204);
+        }).catch(reason => UtilService.wmHandleError(res, reason));
 });
 
 router.put('/ingredient/attribute/many', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_SAVE']), (request, response, next) => {
@@ -326,22 +541,50 @@ router.put('/ingredient/attribute/many', guard.check(['ROLE_ADMIN'], ['ROLE_INGR
                 .then(doc => {
 
                     if(--asyncIteration === 0) {
-                        handleResponse(response, doc, 204);
+                        UtilService.handleResponse(response, doc, 204);
                     }
 
-                }).catch(reason => wmHandleError(response, reason));
+                }).catch(reason => UtilService.wmHandleError(response, reason));
         });
     }
 
 });
 
-router.delete('/ingredient', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_DELETE']), (request, res, next) => {
+/**
+ * @swagger
+ * /ingredient/{id}:
+ *   delete:
+ *     description: Delete Ingredient
+ *     produces:
+ *      - application/json
+ *     parameters:
+ *      - name: Authorization
+ *        in: header
+ *        description: Authorization Header
+ *        required: true
+ *        type: string
+ *      - name: id
+ *        in: path
+ *        description: id
+ *        required: true
+ *        type: string
+ *     responses:
+ *       204:
+ *         description: Deleted Ingredient
+ *       400:
+ *         description: Bad Request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not Found
+ */
+router.delete('/ingredient/:id', guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_DELETE']), (request, res, next) => {
 
-    Ingredient.findByIdAndRemove(request.body._id)
+    Ingredient.findByIdAndRemove(request.params.id)
         .then((doc) => {
-            handleResponse(res, doc, 204);
+            UtilService.handleResponse(res, doc, 204);
         }, (reason) => {
-            wmHandleError(res, reason);
+            UtilService.wmHandleError(res, reason);
         });
 });
 
@@ -410,33 +653,6 @@ function findCategoryAndAddToIt(recipeId, ingredient) {
         });
 
     return deferred.promise;
-}
-
-//TODO move to utils
-function handleResponse(response, doc, status) {
-
-    log.logOnRoutes("Response Ingredient Route ----");
-    log.logOnRoutes("Response doc", doc);
-
-    response
-        .status(status)
-        .json(doc)
-        .end();
-}
-
-//TODO move to utils and rename it
-function wmHandleError(res, reason) {
-
-    var errorResponse = {
-        message : reason.message,
-        name: reason.name,
-        errors: reason.errors
-    };
-
-    res
-        .status(400) //bad format
-        .send(errorResponse)
-        .end();
 }
 
 function getErrorResponse() {

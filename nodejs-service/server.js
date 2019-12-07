@@ -40,15 +40,9 @@ const {
     swaggerEnabled, 
     springConfigEnabled } = loadEnvVariables();
 
-// Eureka configuration
-if (eurekaEnabled === true) {
-    loadEureka();
-}
-
-// Spring Cloud Config
-if (springConfigEnabled === true) {
-    var { springCloudConfig, configOptions } = loadSpringCloudConfig();
-}
+if (process.env.NODE_ENV !== 'test') {
+    app.emit('ready');
+}    
 
 app.use(bodyParser.json());
 // Create application/x-www-form-urlencoded parser
@@ -60,10 +54,6 @@ app.options('*', cors());
 
 app.use(function (req, res, next) {
 
-    console.log("Request body: ", req.body);
-    console.log("Request METHOD: ", req.method);
-    console.log("Request resource: ", req.path);
-    
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
     } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
@@ -82,6 +72,38 @@ app.use('/v2', productRouter);
 app.use('/v2', category2Router);
 app.use('/v2', recipe2Router);
 app.use('/v2', shoppingListRouter);
+
+let server;
+app.on('ready', function() {
+    server = app.listen(port, () => {
+        console.log("Application started. Listening on port:" + port);
+        if (springConfigEnabled === true) {
+            loadSecretKey();
+        } else {
+            secretKey = process.env.SECRET_TOKEN;
+            console.log(`Using secretKey from env: ${secretKey}`);
+        }
+        if (swaggerEnabled === true) {
+            generateSwaggerJsonFile();
+        }
+    });
+});
+
+app.on('close', function() {
+    if (server) {
+        server.close();
+    }
+});
+
+// Eureka configuration
+if (eurekaEnabled === true) {
+    loadEureka();
+}
+
+// Spring Cloud Config
+if (springConfigEnabled === true) {
+    var { springCloudConfig, configOptions } = loadSpringCloudConfig();
+}
 
 // Spring Boot Actuator
 loadActuator();
@@ -111,30 +133,19 @@ db.connection.once('open', () => {
     if (restoreMongoDb) {
         console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_URI);
         if (process.env.NODE_ENV !== 'test') {
-            db.connection.db.dropCollection('categories');
-            db.connection.db.dropCollection('ingredients');
-            db.connection.db.dropCollection('recipe2');
-            db.connection.db.dropCollection('recipes');
-            db.connection.db.dropCollection('shoppinglists');
+            try {
+                db.connection.db.dropCollection('categories');
+                db.connection.db.dropCollection('ingredients');
+                db.connection.db.dropCollection('recipe2');
+                db.connection.db.dropCollection('recipes');
+                db.connection.db.dropCollection('shoppinglists');
+            } catch (err) {
+                console.error(err.stack);
+            }
         }
         restoreBackup();
     }
     app.emit('ready');
-});
-
-app.on('ready', function() {
-    app.listen(port, () => {
-        console.log("Application started. Listening on port:" + port);
-        if (springConfigEnabled === true) {
-            loadSecretKey();
-        } else {
-            secretKey = process.env.SECRET_TOKEN;
-            console.log(`Using secretKey from env: ${secretKey}`);
-        }
-        if (swaggerEnabled === true) {
-            generateSwaggerJsonFile();
-        }
-    });
 });
 
 function loadSleuth() {
@@ -185,8 +196,6 @@ function generateSwaggerJsonFile() {
     request.get(`http://localhost:${port}/api-docs.json`, function(error, response, body) {
         var fs = require('fs');
 
-        console.log("body", body);
-
         fs.writeFileSync("/tmp/swagger.json", body)
 
         loadSwaggerUI();
@@ -197,7 +206,6 @@ function loadSwaggerUI() {
     var initializeSwagger = require('swagger-tools').initializeMiddleware;
 
     const swaggerDoc = require('/tmp/swagger.json');
-    console.log("swaggerDoc", swaggerDoc);
 
     // Initialize the Swagger middleware
     initializeSwagger(swaggerDoc, function (middleware) {
@@ -258,7 +266,7 @@ function loadEnvVariables() {
     console.log("eurekaEnabled: ", eurekaEnabled);
     console.log("swaggerEnabled: ", swaggerEnabled);
     console.log("springConfigEnabled: ", springConfigEnabled);
-    return { hostName, ipAddr, eurekaServer, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaServerPath, swaggerEnabled, springConfigEnabled };
+    return { hostName, ipAddr, eurekaServer, eurekaServerPath, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaEnabled, swaggerEnabled, springConfigEnabled };
 }
 
 function loadSpringCloudConfig() {
@@ -336,24 +344,19 @@ function loadZipkin() {
 }
 
 function loadSecretKey() {
-    console.log("Loading secretKey");
     let configProps = springCloudConfig.load(configOptions);
     configProps.then((config) => {
-        console.log("Spring Config response", config);
         secretKey = config.configuration.jwt['base64-secret'];
         if (secretKey === "" || secretKey === null || secretKey === undefined) {
             const pathPublicKey = process.env.PATH_PUBLIC_KEY;
-            console.log("pathPublicKey: ", pathPublicKey);
             var fs = require('fs');
             secretKey = fs.readFileSync(pathPublicKey);
         } 
-        console.log("SecretKey: ", secretKey);
     }).catch(err => console.error(err.stack));
 }
 
 function validateJwt(req, res, next) {
     try {
-        console.log("Headers", req.headers);
         let token = req.headers.authorization;
         if (!token) {
             throw Error("Token Not found");
@@ -367,10 +370,8 @@ function validateJwt(req, res, next) {
         token = token.replace("Bearer ", "");
         jwt.verify(token, Buffer.from(secretKey, 'base64'), function(err, decoded) {
             if (err) {
-                console.log(`Token with error!: ${err}`);
                 throw Error(err);
             } else {
-                console.log(`Token is valid!: ${decoded}`);
                 req.user = decoded;
             }
         });

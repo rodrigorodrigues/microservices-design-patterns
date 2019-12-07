@@ -16,7 +16,6 @@ public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAda
 
     private static final String[] WHITELIST = {
             "/api/**",
-            "/actuator/**",
             "/**/*.js",
             "/**/*.css",
             "/**/*.html",

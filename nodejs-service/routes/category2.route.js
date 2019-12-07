@@ -8,6 +8,7 @@ const {STATUS} = require('../constants/status.code');
 const checkPermissionRoute = require('./checkPermissionRoute');
 
 function deleteCategoryByIdRoute(request, response) {
+    console.log(`deleteCategoryByIdRoute by id: ${request.params.id}`);
     CategoryService
         .deleteById(request.params.id)
         .then(doc => responseHandlerService.send(response, {doc, status: STATUS.GET_CODE}))

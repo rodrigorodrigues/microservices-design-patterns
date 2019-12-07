@@ -27,32 +27,6 @@ const utility = require('../utils/utility');
 
 const checkPermissionRoute = require('./checkPermissionRoute');
 
-/**
- * @swagger
- * /recipe:
- *   get:
- *     description: Return Recipies
- *     produces:
- *      - application/json
- *     parameters:
- *      - name: Authorization
- *        in: header
- *        description: Authorization Header
- *        required: true
- *        type: string
- *     responses:
- *       200:
- *         description: recipies
- *         schema:
- *           type: array
- *           items:
- *             $ref: '#/definitions/Recipe'
- *       400:
- *         description: Bad Request
- *       401:
- *         description: Unauthorized
- */
-
 router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE']), (req, res) => {
 
     Recipe
@@ -99,6 +73,10 @@ router.get("/recipe/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_REA
         .findOne({_id: req.params.id})
         .populate('categories')
         .then((populated) => {
+
+            if (!populated) {
+                return utility.handleResponse(response, populated, 200);
+            }
 
             const options = {
                 path: 'categories.ingredients',
@@ -183,17 +161,22 @@ router.get("/recipe/category/currentAttribute/:id", guard.check(['ROLE_ADMIN'], 
                     Recipe.populate(recipeDeepPopulated, options2)
                         .then(level3 => {
 
-                            //console.log("Before filter", level3.categories)
+                            if (level3 && level3.categories) {
 
-                            level3.categories.forEach(cat => {
+                                //console.log("Before filter", level3.categories)
 
-                                cat.ingredients = cat.ingredients.filter(ing => ing.attributes.length > 0);
-                            });
+                                level3.categories.forEach(cat => {
 
-                            level3.categories = level3.categories.filter(cat => cat.ingredients.length > 0);
+                                    cat.ingredients = cat.ingredients.filter(ing => ing.attributes.length > 0);
+                                });
+
+                                level3.categories = level3.categories.filter(cat => cat.ingredients.length > 0);
+
+                            }
 
                             // console.log("deep docSaved", level3.categories);
                             utility.handleResponse(response, level3, 200);
+                            
                         })
 
                 }).catch( (reason) => {
