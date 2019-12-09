@@ -9,7 +9,7 @@ zuul:
             sensitiveHeaders:
         users-account-service:
             path: /api/account
-            serviceId: user-service
+            serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:
         swagger-users-account-service:

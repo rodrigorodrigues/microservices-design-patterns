@@ -9,7 +9,7 @@ export interface IPerson {
   createdByUser?: string;
   createdDate?: Moment;
   lastModifiedByUser?: string;
-  lastModifiedDate?: string;
+  lastModifiedDate?: Moment;
   address?: IAddress;
   children?: IChild[];
 }

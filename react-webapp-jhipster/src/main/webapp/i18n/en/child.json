@@ -5,7 +5,7 @@
         "title": "Children",
         "createLabel": "Create a new Child",
         "createOrEditLabel": "Create or edit a Child",
-        "notFound": "No Child found"
+        "notFound": "No Children found"
       },
       "created": "A new Child is created with identifier {{ param }}",
       "updated": "A Child is updated with identifier {{ param }}",

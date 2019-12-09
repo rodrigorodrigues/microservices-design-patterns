@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Row, Col, Label } from 'reactstrap';
 import { AvFeedback, AvForm, AvGroup, AvInput, AvField } from 'availity-reactstrap-validation';
-// tslint:disable-next-line:no-unused-variable
 import { Translate, translate, ICrudGetAction, ICrudGetAllAction, ICrudPutAction } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
@@ -12,7 +11,6 @@ import { IAddress } from 'app/shared/model/address.model';
 import { getEntities as getAddresses } from 'app/entities/address/address.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './person.reducer';
 import { IPerson } from 'app/shared/model/person.model';
-// tslint:disable-next-line:no-unused-variable
 import { convertDateTimeFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
 import { mapIdList } from 'app/shared/util/entity-utils';
 
@@ -48,6 +46,7 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
 
   saveEntity = (event, errors, values) => {
     values.createdDate = convertDateTimeToServer(values.createdDate);
+    values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
 
     if (errors.length === 0) {
       const { personEntity } = this.props;
@@ -143,7 +142,14 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
                   <Label id="lastModifiedDateLabel" for="person-lastModifiedDate">
                     <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>
                   </Label>
-                  <AvField id="person-lastModifiedDate" type="text" name="lastModifiedDate" />
+                  <AvInput
+                    id="person-lastModifiedDate"
+                    type="datetime-local"
+                    className="form-control"
+                    name="lastModifiedDate"
+                    placeholder={'YYYY-MM-DD HH:mm'}
+                    value={isNew ? null : convertDateTimeFromServer(this.props.personEntity.lastModifiedDate)}
+                  />
                 </AvGroup>
                 <AvGroup>
                   <Label for="person-address">

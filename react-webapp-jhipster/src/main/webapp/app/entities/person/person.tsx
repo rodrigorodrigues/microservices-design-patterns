@@ -3,14 +3,12 @@ import InfiniteScroll from 'react-infinite-scroller';
 import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Col, Row, Table } from 'reactstrap';
-// tslint:disable-next-line:no-unused-variable
 import { Translate, ICrudGetAllAction, TextFormat, getSortState, IPaginationBaseState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
 import { getEntities, reset } from './person.reducer';
 import { IPerson } from 'app/shared/model/person.model';
-// tslint:disable-next-line:no-unused-variable
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 
@@ -24,7 +22,11 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
   };
 
   componentDidMount() {
+    console.log(`Here:before: ${new Date()}`);
     this.reset();
+    setTimeout(() => {
+      console.log(`Here:after: ${this.getEntities()}`);
+    }, 5000);
   }
 
   componentDidUpdate() {
@@ -72,7 +74,7 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
           <Link to={`${match.url}/new`} className="btn btn-primary float-right jh-create-entity" id="jh-create-entity">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
-            <Translate contentKey="spendingbetterApp.person.home.createLabel">Create new Person</Translate>
+            <Translate contentKey="spendingbetterApp.person.home.createLabel">Create a new Person</Translate>
           </Link>
         </h2>
         <div className="table-responsive">
@@ -85,7 +87,7 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
             initialLoad={false}
           >
             {personList && personList.length > 0 ? (
-              <Table responsive>
+              <Table responsive aria-describedby="person-heading">
                 <thead>
                   <tr>
                     <th className="hand" onClick={this.sort('id')}>
@@ -135,7 +137,9 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
                         <TextFormat type="date" value={person.createdDate} format={APP_DATE_FORMAT} />
                       </td>
                       <td>{person.lastModifiedByUser}</td>
-                      <td>{person.lastModifiedDate}</td>
+                      <td>
+                        <TextFormat type="date" value={person.lastModifiedDate} format={APP_DATE_FORMAT} />
+                      </td>
                       <td>{person.address ? <Link to={`address/${person.address.id}`}>{person.address.id}</Link> : ''}</td>
                       <td className="text-right">
                         <div className="btn-group flex-btn-group-container">

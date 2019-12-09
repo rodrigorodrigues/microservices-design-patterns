@@ -3,14 +3,12 @@ import InfiniteScroll from 'react-infinite-scroller';
 import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Col, Row, Table } from 'reactstrap';
-// tslint:disable-next-line:no-unused-variable
 import { Translate, ICrudGetAllAction, TextFormat, getSortState, IPaginationBaseState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
 import { getEntities, reset } from './child.reducer';
 import { IChild } from 'app/shared/model/child.model';
-// tslint:disable-next-line:no-unused-variable
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 
@@ -72,7 +70,7 @@ export class Child extends React.Component<IChildProps, IChildState> {
           <Link to={`${match.url}/new`} className="btn btn-primary float-right jh-create-entity" id="jh-create-entity">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
-            <Translate contentKey="spendingbetterApp.child.home.createLabel">Create new Child</Translate>
+            <Translate contentKey="spendingbetterApp.child.home.createLabel">Create a new Child</Translate>
           </Link>
         </h2>
         <div className="table-responsive">
@@ -85,7 +83,7 @@ export class Child extends React.Component<IChildProps, IChildState> {
             initialLoad={false}
           >
             {childList && childList.length > 0 ? (
-              <Table responsive>
+              <Table responsive aria-describedby="child-heading">
                 <thead>
                   <tr>
                     <th className="hand" onClick={this.sort('id')}>

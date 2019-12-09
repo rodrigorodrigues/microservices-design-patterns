@@ -106,6 +106,7 @@ export const getSession = () => async (dispatch, getState) => {
   });
 
   const { account } = getState().authentication;
+  console.log(`>>>>>> account: ${JSON.stringify(account)}`);
   if (account && account.langKey) {
     const langKey = Storage.session.get('locale', account.langKey);
     await dispatch(setLocale(langKey));
@@ -113,9 +114,17 @@ export const getSession = () => async (dispatch, getState) => {
 };
 
 export const login = (username, password, rememberMe = false) => async (dispatch, getState) => {
+  const loginSubmit = 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password) + '&rememberMe=' + encodeURIComponent(rememberMe);
   const result = await dispatch({
     type: ACTION_TYPES.LOGIN,
-    payload: axios.post('api/authenticate', { username, password, rememberMe })
+    payload:  axios({
+      method: 'post',
+      url: 'api/authenticate',
+      data: loginSubmit,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      }
+    })
   });
   const bearerToken = result.value.headers.authorization;
   if (bearerToken && bearerToken.slice(0, 7) === 'Bearer ') {
@@ -125,6 +134,7 @@ export const login = (username, password, rememberMe = false) => async (dispatch
     } else {
       Storage.session.set(AUTH_TOKEN_KEY, jwt);
     }
+    console.log(`>>>> Authenticated: ${jwt}`);
   }
   await dispatch(getSession());
 };
@@ -138,11 +148,12 @@ export const clearAuthToken = () => {
   }
 };
 
-export const logout = () => dispatch => {
-  clearAuthToken();
-  dispatch({
-    type: ACTION_TYPES.LOGOUT
+export const logout = () => async dispatch => {
+  await dispatch({
+    type: ACTION_TYPES.LOGOUT,
+    payload:  axios.get('/api/logout', {withCredentials: true})
   });
+  clearAuthToken();
 };
 
 export const clearAuthentication = messageKey => (dispatch, getState) => {

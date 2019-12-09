@@ -26,7 +26,7 @@
         },
         {
             "fieldName": "lastModifiedDate",
-            "fieldType": "String"
+            "fieldType": "Instant"
         }
     ],
     "relationships": [
@@ -53,5 +53,6 @@
     "jpaMetamodelFiltering": false,
     "fluentMethods": true,
     "clientRootFolder": "",
-    "applications": "*"
+    "applications": "*",
+    "skipServer": true
 }

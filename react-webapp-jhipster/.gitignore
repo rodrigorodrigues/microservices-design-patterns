@@ -143,3 +143,5 @@ Desktop.ini
 # ESLint
 ######################
 .eslintcache
+
+.history

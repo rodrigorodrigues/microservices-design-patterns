@@ -3,14 +3,12 @@ import InfiniteScroll from 'react-infinite-scroller';
 import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Col, Row, Table } from 'reactstrap';
-// tslint:disable-next-line:no-unused-variable
 import { Translate, ICrudGetAllAction, getSortState, IPaginationBaseState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
 import { getEntities, reset } from './address.reducer';
 import { IAddress } from 'app/shared/model/address.model';
-// tslint:disable-next-line:no-unused-variable
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 
@@ -72,7 +70,7 @@ export class Address extends React.Component<IAddressProps, IAddressState> {
           <Link to={`${match.url}/new`} className="btn btn-primary float-right jh-create-entity" id="jh-create-entity">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
-            <Translate contentKey="spendingbetterApp.address.home.createLabel">Create new Address</Translate>
+            <Translate contentKey="spendingbetterApp.address.home.createLabel">Create a new Address</Translate>
           </Link>
         </h2>
         <div className="table-responsive">
@@ -85,7 +83,7 @@ export class Address extends React.Component<IAddressProps, IAddressState> {
             initialLoad={false}
           >
             {addressList && addressList.length > 0 ? (
-              <Table responsive>
+              <Table responsive aria-describedby="address-heading">
                 <thead>
                   <tr>
                     <th className="hand" onClick={this.sort('id')}>

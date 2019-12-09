@@ -76,11 +76,13 @@ class App extends Component {
     let token = data.id_token;
     this.setState({ displayError: null });
     this.decodeJwt(token);
+    window.localStorage.setItem('jhi-authenticationToken', token.slice(7, token.length));
   }
 
   removeAuthentication = () => {
     this.setState({ isAuthenticated: false, user: null, jwt: null });
     this.removeSessionIdCookie();
+    window.localStorage.removeItem('jhi-authenticationToken');
   }
 
   decodeJwt(token) {
