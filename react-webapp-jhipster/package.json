@@ -36,7 +36,8 @@
     "redux-thunk": "2.3.0",
     "tslib": "1.9.3",
     "uuid": "3.3.2",
-    "event-source-polyfill": "1.0.11"
+    "event-source-polyfill": "1.0.11",
+    "await-sleep": "0.0.1"
   },
   "devDependencies": {
     "@types/enzyme": "3.9.1",

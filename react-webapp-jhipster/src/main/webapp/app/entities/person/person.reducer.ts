@@ -17,6 +17,8 @@ import { EventSourcePolyfill } from 'event-source-polyfill';
 
 import { Storage } from 'react-jhipster';
 
+import sleep from 'await-sleep';
+
 export const ACTION_TYPES = {
   FETCH_PERSON_LIST: 'person/FETCH_PERSON_LIST',
   FETCH_PERSON: 'person/FETCH_PERSON',
@@ -42,8 +44,6 @@ export type PersonState = Readonly<typeof initialState>;
 // Reducer
 
 export default (state: PersonState = initialState, action): PersonState => {
-  console.log(`>>>>>action.type: ${action.type}`);
-  console.log(`>>>>>state: ${JSON.stringify(state)}`);
   switch (action.type) {
     case REQUEST(ACTION_TYPES.FETCH_PERSON_LIST):
     case REQUEST(ACTION_TYPES.FETCH_PERSON):
@@ -121,60 +121,73 @@ const apiUrl = 'api/persons';
 
 // Actions
 
-const payload = {
-  data: []
-};
-let eventSource;
+export const getEntities: ICrudGetAllAction<IPerson> = (page, size, sort) => async dispatch => {
+  console.log(`Loading Data...`);
+  const requestUrl = `${apiUrl}`;
 
-export const getEntities: ICrudGetAllAction<IPerson> = (page, size, sort) => {
-  if (!eventSource) {
-    const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
+  const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
 
-    const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
+  let jwt = Storage.local.get(AUTH_TOKEN_KEY);
 
-    let jwt = Storage.local.get(AUTH_TOKEN_KEY);
-
-    if (!jwt) {
-      jwt = Storage.session.get(AUTH_TOKEN_KEY);
-    }
-
-    console.log(`JWT: ${jwt}`);
-
-    eventSource = new EventSourcePolyfill(`${requestUrl}`, {
-      headers: {
-        'Authorization': 'Bearer ' + jwt
-      }
-    });
-
-    eventSource.addEventListener("open", result => {
-      console.log('EventSource open: ', result);
-    });
-
-    eventSource.addEventListener("message", result => {
-      const data = JSON.parse(result.data);
-      console.log(`Event Source Data: ${JSON.stringify(data)}`);
-      payload.data.push(data);
-    });
-
-    let isClosed = new Promise(function (resolve, reject) {});
-
-    eventSource.addEventListener("error", err => {
-      console.log('EventSource error: ', err);
-      eventSource.close();
-      isClosed.then(() => "true");
-    });
+  if (!jwt) {
+    jwt = Storage.session.get(AUTH_TOKEN_KEY);
   }
 
-//  const closedEventSource = await isClosed;
+  console.log(`JWT: ${jwt}`);
 
-//  console.log(`closedEventSource: ${closedEventSource}`);
+  const eventSource = new EventSourcePolyfill(`${requestUrl}`, {
+    headers: {
+      'Authorization': 'Bearer ' + jwt
+    }
+  });
+
+  eventSource.addEventListener("open", result => {
+    console.log('EventSource open: ', result);
+  });
+
+  const payload = {
+    data: []
+  };  
+
+  eventSource.addEventListener("message", result => {
+    const data = JSON.parse(result.data);
+    console.log(`Event Source Data: ${JSON.stringify(data)}`);
+    payload.data.push(data);
+  });
+
+  let isClosed = null;
+
+  eventSource.addEventListener("error", err => {
+    console.log('EventSource error: ', err);
+    eventSource.close();
+    isClosed = new Promise(function (resolve, reject) {
+      resolve(true);
+    });
+  });
+
+  while (isClosed === null) {
+    console.log(`Waiting for 1 sec: ${new Date().getTime()}`);
+      
+    await sleep(1000);
+  }
 
   console.log(`payload: ${JSON.stringify(payload)}`);
 
-  return {
+  /*
+  const myInterceptor = axios.interceptors.request.use(function (config) {
+    console.log(`interceptor:before: ${JSON.stringify(config)}`);
+    config.data = payload;
+    console.log(`interceptor:after: ${JSON.stringify(config)}`);
+    return config;
+  }); */
+
+  const result = await dispatch({
     type: ACTION_TYPES.FETCH_PERSON_LIST,
-    payload: payload
-  };
+    payload: payload //axios.get('data')
+  });
+  return result;
+
+  //axios.interceptors.request.eject(myInterceptor);
 
 /*
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;

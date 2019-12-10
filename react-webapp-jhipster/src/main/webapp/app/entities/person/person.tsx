@@ -17,16 +17,13 @@ export interface IPersonProps extends StateProps, DispatchProps, RouteComponentP
 export type IPersonState = IPaginationBaseState;
 
 export class Person extends React.Component<IPersonProps, IPersonState> {
+
   state: IPersonState = {
     ...getSortState(this.props.location, ITEMS_PER_PAGE)
   };
 
-  componentDidMount() {
-    console.log(`Here:before: ${new Date()}`);
+  async componentDidMount() {
     this.reset();
-    setTimeout(() => {
-      console.log(`Here:after: ${this.getEntities()}`);
-    }, 5000);
   }
 
   componentDidUpdate() {
