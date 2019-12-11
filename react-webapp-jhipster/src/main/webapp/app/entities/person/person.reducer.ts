@@ -19,6 +19,8 @@ import { Storage } from 'react-jhipster';
 
 import sleep from 'await-sleep';
 
+import { AxiosPromise } from 'axios';
+
 export const ACTION_TYPES = {
   FETCH_PERSON_LIST: 'person/FETCH_PERSON_LIST',
   FETCH_PERSON: 'person/FETCH_PERSON',
@@ -126,9 +128,17 @@ export default (state: PersonState = initialState, action): PersonState => {
 
 const apiUrl = 'api/persons';
 
+export interface IPayload<T> {
+  type: string;
+  payload: AxiosPromise<T>;
+  meta?: any;
+}
+export declare type IPayloadResult<T> = ((dispatch: any) => IPayload<T> | Promise<IPayload<T>>);
+export declare type ICrudGetAllEventSourceAction<T> = (page?: number, size?: number, sort?: string) => IPayload<T> | IPayloadResult<T>;
+
 // Actions
 
-export const getEntitiesByEventSource: ICrudGetAllAction<ReadonlyArray<IPerson>> = (page, size, sort) => async dispatch => {
+export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArray<IPerson>> = (page, size, sort) => async dispatch => {
   console.log(`Loading Data...`);
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
 

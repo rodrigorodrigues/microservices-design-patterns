@@ -92,23 +92,23 @@ services:
     ports:
       - 9000:9000
 
-  react-webapp-jhipster:
-      build:
-          args:
-              - PORT=3004
-          context: ../react-webapp-jhipster
-          dockerfile: Dockerfile
-      container_name: react-webapp-jhipster
-      ports:
-          - 3004:3004
-      links:
-        - gateway
-      environment:
-        - NODE_ENV=production
-      volumes:
-          - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#            - ./node_modules:/usr/src/app/
-      command: sh /tmp/docker-entrypoint.sh gateway:9006
+#  react-webapp-jhipster:
+#      build:
+#          args:
+#              - PORT=3004
+#          context: ../react-webapp-jhipster
+#          dockerfile: Dockerfile
+#      container_name: react-webapp-jhipster
+#      ports:
+#          - 3004:3004
+#      links:
+#        - gateway
+#      environment:
+#        - NODE_ENV=production
+#      volumes:
+#          - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+##            - ./node_modules:/usr/src/app/
+#      command: sh /tmp/docker-entrypoint.sh gateway:9006
   #
 #  react-webapp:
 #    build:
