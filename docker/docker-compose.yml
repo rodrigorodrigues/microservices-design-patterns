@@ -98,11 +98,13 @@ services:
               - PORT=3004
           context: ../react-webapp-jhipster
           dockerfile: Dockerfile
-      container_name: react-webapp
+      container_name: react-webapp-jhipster
       ports:
           - 3004:3004
       links:
         - gateway
+      environment:
+        - NODE_ENV=production
       volumes:
           - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
 #            - ./node_modules:/usr/src/app/
