@@ -114,7 +114,7 @@ export const getSession = () => async (dispatch, getState) => {
 };
 
 export const login = (username, password, rememberMe = false) => async (dispatch, getState) => {
-  const loginSubmit = 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password) + '&rememberMe=' + encodeURIComponent(rememberMe);
+  const loginSubmit = 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password) + '&rememberMe=' + rememberMe;
   const result = await dispatch({
     type: ACTION_TYPES.LOGIN,
     payload:  axios({

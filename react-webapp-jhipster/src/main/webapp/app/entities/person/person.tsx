@@ -7,7 +7,7 @@ import { Translate, ICrudGetAllAction, TextFormat, getSortState, IPaginationBase
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
-import { getEntities, reset } from './person.reducer';
+import { getEntitiesByEventSource as getEntities, reset } from './person.reducer';
 import { IPerson } from 'app/shared/model/person.model';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';

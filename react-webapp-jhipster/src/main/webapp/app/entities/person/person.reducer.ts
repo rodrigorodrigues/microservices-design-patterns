@@ -128,7 +128,7 @@ const apiUrl = 'api/persons';
 
 // Actions
 
-export const getEntities: ReadonlyArray<IPerson> = (page, size, sort) => async dispatch => {
+export const getEntitiesByEventSource: ICrudGetAllAction<ReadonlyArray<IPerson>> = (page, size, sort) => async dispatch => {
   console.log(`Loading Data...`);
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
 
@@ -182,6 +182,14 @@ export const getEntities: ReadonlyArray<IPerson> = (page, size, sort) => async d
   });
 
   return result;
+};
+
+export const getEntities: ICrudGetAllAction<IPerson> = (page, size, sort) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
+  return {
+    type: ACTION_TYPES.FETCH_PERSON_LIST,
+    payload: axios.get<IPerson>(`${requestUrl}${sort ? '&' : '?'}cacheBuster=${new Date().getTime()}`)
+  };
 };
 
 export const getEntity: ICrudGetAction<IPerson> = id => {
