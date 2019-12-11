@@ -22,7 +22,7 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
     ...getSortState(this.props.location, ITEMS_PER_PAGE)
   };
 
-  async componentDidMount() {
+  componentDidMount() {
     this.reset();
   }
 

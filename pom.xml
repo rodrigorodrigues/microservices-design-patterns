@@ -41,6 +41,7 @@
         <module>ssl-client-configuration</module>
         <module>kotlin-service</module>
         <module>nodejs-service</module>
+        <module>react-webapp-jhipster</module>
     </modules>
 
     <dependencyManagement>

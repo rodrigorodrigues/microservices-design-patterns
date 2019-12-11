@@ -44,6 +44,7 @@ export type PersonState = Readonly<typeof initialState>;
 // Reducer
 
 export default (state: PersonState = initialState, action): PersonState => {
+  console.log(`ActionType: ${action.type}`);
   switch (action.type) {
     case REQUEST(ACTION_TYPES.FETCH_PERSON_LIST):
     case REQUEST(ACTION_TYPES.FETCH_PERSON):
@@ -76,8 +77,6 @@ export default (state: PersonState = initialState, action): PersonState => {
       };
     case SUCCESS(ACTION_TYPES.FETCH_PERSON_LIST): {
       const links = parseHeaderForLinks(action.payload.headers.link);
-      console.log(`>>>>Links: ${links}`);
-      console.log(`>>>>Entities: ${state.entities}`);
 
       return {
         ...state,
@@ -85,6 +84,14 @@ export default (state: PersonState = initialState, action): PersonState => {
         links,
         entities: loadMoreDataWhenScrolled(state.entities, action.payload.data, links),
         totalItems: parseInt(action.payload.headers['x-total-count'], 10)
+      };
+    }
+    case ACTION_TYPES.FETCH_PERSON_LIST: {
+      return {
+        ...state,
+        loading: true,
+        entities: loadMoreDataWhenScrolled(action.payload, action.payload, ""),
+        totalItems: parseInt(action.payload.length, 10)
       };
     }
     case SUCCESS(ACTION_TYPES.FETCH_PERSON):
@@ -121,9 +128,9 @@ const apiUrl = 'api/persons';
 
 // Actions
 
-export const getEntities: ICrudGetAllAction<IPerson> = (page, size, sort) => async dispatch => {
+export const getEntities: ReadonlyArray<IPerson> = (page, size, sort) => async dispatch => {
   console.log(`Loading Data...`);
-  const requestUrl = `${apiUrl}`;
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
 
   const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
 
@@ -145,14 +152,12 @@ export const getEntities: ICrudGetAllAction<IPerson> = (page, size, sort) => asy
     console.log('EventSource open: ', result);
   });
 
-  const payload = {
-    data: []
-  };  
+  const entities = [] as Array<IPerson>;
 
   eventSource.addEventListener("message", result => {
     const data = JSON.parse(result.data);
     console.log(`Event Source Data: ${JSON.stringify(data)}`);
-    payload.data.push(data);
+    entities.push(data);
   });
 
   let isClosed = null;
@@ -171,31 +176,12 @@ export const getEntities: ICrudGetAllAction<IPerson> = (page, size, sort) => asy
     await sleep(1000);
   }
 
-  console.log(`payload: ${JSON.stringify(payload)}`);
-
-  /*
-  const myInterceptor = axios.interceptors.request.use(function (config) {
-    console.log(`interceptor:before: ${JSON.stringify(config)}`);
-    config.data = payload;
-    console.log(`interceptor:after: ${JSON.stringify(config)}`);
-    return config;
-  }); */
-
   const result = await dispatch({
     type: ACTION_TYPES.FETCH_PERSON_LIST,
-    payload: payload //axios.get('data')
+    payload: entities
   });
+
   return result;
-
-  //axios.interceptors.request.eject(myInterceptor);
-
-/*
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return {
-    type: ACTION_TYPES.FETCH_PERSON_LIST,
-    payload: axios.get<IPerson>(`${requestUrl}${sort ? '&' : '?'}cacheBuster=${new Date().getTime()}`)
-  };
-  */
 };
 
 export const getEntity: ICrudGetAction<IPerson> = id => {
