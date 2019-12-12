@@ -33,5 +33,6 @@
     "fluentMethods": true,
     "clientRootFolder": "",
     "applications": "*",
-    "skipServer": true
+    "skipServer": true,
+    "skipClient": true
 }

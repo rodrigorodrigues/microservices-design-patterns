@@ -20,7 +20,7 @@ RUN npm install --silent --only=production
 # Bundle app source
 COPY . .
 
-RUN npm run webpack:prod
+RUN npm run webpack:build
 
 ### STAGE 2: Production Environment ###
 FROM nginx:1.13.12-alpine

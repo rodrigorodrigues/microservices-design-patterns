@@ -68,10 +68,6 @@ export class PersonDetail extends React.Component<IPersonDetailProps> {
             <dd>
               <TextFormat value={personEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} />
             </dd>
-            <dt>
-              <Translate contentKey="spendingbetterApp.person.address">Address</Translate>
-            </dt>
-            <dd>{personEntity.address ? personEntity.address.id : ''}</dd>
           </dl>
           <Button tag={Link} to="/entity/person" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />{' '}

@@ -7,8 +7,6 @@ import { Translate, translate, ICrudGetAction, ICrudGetAllAction, ICrudPutAction
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
 
-import { IAddress } from 'app/shared/model/address.model';
-import { getEntities as getAddresses } from 'app/entities/address/address.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './person.reducer';
 import { IPerson } from 'app/shared/model/person.model';
 import { convertDateTimeFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
@@ -18,14 +16,12 @@ export interface IPersonUpdateProps extends StateProps, DispatchProps, RouteComp
 
 export interface IPersonUpdateState {
   isNew: boolean;
-  addressId: string;
 }
 
 export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpdateState> {
   constructor(props) {
     super(props);
     this.state = {
-      addressId: '0',
       isNew: !this.props.match.params || !this.props.match.params.id
     };
   }
@@ -40,8 +36,6 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
     if (!this.state.isNew) {
       this.props.getEntity(this.props.match.params.id);
     }
-
-    this.props.getAddresses();
   }
 
   saveEntity = (event, errors, values) => {
@@ -68,7 +62,7 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
   };
 
   render() {
-    const { personEntity, addresses, loading, updating } = this.props;
+    const { personEntity, loading, updating } = this.props;
     const { isNew } = this.state;
 
     return (
@@ -151,21 +145,6 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
                     value={isNew ? null : convertDateTimeFromServer(this.props.personEntity.lastModifiedDate)}
                   />
                 </AvGroup>
-                <AvGroup>
-                  <Label for="person-address">
-                    <Translate contentKey="spendingbetterApp.person.address">Address</Translate>
-                  </Label>
-                  <AvInput id="person-address" type="select" className="form-control" name="address.id">
-                    <option value="" key="0" />
-                    {addresses
-                      ? addresses.map(otherEntity => (
-                          <option value={otherEntity.id} key={otherEntity.id}>
-                            {otherEntity.id}
-                          </option>
-                        ))
-                      : null}
-                  </AvInput>
-                </AvGroup>
                 <Button tag={Link} id="cancel-save" to="/entity/person" replace color="info">
                   <FontAwesomeIcon icon="arrow-left" />
                   &nbsp;
@@ -189,7 +168,6 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
 }
 
 const mapStateToProps = (storeState: IRootState) => ({
-  addresses: storeState.address.entities,
   personEntity: storeState.person.entity,
   loading: storeState.person.loading,
   updating: storeState.person.updating,
@@ -197,7 +175,6 @@ const mapStateToProps = (storeState: IRootState) => ({
 });
 
 const mapDispatchToProps = {
-  getAddresses,
   getEntity,
   updateEntity,
   createEntity,

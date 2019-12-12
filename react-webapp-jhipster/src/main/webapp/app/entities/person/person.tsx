@@ -111,9 +111,6 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
                       <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>{' '}
                       <FontAwesomeIcon icon="sort" />
                     </th>
-                    <th>
-                      <Translate contentKey="spendingbetterApp.person.address">Address</Translate> <FontAwesomeIcon icon="sort" />
-                    </th>
                     <th />
                   </tr>
                 </thead>
@@ -137,7 +134,6 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
                       <td>
                         <TextFormat type="date" value={person.lastModifiedDate} format={APP_DATE_FORMAT} />
                       </td>
-                      <td>{person.address ? <Link to={`address/${person.address.id}`}>{person.address.id}</Link> : ''}</td>
                       <td className="text-right">
                         <div className="btn-group flex-btn-group-container">
                           <Button tag={Link} to={`${match.url}/${person.id}`} color="info" size="sm">

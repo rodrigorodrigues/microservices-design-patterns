@@ -13,8 +13,6 @@ import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util'
 
 import { IPerson, defaultValue } from 'app/shared/model/person.model';
 
-import { EventSourcePolyfill } from 'event-source-polyfill';
-
 import { Storage } from 'react-jhipster';
 
 import sleep from 'await-sleep';
@@ -140,7 +138,6 @@ export declare type ICrudGetAllEventSourceAction<T> = (page?: number, size?: num
 
 export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArray<IPerson>> = (page, size, sort) => async dispatch => {
   console.log(`Loading Data...`);
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
 
   const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
 
@@ -150,13 +147,11 @@ export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArra
     jwt = Storage.session.get(AUTH_TOKEN_KEY);
   }
 
-  console.log(`JWT: ${jwt}`);
+  jwt = `Bearer ${jwt}`;
 
-  const eventSource = new EventSourcePolyfill(`${requestUrl}`, {
-    headers: {
-      'Authorization': 'Bearer ' + jwt
-    }
-  });
+  const requestUrl = `${apiUrl}?Authorization=${jwt}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+
+  const eventSource = new EventSource(`${requestUrl}`);
 
   eventSource.addEventListener("open", result => {
     console.log('EventSource open: ', result);
@@ -164,7 +159,8 @@ export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArra
 
   const entities = [] as Array<IPerson>;
 
-  eventSource.addEventListener("message", result => {
+  eventSource.addEventListener("message", (result: any) => {
+    console.log(`Event Source Type: ${result}`);
     const data = JSON.parse(result.data);
     console.log(`Event Source Data: ${JSON.stringify(data)}`);
     entities.push(data);

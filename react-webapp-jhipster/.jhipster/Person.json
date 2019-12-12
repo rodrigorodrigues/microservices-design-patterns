@@ -29,22 +29,7 @@
             "fieldType": "Instant"
         }
     ],
-    "relationships": [
-        {
-            "relationshipType": "one-to-one",
-            "otherEntityName": "address",
-            "otherEntityRelationshipName": "person",
-            "relationshipName": "address",
-            "otherEntityField": "id",
-            "ownerSide": true
-        },
-        {
-            "relationshipType": "one-to-many",
-            "otherEntityName": "child",
-            "otherEntityRelationshipName": "person",
-            "relationshipName": "children"
-        }
-    ],
+    "relationships": [],
     "changelogDate": "20190703224118",
     "entityTableName": "person",
     "dto": "no",
