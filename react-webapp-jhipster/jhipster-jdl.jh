@@ -1,26 +1,34 @@
 entity Person {
+	id String required
     fullName String required
     dateOfBirth LocalDate
     createdByUser String
     createdDate Instant
     lastModifiedByUser String
-    lastModifiedDate String
+    lastModifiedDate Instant
 }
+skipServer Person
 
+/**
 entity Child {
+id String required
 	name String required
     dateOfBirth LocalDate required
 }
+skipServer Child
+skipClient Child
 
 // an ignored comment
-/** not an ignored comment */
 entity Address {
+	id String required
 	address String required
 	postalCode String required
 	city String required
 	stateOrProvince String required
     country String required
 }
+skipServer Address
+skipClient Address
 
 relationship OneToOne {
 	Person{address} to Address
@@ -31,6 +39,7 @@ relationship OneToOne {
 relationship OneToMany {
 	Person{children} to Child,
 }
+*/
 
 // Set pagination options
 paginate all with infinite-scroll

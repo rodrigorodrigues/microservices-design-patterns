@@ -22,6 +22,9 @@ export default class AppNavbar extends Component {
       <Collapse isOpen={this.state.isOpen} navbar>
         <Nav className="ml-auto" navbar>
           <NavItem>
+            <NavLink href={process.env.REACT_APP_JHIPSTER_URL}>Try JHipster</NavLink>
+          </NavItem>
+          <NavItem>
             <NavLink href="https://github.com/rodrigorodrigues/microservices-design-patterns">GitHub</NavLink>
           </NavItem>
           <UncontrolledDropdown nav inNavbar>

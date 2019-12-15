@@ -3,16 +3,12 @@ import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Row, Col, Label } from 'reactstrap';
 import { AvFeedback, AvForm, AvGroup, AvInput, AvField } from 'availity-reactstrap-validation';
-// tslint:disable-next-line:no-unused-variable
 import { Translate, translate, ICrudGetAction, ICrudGetAllAction, ICrudPutAction } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
 
-import { IAddress } from 'app/shared/model/address.model';
-import { getEntities as getAddresses } from 'app/entities/address/address.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './person.reducer';
 import { IPerson } from 'app/shared/model/person.model';
-// tslint:disable-next-line:no-unused-variable
 import { convertDateTimeFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
 import { mapIdList } from 'app/shared/util/entity-utils';
 
@@ -20,14 +16,12 @@ export interface IPersonUpdateProps extends StateProps, DispatchProps, RouteComp
 
 export interface IPersonUpdateState {
   isNew: boolean;
-  addressId: string;
 }
 
 export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpdateState> {
   constructor(props) {
     super(props);
     this.state = {
-      addressId: '0',
       isNew: !this.props.match.params || !this.props.match.params.id
     };
   }
@@ -42,12 +36,11 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
     if (!this.state.isNew) {
       this.props.getEntity(this.props.match.params.id);
     }
-
-    this.props.getAddresses();
   }
 
   saveEntity = (event, errors, values) => {
     values.createdDate = convertDateTimeToServer(values.createdDate);
+    values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
 
     if (errors.length === 0) {
       const { personEntity } = this.props;
@@ -69,7 +62,7 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
   };
 
   render() {
-    const { personEntity, addresses, loading, updating } = this.props;
+    const { personEntity, loading, updating } = this.props;
     const { isNew } = this.state;
 
     return (
@@ -115,50 +108,69 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
                   <AvField id="person-dateOfBirth" type="date" className="form-control" name="dateOfBirth" />
                 </AvGroup>
                 <AvGroup>
-                  <Label id="createdByUserLabel" for="person-createdByUser">
-                    <Translate contentKey="spendingbetterApp.person.createdByUser">Created By User</Translate>
+                  <Label id="addressLabel" for="address-address">
+                    <Translate contentKey="spendingbetterApp.address.address">Address</Translate>
                   </Label>
-                  <AvField id="person-createdByUser" type="text" name="createdByUser" />
-                </AvGroup>
-                <AvGroup>
-                  <Label id="createdDateLabel" for="person-createdDate">
-                    <Translate contentKey="spendingbetterApp.person.createdDate">Created Date</Translate>
-                  </Label>
-                  <AvInput
-                    id="person-createdDate"
-                    type="datetime-local"
-                    className="form-control"
-                    name="createdDate"
-                    placeholder={'YYYY-MM-DD HH:mm'}
-                    value={isNew ? null : convertDateTimeFromServer(this.props.personEntity.createdDate)}
+                  <AvField
+                    id="address-address"
+                    type="text"
+                    name="address.address"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
                   />
                 </AvGroup>
                 <AvGroup>
-                  <Label id="lastModifiedByUserLabel" for="person-lastModifiedByUser">
-                    <Translate contentKey="spendingbetterApp.person.lastModifiedByUser">Last Modified By User</Translate>
+                  <Label id="postalCodeLabel" for="address-postalCode">
+                    <Translate contentKey="spendingbetterApp.address.postalCode">Postal Code</Translate>
                   </Label>
-                  <AvField id="person-lastModifiedByUser" type="text" name="lastModifiedByUser" />
+                  <AvField
+                    id="address-postalCode"
+                    type="text"
+                    name="address.postalCode"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
                 </AvGroup>
                 <AvGroup>
-                  <Label id="lastModifiedDateLabel" for="person-lastModifiedDate">
-                    <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>
+                  <Label id="cityLabel" for="address-city">
+                    <Translate contentKey="spendingbetterApp.address.city">City</Translate>
                   </Label>
-                  <AvField id="person-lastModifiedDate" type="text" name="lastModifiedDate" />
+                  <AvField
+                    id="address-city"
+                    type="text"
+                    name="address.city"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
                 </AvGroup>
                 <AvGroup>
-                  <Label for="person-address">
-                    <Translate contentKey="spendingbetterApp.person.address">Address</Translate>
+                  <Label id="stateOrProvinceLabel" for="address-stateOrProvince">
+                    <Translate contentKey="spendingbetterApp.address.stateOrProvince">State Or Province</Translate>
                   </Label>
-                  <AvInput id="person-address" type="select" className="form-control" name="address.id">
-                    <option value="" key="0" />
-                    {addresses
-                      ? addresses.map(otherEntity => (
-                          <option value={otherEntity.id} key={otherEntity.id}>
-                            {otherEntity.id}
-                          </option>
-                        ))
-                      : null}
-                  </AvInput>
+                  <AvField
+                    id="address-stateOrProvince"
+                    type="text"
+                    name="address.stateOrProvince"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
+                </AvGroup>
+                <AvGroup>
+                  <Label id="countryLabel" for="address-country">
+                    <Translate contentKey="spendingbetterApp.address.country">Country</Translate>
+                  </Label>
+                  <AvField
+                    id="address-country"
+                    type="text"
+                    name="address.country"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
                 </AvGroup>
                 <Button tag={Link} id="cancel-save" to="/entity/person" replace color="info">
                   <FontAwesomeIcon icon="arrow-left" />
@@ -183,7 +195,6 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
 }
 
 const mapStateToProps = (storeState: IRootState) => ({
-  addresses: storeState.address.entities,
   personEntity: storeState.person.entity,
   loading: storeState.person.loading,
   updating: storeState.person.updating,
@@ -191,7 +202,6 @@ const mapStateToProps = (storeState: IRootState) => ({
 });
 
 const mapDispatchToProps = {
-  getAddresses,
   getEntity,
   updateEntity,
   createEntity,

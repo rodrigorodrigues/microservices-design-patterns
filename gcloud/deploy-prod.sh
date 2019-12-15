@@ -4,6 +4,7 @@ set -e
 
 BUILD_NEW_DOCKER_IMAGE=false
 BUILD_REACT_WEBAPP_IMAGE=false
+BUILD_REACT_WEBAPP_JHIPSTER_IMAGE=false
 BUILD_NODE_IMAGE=false
 BUILD_AUTHENTICATION_SERVICE_IMAGE=false
 BUILD_USER_SERVICE_IMAGE=false
@@ -20,7 +21,11 @@ else
   #Build images according to changes
   for i in $(echo ${DEPLOY_FILES:0:-1} | tr ";" "\n")
   do
-    if [[ "$BUILD_REACT_WEBAPP_IMAGE" == "false" ]] && [[ "$i" == "react-webapp" ]]; then
+    if [[ "$BUILD_REACT_WEBAPP_IMAGE" == "false" ]] && [[ "$i" == "react-webapp-jhipster" ]]; then
+      IMAGES_TO_BUILD+="react-webapp-jhipster;"
+      BUILD_NEW_DOCKER_IMAGE=true
+      BUILD_REACT_WEBAPP_JHIPSTER_IMAGE=true
+    elif [[ "$BUILD_REACT_WEBAPP_IMAGE" == "false" ]] && [[ "$i" == "react-webapp" ]]; then
       IMAGES_TO_BUILD+="react-webapp;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_REACT_WEBAPP_IMAGE=true
@@ -54,6 +59,8 @@ else
 
   echo "Should build new docker image for react webapp? ${BUILD_REACT_WEBAPP_IMAGE}"
 
+  echo "Should build new docker image for react webapp jhipster? ${BUILD_REACT_WEBAPP_JHIPSTER_IMAGE}"
+
   echo "Should build new docker image for nodejs? ${BUILD_NODE_IMAGE}"
 
   echo "Should build new docker image for authentication-service? ${BUILD_AUTHENTICATION_SERVICE_IMAGE}"
@@ -86,10 +93,14 @@ else
     for DOCKER_IMAGE in $(echo $IMAGES_TO_BUILD | tr ";" "\n")
     do
       echo "Preparing to deploy docker image $DOCKER_IMAGE"
-      if [ "$DOCKER_IMAGE" == "react-webapp" ]; then
+      if [ "$DOCKER_IMAGE" == "react-webapp-jhipster" ]; then
+        echo "Building Docker React Web JHipster App Image..."
+        npm --prefix ./react-webapp-jhipster install ./react-webapp-jhipster
+        docker build --quiet --build-arg PORT=$REACT_WEBAPP_PORT -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp-jhipster
+      elif [ "$DOCKER_IMAGE" == "react-webapp" ]; then
         echo "Building Docker React Web App Image..."
         npm --prefix ./react-webapp install ./react-webapp
-        docker build --quiet --build-arg PORT=$REACT_PORT -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp
+        docker build --quiet --build-arg PORT=$REACT_WEBAPP_PORT -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp
       elif [ "$DOCKER_IMAGE" == "week-menu-api" ]; then
         echo "Building Docker NodeJS Service Image..."
         npm --prefix ./nodejs-service install ./nodejs-service

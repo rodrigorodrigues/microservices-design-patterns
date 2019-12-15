@@ -41,6 +41,7 @@
         <module>ssl-client-configuration</module>
         <module>kotlin-service</module>
         <module>nodejs-service</module>
+        <module>react-webapp-jhipster</module>
     </modules>
 
     <dependencyManagement>
@@ -86,6 +87,9 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.30.0</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
             <plugin>

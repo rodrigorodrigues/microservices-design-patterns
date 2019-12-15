@@ -1,0 +1,7 @@
+{
+  "extends": ["jhipster-react"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {}
+}

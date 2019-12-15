@@ -18,11 +18,12 @@ export default (state: ApplicationProfileState = initialState, action): Applicat
   switch (action.type) {
     case SUCCESS(ACTION_TYPES.GET_PROFILE):
       const { data } = action.payload;
+      console.log(`DATA: ${JSON.stringify(data)}`);
       return {
         ...state,
         ribbonEnv: data['display-ribbon-on-profiles'],
-        inProduction: data.activeProfiles.includes('prod'),
-        isSwaggerEnabled: data.activeProfiles.includes('swagger')
+        inProduction: data.activeProfiles && data.activeProfiles.includes('prod'),
+        isSwaggerEnabled: data.activeProfiles && data.activeProfiles.includes('swagger')
       };
     default:
       return state;
@@ -31,5 +32,5 @@ export default (state: ApplicationProfileState = initialState, action): Applicat
 
 export const getProfile = () => ({
   type: ACTION_TYPES.GET_PROFILE,
-  payload: axios.get('management/info')
+  payload: axios.get('actuator/info')
 });

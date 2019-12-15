@@ -1,5 +1,5 @@
-FROM node:10.15.3-slim
-ARG SERVER_PORT
+FROM node:10.15.3-slim as builder
+ARG PORT
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -9,21 +9,44 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-COPY node_modules/ ./
+#COPY node_modules/ ./
 
-# RUN apt-get update && apt-get install netcat-openbsd -y
+RUN apt-get update && apt-get install netcat-openbsd -y
 
 # RUN npm install
 # If you are building your code for production
-# RUN npm install --only=production
+RUN npm install
 
 # Bundle app source
 COPY . .
 
 ENV JAVA_CMD="npm start"
 
-ENV PORT=$SERVER_PORT
+ENV PORT=$PORT
 
-EXPOSE $SERVER_PORT
+EXPOSE $PORT
 
 CMD [ "npm", "start" ]
+
+#RUN npm run webpack:prod
+
+### STAGE 2: Production Environment ###
+#FROM nginx:1.13.12-alpine
+
+#ARG PORT
+
+#ENV PORT=$PORT
+
+#COPY --from=builder /usr/src/app/build/resources/main/static /usr/share/nginx/html
+#COPY --from=builder /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
+
+#RUN echo "PORT = $PORT"
+
+#RUN sed -i 's/PORT/'"$PORT"'/g' /etc/nginx/conf.d/default.conf
+
+#RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+#EXPOSE $PORT
+
+#ENV JAVA_CMD="nginx"
+#CMD ["nginx"]

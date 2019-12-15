@@ -11,7 +11,7 @@ ENV PATH /usr/src/app/node_modules/.bin:$PATH
 # where available (npm@5+)
 COPY package*.json ./
 
-COPY node_modules/ ./
+#COPY node_modules/ ./
 
 RUN apt-get update && apt-get install netcat-openbsd -y
 

@@ -3,7 +3,7 @@
     "promptValues": {
       "nativeLanguage": "en"
     },
-    "jhipsterVersion": "6.1.2",
+    "jhipsterVersion": "6.3.1",
     "applicationType": "monolith",
     "baseName": "spendingbetter",
     "useSass": true,
@@ -23,7 +23,11 @@
     "otherModules": [],
     "enableTranslation": true,
     "nativeLanguage": "en",
-    "languages": ["en", "pt-br"],
-    "skipServer": true
+    "languages": [
+      "en",
+      "pt-br"
+    ],
+    "skipServer": true,
+    "blueprints": []
   }
 }

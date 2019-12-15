@@ -120,22 +120,22 @@ export default (state: AdministrationState = initialState, action): Administrati
 
 export const systemHealth = () => ({
   type: ACTION_TYPES.FETCH_HEALTH,
-  payload: axios.get('management/health')
+  payload: axios.get('actuator/health')
 });
 
 export const systemMetrics = () => ({
   type: ACTION_TYPES.FETCH_METRICS,
-  payload: axios.get('management/jhimetrics')
+  payload: axios.get('actuator/jhimetrics')
 });
 
 export const systemThreadDump = () => ({
   type: ACTION_TYPES.FETCH_THREAD_DUMP,
-  payload: axios.get('management/threaddump')
+  payload: axios.get('actuator/threaddump')
 });
 
 export const getLoggers = () => ({
   type: ACTION_TYPES.FETCH_LOGS,
-  payload: axios.get('management/loggers')
+  payload: axios.get('actuator/loggers')
 });
 
 export const changeLogLevel = (name, configuredLevel) => {
@@ -143,7 +143,7 @@ export const changeLogLevel = (name, configuredLevel) => {
   return async dispatch => {
     await dispatch({
       type: ACTION_TYPES.FETCH_LOGS_CHANGE_LEVEL,
-      payload: axios.post('management/loggers/' + name, body)
+      payload: axios.post('actuator/loggers/' + name, body)
     });
     dispatch(getLoggers());
   };
@@ -151,16 +151,16 @@ export const changeLogLevel = (name, configuredLevel) => {
 
 export const getConfigurations = () => ({
   type: ACTION_TYPES.FETCH_CONFIGURATIONS,
-  payload: axios.get('management/configprops')
+  payload: axios.get('actuator/configprops')
 });
 
 export const getEnv = () => ({
   type: ACTION_TYPES.FETCH_ENV,
-  payload: axios.get('management/env')
+  payload: axios.get('actuator/env')
 });
 
 export const getAudits = (page, size, sort, fromDate, toDate) => {
-  let requestUrl = `management/audits${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
+  let requestUrl = `actuator/audits${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
   if (fromDate) {
     requestUrl += `&fromDate=${fromDate}`;
   }

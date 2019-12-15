@@ -68,7 +68,7 @@ export default (state: AddressState = initialState, action): AddressState => {
         updateSuccess: false,
         errorMessage: action.payload
       };
-    case SUCCESS(ACTION_TYPES.FETCH_ADDRESS_LIST):
+    case SUCCESS(ACTION_TYPES.FETCH_ADDRESS_LIST): {
       const links = parseHeaderForLinks(action.payload.headers.link);
 
       return {
@@ -78,6 +78,7 @@ export default (state: AddressState = initialState, action): AddressState => {
         entities: loadMoreDataWhenScrolled(state.entities, action.payload.data, links),
         totalItems: parseInt(action.payload.headers['x-total-count'], 10)
       };
+    }
     case SUCCESS(ACTION_TYPES.FETCH_ADDRESS):
       return {
         ...state,

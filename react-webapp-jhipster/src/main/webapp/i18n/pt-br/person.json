@@ -21,9 +21,7 @@
       "createdByUser": "Created By User",
       "createdDate": "Created Date",
       "lastModifiedByUser": "Last Modified By User",
-      "lastModifiedDate": "Last Modified Date",
-      "address": "Address",
-      "children": "Children"
+      "lastModifiedDate": "Last Modified Date"
     }
   }
 }

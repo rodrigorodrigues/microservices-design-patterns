@@ -57,7 +57,7 @@ services:
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - SPRING_ZIPKIN_ENABLED=true
     depends_on:
       - service-discovery
@@ -92,25 +92,25 @@ services:
     ports:
       - 9000:9000
 
-  ## Need to fix proxy issue
-  #    react-webapp-jhipster:
-  #        build:
-  #            args:
-  #                - SERVER_PORT=3001
-  #                - REACT_APP_GATEWAY_URL=http://localhost:9006
-  #                - HOSTNAME=${HOSTNAME} - Test
-  #            context: ../react-webapp-jhipster
-  #            dockerfile: Dockerfile
-  #        container_name: react-webapp
-  #        ports:
-  #            - 3001:9000
-  #        links:
-  #          - gateway
-  #        volumes:
-  #            - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-  ##            - ./node_modules:/usr/src/app/
-  #        command: sh /tmp/docker-entrypoint.sh gateway:9006
-  #
+  react-webapp-jhipster:
+      build:
+          args:
+              - PORT=9000
+          context: ../react-webapp-jhipster
+          dockerfile: Dockerfile
+      container_name: react-webapp-jhipster
+      ports:
+          - 9000:9000
+      links:
+        - gateway
+      environment:
+        - NODE_ENV=production
+        - SERVER_API_URL=http://localhost:9006/
+      volumes:
+          - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+#            - ./node_modules:/usr/src/app/
+      command: sh /tmp/docker-entrypoint.sh gateway:9006
+
   react-webapp:
     build:
       args:
@@ -119,7 +119,7 @@ services:
       dockerfile: Dockerfile
     container_name: react-webapp
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     ports:
       - 3003:3003
     links:
@@ -134,8 +134,6 @@ services:
     build:
       context: ../nodejs-service
       dockerfile: Dockerfile
-    #            Production
-    #            dockerfile: Dockerfile-prod
     container_name: week-menu-api
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -200,7 +198,7 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
     depends_on:
       - service-discovery
       - config-management
@@ -225,7 +223,7 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
     links:
       - authentication-api
@@ -250,6 +248,7 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - CONFIGURATION_AUTHORIZE_URLS=http://localhost:3000/grafana/login/generic_oauth
     depends_on:

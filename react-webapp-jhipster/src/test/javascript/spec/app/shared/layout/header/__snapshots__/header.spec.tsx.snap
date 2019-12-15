@@ -1,0 +1,141 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header Renders a Header component in dev profile with LoadingBar, Navbar, Nav and dev ribbon. 1`] = `
+<div
+  id="app-header"
+>
+  <div
+    className="ribbon dev"
+  >
+    <a
+      href=""
+    >
+      <Translate
+        component="span"
+        contentKey="global.ribbon.dev"
+      />
+    </a>
+  </div>
+  <Connect(LoadingBar)
+    className="loading-bar"
+  />
+  <Navbar
+    className="jh-navbar"
+    dark={true}
+    expand="sm"
+    fixed="top"
+    tag="nav"
+  >
+    <NavbarToggler
+      aria-label="Menu"
+      onClick={[Function]}
+      tag="button"
+      type="button"
+    />
+    <Component />
+    <Collapse
+      appear={false}
+      enter={true}
+      exit={true}
+      in={false}
+      isOpen={false}
+      mountOnEnter={false}
+      navbar={true}
+      onEnter={[Function]}
+      onEntered={[Function]}
+      onEntering={[Function]}
+      onExit={[Function]}
+      onExited={[Function]}
+      onExiting={[Function]}
+      tag="div"
+      timeout={350}
+      unmountOnExit={false}
+    >
+      <Nav
+        className="ml-auto"
+        id="header-tabs"
+        navbar={true}
+        tag="ul"
+        vertical={false}
+      >
+        <Component />
+        <Component />
+        <Component
+          showSwagger={true}
+        />
+        <Component
+          currentLocale="en"
+          onClick={[Function]}
+        />
+        <Component
+          isAuthenticated={true}
+        />
+      </Nav>
+    </Collapse>
+  </Navbar>
+</div>
+`;
+
+exports[`Header Renders a Header component in prod profile with LoadingBar, Navbar, Nav. 1`] = `
+<div
+  id="app-header"
+>
+  <Connect(LoadingBar)
+    className="loading-bar"
+  />
+  <Navbar
+    className="jh-navbar"
+    dark={true}
+    expand="sm"
+    fixed="top"
+    tag="nav"
+  >
+    <NavbarToggler
+      aria-label="Menu"
+      onClick={[Function]}
+      tag="button"
+      type="button"
+    />
+    <Component />
+    <Collapse
+      appear={false}
+      enter={true}
+      exit={true}
+      in={false}
+      isOpen={false}
+      mountOnEnter={false}
+      navbar={true}
+      onEnter={[Function]}
+      onEntered={[Function]}
+      onEntering={[Function]}
+      onExit={[Function]}
+      onExited={[Function]}
+      onExiting={[Function]}
+      tag="div"
+      timeout={350}
+      unmountOnExit={false}
+    >
+      <Nav
+        className="ml-auto"
+        id="header-tabs"
+        navbar={true}
+        tag="ul"
+        vertical={false}
+      >
+        <Component />
+        <Component />
+        <Component
+          showSwagger={false}
+        />
+        <Component
+          currentLocale="en"
+          onClick={[Function]}
+        />
+        <Component
+          isAuthenticated={true}
+        />
+      </Nav>
+    </Collapse>
+  </Navbar>
+</div>
+`;

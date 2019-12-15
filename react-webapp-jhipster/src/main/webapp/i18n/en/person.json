@@ -5,7 +5,7 @@
         "title": "People",
         "createLabel": "Create a new Person",
         "createOrEditLabel": "Create or edit a Person",
-        "notFound": "No Person found"
+        "notFound": "No People found"
       },
       "created": "A new Person is created with identifier {{ param }}",
       "updated": "A Person is updated with identifier {{ param }}",
@@ -21,9 +21,7 @@
       "createdByUser": "Created By User",
       "createdDate": "Created Date",
       "lastModifiedByUser": "Last Modified By User",
-      "lastModifiedDate": "Last Modified Date",
-      "address": "Address",
-      "children": "Children"
+      "lastModifiedDate": "Last Modified Date"
     }
   }
 }

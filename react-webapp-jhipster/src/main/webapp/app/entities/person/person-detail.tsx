@@ -2,14 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Row, Col } from 'reactstrap';
-// tslint:disable-next-line:no-unused-variable
 import { Translate, ICrudGetAction, TextFormat } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
 import { getEntity } from './person.reducer';
 import { IPerson } from 'app/shared/model/person.model';
-// tslint:disable-next-line:no-unused-variable
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 
 export interface IPersonDetailProps extends StateProps, DispatchProps, RouteComponentProps<{ id: string }> {}
@@ -67,11 +65,9 @@ export class PersonDetail extends React.Component<IPersonDetailProps> {
                 <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>
               </span>
             </dt>
-            <dd>{personEntity.lastModifiedDate}</dd>
-            <dt>
-              <Translate contentKey="spendingbetterApp.person.address">Address</Translate>
-            </dt>
-            <dd>{personEntity.address ? personEntity.address.id : ''}</dd>
+            <dd>
+              <TextFormat value={personEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} />
+            </dd>
           </dl>
           <Button tag={Link} to="/entity/person" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />{' '}

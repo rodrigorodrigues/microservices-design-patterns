@@ -117,6 +117,10 @@ spec:
             backend:
               serviceName: zipkin-server
               servicePort: http-port
+          - path: /jhipster
+            backend:
+              serviceName: react-webapp-jhipster
+              servicePort: http-port
           - path: /
             backend:
               serviceName: react-webapp

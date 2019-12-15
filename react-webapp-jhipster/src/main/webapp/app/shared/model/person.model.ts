@@ -1,6 +1,5 @@
 import { Moment } from 'moment';
-import { IAddress } from 'app/shared/model/address.model';
-import { IChild } from 'app/shared/model/child.model';
+import { IAddress } from './address.model';
 
 export interface IPerson {
   id?: string;
@@ -9,9 +8,8 @@ export interface IPerson {
   createdByUser?: string;
   createdDate?: Moment;
   lastModifiedByUser?: string;
-  lastModifiedDate?: string;
+  lastModifiedDate?: Moment;
   address?: IAddress;
-  children?: IChild[];
 }
 
 export const defaultValue: Readonly<IPerson> = {};
