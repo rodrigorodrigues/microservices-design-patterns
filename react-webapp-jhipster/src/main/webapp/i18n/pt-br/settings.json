@@ -2,8 +2,8 @@
   "settings": {
     "title": "Configurações para o usuário [<strong>{{username}}</strong>]",
     "form": {
-      "firstname": "Nome",
-      "firstname.placeholder": "Seu nome",
+      "fullname": "Nome Complete",
+      "fullname.placeholder": "Seu nome completo",
       "lastname": "Sobrenome",
       "lastname.placeholder": "Seu sobrenome",
       "language": "Idioma",
@@ -16,15 +16,10 @@
       },
       "success": "<strong>Configurações salvas com sucesso!</strong>",
       "validate": {
-        "firstname": {
-          "required": "O nome é obrigatório.",
-          "minlength": "O nome deve ter pelo menos 1 caractere",
-          "maxlength": "O nome não pode ter mais de 50 caracteres"
-        },
-        "lastname": {
-          "required": "O sobrenome é obrigatório.",
-          "minlength": "O sobrenome deve ter pelo menos 1 caractere",
-          "maxlength": "O sobrenome não pode ter mais de 50 caracteres"
+        "fullname": {
+          "required": "O nome completo é obrigatório.",
+          "minlength": "O nome completo deve ter pelo menos 1 caractere",
+          "maxlength": "O nome completo não pode ter mais de 50 caracteres"
         }
       }
     }

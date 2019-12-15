@@ -28,7 +28,7 @@ COPY . .
 
 #CMD [ "npm", "start" ]
 
-RUN npm run webpack:prod
+RUN npm run webpack:build
 
 ### STAGE 2: Production Environment ###
 FROM nginx:1.13.12-alpine

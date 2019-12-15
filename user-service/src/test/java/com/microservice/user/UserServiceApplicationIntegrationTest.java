@@ -63,7 +63,8 @@ class UserServiceApplicationIntegrationTest {
                 .expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
                 .expectBody()
                 .jsonPath("$.id").isNotEmpty()
-                .jsonPath("$.createdByUser").isEqualTo("admin@gmail.com");
+                .jsonPath("$.createdByUser").isEqualTo("admin@gmail.com")
+                .jsonPath("$.activated").isEqualTo(true);
     }
 
     @Test

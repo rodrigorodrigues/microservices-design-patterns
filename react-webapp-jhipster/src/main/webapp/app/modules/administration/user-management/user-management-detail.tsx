@@ -42,13 +42,9 @@ export class UserManagementDetail extends React.Component<IUserManagementDetailP
               )}
             </dd>
             <dt>
-              <Translate contentKey="userManagement.firstName">First Name</Translate>
+              <Translate contentKey="userManagement.fullName">Full Name</Translate>
             </dt>
-            <dd>{user.firstName}</dd>
-            <dt>
-              <Translate contentKey="userManagement.lastName">Last Name</Translate>
-            </dt>
-            <dd>{user.lastName}</dd>
+            <dd>{user.fullName}</dd>
             <dt>
               <Translate contentKey="userManagement.email">Email</Translate>
             </dt>
@@ -85,7 +81,7 @@ export class UserManagementDetail extends React.Component<IUserManagementDetailP
                 {user.authorities
                   ? user.authorities.map((authority, i) => (
                       <li key={`user-auth-${i}`}>
-                        <Badge color="info">{authority}</Badge>
+                        <Badge color="info">{authority.role}</Badge>
                       </li>
                     ))
                   : null}

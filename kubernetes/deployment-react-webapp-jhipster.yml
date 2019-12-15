@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: http-port
-      port: 3004
+      port: 3003
   selector:
     app: react-webapp-jhipster
 ---
@@ -34,8 +34,8 @@ spec:
               cpu: "50m"
           env:
             - name: PORT
-              value: "3004"
+              value: "3003"
             - name: SERVER_API_URL
               value: https://spendingbetter.com/
           ports:
-            - containerPort: 3004
+            - containerPort: 3003

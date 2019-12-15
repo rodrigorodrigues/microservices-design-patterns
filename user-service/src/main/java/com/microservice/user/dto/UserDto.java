@@ -25,6 +25,7 @@ public class UserDto {
     private Instant createdDate;
     private String lastModifiedByUser;
     private Instant lastModifiedDate;
+    private Boolean activated;
 
     private List<AuthorityDto> authorities;
 

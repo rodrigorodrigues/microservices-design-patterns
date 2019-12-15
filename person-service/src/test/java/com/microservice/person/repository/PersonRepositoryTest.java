@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.Disposable;
 import reactor.test.StepVerifier;
 
@@ -50,7 +49,6 @@ public class PersonRepositoryTest {
     }
 
     @BeforeEach
-    @Transactional
     public void setup() {
         personRepository.save(Person.builder().fullName("Rodrigo")
                 .dateOfBirth(LocalDate.now())
