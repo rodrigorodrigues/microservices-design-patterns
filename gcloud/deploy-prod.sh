@@ -21,7 +21,7 @@ else
   #Build images according to changes
   for i in $(echo ${DEPLOY_FILES:0:-1} | tr ";" "\n")
   do
-    if [[ "$BUILD_REACT_WEBAPP_IMAGE" == "false" ]] && [[ "$i" == "react-webapp-jhipster" ]]; then
+    if [[ "$BUILD_REACT_WEBAPP_JHIPSTER_IMAGE" == "false" ]] && [[ "$i" == "react-webapp-jhipster" ]]; then
       IMAGES_TO_BUILD+="react-webapp-jhipster;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_REACT_WEBAPP_JHIPSTER_IMAGE=true
