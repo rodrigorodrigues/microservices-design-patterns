@@ -44,7 +44,6 @@ export type PersonState = Readonly<typeof initialState>;
 // Reducer
 
 export default (state: PersonState = initialState, action): PersonState => {
-  console.log(`ActionType: ${action.type}`);
   switch (action.type) {
     case REQUEST(ACTION_TYPES.FETCH_PERSON_LIST):
     case REQUEST(ACTION_TYPES.FETCH_PERSON):
@@ -89,8 +88,8 @@ export default (state: PersonState = initialState, action): PersonState => {
     case ACTION_TYPES.FETCH_PERSON_LIST: {
       return {
         ...state,
-        loading: true,
-        entities: loadMoreDataWhenScrolled(action.payload, action.payload, ""),
+        loading: false,
+        entities: loadMoreDataWhenScrolled(action.payload, action.payload, ''),
         totalItems: parseInt(action.payload.length, 10)
       };
     }
@@ -131,7 +130,7 @@ export interface IPayload<T> {
   payload: AxiosPromise<T>;
   meta?: any;
 }
-export declare type IPayloadResult<T> = ((dispatch: any) => IPayload<T> | Promise<IPayload<T>>);
+export declare type IPayloadResult<T> = (dispatch: any) => IPayload<T> | Promise<IPayload<T>>;
 export declare type ICrudGetAllEventSourceAction<T> = (page?: number, size?: number, sort?: string) => IPayload<T> | IPayloadResult<T>;
 
 // Actions
@@ -153,13 +152,13 @@ export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArra
 
   const eventSource = new EventSource(`${requestUrl}`);
 
-  eventSource.addEventListener("open", result => {
+  eventSource.addEventListener('open', result => {
     console.log('EventSource open: ', result);
   });
 
   const entities = [] as Array<IPerson>;
 
-  eventSource.addEventListener("message", (result: any) => {
+  eventSource.addEventListener('message', (result: any) => {
     console.log(`Event Source Type: ${result}`);
     const data = JSON.parse(result.data);
     console.log(`Event Source Data: ${JSON.stringify(data)}`);
@@ -168,17 +167,17 @@ export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArra
 
   let isClosed = null;
 
-  eventSource.addEventListener("error", err => {
+  eventSource.addEventListener('error', err => {
     console.log('EventSource error: ', err);
     eventSource.close();
-    isClosed = new Promise(function (resolve, reject) {
+    isClosed = new Promise(function(resolve, reject) {
       resolve(true);
     });
   });
 
   while (isClosed === null) {
     console.log(`Waiting for 1 sec: ${new Date().getTime()}`);
-      
+
     await sleep(1000);
   }
 
@@ -215,9 +214,10 @@ export const createEntity: ICrudPutAction<IPerson> = entity => async dispatch =>
 };
 
 export const updateEntity: ICrudPutAction<IPerson> = entity => async dispatch => {
+  const requestUrl = `${apiUrl}/${entity.id}`;
   const result = await dispatch({
     type: ACTION_TYPES.UPDATE_PERSON,
-    payload: axios.put(apiUrl, cleanEntity(entity))
+    payload: axios.put(requestUrl, cleanEntity(entity))
   });
   return result;
 };

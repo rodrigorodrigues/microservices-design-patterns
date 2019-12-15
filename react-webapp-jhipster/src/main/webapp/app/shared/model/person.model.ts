@@ -1,4 +1,5 @@
 import { Moment } from 'moment';
+import { IAddress } from './address.model';
 
 export interface IPerson {
   id?: string;
@@ -8,6 +9,7 @@ export interface IPerson {
   createdDate?: Moment;
   lastModifiedByUser?: string;
   lastModifiedDate?: Moment;
+  address?: IAddress;
 }
 
 export const defaultValue: Readonly<IPerson> = {};

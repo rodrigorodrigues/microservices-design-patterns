@@ -66,6 +66,8 @@ spec:
               value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
+            - name: SPRING_CLOUD_CONFIG_FAIL_FAST
+              value: "true"
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: CONFIGURATION_AUTHORIZE_URLS

@@ -108,41 +108,68 @@ export class PersonUpdate extends React.Component<IPersonUpdateProps, IPersonUpd
                   <AvField id="person-dateOfBirth" type="date" className="form-control" name="dateOfBirth" />
                 </AvGroup>
                 <AvGroup>
-                  <Label id="createdByUserLabel" for="person-createdByUser">
-                    <Translate contentKey="spendingbetterApp.person.createdByUser">Created By User</Translate>
+                  <Label id="addressLabel" for="address-address">
+                    <Translate contentKey="spendingbetterApp.address.address">Address</Translate>
                   </Label>
-                  <AvField id="person-createdByUser" type="text" name="createdByUser" />
-                </AvGroup>
-                <AvGroup>
-                  <Label id="createdDateLabel" for="person-createdDate">
-                    <Translate contentKey="spendingbetterApp.person.createdDate">Created Date</Translate>
-                  </Label>
-                  <AvInput
-                    id="person-createdDate"
-                    type="datetime-local"
-                    className="form-control"
-                    name="createdDate"
-                    placeholder={'YYYY-MM-DD HH:mm'}
-                    value={isNew ? null : convertDateTimeFromServer(this.props.personEntity.createdDate)}
+                  <AvField
+                    id="address-address"
+                    type="text"
+                    name="address.address"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
                   />
                 </AvGroup>
                 <AvGroup>
-                  <Label id="lastModifiedByUserLabel" for="person-lastModifiedByUser">
-                    <Translate contentKey="spendingbetterApp.person.lastModifiedByUser">Last Modified By User</Translate>
+                  <Label id="postalCodeLabel" for="address-postalCode">
+                    <Translate contentKey="spendingbetterApp.address.postalCode">Postal Code</Translate>
                   </Label>
-                  <AvField id="person-lastModifiedByUser" type="text" name="lastModifiedByUser" />
+                  <AvField
+                    id="address-postalCode"
+                    type="text"
+                    name="address.postalCode"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
                 </AvGroup>
                 <AvGroup>
-                  <Label id="lastModifiedDateLabel" for="person-lastModifiedDate">
-                    <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>
+                  <Label id="cityLabel" for="address-city">
+                    <Translate contentKey="spendingbetterApp.address.city">City</Translate>
                   </Label>
-                  <AvInput
-                    id="person-lastModifiedDate"
-                    type="datetime-local"
-                    className="form-control"
-                    name="lastModifiedDate"
-                    placeholder={'YYYY-MM-DD HH:mm'}
-                    value={isNew ? null : convertDateTimeFromServer(this.props.personEntity.lastModifiedDate)}
+                  <AvField
+                    id="address-city"
+                    type="text"
+                    name="address.city"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
+                </AvGroup>
+                <AvGroup>
+                  <Label id="stateOrProvinceLabel" for="address-stateOrProvince">
+                    <Translate contentKey="spendingbetterApp.address.stateOrProvince">State Or Province</Translate>
+                  </Label>
+                  <AvField
+                    id="address-stateOrProvince"
+                    type="text"
+                    name="address.stateOrProvince"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
+                  />
+                </AvGroup>
+                <AvGroup>
+                  <Label id="countryLabel" for="address-country">
+                    <Translate contentKey="spendingbetterApp.address.country">Country</Translate>
+                  </Label>
+                  <AvField
+                    id="address-country"
+                    type="text"
+                    name="address.country"
+                    validate={{
+                      required: { value: true, errorMessage: translate('entity.validation.required') }
+                    }}
                   />
                 </AvGroup>
                 <Button tag={Link} id="cancel-save" to="/entity/person" replace color="info">

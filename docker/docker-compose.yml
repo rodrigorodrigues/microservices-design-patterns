@@ -95,39 +95,40 @@ services:
   react-webapp-jhipster:
       build:
           args:
-              - PORT=3004
+              - PORT=9000
           context: ../react-webapp-jhipster
           dockerfile: Dockerfile
       container_name: react-webapp-jhipster
       ports:
-          - 3004:3004
+          - 9000:9000
       links:
         - gateway
       environment:
         - NODE_ENV=production
+        - SERVER_API_URL=http://localhost:9006/
       volumes:
           - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
 #            - ./node_modules:/usr/src/app/
       command: sh /tmp/docker-entrypoint.sh gateway:9006
-  #
-#  react-webapp:
-#    build:
-#      args:
-#        - PORT=3003
-#      context: ../react-webapp
-#      dockerfile: Dockerfile
-#    container_name: react-webapp
-#    environment:
-#      - NODE_ENV=production
-#    ports:
-#      - 3003:3003
-#    links:
-#      - gateway
-#    volumes:
-#      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#    #            - .:/usr/src/app
-#    #            - ./node_modules:/usr/src/app/node_modules
-#    command: sh /tmp/docker-entrypoint.sh gateway:9006
+
+  react-webapp:
+    build:
+      args:
+        - PORT=3003
+      context: ../react-webapp
+      dockerfile: Dockerfile
+    container_name: react-webapp
+    environment:
+      - NODE_ENV=development
+    ports:
+      - 3003:3003
+    links:
+      - gateway
+    volumes:
+      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+    #            - .:/usr/src/app
+    #            - ./node_modules:/usr/src/app/node_modules
+    command: sh /tmp/docker-entrypoint.sh gateway:9006
   #
   week-menu-api:
     build:
@@ -247,7 +248,8 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - CONFIGURATION_AUTHORIZE_URLS=http://localhost:3000/grafana/login/generic_oauth
     depends_on:
       - service-discovery

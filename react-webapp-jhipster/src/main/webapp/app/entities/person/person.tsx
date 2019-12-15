@@ -17,7 +17,6 @@ export interface IPersonProps extends StateProps, DispatchProps, RouteComponentP
 export type IPersonState = IPaginationBaseState;
 
 export class Person extends React.Component<IPersonProps, IPersonState> {
-
   state: IPersonState = {
     ...getSortState(this.props.location, ITEMS_PER_PAGE)
   };
@@ -111,6 +110,9 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
                       <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>{' '}
                       <FontAwesomeIcon icon="sort" />
                     </th>
+                    <th className="hand">
+                      <Translate contentKey="spendingbetterApp.address.address">Address</Translate>{' '}
+                    </th>
                     <th />
                   </tr>
                 </thead>
@@ -133,6 +135,9 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
                       <td>{person.lastModifiedByUser}</td>
                       <td>
                         <TextFormat type="date" value={person.lastModifiedDate} format={APP_DATE_FORMAT} />
+                      </td>
+                      <td>
+                        {person.address.address || ''} {person.address.city || ''} {person.address.stateOrProvince || ''}
                       </td>
                       <td className="text-right">
                         <div className="btn-group flex-btn-group-container">

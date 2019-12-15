@@ -65,6 +65,8 @@ spec:
               value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
+            - name: SPRING_CLOUD_CONFIG_FAIL_FAST
+              value: "true"
             - name: KEYSTORE
               value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS

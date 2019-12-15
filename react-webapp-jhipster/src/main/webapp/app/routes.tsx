@@ -25,6 +25,16 @@ const Admin = Loadable({
   loader: () => import(/* webpackChunkName: "administration" */ 'app/modules/administration'),
   loading: () => <div>loading ...</div>
 });
+
+const Person = Loadable({
+  loader: () => import(/* webpackChunkName: "person" */ 'app/entities/person'),
+  loading: () => <div>loading ...</div>
+});
+
+const Category = Loadable({
+  loader: () => import(/* webpackChunkName: "category" */ 'app/entities/address'),
+  loading: () => <div>loading ...</div>
+});
 // tslint:enable
 
 const Routes = () => (
@@ -38,7 +48,28 @@ const Routes = () => (
       <ErrorBoundaryRoute path="/reset/finish/:key?" component={PasswordResetFinish} />
       <PrivateRoute path="/admin" component={Admin} hasAnyAuthorities={[AUTHORITIES.ADMIN]} />
       <PrivateRoute path="/account" component={Account} hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]} />
-      <PrivateRoute path="/entity" component={Entities} hasAnyAuthorities={[AUTHORITIES.ADMIN]} />
+      <PrivateRoute
+        path="/entity/person"
+        component={Person}
+        hasAnyAuthorities={[
+          AUTHORITIES.ADMIN,
+          AUTHORITIES.PERSON_CREATE,
+          AUTHORITIES.PERSON_DELETE,
+          AUTHORITIES.PERSON_READ,
+          AUTHORITIES.PERSON_SAVE
+        ]}
+      />
+      <PrivateRoute
+        path="/entity/category"
+        component={Category}
+        hasAnyAuthorities={[
+          AUTHORITIES.ADMIN,
+          AUTHORITIES.CATEGORY_CREATE,
+          AUTHORITIES.CATEGORY_DELETE,
+          AUTHORITIES.CATEGORY_READ,
+          AUTHORITIES.CATEGORY_SAVE
+        ]}
+      />
       <ErrorBoundaryRoute path="/" exact component={Home} />
       <ErrorBoundaryRoute component={PageNotFound} />
     </Switch>
