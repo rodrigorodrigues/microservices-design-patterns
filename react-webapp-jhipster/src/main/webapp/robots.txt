@@ -7,5 +7,5 @@ Disallow: /api/account/sessions
 Disallow: /api/audits/
 Disallow: /api/logs/
 Disallow: /api/users/
-Disallow: /management/
+Disallow: /actuator/
 Disallow: /v2/api-docs/
