@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { getUsers, updateUser } from './user-management.reducer';
+import { getUsersByEventSource as getUsers, updateUser } from './user-management.reducer';
 import { IRootState } from 'app/shared/reducers';
 
 export interface IUserManagementProps extends StateProps, DispatchProps, RouteComponentProps<{}> {}
@@ -76,8 +76,8 @@ export class UserManagement extends React.Component<IUserManagementProps, IPagin
                 <Translate contentKey="global.field.id">ID</Translate>
                 <FontAwesomeIcon icon="sort" />
               </th>
-              <th className="hand" onClick={this.sort('login')}>
-                <Translate contentKey="userManagement.login">Login</Translate>
+              <th className="hand" onClick={this.sort('fullName')}>
+                <Translate contentKey="userManagement.fullName">Name</Translate>
                 <FontAwesomeIcon icon="sort" />
               </th>
               <th className="hand" onClick={this.sort('email')}>
@@ -115,7 +115,7 @@ export class UserManagement extends React.Component<IUserManagementProps, IPagin
                     {user.id}
                   </Button>
                 </td>
-                <td>{user.login}</td>
+                <td>{user.fullName}</td>
                 <td>{user.email}</td>
                 <td>
                   {user.activated ? (
@@ -133,7 +133,7 @@ export class UserManagement extends React.Component<IUserManagementProps, IPagin
                   {user.authorities
                     ? user.authorities.map((authority, j) => (
                         <div key={`user-auth-${i}-${j}`}>
-                          <Badge color="info">{authority}</Badge>
+                          <Badge color="info">{authority.role}</Badge>
                         </div>
                       ))
                     : null}
@@ -147,25 +147,19 @@ export class UserManagement extends React.Component<IUserManagementProps, IPagin
                 </td>
                 <td className="text-right">
                   <div className="btn-group flex-btn-group-container">
-                    <Button tag={Link} to={`${match.url}/${user.login}`} color="info" size="sm">
+                    <Button tag={Link} to={`${match.url}/${user.id}`} color="info" size="sm">
                       <FontAwesomeIcon icon="eye" />{' '}
                       <span className="d-none d-md-inline">
                         <Translate contentKey="entity.action.view">View</Translate>
                       </span>
                     </Button>
-                    <Button tag={Link} to={`${match.url}/${user.login}/edit`} color="primary" size="sm">
+                    <Button tag={Link} to={`${match.url}/${user.id}/edit`} color="primary" size="sm">
                       <FontAwesomeIcon icon="pencil-alt" />{' '}
                       <span className="d-none d-md-inline">
                         <Translate contentKey="entity.action.edit">Edit</Translate>
                       </span>
                     </Button>
-                    <Button
-                      tag={Link}
-                      to={`${match.url}/${user.login}/delete`}
-                      color="danger"
-                      size="sm"
-                      disabled={account.login === user.login}
-                    >
+                    <Button tag={Link} to={`${match.url}/${user.id}/delete`} color="danger" size="sm" disabled={account.id === user.id}>
                       <FontAwesomeIcon icon="trash" />{' '}
                       <span className="d-none d-md-inline">
                         <Translate contentKey="entity.action.delete">Delete</Translate>

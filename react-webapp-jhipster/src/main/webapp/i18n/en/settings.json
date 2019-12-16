@@ -2,10 +2,8 @@
   "settings": {
     "title": "User settings for [<strong>{{username}}</strong>]",
     "form": {
-      "firstname": "First Name",
-      "firstname.placeholder": "Your first name",
-      "lastname": "Last Name",
-      "lastname.placeholder": "Your last name",
+      "fullname": "Full Name",
+      "fullname.placeholder": "Your full name",
       "language": "Language",
       "button": "Save"
     },
@@ -16,15 +14,10 @@
       },
       "success": "<strong>Settings saved!</strong>",
       "validate": {
-        "firstname": {
-          "required": "Your first name is required.",
-          "minlength": "Your first name is required to be at least 1 character",
-          "maxlength": "Your first name cannot be longer than 50 characters"
-        },
-        "lastname": {
-          "required": "Your last name is required.",
-          "minlength": "Your last name is required to be at least 1 character",
-          "maxlength": "Your last name cannot be longer than 50 characters"
+        "fullname": {
+          "required": "Your full name is required.",
+          "minlength": "Your full name is required to be at least 1 character",
+          "maxlength": "Your full name cannot be longer than 50 characters"
         }
       }
     }

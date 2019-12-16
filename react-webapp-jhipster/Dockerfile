@@ -1,5 +1,4 @@
 FROM node:10.15.3-slim as builder
-ARG PORT
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -9,8 +8,6 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-#COPY node_modules/ ./
-
 RUN apt-get update && apt-get install netcat-openbsd -y
 
 # RUN npm install
@@ -19,14 +16,6 @@ RUN npm install
 
 # Bundle app source
 COPY . .
-
-#ENV JAVA_CMD="npm start"
-
-#ENV PORT=$PORT
-
-#EXPOSE $PORT
-
-#CMD [ "npm", "start" ]
 
 RUN npm run webpack:prod
 

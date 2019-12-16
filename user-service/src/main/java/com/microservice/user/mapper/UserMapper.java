@@ -3,6 +3,7 @@ package com.microservice.user.mapper;
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.model.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,5 +25,6 @@ public interface UserMapper {
 
     User dtoToEntity(UserDto userDto);
 
+    @Mapping(source = "enabled", target = "activated", defaultValue = "true")
     UserDto map(User user);
 }

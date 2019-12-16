@@ -95,12 +95,12 @@ services:
   react-webapp-jhipster:
       build:
           args:
-              - PORT=9000
+              - PORT=3004
           context: ../react-webapp-jhipster
           dockerfile: Dockerfile
       container_name: react-webapp-jhipster
       ports:
-          - 9000:9000
+          - 3004:3004
       links:
         - gateway
       environment:

@@ -4,6 +4,12 @@ import { ICrudGetAction, ICrudGetAllAction, ICrudPutAction, ICrudDeleteAction } 
 import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util';
 import { IUser, defaultValue } from 'app/shared/model/user.model';
 
+import { Storage } from 'react-jhipster';
+
+import sleep from 'await-sleep';
+
+import { ICrudGetAllEventSourceAction } from 'app/shared/reducers/event-source-type.util';
+
 export const ACTION_TYPES = {
   FETCH_ROLES: 'userManagement/FETCH_ROLES',
   FETCH_USERS: 'userManagement/FETCH_USERS',
@@ -76,6 +82,13 @@ export default (state: UserManagementState = initialState, action): UserManageme
         users: action.payload.data,
         totalItems: parseInt(action.payload.headers['x-total-count'], 10)
       };
+    case ACTION_TYPES.FETCH_USERS:
+      return {
+        ...state,
+        loading: false,
+        users: action.payload,
+        totalItems: parseInt(action.payload.length, 10)
+      };
     case SUCCESS(ACTION_TYPES.FETCH_USER):
       return {
         ...state,
@@ -108,6 +121,61 @@ export default (state: UserManagementState = initialState, action): UserManageme
 
 const apiUrl = 'api/users';
 // Actions
+
+export const getUsersByEventSource: ICrudGetAllEventSourceAction<ReadonlyArray<IUser>> = (page, size, sort) => async dispatch => {
+  console.log(`Loading Data...`);
+
+  const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
+
+  let jwt = Storage.local.get(AUTH_TOKEN_KEY);
+
+  if (!jwt) {
+    jwt = Storage.session.get(AUTH_TOKEN_KEY);
+  }
+
+  jwt = `Bearer ${jwt}`;
+
+  const requestUrl = `${apiUrl}?Authorization=${jwt}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+
+  const eventSource = new EventSource(`${requestUrl}`);
+
+  eventSource.addEventListener('open', result => {
+    console.log('EventSource open: ', result);
+  });
+
+  const entities = [] as Array<IUser>;
+
+  eventSource.addEventListener('message', (result: any) => {
+    console.log(`Event Source Type: ${result}`);
+    const data = JSON.parse(result.data);
+    console.log(`Event Source Data: ${JSON.stringify(data)}`);
+    entities.push(data);
+  });
+
+  let isClosed = null;
+
+  eventSource.addEventListener('error', err => {
+    console.log('EventSource error: ', err);
+    eventSource.close();
+    isClosed = new Promise(function(resolve, reject) {
+      resolve(true);
+    });
+  });
+
+  while (isClosed === null) {
+    console.log(`Waiting for 1 sec: ${new Date().getTime()}`);
+
+    await sleep(1000);
+  }
+
+  const result = await dispatch({
+    type: ACTION_TYPES.FETCH_USERS,
+    payload: entities
+  });
+
+  return result;
+};
+
 export const getUsers: ICrudGetAllAction<IUser> = (page, size, sort) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
   return {

@@ -17,7 +17,7 @@ import { Storage } from 'react-jhipster';
 
 import sleep from 'await-sleep';
 
-import { AxiosPromise } from 'axios';
+import { ICrudGetAllEventSourceAction } from 'app/shared/reducers/event-source-type.util';
 
 export const ACTION_TYPES = {
   FETCH_PERSON_LIST: 'person/FETCH_PERSON_LIST',
@@ -124,14 +124,6 @@ export default (state: PersonState = initialState, action): PersonState => {
 };
 
 const apiUrl = 'api/persons';
-
-export interface IPayload<T> {
-  type: string;
-  payload: AxiosPromise<T>;
-  meta?: any;
-}
-export declare type IPayloadResult<T> = (dispatch: any) => IPayload<T> | Promise<IPayload<T>>;
-export declare type ICrudGetAllEventSourceAction<T> = (page?: number, size?: number, sort?: string) => IPayload<T> | IPayloadResult<T>;
 
 // Actions
 
