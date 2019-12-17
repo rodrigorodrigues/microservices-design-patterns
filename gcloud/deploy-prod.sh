@@ -29,7 +29,7 @@ else
       IMAGES_TO_BUILD+="react-webapp;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_REACT_WEBAPP_IMAGE=true
-    elif [[ "$BUILD_NODE_IMAGE" == "false" ]] && [[ "$i" == "nodejs-service"  ]]; then
+    elif [[ "$BUILD_NODE_IMAGE" == "false" ]] && [[ "$i" == "week-menu-api"  ]]; then
       IMAGES_TO_BUILD+="week-menu-api;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_NODE_IMAGE=true
@@ -96,6 +96,7 @@ else
       if [ "$DOCKER_IMAGE" == "react-webapp-jhipster" ]; then
         echo "Building Docker React Web JHipster App Image..."
         npm --prefix ./react-webapp-jhipster install ./react-webapp-jhipster
+        npm --prefix ./react-webapp-jhipster run webpack:prod
         docker build --quiet --build-arg PORT=$REACT_WEBAPP_PORT --build-arg SERVER_PROTOCOL=$SERVER_PROTOCOL --build-arg SERVER_URL=$SERVER_URL -t eu.gcr.io/${GCP_PROJECT_ID}/${DOCKER_IMAGE}:$TRAVIS_COMMIT ./react-webapp-jhipster
       elif [ "$DOCKER_IMAGE" == "react-webapp" ]; then
         echo "Building Docker React Web App Image..."
@@ -129,7 +130,7 @@ else
       kubectl config current-context
 
       echo "Deploying new docker image $DOCKER_IMAGE..."
-      kubectl patch deployment ${DOCKER_IMAGE} -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" || kubectl apply -f ./kubernetes/deployment-${DOCKER_IMAGE}-service.yml
+      kubectl patch deployment ${DOCKER_IMAGE} -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" || kubectl apply -f ./kubernetes/deployment-${DOCKER_IMAGE}.yml
     done
   fi
 
