@@ -36,7 +36,7 @@ public class AccountController {
     @Getter
     public static class UserDto {
         private final String login;
-        private final String langKey = "EN";
+        private final String langKey = "en";
         private final String fullName;
         private final String email;
         private final boolean activated = true;

@@ -23,8 +23,12 @@ RUN npm run webpack:prod
 FROM nginx:1.13.12-alpine
 
 ARG PORT
+ARG SERVER_PROTOCOL
+ARG SERVER_URL
 
 ENV PORT=$PORT
+ENV SERVER_PROTOCOL=$SERVER_PROTOCOL
+ENV SERVER_URL=$SERVER_URL
 
 COPY --from=builder /usr/src/app/build/resources/main/static /usr/share/nginx/html
 COPY --from=builder /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
@@ -32,6 +36,10 @@ COPY --from=builder /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
 RUN echo "PORT = $PORT"
 
 RUN sed -i 's/PORT/'"$PORT"'/g' /etc/nginx/conf.d/default.conf
+
+RUN sed -i 's/SERVER_PROTOCOL/'"$SERVER_PROTOCOL"'/g' /etc/nginx/conf.d/default.conf
+
+RUN sed -i 's/SERVER_URL/'"$SERVER_URL"'/g' /etc/nginx/conf.d/default.conf
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 

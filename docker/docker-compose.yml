@@ -18,6 +18,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh redisdb:6379
+    networks:
+      net:
+        aliases:
+          - service-discovery
 
   config-management:
     image: config-server
@@ -40,6 +44,10 @@ services:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
       - ../config-server/configuration:/config
     command: sh ./docker-entrypoint.sh service-discovery:8761
+    networks:
+      net:
+        aliases:
+          - config-management
 
   gateway:
     image: edge-server
@@ -59,6 +67,7 @@ services:
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - SPRING_ZIPKIN_ENABLED=true
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     depends_on:
       - service-discovery
       - config-management
@@ -67,6 +76,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh config-management:8888
+    networks:
+      net:
+        aliases:
+          - gateway
 
   monitoring:
     image: admin-server
@@ -86,16 +99,23 @@ services:
       - OAUTH_CLIENT_SECRET=actuator_password
       - CONTEXTPATH=/monitoring
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     depends_on:
       - service-discovery
       - config-management
     ports:
       - 9000:9000
+    networks:
+      net:
+        aliases:
+          - monitoring
 
   react-webapp-jhipster:
       build:
           args:
               - PORT=3004
+              - SERVER_PROTOCOL=http
+              - SERVER_URL=gateway
           context: ../react-webapp-jhipster
           dockerfile: Dockerfile
       container_name: react-webapp-jhipster
@@ -105,11 +125,15 @@ services:
         - gateway
       environment:
         - NODE_ENV=production
-        - SERVER_API_URL=http://localhost:9006/
+        - SERVER_API_URL=http://gateway:9006/
       volumes:
           - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
 #            - ./node_modules:/usr/src/app/
       command: sh /tmp/docker-entrypoint.sh gateway:9006
+      networks:
+        net:
+          aliases:
+            - react-webapp-jhipster
 
   react-webapp:
     build:
@@ -129,7 +153,11 @@ services:
     #            - .:/usr/src/app
     #            - ./node_modules:/usr/src/app/node_modules
     command: sh /tmp/docker-entrypoint.sh gateway:9006
-  #
+    networks:
+      net:
+        aliases:
+          - react-webapp
+
   week-menu-api:
     build:
       context: ../nodejs-service
@@ -148,6 +176,7 @@ services:
       - IP_ADDRESS=week-menu-api
       - ZIPKIN_HOST=zipkin
       - ZIPKIN_PORT=9411
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     depends_on:
       - service-discovery
       - config-management
@@ -159,6 +188,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
     command: sh /tmp/docker-entrypoint.sh config-management:8888
+    networks:
+      net:
+        aliases:
+          - week-menu-api
 
   person-api:
     image: person-service
@@ -174,6 +207,7 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     depends_on:
       - service-discovery
       - config-management
@@ -183,6 +217,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh config-management:8888
+    networks:
+      net:
+        aliases:
+          - person-api
 
   task-api:
     image: kotlin-service
@@ -198,6 +236,7 @@ services:
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
     depends_on:
       - service-discovery
@@ -208,6 +247,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh config-management:8888
+    networks:
+      net:
+        aliases:
+          - task-api
 
   user-api:
     image: user-service
@@ -225,6 +268,7 @@ services:
       - DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     links:
       - authentication-api
     ports:
@@ -232,6 +276,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh authentication-api:9999
+    networks:
+      net:
+        aliases:
+          - user-api
 
   authentication-api:
     image: authentication-service
@@ -251,6 +299,7 @@ services:
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - CONFIGURATION_AUTHORIZE_URLS=http://localhost:3000/grafana/login/generic_oauth
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     depends_on:
       - service-discovery
       - config-management
@@ -260,6 +309,10 @@ services:
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
     command: sh ./docker-entrypoint.sh config-management:8888
+    networks:
+      net:
+        aliases:
+          - authentication-api
 
   mongodb-datasource:
     image: mongo:3.4.10
@@ -267,12 +320,20 @@ services:
     container_name: mongodb-datasource
     ports:
       - 27017:27017
+    networks:
+      net:
+        aliases:
+          - mongodb-datasource
 
   redisdb:
     image: redis:alpine
     container_name: redisdb
     ports:
       - 6379:6379
+    networks:
+      net:
+        aliases:
+          - redisdb
 
   prometheus:
     image: prom/prometheus
@@ -288,6 +349,10 @@ services:
       - service-discovery
     links:
       - service-discovery
+    networks:
+      net:
+        aliases:
+          - prometheus
 
   grafana:
     image: grafana/grafana
@@ -307,6 +372,10 @@ services:
 #      - GF_AUTH_GENERIC_OAUTH_AUTH_URL=http://localhost:9999/oauth/authorize
 #      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=http://localhost:9999/oauth/token
 #      - GF_AUTH_GENERIC_OAUTH_API_URL=http://localhost:9999/api/authenticatedUser
+    networks:
+      net:
+        aliases:
+          - grafana
 
   setup_grafana_datasource:
     image: appropriate/curl
@@ -316,6 +385,10 @@ services:
     volumes:
       - ./create-datasource-and-dashboard.sh:/create.sh:ro
     command: /create.sh
+    networks:
+      net:
+        aliases:
+          - setup_grafana_datasource
 
   zipkin-mysql:
     image: openzipkin/zipkin-mysql
@@ -323,6 +396,10 @@ services:
     # Uncomment to expose the storage port for testing
     # ports:
     #   - 3306:3306
+    networks:
+      net:
+        aliases:
+          - zipkin-mysql
 
   # The zipkin process services the UI, and also exposes a POST endpoint that
   # instrumentation can send trace data to. Scribe is disabled by default.
@@ -356,6 +433,10 @@ services:
       # - 9410:9410
     depends_on:
       - zipkin-mysql
+    networks:
+      net:
+        aliases:
+          - zipkin
 
   # Adds a cron to process spans since midnight every hour, and all spans each day
   # This data is served by http://192.168.99.100:8080/dependency
@@ -377,3 +458,10 @@ services:
       - JAVA_OPTS=-verbose:gc -Xms512M -Xmx1G
     depends_on:
       - zipkin-mysql
+    networks:
+      net:
+        aliases:
+          - zipkin-dependencies
+
+networks:
+  net:

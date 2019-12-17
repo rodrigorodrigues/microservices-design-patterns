@@ -127,7 +127,7 @@ module.exports = options => ({
       chunksSortMode: 'dependency',
       inject: 'body'
     }),
-    new BaseHrefWebpackPlugin({ baseHref: '/' }),
+    new BaseHrefWebpackPlugin({ baseHref: '/jhipster' }),
     new MergeJsonWebpackPlugin({
       output: {
         groupBy: [

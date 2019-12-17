@@ -27,6 +27,8 @@ env:
     - GCP_ZONE=europe-west1-b
     - REACT_WEBAPP_PORT=3003
     - NODE_SERVER_PORT=3002
+    - SERVER_PROTOCOL=https
+    - SERVER_URL=spendingbetter.com
 
 before_install:
   - export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error
