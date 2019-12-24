@@ -10,11 +10,11 @@ import { languages } from 'app/config/translation';
 import { getUser } from './user-management.reducer';
 import { IRootState } from 'app/shared/reducers';
 
-export interface IUserManagementDetailProps extends StateProps, DispatchProps, RouteComponentProps<{ login: string }> {}
+export interface IUserManagementDetailProps extends StateProps, DispatchProps, RouteComponentProps<{ id: string }> {}
 
 export class UserManagementDetail extends React.Component<IUserManagementDetailProps> {
   componentDidMount() {
-    this.props.getUser(this.props.match.params.login);
+    this.props.getUser(this.props.match.params.id);
   }
 
   render() {
@@ -22,15 +22,15 @@ export class UserManagementDetail extends React.Component<IUserManagementDetailP
     return (
       <div>
         <h2>
-          <Translate contentKey="userManagement.detail.title">User</Translate> [<b>{user.login}</b>]
+          <Translate contentKey="userManagement.detail.title">User</Translate> [<b>{user.id}</b>]
         </h2>
         <Row size="md">
           <dl className="jh-entity-details">
             <dt>
-              <Translate contentKey="userManagement.login">Login</Translate>
+              <Translate contentKey="global.field.id">ID</Translate>
             </dt>
             <dd>
-              <span>{user.login}</span>&nbsp;
+              <span>{user.id}</span>&nbsp;
               {user.activated ? (
                 <Badge color="success">
                   <Translate contentKey="userManagement.activated">Activated</Translate>

@@ -8,6 +8,8 @@ import { Storage } from 'react-jhipster';
 
 import sleep from 'await-sleep';
 
+import { EventSourcePolyfill } from 'event-source-polyfill';
+
 import { ICrudGetAllEventSourceAction } from 'app/shared/reducers/event-source-type.util';
 
 export const ACTION_TYPES = {
@@ -135,9 +137,13 @@ export const getUsersByEventSource: ICrudGetAllEventSourceAction<ReadonlyArray<I
 
   jwt = `Bearer ${jwt}`;
 
-  const requestUrl = `${apiUrl}?Authorization=${jwt}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
 
-  const eventSource = new EventSource(`${requestUrl}`);
+  const eventSource = new EventSourcePolyfill(`${requestUrl}`, {
+    headers: {
+      Authorization: jwt
+    }
+  });
 
   eventSource.addEventListener('open', result => {
     console.log('EventSource open: ', result);
@@ -186,11 +192,12 @@ export const getUsers: ICrudGetAllAction<IUser> = (page, size, sort) => {
 
 export const getRoles = () => ({
   type: ACTION_TYPES.FETCH_ROLES,
-  payload: axios.get(`${apiUrl}/authorities`)
+  payload: axios.get(`${apiUrl}/permissions`)
 });
 
 export const getUser: ICrudGetAction<IUser> = id => {
   const requestUrl = `${apiUrl}/${id}`;
+  console.log(`RequestURL: ${requestUrl}`);
   return {
     type: ACTION_TYPES.FETCH_USER,
     payload: axios.get<IUser>(requestUrl)

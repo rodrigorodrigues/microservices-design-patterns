@@ -17,6 +17,8 @@ import { Storage } from 'react-jhipster';
 
 import sleep from 'await-sleep';
 
+import { EventSourcePolyfill } from 'event-source-polyfill';
+
 import { ICrudGetAllEventSourceAction } from 'app/shared/reducers/event-source-type.util';
 
 export const ACTION_TYPES = {
@@ -140,9 +142,13 @@ export const getEntitiesByEventSource: ICrudGetAllEventSourceAction<ReadonlyArra
 
   jwt = `Bearer ${jwt}`;
 
-  const requestUrl = `${apiUrl}?Authorization=${jwt}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
 
-  const eventSource = new EventSource(`${requestUrl}`);
+  const eventSource = new EventSourcePolyfill(`${requestUrl}`, {
+    headers: {
+      Authorization: jwt
+    }
+  });
 
   eventSource.addEventListener('open', result => {
     console.log('EventSource open: ', result);

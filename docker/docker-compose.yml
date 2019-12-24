@@ -114,8 +114,8 @@ services:
       build:
           args:
               - PORT=3004
-              - SERVER_PROTOCOL=http
-              - SERVER_URL=gateway
+              - SERVER_PROTOCOL=https
+              - SERVER_URL=spendingbetter.com
           context: ../react-webapp-jhipster
           dockerfile: Dockerfile
       container_name: react-webapp-jhipster
@@ -125,7 +125,7 @@ services:
         - gateway
       environment:
         - NODE_ENV=production
-        - SERVER_API_URL=http://gateway:9006/
+        - SERVER_API_URL=https://spendingbetter.com/
       volumes:
           - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
 #            - ./node_modules:/usr/src/app/

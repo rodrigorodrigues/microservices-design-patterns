@@ -73,7 +73,7 @@ export class UserManagement extends React.Component<IUserManagementProps, IPagin
           <thead>
             <tr>
               <th className="hand" onClick={this.sort('id')}>
-                <Translate contentKey="global.field.id">ID</Translate>
+                <Translate contentKey="userManagement.id">ID</Translate>
                 <FontAwesomeIcon icon="sort" />
               </th>
               <th className="hand" onClick={this.sort('fullName')}>
@@ -109,9 +109,9 @@ export class UserManagement extends React.Component<IUserManagementProps, IPagin
           </thead>
           <tbody>
             {users.map((user, i) => (
-              <tr id={user.login} key={`user-${i}`}>
+              <tr id={user.id} key={`user-${i}`}>
                 <td>
-                  <Button tag={Link} to={`${match.url}/${user.login}`} color="link" size="sm">
+                  <Button tag={Link} to={`${match.url}/${user.id}`} color="link" size="sm">
                     {user.id}
                   </Button>
                 </td>

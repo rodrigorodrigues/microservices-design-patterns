@@ -9,12 +9,12 @@
     "updated": "Usuário com o identificador {{ param }} foi atualizado ",
     "deleted": "Usuário com o identificador {{ param }} foi excluído",
     "delete": {
-      "question": "Você tem certeza que deseja excluir o usuário {{ login }}?"
+      "question": "Você tem certeza que deseja excluir o usuário {{ id }}?"
     },
     "detail": {
       "title": "Usuário"
     },
-    "login": "Login",
+    "id": "ID",
     "fullName": "Nome Completo",
     "email": "E-mail",
     "activated": "Ativo",

@@ -9,15 +9,15 @@ import { IUser } from 'app/shared/model/user.model';
 import { getUser, deleteUser } from './user-management.reducer';
 import { IRootState } from 'app/shared/reducers';
 
-export interface IUserManagementDeleteDialogProps extends StateProps, DispatchProps, RouteComponentProps<{ login: string }> {}
+export interface IUserManagementDeleteDialogProps extends StateProps, DispatchProps, RouteComponentProps<{ id: string }> {}
 
 export class UserManagementDeleteDialog extends React.Component<IUserManagementDeleteDialogProps> {
   componentDidMount() {
-    this.props.getUser(this.props.match.params.login);
+    this.props.getUser(this.props.match.params.id);
   }
 
   confirmDelete = event => {
-    this.props.deleteUser(this.props.user.login);
+    this.props.deleteUser(this.props.user.id);
     this.handleClose(event);
   };
 
@@ -34,7 +34,7 @@ export class UserManagementDeleteDialog extends React.Component<IUserManagementD
           <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
         </ModalHeader>
         <ModalBody>
-          <Translate contentKey="userManagement.delete.question" interpolate={{ login: user.login }}>
+          <Translate contentKey="userManagement.delete.question" interpolate={{ id: user.id }}>
             Are you sure you want to delete this User?
           </Translate>
         </ModalBody>

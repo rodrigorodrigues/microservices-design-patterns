@@ -11,11 +11,11 @@ const Routes = ({ match }) => (
   <>
     <Switch>
       <ErrorBoundaryRoute exact path={`${match.url}/new`} component={UserManagementUpdate} />
-      <ErrorBoundaryRoute exact path={`${match.url}/:login/edit`} component={UserManagementUpdate} />
-      <ErrorBoundaryRoute exact path={`${match.url}/:login`} component={UserManagementDetail} />
+      <ErrorBoundaryRoute exact path={`${match.url}/:id/edit`} component={UserManagementUpdate} />
+      <ErrorBoundaryRoute exact path={`${match.url}/:id`} component={UserManagementDetail} />
       <ErrorBoundaryRoute path={match.url} component={UserManagement} />
     </Switch>
-    <ErrorBoundaryRoute path={`${match.url}/:login/delete`} component={UserManagementDeleteDialog} />
+    <ErrorBoundaryRoute path={`${match.url}/:id/delete`} component={UserManagementDeleteDialog} />
   </>
 );
 

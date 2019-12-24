@@ -52,6 +52,18 @@ spec:
             backend:
               serviceName: week-menu-api
               servicePort: http-port
+          - path: /jhipster/(.*)
+            backend:
+              serviceName: react-webapp-jhipster
+              servicePort: http-port
+          - path: /jhipster
+            backend:
+              serviceName: react-webapp-jhipster
+              servicePort: http-port
+          - path: /actuator/(.*)
+            backend:
+              serviceName: eureka-server
+              servicePort: http-port
 
 ---
 apiVersion: extensions/v1beta1
@@ -97,6 +109,10 @@ spec:
             backend:
               serviceName: kotlin-service
               servicePort: http-port
+          - path: /api/account
+            backend:
+              serviceName: authentication-service
+              servicePort: http-port
           - path: /api/authenticate
             backend:
               serviceName: authentication-service
@@ -116,10 +132,6 @@ spec:
           - path: /zipkin
             backend:
               serviceName: zipkin-server
-              servicePort: http-port
-          - path: /jhipster
-            backend:
-              serviceName: react-webapp-jhipster
               servicePort: http-port
           - path: /
             backend:

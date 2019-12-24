@@ -10,7 +10,7 @@ import { locales, languages } from 'app/config/translation';
 import { getUser, getRoles, updateUser, createUser, reset } from './user-management.reducer';
 import { IRootState } from 'app/shared/reducers';
 
-export interface IUserManagementUpdateProps extends StateProps, DispatchProps, RouteComponentProps<{ login: string }> {}
+export interface IUserManagementUpdateProps extends StateProps, DispatchProps, RouteComponentProps<{ id: string }> {}
 
 export interface IUserManagementUpdateState {
   isNew: boolean;
@@ -18,14 +18,14 @@ export interface IUserManagementUpdateState {
 
 export class UserManagementUpdate extends React.Component<IUserManagementUpdateProps, IUserManagementUpdateState> {
   state: IUserManagementUpdateState = {
-    isNew: !this.props.match.params || !this.props.match.params.login
+    isNew: !this.props.match.params || !this.props.match.params.id
   };
 
   componentDidMount() {
     if (this.state.isNew) {
       this.props.reset();
     } else {
-      this.props.getUser(this.props.match.params.login);
+      this.props.getUser(this.props.match.params.id);
     }
     this.props.getRoles();
   }
@@ -73,35 +73,6 @@ export class UserManagementUpdate extends React.Component<IUserManagementUpdateP
                     <AvField type="text" className="form-control" name="id" required readOnly value={user.id} />
                   </AvGroup>
                 ) : null}
-                <AvGroup>
-                  <Label for="login">
-                    <Translate contentKey="userManagement.login">Login</Translate>
-                  </Label>
-                  <AvField
-                    type="text"
-                    className="form-control"
-                    name="login"
-                    validate={{
-                      required: {
-                        value: true,
-                        errorMessage: translate('register.messages.validate.login.required')
-                      },
-                      pattern: {
-                        value: '^[_.@A-Za-z0-9-]*$',
-                        errorMessage: translate('register.messages.validate.login.pattern')
-                      },
-                      minLength: {
-                        value: 1,
-                        errorMessage: translate('register.messages.validate.login.minlength')
-                      },
-                      maxLength: {
-                        value: 50,
-                        errorMessage: translate('register.messages.validate.login.maxlength')
-                      }
-                    }}
-                    value={user.login}
-                  />
-                </AvGroup>
                 <AvGroup>
                   <Label for="fullName">
                     <Translate contentKey="userManagement.fullName">Full Name</Translate>
@@ -168,11 +139,13 @@ export class UserManagementUpdate extends React.Component<IUserManagementUpdateP
                     <Translate contentKey="userManagement.profiles">Language Key</Translate>
                   </Label>
                   <AvInput type="select" className="form-control" name="authorities" value={user.authorities} multiple>
-                    {roles.map(role => (
-                      <option value={role} key={role}>
-                        {role}
-                      </option>
-                    ))}
+                    {roles.map(role =>
+                      role.permissions.map((permission, index) => (
+                        <option value={permission} key={permission}>
+                          {permission}
+                        </option>
+                      ))
+                    )}
                   </AvInput>
                 </AvGroup>
                 <Button tag={Link} to="/admin/user-management" replace color="info">
