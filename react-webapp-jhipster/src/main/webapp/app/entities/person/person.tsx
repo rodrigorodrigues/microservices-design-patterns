@@ -110,8 +110,8 @@ export class Person extends React.Component<IPersonProps, IPersonState> {
                       <Translate contentKey="spendingbetterApp.person.lastModifiedDate">Last Modified Date</Translate>{' '}
                       <FontAwesomeIcon icon="sort" />
                     </th>
-                    <th className="hand">
-                      <Translate contentKey="spendingbetterApp.address.address">Address</Translate>{' '}
+                    <th>
+                      <Translate contentKey="spendingbetterApp.person.address">Address</Translate> <FontAwesomeIcon icon="sort" />
                     </th>
                     <th />
                   </tr>

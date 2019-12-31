@@ -43,7 +43,11 @@
             type: Boolean,
             default: true
         },
-        attributes: [{ref: 'IngredientRecipeAttributes', type: Schema.Types.ObjectId }]
+        attributes: [{ref: 'IngredientRecipeAttributes', type: Schema.Types.ObjectId }],
+        _user: {
+            type: String,
+            default: 'default@admin.com'
+        }
     });
 
     let transientAttribute;
@@ -56,6 +60,7 @@
             transientAttribute = value;
         });
 
+    ingredientSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
     const Ingredient = mongoose.model('Ingredient',ingredientSchema);
 
     module.exports = {Ingredient};

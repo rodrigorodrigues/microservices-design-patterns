@@ -28,6 +28,7 @@
         "lodash": "^4.17.10",
         "mongodb": "^3.1.6",
         "mongoose": "^5.2.15",
+        "mongoose-audit": "^1.0.0",
         "morgan": "1.9.1",
         "multer": "1.2.0",
         "node-env-run": "3.0.2",

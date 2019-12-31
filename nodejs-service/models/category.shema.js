@@ -12,8 +12,12 @@ const category = new Schema(
         insertDate: {
             type: Date
         },
-        products: [product]
+        products: [product],
+        _user: {
+            type: String,
+            default: 'default@admin.com'
+        }
     });
 
-
+category.plugin(require('mongoose-audit'), {connection: mongoose.connection});
 module.exports =  category;    

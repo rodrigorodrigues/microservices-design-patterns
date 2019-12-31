@@ -13,8 +13,13 @@ const categorySchema = new mongoose.Schema({
     },
     updateDate: Date,
     insertDate: Date,
-    products: [product]
+    products: [product],
+    _user: {
+        type: String,
+        default: 'default@admin.com'
+    }
 });
+categorySchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
 
 const Category = mongoose.model('Category', categorySchema);
 module.exports = { Category };

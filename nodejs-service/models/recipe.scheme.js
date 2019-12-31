@@ -18,7 +18,11 @@ const recipeSchema = new Schema({
     categories: {
         type: [category],
         required: true
+    },
+    _user: {
+        type: String,
+        default: 'default@admin.com'
     }
 });
-
+recipeSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
 module.exports = recipeSchema;

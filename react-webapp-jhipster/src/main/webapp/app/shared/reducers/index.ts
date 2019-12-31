@@ -24,6 +24,26 @@ import child, {
 import address, {
   AddressState
 } from 'app/entities/address/address.reducer';
+// prettier-ignore
+import ingredient, {
+  IngredientState
+} from 'app/entities/ingredient/ingredient.reducer';
+// prettier-ignore
+import recipe, {
+  RecipeState
+} from 'app/entities/recipe/recipe.reducer';
+// prettier-ignore
+import category, {
+  CategoryState
+} from 'app/entities/category/category.reducer';
+// prettier-ignore
+import product, {
+  ProductState
+} from 'app/entities/product/product.reducer';
+// prettier-ignore
+import task, {
+  TaskState
+} from 'app/entities/task/task.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 export interface IRootState {
@@ -40,6 +60,11 @@ export interface IRootState {
   readonly person: PersonState;
   readonly child: ChildState;
   readonly address: AddressState;
+  readonly ingredient: IngredientState;
+  readonly recipe: RecipeState;
+  readonly category: CategoryState;
+  readonly product: ProductState;
+  readonly task: TaskState;
   /* jhipster-needle-add-reducer-type - JHipster will add reducer type here */
   readonly loadingBar: any;
 }
@@ -58,6 +83,11 @@ const rootReducer = combineReducers<IRootState>({
   person,
   child,
   address,
+  ingredient,
+  recipe,
+  category,
+  product,
+  task,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   loadingBar
 });

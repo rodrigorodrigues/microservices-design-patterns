@@ -372,6 +372,7 @@ function validateJwt(req, res, next) {
             if (err) {
                 throw Error(err);
             } else {
+                console.log(`Decoded JWT: ${JSON.stringify(decoded)}`);
                 req.user = decoded;
             }
         });

@@ -28,13 +28,13 @@ function getCategoryRoute(request, response) {
 }
 function save(request, response) {
     CategoryService
-        .save(request.body)
+        .save(request.body, request.user)
         .then(doc => responseHandlerService.send(response, {doc, status: STATUS.CREATE_CODE}))
         .catch(reason => responseHandlerService.error(response, reason));
 }
 function update(request, response) {
     CategoryService
-        .update(request.body)
+        .update(request.body, request.user)
         .then(() => responseHandlerService.send(response, {status: STATUS.UPDATE_CODE}))
         .catch(reason => responseHandlerService.error(response, reason));
 }

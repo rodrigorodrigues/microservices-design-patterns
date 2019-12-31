@@ -30,6 +30,10 @@ public class TokenProvider {
 
     private static final String NAME_KEY = "name";
 
+    private static final String JTI_KEY = "jti";
+
+    private static final String TYPE_KEY = "type";
+
     private Key key;
 
     private long tokenValidityInMilliseconds;
@@ -76,7 +80,8 @@ public class TokenProvider {
             .collect(Collectors.toList())
             .toArray(new String[] {});
 
-        long now = (new Date()).getTime();
+        Date currentDate = new Date();
+        long now = currentDate.getTime();
         Date validity;
         if (rememberMe) {
             validity = new Date(now + this.tokenValidityInMillisecondsForRememberMe);
@@ -88,6 +93,9 @@ public class TokenProvider {
         claims.put(AUTHORITIES_KEY, authorities);
         claims.put(AUTH_KEY, String.join(",", authorities));
         claims.put(NAME_KEY, fullName);
+        claims.put(JTI_KEY, UUID.randomUUID());
+        claims.put(TYPE_KEY, "access");
+        claims.put("fresh", true);
 
         JwtBuilder jwtBuilder = Jwts.builder()
             .setSubject(authentication.getName())
@@ -98,7 +106,10 @@ public class TokenProvider {
             jwtBuilder.signWith(key);
         }
         return jwtBuilder
+            .setHeader(Collections.singletonMap(Header.TYPE, Header.JWT_TYPE))
             .setExpiration(validity)
+            .setIssuedAt(currentDate)
+            .setNotBefore(currentDate)
             .compact();
     }
 

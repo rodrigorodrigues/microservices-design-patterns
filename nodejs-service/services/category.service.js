@@ -5,10 +5,11 @@ const UtilService = require('./util')
 
 function CategoryService() {
     return {
-        save(category) {
+        save(category, user) {
             const categoryModel = new Category({
                 name: category.name,
                 insertDate: new Date(),
+                _user: user.sub
             });
             return categoryModel.save()
                 .then(doc => doc)
@@ -17,7 +18,7 @@ function CategoryService() {
                         .reject(CustomValidation.messageValidation(reason));
                 });
         },
-        update(category) {
+        update(category, user) {
             return Category
                 .findOne({ _id: category._id })
                 .then(updateCategory.bind(null, category))

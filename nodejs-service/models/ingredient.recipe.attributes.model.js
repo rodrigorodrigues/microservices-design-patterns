@@ -27,11 +27,14 @@
             isRecipeLinkedToCategory : {
                 type: Boolean,
                 default: true
+            },
+            _user: {
+                type: String,
+                default: 'default@admin.com'
             }
-
         });
 
+    attributesSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
     const IngredientRecipeAttributes = mongoose.model('IngredientRecipeAttributes', attributesSchema);
-
     module.exports = {IngredientRecipeAttributes};
 })();

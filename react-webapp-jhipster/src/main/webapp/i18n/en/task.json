@@ -1,0 +1,26 @@
+{
+  "spendingbetterApp": {
+    "task": {
+      "home": {
+        "title": "Tasks",
+        "createLabel": "Create a new Task",
+        "createOrEditLabel": "Create or edit a Task",
+        "notFound": "No Tasks found"
+      },
+      "created": "A new Task is created with identifier {{ param }}",
+      "updated": "A Task is updated with identifier {{ param }}",
+      "deleted": "A Task is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Task {{ id }}?"
+      },
+      "detail": {
+        "title": "Task"
+      },
+      "name": "Name",
+      "createdByUser": "Created By User",
+      "createdDate": "Created Date",
+      "lastModifiedByUser": "Last Modified By User",
+      "lastModifiedDate": "Last Modified Date"
+    }
+  }
+}

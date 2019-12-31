@@ -64,8 +64,8 @@ spec:
               value: "true"
             - name: PATH_PUBLIC_KEY
               value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
-            - name: NODE_DEBUG
-              value: request
+#            - name: NODE_DEBUG
+#              value: request
             - name: NODE_ENV
               value: production
           ports:
