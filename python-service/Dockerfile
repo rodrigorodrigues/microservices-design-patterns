@@ -1,7 +1,15 @@
-FROM python:3.7.3-alpine3.9
-MAINTAINER Marcus Barcelos "mvlbarcelos@gmail.com"
-COPY . /app
+FROM tiangolo/uwsgi-nginx-flask:python3.7
+
+ARG PORT
+
+MAINTAINER Rodrigo Rodrigues "rodrigorodriguesweb@gmail.com"
+
+ENV LISTEN_PORT $PORT
+
+EXPOSE $PORT
+
+COPY ./app /app
+
 WORKDIR /app
-RUN pip install --no-cache-dir -r requirements.txt
-ENTRYPOINT ["python"]
-CMD ["app.py"]
+
+RUN pip install --upgrade pip && pip install --no-cache-dir -r ./app/requirements.txt

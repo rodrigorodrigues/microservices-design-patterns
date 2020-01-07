@@ -5,3 +5,6 @@ flask_prometheus_metrics
 flask_mongoengine
 flask_jwt_extended
 flask_restplus
+config-client
+gunicorn
+autologging

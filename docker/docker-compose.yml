@@ -193,6 +193,37 @@ services:
         aliases:
           - week-menu-api
 
+  product-api:
+    build:
+      args:
+        - PORT=3005
+      context: ../python-service
+      dockerfile: Dockerfile
+    container_name: product-api
+    environment:
+      - NODE_ENV=dev
+      - ENV_FILE_LOCATION=./.env
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - MONGODB_URI=mongodb://mongodb-datasource/docker
+      - SPRING_CLOUD_CONFIG_SERVER=http://config-management:8888
+      - FLASK_DEBUG=1
+      - LOG_LEVEL=Trace
+    ports:
+      - 3005:3005
+    links:
+      - gateway
+      - service-discovery
+#    volumes:
+#      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+#      - ./python-service/app/:/app/
+    #            - .:/usr/src/app
+    #            - ./node_modules:/usr/src/app/node_modules
+#    command: sh /tmp/docker-entrypoint.sh gateway:9006
+    networks:
+      net:
+        aliases:
+          - product-api
+
   person-api:
     image: person-service
     container_name: person-api
