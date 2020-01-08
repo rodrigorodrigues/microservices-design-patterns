@@ -11,7 +11,6 @@
 name: Build and Deploy to GKE
 
 on:
-  commit_comment: 'trigger deploy'
   push:
     branches:
     - master
@@ -36,7 +35,7 @@ jobs:
 #            echo "::set-env name=git_message::$eval(git log -1 --pretty='%B')"
      
   setup-build-publish-deploy:
-#    if: contains(github.event.commit_comment, 'trigger deploy')
+    if: contains(github.event.commit_comment.body, 'trigger deploy')
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
