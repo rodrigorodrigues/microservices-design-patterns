@@ -25,16 +25,17 @@ env:
   IMAGE: gke-test
 
 jobs:
-  setup-git-log:
-    name: Git Log Command
-    runs-on: ubuntu-latest
-    steps:
-      - name: Git Log
-        uses: actions/checkout@master
-      - run: |
-            echo "::set-env name=git_message::$eval(git log -1 --pretty='%B')"
+#  setup-git-log:
+#    name: Git Log Command
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Git Log
+#        uses: actions/checkout@master
+#      - run: |
+#            echo "::set-env name=git_message::$eval(git log -1 --pretty='%B')"
      
   setup-build-publish-deploy:
+    if: contains(github.event.commit_comment, 'trigger deploy')
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
