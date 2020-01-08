@@ -33,6 +33,7 @@ jobs:
         uses: actions/checkout@master
       - run: |
             echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
+            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
      
   setup-build-publish-deploy:
     #if: contains(github.event.commit_comment.body, 'trigger deploy')
@@ -54,7 +55,7 @@ jobs:
     - run: |
         # Set up docker to authenticate
         # via gcloud command-line tool.
-        echo "Git Commig Message: ${{env.GIT_COMMIT_MESSAGE}}"
+        echo "Git Commig Message: ${{env.GIT_COMMIT_MESSAGE}} - ${{env.GIT_COMMIT_MESSAGE_TEST}}"
         gcloud auth configure-docker
       
     # Build the Docker image
@@ -62,7 +63,7 @@ jobs:
       run: |        
         docker build -t gcr.io/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" .
+          --build-arg GITHUB_REF="$GITHUB_REF" ../../react-webapp
 
     # Push the Docker image to Google Container Registry
     - name: Publish
