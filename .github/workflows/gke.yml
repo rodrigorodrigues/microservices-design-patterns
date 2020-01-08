@@ -32,8 +32,7 @@ jobs:
       - name: Git Log
         uses: actions/checkout@master
       - run: |
-            git log -1
-            echo "::set-env name=action_state::yellow"
+            echo "::set-env name=git_message::$eval(git log -1 --pretty='%B')"
      
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
