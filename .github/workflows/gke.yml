@@ -25,15 +25,15 @@ env:
   IMAGE: gke-test
 
 jobs:
-  setup-git-log:
-    name: Git Log Command
-    runs-on: ubuntu-latest
-    steps:
-      - name: Git Log
-        uses: actions/checkout@master
-      - run: |
-            echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
-            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
+#  setup-git-log:
+#    name: Git Log Command
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Git Log
+#        uses: actions/checkout@master
+#      - run: |
+#            echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
+#            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
      
   setup-build-publish-deploy:
     #if: contains(github.event.commit_comment.body, 'trigger deploy')
@@ -43,6 +43,11 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@master
+    - run: |
+            git log -1 --pretty='%B' > git_commit
+            cat git_commit
+            echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
+            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
 
     # Setup gcloud CLI
     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
