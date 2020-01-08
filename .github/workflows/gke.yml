@@ -23,8 +23,17 @@ env:
   GKE_ZONE: europe-west1-b
   GKE_CLUSTER: your-first-cluster-1
   IMAGE: gke-test
+  CLOUDSDK_PYTHON_SITEPACKAGES: 1
 
 jobs:
+  setup-git-log:
+    name: Git Log Command
+    runs-on: ubuntu-latest
+    steps:
+      - name: git Actions
+        uses: srt32/git-actions@v0.0.3
+      - run: git log -1
+     
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
