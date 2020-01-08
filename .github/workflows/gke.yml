@@ -23,7 +23,6 @@ env:
   GKE_ZONE: europe-west1-b
   GKE_CLUSTER: your-first-cluster-1
   IMAGE: gke-test
-  CLOUDSDK_PYTHON_SITEPACKAGES: 1
 
 jobs:
   setup-git-log:
