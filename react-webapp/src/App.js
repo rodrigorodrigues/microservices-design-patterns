@@ -20,6 +20,8 @@ import Cookies from 'js-cookie'
 import TaskList from "./task/TaskList";
 import TaskEdit from "./task/TaskEdit";
 import IngredientList from "./WeekMenu/IngredientList";
+import ProductList from "./product/ProductList";
+import ProductEdit from "./product/ProductEdit";
 
 
 const eurekaUrl = process.env.REACT_APP_EUREKA_URL;
@@ -133,6 +135,10 @@ class App extends Component {
                    component={() => <TaskList {...this.state} />} />
             <Route path='/tasks/:id'
                    component={() => <TaskEdit {...this.state} />} />
+            <Route path='/producs' exact={true}
+                   component={() => <ProductList {...this.state} />} />
+            <Route path='/producs/:id'
+                   component={() => <ProductEdit {...this.state} />} />
             <Route path='/admin-eureka' component={() => this.adminLink(eurekaUrl)} />
             <Route path='/admin-monitoring' component={() => this.adminLink(monitoringUrl)} />
             <Route path='/admin-grafana' component={() => this.adminLink(grafanaUrl)} />

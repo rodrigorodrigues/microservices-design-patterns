@@ -17,6 +17,9 @@ function HomeContent({notDisplayMessage}) {
                     {displayButtonManageTasks(authorities)}
                 </Col>
                 <Col xs="auto">
+                    {displayButtonManageProducts(authorities)}
+                </Col>
+                <Col xs="auto">
                     {displayWeekMenu(authorities)}
                 </Col>
                 <Col xs="auto">
@@ -147,6 +150,12 @@ function displayButtonManageTasks(authorities) {
     const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
     || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE')
     return <Link to="/tasks" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Tasks</Link>
+}
+
+function displayButtonManageProducts(authorities) {
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_READ' 
+    || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE')
+    return <Link to="/products" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Products</Link>
 }
 
 export default HomeContent

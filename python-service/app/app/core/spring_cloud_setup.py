@@ -7,15 +7,17 @@ from flask_prometheus_metrics import register_metrics
 from prometheus_client import make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
-from app.main import app
-
 log = logging.getLogger(__name__)
 
-# Plug metrics WSGI app to your main app with dispatcher
-dispatcher = DispatcherMiddleware(app.wsgi_app, {"/actuator/prometheus": make_wsgi_app()})
+
+def initialize_dispatcher(app):
+    # Plug metrics WSGI app to your main app with dispatcher
+    return DispatcherMiddleware(app.wsgi_app, {"/actuator/prometheus": make_wsgi_app()})
 
 
-def initialize_spring_cloud_client():
+
+def initialize_spring_cloud_client(app):
+    
     # The following code will register your server to eureka server and also start to send heartbeat every 30 seconds
     eureka_client.init(eureka_server=app.config['EUREKA_SERVER'],
                        app_name="python-service",

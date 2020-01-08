@@ -202,23 +202,13 @@ services:
     container_name: product-api
     environment:
       - NODE_ENV=dev
-      - ENV_FILE_LOCATION=./.env
-      - EUREKA_SERVER=http://service-discovery:8761/eureka/
-      - MONGODB_URI=mongodb://mongodb-datasource/docker
-      - SPRING_CLOUD_CONFIG_SERVER=http://config-management:8888
-      - FLASK_DEBUG=1
-      - LOG_LEVEL=Trace
+      - ENV_FILE_LOCATION=./.env.docker
     ports:
       - 3005:3005
     links:
       - gateway
       - service-discovery
-#    volumes:
-#      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#      - ./python-service/app/:/app/
-    #            - .:/usr/src/app
-    #            - ./node_modules:/usr/src/app/node_modules
-#    command: sh /tmp/docker-entrypoint.sh gateway:9006
+      - mongodb-datasource
     networks:
       net:
         aliases:

@@ -55,6 +55,12 @@ zuul:
             swaggerUri: api-documentation
             stripPrefix: false
             sensitiveHeaders:
+        product-service:
+            path: /api/products/**
+            serviceId: python-service
+            swaggerUri: api-documentation
+            stripPrefix: false
+            sensitiveHeaders:
         swagger-tasks-service:
             path: /swagger/kotlin-service/**
             serviceId: kotlin-service

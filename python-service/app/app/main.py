@@ -1,25 +1,139 @@
 import logging.config
-import os
 import sys
 
-from flask import Flask
+from autologging import traced, logged
+from flask import Flask, request, Response
 from flask import jsonify, make_response
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, get_jwt_identity
+from flask_restplus import fields, Resource
 from werkzeug.serving import run_simple
 
-from app.core.database import initialize_db
+from app.core.database_setup import initialize_db
+from app.core.spring_cloud_setup import initialize_spring_cloud_client, initialize_dispatcher
+from app.core.api_setup import initialize_api
+from app.jwt_custom_decorator import admin_required
+from app.model.models import Product
 
 app = Flask(__name__)
 app.config.from_envvar('ENV_FILE_LOCATION')
-for v in os.environ:
-    env = os.getenv(v)
-    app.config[env] = env
 app.config['MONGODB_SETTINGS'] = {
     'host': app.config['MONGODB_URI']
 }
 jwt = JWTManager(app)
 
 log = logging.getLogger(__name__)
+
+logging.basicConfig(
+    format="%(levelname)s [%(name)s %(funcName)s] %(message)s",
+    level=app.config['LOG_LEVEL'],
+    stream=sys.stdout
+)
+
+initialize_spring_cloud_client(app)
+initialize_db(app)
+api = initialize_api(app)
+
+ns = api.namespace('api/products', description='Product operations')
+
+productModel = api.model('Product', {
+    'name': fields.String(required=True, description='Name'),
+    'quantity': fields.Integer(required=True, description='Quantity'),
+    'category': fields.String(required=True, description='Category Name'),
+})
+
+
+@traced(log)
+@logged(log)
+@ns.route('')
+class ProductsApi(Resource):
+    findAllPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_READ', 'ROLE_PRODUCTS_CREATE',
+                                                            'ROLE_PRODUCTS_SAVE', 'ROLE_PRODUCTS_DELETE'])
+
+    createPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_CREATE'])
+
+    """Return list of products"""
+
+    @findAllPermissions
+    @ns.doc(description='List of products', responses={
+        200: 'List of products',
+        400: 'Validation Error',
+        401: 'Unauthorized',
+        403: 'Forbidden',
+        500: 'Unexpected Error'
+    })
+    def get(self):
+        log.debug('Get all products')
+        products = Product.objects().to_json()
+        return Response(products, mimetype="application/json", status=200)
+
+    """Create new product"""
+
+    @createPermissions
+    @ns.doc(description='Create product', responses={
+        201: 'Created',
+        400: 'Validation Error',
+        401: 'Unauthorized',
+        403: 'Forbidden',
+        500: 'Unexpected Error'
+    })
+    @ns.expect(productModel)
+    def post(self):
+        user_id = get_jwt_identity()
+        body = request.get_json()
+        product = Product(**body)
+        product.createdByUser = user_id
+        product.save()
+        return Response(product.to_json(), mimetype="application/json", status=201)
+
+
+@ns.route('/<string:id>')
+class ProductApi(Resource):
+    findByIdPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_READ'
+                                                                           'ROLE_PRODUCTS_SAVE'])
+    savePermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_SAVE'])
+
+    deletePermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_DELETE'])
+
+    """Update product"""
+
+    @savePermissions
+    @ns.doc(params={'id': 'An ID'}, description='Update product', responses={
+        200: 'Updated Successfully',
+        400: 'Validation Error',
+        401: 'Unauthorized',
+        403: 'Forbidden',
+        500: 'Unexpected Error'
+    })
+    @ns.expect(productModel)
+    def put(self, id):
+        user_id = get_jwt_identity()
+        product = Product.objects.get(id=id)
+        body = request.get_json()
+        product.lastModifiedDate = datetime.datetime.utcnow()
+        product.lastModifiedByUser = user_id
+        product.update(**body)
+        return Response(Product.objects.get(id=id).to_json(), mimetype="application/json", status=200)
+
+    """Delete product"""
+
+    @deletePermissions
+    @ns.doc(description='Delete product', responses={
+        200: 'Deleted Successfully',
+        400: 'Validation Error',
+        401: 'Unauthorized',
+        403: 'Forbidden',
+        500: 'Unexpected Error'
+    })
+    def delete(self, id):
+        user_id = get_jwt_identity()
+        movie = Product.objects.get(id=id)
+        movie.delete()
+        return make_response(jsonify(msg='Deleted product id: ' + id), 200)
+
+    @findByIdPermissions
+    def get(self, id):
+        product = Product.objects.get(id=id).to_json()
+        return Response(product, mimetype="application/json", status=200)
 
 
 @app.errorhandler(Exception)
@@ -36,9 +150,12 @@ def health():
     return jsonify({'status': 'OK'})
 
 
+server_port = app.config['SERVER_PORT']
+
+
 @app.route('/actuator')
 def actuator_index():
-    port = app.config['SERVER_PORT']
+    port = server_port
     actuator = {
         "_links": {
             "self": {
@@ -66,23 +183,9 @@ def actuator_index():
     return jsonify(actuator)
 
 
-def init_app():
-    logging.basicConfig(
-        format="%(levelname)s [%(name)s %(funcName)s] %(message)s",
-        level=app.config['LOG_LEVEL'],
-        stream=sys.stdout
-    )
-    from app.api.products import ns
-    from app.core.api import api
-    api.add_namespace(ns)
-    api.init_app(app)
-    from app.core.spring_cloud import initialize_spring_cloud_client, dispatcher
-    initialize_spring_cloud_client()
-    initialize_db(app)
-    run_simple(hostname="0.0.0.0", port=app.config['SERVER_PORT'], application=dispatcher)
+api.add_namespace(ns)
 
 
 if __name__ == "__main__":
-    init_app()
-
-    app.run(debug=app.config['DEBUG'], host='0.0.0.0', port=app.config['SERVER_PORT'])
+    debug_flag = app.config['DEBUG']
+    run_simple(hostname="0.0.0.0", port=server_port, application=initialize_dispatcher(app), use_debugger=debug_flag)

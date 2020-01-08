@@ -12,13 +12,13 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 
-const categorySwaggerUrl = process.env.REACT_APP_CATEGORY_SWAGGER_URL;
+const productSwaggerUrl = process.env.REACT_APP_PRODUCT_SWAGGER_URL;
 
-class CategoryList extends Component {
+class ProductList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      categories: [], 
+      products: [], 
       isLoading: true, 
       jwt: props.jwt, 
       displayError: null,
@@ -43,17 +43,17 @@ class CategoryList extends Component {
     let permissions = this.state.authorities;
     if (jwt && permissions) {
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN'
-      || item === 'ROLE_CATEGORY_READ' || item === 'ROLE_CATEGORY_CREATE' 
-      || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')) {
+      if (!permissions.some(item => item === 'ROLE_ADMIN' 
+      || item === 'ROLE_PRODUCT_READ' || item === 'ROLE_PRODUCT_CREATE' 
+      || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
         try {
-          let data = await get('week-menu/v2/category', true, false, jwt);
+          let data = await get('products', true, false, jwt);
           if (data) {
             if (Array.isArray(data)) {
-              this.setState({isLoading: false, categories: data, displaySwagger: true});
+              this.setState({isLoading: false, products: data, displaySwagger: true});
             } else {
               this.setState({isLoading: false, displayError: errorMessage(data)});
             }
@@ -65,12 +65,12 @@ class CategoryList extends Component {
     }
   }
 
-  async remove(category) {
-    let confirm = await confirmDialog(`Delete Category ${category.name}`, "Are you sure you want to delete this?", "Delete Category");
+  async remove(product) {
+    let confirm = await confirmDialog(`Delete Product ${product.name}`, "Are you sure you want to delete this?", "Delete Product");
     if (confirm) {
-      let id = category.id;
+      let id = product.id;
       let jwt = this.state.jwt;
-      await fetch(`/api/week-menu/v2/category/${id}`, {
+      await fetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt
@@ -80,32 +80,30 @@ class CategoryList extends Component {
         if (err.status !== 200) {
           this.setState({displayError: errorMessage(err)});
         } else {
-          let categories = [...this.state.categories].filter(i => i._id !== id);
-          this.setState({categories: categories});
+          let products = [...this.state.products].filter(i => i._id !== id);
+          this.setState({products: products});
         }
       });
     }
   }
 
   render() {
-    const { categories, isLoading, displayError, displayAlert, displaySwagger } = this.state;
+    const { products, isLoading, displayError, displayAlert, displaySwagger } = this.state;
 
     if (isLoading) {
       return <p>Loading...</p>;
     }
 
-    const categoryList = categories.map(category => {
-      const productName = category.products.map(product => product.name).join(", ");
-      const productQuantities = category.products.map(product => ({name: product.name, quantity: product.quantity}));
-      return <tr key={category._id}>
-        <th scope="row">{category._id}</th>
-        <td style={{whiteSpace: 'nowrap'}}>{category.name}</td>
-        <td style={{whiteSpace: 'nowrap'}}>{productName}</td>
-        <td>{productQuantities}</td>
+    const productList = products.map(product => {
+      return <tr key={product._id}>
+        <th scope="row">{product._id}</th>
+        <td style={{whiteSpace: 'nowrap'}}>{product.name}</td>
+        <td>{product.quantity}</td>
+        <td style={{whiteSpace: 'nowrap'}}>{product.category}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/categories/" + category._id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({'id': category._id, 'name': category.name})}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/products/" + product._id}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': product._id, 'name': product.name})}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -123,7 +121,7 @@ class CategoryList extends Component {
             <NavLink
               className={classnames({ active: this.state.activeTab === '1' })}
               onClick={() => { this.toggle('1'); }}>
-              Categories
+              Products
             </NavLink>
           </NavItem>
           <NavItem>
@@ -137,7 +135,7 @@ class CategoryList extends Component {
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId="1">
             <div className="float-right">
-              <Button color="success" tag={Link} to="/categories/new">Add Category</Button>
+              <Button color="success" tag={Link} to="/products/new">Add Product</Button>
             </div>
 
             <Table striped responsive>
@@ -145,19 +143,19 @@ class CategoryList extends Component {
               <tr>
                 <th>#</th>
                 <th>Name</th>
-                <th>Products</th>
+                <th>Category</th>
                 <th>Quantities</th>
                 <th>Actions</th>
               </tr>
               </thead>
               <tbody>
-              {categoryList}
+              {productList}
               </tbody>
             </Table>
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?
-              <Iframe url={`${categorySwaggerUrl}`}
+              <Iframe url={`${productSwaggerUrl}`}
                 position="absolute"
                 width="100%"
                 id="myId"
@@ -184,4 +182,4 @@ class CategoryList extends Component {
   }
 }
 
-export default withRouter(CategoryList);
+export default withRouter(ProductList);
