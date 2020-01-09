@@ -23,6 +23,7 @@ env:
   GKE_ZONE: europe-west1-b
   GKE_CLUSTER: your-first-cluster-1
   IMAGE: react-webapp
+  REACT_WEBAPP_PORT: 3003
 
 jobs:
 #  setup-git-log:
@@ -67,7 +68,8 @@ jobs:
       run: |        
         docker build -t eu.gcr.io/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" ./react-webapp
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+          --build-arg PORT="$REACT_WEBAPP_PORT" ./react-webapp
 
     # Push the Docker image to Google Container Registry
     - name: Publish
@@ -84,7 +86,7 @@ jobs:
     - name: Deploy
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
-        ./kustomize edit set image eu.gcr.io/$GKE_PROJECT/$IMAGE:${GITHUB_SHA}
+        ./kustomize .github/workflows/react-webapp edit set image eu.gcr.io/$GKE_PROJECT/$IMAGE:${GITHUB_SHA}
         ./kustomize build .github/workflows/react-webapp | kubectl apply -f -
         kubectl rollout status deployment/$IMAGE
         kubectl get services -o wide
