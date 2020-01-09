@@ -60,7 +60,6 @@ jobs:
     - run: |
         # Set up docker to authenticate
         # via gcloud command-line tool.
-#        echo "Git Commig Message: ${{env.GIT_COMMIT_MESSAGE}} - ${{env.GIT_COMMIT_MESSAGE_TEST}}"
         gcloud auth configure-docker
       
     # Build the Docker image
