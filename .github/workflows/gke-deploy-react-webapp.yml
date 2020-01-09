@@ -8,7 +8,7 @@
 #
 # 3. Change the values for the GKE_ZONE, GKE_CLUSTER and IMAGE environment variables (below).
 
-name: Build and Deploy to GKE
+name: Build React Web App and Deploy to GKE
 
 on:
   push:
@@ -22,7 +22,7 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GKE_ZONE: europe-west1-b
   GKE_CLUSTER: your-first-cluster-1
-  IMAGE: gke-test
+  IMAGE: react-webapp
 
 jobs:
 #  setup-git-log:
@@ -36,7 +36,7 @@ jobs:
 #            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
      
   setup-build-publish-deploy:
-    #if: contains(github.event.commit_comment.body, 'trigger deploy')
+    if: contains(toJson(github), 'trigger deploy')
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
@@ -66,14 +66,14 @@ jobs:
     # Build the Docker image
     - name: Build
       run: |        
-        docker build -t gcr.io/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
+        docker build -t eu.gcr.io/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" ../../react-webapp
+          --build-arg GITHUB_REF="$GITHUB_REF" ./react-webapp
 
     # Push the Docker image to Google Container Registry
     - name: Publish
       run: |
-        docker push gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+        docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
         
     # Set up kustomize
     - name: Set up Kustomize
@@ -85,7 +85,7 @@ jobs:
     - name: Deploy
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
-        ./kustomize edit set image gcr.io/$GKE_PROJECT/$IMAGE:${GITHUB_SHA}
+        ./kustomize edit set image eu.gcr.io/$GKE_PROJECT/$IMAGE:${GITHUB_SHA}
         ./kustomize build . | kubectl apply -f -
         kubectl rollout status deployment/gke-test
         kubectl get services -o wide
