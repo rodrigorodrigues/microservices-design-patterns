@@ -36,18 +36,18 @@ jobs:
 #            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
      
   setup-build-publish-deploy:
-    if: contains(toJson(github), 'trigger deploy')
+    if: contains(toJson(github), 'deploy react-webapp')
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
 
     - name: Checkout
       uses: actions/checkout@master
-    - run: |
-            git log -1 --pretty='%B' > git_commit
-            cat git_commit
-            echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
-            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
+#    - run: |
+#            git log -1 --pretty='%B' > git_commit
+#            cat git_commit
+#            echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
+#            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
 
     # Setup gcloud CLI
     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
@@ -60,7 +60,7 @@ jobs:
     - run: |
         # Set up docker to authenticate
         # via gcloud command-line tool.
-        echo "Git Commig Message: ${{env.GIT_COMMIT_MESSAGE}} - ${{env.GIT_COMMIT_MESSAGE_TEST}}"
+#        echo "Git Commig Message: ${{env.GIT_COMMIT_MESSAGE}} - ${{env.GIT_COMMIT_MESSAGE_TEST}}"
         gcloud auth configure-docker
       
     # Build the Docker image
@@ -86,6 +86,6 @@ jobs:
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
         ./kustomize edit set image eu.gcr.io/$GKE_PROJECT/$IMAGE:${GITHUB_SHA}
-        ./kustomize build . | kubectl apply -f -
-        kubectl rollout status deployment/gke-test
+        ./kustomize build .github/workflows/react-webapp | kubectl apply -f -
+        kubectl rollout status deployment/$IMAGE
         kubectl get services -o wide
