@@ -77,17 +77,20 @@ jobs:
         docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
         
     # Set up kustomize
-    - name: Set up Kustomize
+#    - name: Set up Kustomize
+#      run: |
+#        curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+#        chmod u+x ./kustomize
+      # Set up docker image
+    - name: Set up docker image
       run: |
-        curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
-        chmod u+x ./kustomize
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
+        gcloud components install beta --quiet
+        yes | gcloud beta container images add-tag eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA eu.gcr.io/$GKE_PROJECT/$IMAGE:latest
 
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |
-        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
-        gcloud components install beta --quiet
-        yes | gcloud beta container images add-tag eu.gcr.io/${GKE_PROJECT}/$IMAGE:$GITHUB_SHA eu.gcr.io/${GKE_PROJECT}/${IMAGE}:latest
-        ./kustomize build .github/workflows/react-webapp | kubectl apply -f -
-        kubectl rollout status deployment/$IMAGE
-        kubectl get services -o wide
+        kubectl config view
+        kubectl config current-context
+        kubectl patch deployment $IMAGE -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" || kubectl apply -f ./.github/workflows/kubernetes/deployment-react-webapp.yml
