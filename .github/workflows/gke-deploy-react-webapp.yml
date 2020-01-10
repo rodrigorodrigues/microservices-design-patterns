@@ -86,7 +86,8 @@ jobs:
     - name: Deploy
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
-        ./kustomize edit set image eu.gcr.io/$GKE_PROJECT/$IMAGE:${GITHUB_SHA}
+        gcloud components install beta --quiet
+        yes | gcloud beta container images add-tag eu.gcr.io/${GKE_PROJECT}/$IMAGE:$GITHUB_SHA eu.gcr.io/${GKE_PROJECT}/${IMAGE}:latest
         ./kustomize build .github/workflows/react-webapp | kubectl apply -f -
         kubectl rollout status deployment/$IMAGE
         kubectl get services -o wide
