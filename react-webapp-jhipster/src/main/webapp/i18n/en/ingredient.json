@@ -1,0 +1,29 @@
+{
+  "spendingbetterApp": {
+    "ingredient": {
+      "home": {
+        "title": "Ingredients",
+        "createLabel": "Create a new Ingredient",
+        "createOrEditLabel": "Create or edit a Ingredient",
+        "notFound": "No Ingredients found"
+      },
+      "created": "A new Ingredient is created with identifier {{ param }}",
+      "updated": "A Ingredient is updated with identifier {{ param }}",
+      "deleted": "A Ingredient is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Ingredient {{ id }}?"
+      },
+      "detail": {
+        "title": "Ingredient"
+      },
+      "name": "Name",
+      "categoryName": "Category Name",
+      "updateDate": "Update Date",
+      "insertDate": "Insert Date",
+      "tempRecipeLinkIndicator": "Temp Recipe Link Indicator",
+      "checkedInCartShopping": "Checked In Cart Shopping",
+      "updateCheckDate": "Update Check Date",
+      "expiryDate": "Expiry Date"
+    }
+  }
+}

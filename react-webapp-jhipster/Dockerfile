@@ -19,8 +19,6 @@ RUN sed -i "s#baseHref: '/'#baseHref: '/jhipster/'#g" ./webpack/webpack.common.j
 
 RUN npm run webpack:prod
 
-RUN sed -i 's#<base href="/" />#<base href="/jhipster/" />#g' ./build/resources/main/static/index.html
-
 ### STAGE 2: Production Environment ###
 FROM nginx:1.13.12-alpine
 

@@ -32,7 +32,27 @@ const Person = Loadable({
 });
 
 const Category = Loadable({
-  loader: () => import(/* webpackChunkName: "category" */ 'app/entities/address'),
+  loader: () => import(/* webpackChunkName: "category" */ 'app/entities/category'),
+  loading: () => <div>loading ...</div>
+});
+
+const Task = Loadable({
+  loader: () => import(/* webpackChunkName: "task" */ 'app/entities/task'),
+  loading: () => <div>loading ...</div>
+});
+
+const Ingredient = Loadable({
+  loader: () => import(/* webpackChunkName: "ingredient" */ 'app/entities/ingredient'),
+  loading: () => <div>loading ...</div>
+});
+
+const Product = Loadable({
+  loader: () => import(/* webpackChunkName: "product" */ 'app/entities/product'),
+  loading: () => <div>loading ...</div>
+});
+
+const Recipe = Loadable({
+  loader: () => import(/* webpackChunkName: "recipe" */ 'app/entities/recipe'),
   loading: () => <div>loading ...</div>
 });
 // tslint:enable
@@ -68,6 +88,50 @@ const Routes = () => (
           AUTHORITIES.CATEGORY_DELETE,
           AUTHORITIES.CATEGORY_READ,
           AUTHORITIES.CATEGORY_SAVE
+        ]}
+      />
+      <PrivateRoute
+        path="/entity/task"
+        component={Task}
+        hasAnyAuthorities={[
+          AUTHORITIES.ADMIN,
+          AUTHORITIES.TASK_CREATE,
+          AUTHORITIES.TASK_DELETE,
+          AUTHORITIES.TASK_READ,
+          AUTHORITIES.TASK_SAVE
+        ]}
+      />
+      <PrivateRoute
+        path="/entity/ingredient"
+        component={Ingredient}
+        hasAnyAuthorities={[
+          AUTHORITIES.ADMIN,
+          AUTHORITIES.INGREDIENT_CREATE,
+          AUTHORITIES.INGREDIENT_DELETE,
+          AUTHORITIES.INGREDIENT_READ,
+          AUTHORITIES.INGREDIENT_SAVE
+        ]}
+      />
+      <PrivateRoute
+        path="/entity/product"
+        component={Product}
+        hasAnyAuthorities={[
+          AUTHORITIES.ADMIN,
+          AUTHORITIES.PRODUCT_CREATE,
+          AUTHORITIES.PRODUCT_DELETE,
+          AUTHORITIES.PRODUCT_READ,
+          AUTHORITIES.PRODUCT_SAVE
+        ]}
+      />
+      <PrivateRoute
+        path="/entity/recipe"
+        component={Recipe}
+        hasAnyAuthorities={[
+          AUTHORITIES.ADMIN,
+          AUTHORITIES.RECIPE_CREATE,
+          AUTHORITIES.RECIPE_DELETE,
+          AUTHORITIES.RECIPE_READ,
+          AUTHORITIES.RECIPE_SAVE
         ]}
       />
       <ErrorBoundaryRoute path="/" exact component={Home} />

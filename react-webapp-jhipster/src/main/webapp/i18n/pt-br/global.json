@@ -10,6 +10,11 @@
         "person": "Person",
         "child": "Child",
         "address": "Address",
+        "ingredient": "Ingredient",
+        "recipe": "Recipe",
+        "category": "Category",
+        "product": "Product",
+        "task": "Task",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
       "account": {

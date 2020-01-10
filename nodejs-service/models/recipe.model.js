@@ -25,9 +25,13 @@
         },
         mainMealValue: String,
         description: String,
-        attributes: [{ ref: 'IngredientRecipeAttributes', type: Schema.Types.ObjectId }]
+        attributes: [{ ref: 'IngredientRecipeAttributes', type: Schema.Types.ObjectId }],
+        _user: {
+            type: String,
+            default: 'default@admin.com'
+        }
     });
-
+    recipeSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
     const Recipe = mongoose.model('Recipe', recipeSchema);
 
     module.exports = { Recipe };

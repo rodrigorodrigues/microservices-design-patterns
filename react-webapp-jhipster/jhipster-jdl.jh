@@ -1,7 +1,56 @@
+entity Ingredient {
+	id String required
+    name String required
+    categoryName String minlength(1)
+    updateDate Instant
+    insertDate Instant
+    tempRecipeLinkIndicator Boolean required
+    checkedInCartShopping Boolean
+    updateCheckDate Instant
+    expiryDate Instant
+}
+skipServer Ingredient
+
+entity Recipe {
+	id String required 
+    name String required
+    updateDate Instant
+    insertDate Instant
+}
+skipServer Recipe
+
+entity Category {
+	id String required 
+    name String required
+    updateDate Instant
+    insertDate Instant
+}
+skipServer Category
+
+entity Product {
+	id String required
+    name String required
+    insertDate Instant
+    completed Boolean required
+    quantity Integer required
+}
+skipServer Product
+
+
+entity Task {
+	id String required
+    name String required minlength(5) maxlength(200)
+    createdByUser String
+    createdDate Instant
+    lastModifiedByUser String
+    lastModifiedDate Instant
+}
+skipServer Task
+
 entity Person {
 	id String required
-    fullName String required
-    dateOfBirth LocalDate
+    fullName String required minlength(5) maxlength(200)
+    dateOfBirth LocalDate required
     createdByUser String
     createdDate Instant
     lastModifiedByUser String
@@ -9,7 +58,6 @@ entity Person {
 }
 skipServer Person
 
-/**
 entity Child {
 id String required
 	name String required
@@ -19,6 +67,7 @@ skipServer Child
 skipClient Child
 
 // an ignored comment
+/** not an ignored comment */
 entity Address {
 	id String required
 	address String required
@@ -37,9 +86,10 @@ relationship OneToOne {
 
 // defining multiple OneToMany relationships with comments
 relationship OneToMany {
-	Person{children} to Child,
+	Person{children} to Child
+    Category{products} to Product
+    Recipe{categories} to Category
 }
-*/
 
 // Set pagination options
 paginate all with infinite-scroll

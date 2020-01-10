@@ -5,12 +5,19 @@
             "fieldName": "fullName",
             "fieldType": "String",
             "fieldValidateRules": [
-                "required"
-            ]
+                "required",
+                "minlength",
+                "maxlength"
+            ],
+            "fieldValidateRulesMinlength": 5,
+            "fieldValidateRulesMaxlength": 200
         },
         {
             "fieldName": "dateOfBirth",
-            "fieldType": "LocalDate"
+            "fieldType": "LocalDate",
+            "fieldValidateRules": [
+                "required"
+            ]
         },
         {
             "fieldName": "createdByUser",
@@ -29,7 +36,22 @@
             "fieldType": "Instant"
         }
     ],
-    "relationships": [],
+    "relationships": [
+        {
+            "relationshipType": "one-to-one",
+            "otherEntityName": "address",
+            "otherEntityRelationshipName": "person",
+            "relationshipName": "address",
+            "otherEntityField": "id",
+            "ownerSide": true
+        },
+        {
+            "relationshipType": "one-to-many",
+            "otherEntityName": "child",
+            "otherEntityRelationshipName": "person",
+            "relationshipName": "children"
+        }
+    ],
     "changelogDate": "20190703224118",
     "entityTableName": "person",
     "dto": "no",

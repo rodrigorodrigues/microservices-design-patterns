@@ -43,7 +43,7 @@ class CategoryList extends Component {
     let permissions = this.state.authorities;
     if (jwt && permissions) {
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
+      if (!permissions.some(item => item === 'ROLE_ADMIN'
       || item === 'ROLE_CATEGORY_READ' || item === 'ROLE_CATEGORY_CREATE' 
       || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };

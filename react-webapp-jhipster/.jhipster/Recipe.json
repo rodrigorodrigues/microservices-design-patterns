@@ -1,0 +1,38 @@
+{
+    "name": "Recipe",
+    "fields": [
+        {
+            "fieldName": "name",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "updateDate",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "insertDate",
+            "fieldType": "Instant"
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "one-to-many",
+            "otherEntityName": "category",
+            "otherEntityRelationshipName": "recipe",
+            "relationshipName": "categories"
+        }
+    ],
+    "changelogDate": "20191225215912",
+    "entityTableName": "recipe",
+    "dto": "no",
+    "pagination": "infinite-scroll",
+    "service": "no",
+    "jpaMetamodelFiltering": false,
+    "fluentMethods": true,
+    "clientRootFolder": "",
+    "applications": "*",
+    "skipServer": true
+}

@@ -19,7 +19,11 @@ const product = new Schema(
         quantity: {
             type: Number,
             default: 1
+        },
+        _user: {
+            type: String,
+            default: 'default@admin.com'
         }
     });
-
+product.plugin(require('mongoose-audit'), {connection: mongoose.connection});
 module.exports =  product;    

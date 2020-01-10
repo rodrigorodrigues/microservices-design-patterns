@@ -1,8 +1,8 @@
-const moongoose = require('mongoose');
+const mongoose = require('mongoose');
 const category = require('./category.shema');
 const recipe = require('./recipe.scheme');
 
-const shoppingListSchema = new moongoose.Schema({
+const shoppingListSchema = new mongoose.Schema({
     categories: [category],
     recipes: [recipe],
     updateDate: {
@@ -13,7 +13,12 @@ const shoppingListSchema = new moongoose.Schema({
     },
     name: {
         type: String
+    },
+    _user: {
+        type: String,
+        default: 'default@admin.com'
     }
 });
-const ShoppingList = moongoose.model('ShoppingList', shoppingListSchema);
+shoppingListSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+const ShoppingList = mongoose.model('ShoppingList', shoppingListSchema);
 module.exports = {ShoppingList};
