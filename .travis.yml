@@ -11,7 +11,7 @@ services:
 
 branches:
   only:
-  - master
+  - master-travis-ci
 
 cache:
   directories:

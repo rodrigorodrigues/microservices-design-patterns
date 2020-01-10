@@ -41,3 +41,4 @@ transaction-logs
 .attach_*
 */.vscode
 kubernetes/istio-*
+.github/workflows/kubernetes/istio-*
