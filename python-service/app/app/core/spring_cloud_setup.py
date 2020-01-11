@@ -24,7 +24,7 @@ def initialize_spring_cloud_client(app):
 
     address = app.config["SPRING_CLOUD_CONFIG_URI"]
 
-    profile = app.config['PROFILE']
+    profile = app.config['SPRING_PROFILES_ACTIVE']
 
     app_name = app.config['APP_NAME']
 
@@ -43,9 +43,11 @@ def initialize_spring_cloud_client(app):
             jwt_secret = config_client.config['propertySources'][0]['source']['configuration.jwt.base64-secret']
         except Exception:
             jwt_secret = config_client.config['propertySources'][1]['source']['configuration.jwt.base64-secret']
-
         log.debug('Jwt Secret: %s', jwt_secret)
         app.config['JWT_SECRET_KEY'] = base64.b64decode(jwt_secret)
+
+    else:
+        app.config['JWT_PUBLIC_KEY'] = open(app.config['JWT_PUBLIC_KEY'], "r").read()
 
     log.debug('Config environment: %s', app.config)
 
