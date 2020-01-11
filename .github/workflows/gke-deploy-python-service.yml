@@ -8,7 +8,7 @@
 #
 # 3. Change the values for the GKE_ZONE, GKE_CLUSTER and IMAGE environment variables (below).
 
-name: Build React Web App and Deploy to GKE
+name: Build Python Service and Deploy to GKE
 
 on:
   push:
@@ -22,24 +22,19 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GKE_ZONE: europe-west1-b
   GKE_CLUSTER: your-first-cluster-1
-  IMAGE: react-webapp
-  REACT_WEBAPP_PORT: 3003
+  IMAGE: python-service
+  PYTHON_SERVICE_PORT: 3005
 
 jobs:
 
   setup-build-publish-deploy:
-    if: contains(toJson(github), 'deploy react-webapp')
+    if: contains(toJson(github), 'deploy python-service')
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
 
     - name: Checkout
       uses: actions/checkout@master
-#    - run: |
-#            git log -1 --pretty='%B' > git_commit
-#            cat git_commit
-#            echo "::set-env name=GIT_COMMIT_MESSAGE::$eval(git log -1 --pretty='%B')"
-#            echo "::set-env name=GIT_COMMIT_MESSAGE_TEST::TEST"
 
     # Setup gcloud CLI
     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
@@ -60,18 +55,13 @@ jobs:
         docker build -t eu.gcr.io/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
-          --build-arg PORT="$REACT_WEBAPP_PORT" ./react-webapp
+          --build-arg PORT="$PYTHON_SERVICE_PORT" ./python-service
 
     # Push the Docker image to Google Container Registry
     - name: Publish
       run: |
         docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
         
-    # Set up kustomize
-#    - name: Set up Kustomize
-#      run: |
-#        curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
-#        chmod u+x ./kustomize
       # Set up docker image
     - name: Set up docker image
       run: |
@@ -84,4 +74,4 @@ jobs:
       run: |
         kubectl config view
         kubectl config current-context
-        kubectl patch deployment $IMAGE -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" || kubectl apply -f ./.github/workflows/kubernetes/deployment-react-webapp.yml
+        kubectl patch deployment $IMAGE -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" || kubectl apply -f ./.github/workflows/kubernetes/deployment-python-service.yml

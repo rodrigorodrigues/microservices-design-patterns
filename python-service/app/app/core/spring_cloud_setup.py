@@ -15,15 +15,14 @@ def initialize_dispatcher(app):
     return DispatcherMiddleware(app.wsgi_app, {"/actuator/prometheus": make_wsgi_app()})
 
 
-
 def initialize_spring_cloud_client(app):
-    
-    # The following code will register your server to eureka server and also start to send heartbeat every 30 seconds
+
+    # The following code will register server to eureka server and also start to send heartbeat every 30 seconds
     eureka_client.init(eureka_server=app.config['EUREKA_SERVER'],
                        app_name="python-service",
                        instance_port=app.config['SERVER_PORT'])
 
-    address = app.config["SPRING_CLOUD_CONFIG_SERVER"]
+    address = app.config["SPRING_CLOUD_CONFIG_URI"]
 
     profile = app.config['PROFILE']
 

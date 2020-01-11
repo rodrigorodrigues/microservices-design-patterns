@@ -1,5 +1,7 @@
 import logging.config
+import os
 import sys
+import datetime
 
 from autologging import traced, logged
 from flask import Flask, request, Response
@@ -16,8 +18,15 @@ from app.model.models import Product
 
 app = Flask(__name__)
 app.config.from_envvar('ENV_FILE_LOCATION')
+for v in os.environ:
+    env = os.getenv(v)
+    if v == 'SERVER_PORT':
+        env = int(env)
+    app.config[v] = env
+
 app.config['MONGODB_SETTINGS'] = {
-    'host': app.config['MONGODB_URI']
+    'host': app.config['MONGODB_URI'],
+    'connect': False
 }
 jwt = JWTManager(app)
 
@@ -184,8 +193,8 @@ def actuator_index():
 
 
 api.add_namespace(ns)
+debug_flag = app.config['DEBUG']
 
 
 if __name__ == "__main__":
-    debug_flag = app.config['DEBUG']
     run_simple(hostname="0.0.0.0", port=server_port, application=initialize_dispatcher(app), use_debugger=debug_flag)

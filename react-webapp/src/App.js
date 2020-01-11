@@ -135,9 +135,9 @@ class App extends Component {
                    component={() => <TaskList {...this.state} />} />
             <Route path='/tasks/:id'
                    component={() => <TaskEdit {...this.state} />} />
-            <Route path='/producs' exact={true}
+            <Route path='/products' exact={true}
                    component={() => <ProductList {...this.state} />} />
-            <Route path='/producs/:id'
+            <Route path='/products/:id'
                    component={() => <ProductEdit {...this.state} />} />
             <Route path='/admin-eureka' component={() => this.adminLink(eurekaUrl)} />
             <Route path='/admin-monitoring' component={() => this.adminLink(monitoringUrl)} />

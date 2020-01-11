@@ -80,7 +80,7 @@ class ProductList extends Component {
         if (err.status !== 200) {
           this.setState({displayError: errorMessage(err)});
         } else {
-          let products = [...this.state.products].filter(i => i._id !== id);
+          let products = [...this.state.products].filter(i => i._id.$oid !== id);
           this.setState({products: products});
         }
       });
@@ -95,15 +95,15 @@ class ProductList extends Component {
     }
 
     const productList = products.map(product => {
-      return <tr key={product._id}>
-        <th scope="row">{product._id}</th>
+      return <tr key={product._id.$oid}>
+        <th scope="row">{product._id.$oid}</th>
         <td style={{whiteSpace: 'nowrap'}}>{product.name}</td>
         <td>{product.quantity}</td>
         <td style={{whiteSpace: 'nowrap'}}>{product.category}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/products/" + product._id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({'id': product._id, 'name': product.name})}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/products/" + product._id.$oid}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': product._id.$oid, 'name': product.name})}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>

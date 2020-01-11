@@ -1,78 +1,70 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: week-menu-api
+  name: python-service
   annotations:
     cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
-    app: week-menu-api
+    app: python-service
 spec:
   ports:
     - name: https-port
       port: 8443
     - name: http-port
-      port: 3002
+      port: 3005
   selector:
-    app: week-menu-api
+    app: python-service
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: week-menu-api
+  name: python-service
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: week-menu-api
+        app: python-service
         version: v1
     spec:
       containers:
-        - name: week-menu-api
-          image: eu.gcr.io/spring-boot-gke-243520/week-menu-api:latest
+        - name: python-service
+          image: eu.gcr.io/spring-boot-gke-243520/python-service:latest
           resources:
             requests:
               memory: "128Mi"
               cpu: "50m"
             limits:
               memory: "256Mi"
-              cpu: "100m"
+              cpu: "50m"
           volumeMounts:
             - name: spendingbetter-pub-key
               mountPath: "/etc/ssl_certs_pub"
               readOnly: true
           env:
-            - name: JAVA_OPTS
-              value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "3002"
+              value: "3005"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/docker
-            - name: EUREKA_PATH
-              value: /eureka/apps/
             - name: EUREKA_SERVER
-              value: eureka-server-peer
-            - name: HOST_NAME
-              value: week-menu-api
-            - name: IP_ADDRESS
-              value: week-menu-api
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
-            - name: PATH_PUBLIC_KEY
+              value: http://eureka-server-peer:8761/eureka/
+            - name: SPRING_CLOUD_CONFIG_URI
+              value: http://config-management:8888
+            - name: MONGODB_URI
+              value: mongodb://mongodb-datasource/docker
+            - name: JWT_PUBLIC_KEY
               value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
-#            - name: NODE_DEBUG
-#              value: request
-            - name: NODE_ENV
-              value: production
+            - name: ENV_FILE_LOCATION
+              value: ./.env
           ports:
-            - containerPort: 3002
+            - containerPort: 3005
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health
-              port: 3002
+              port: 3005
             initialDelaySeconds: 200
             periodSeconds: 5
       volumes:

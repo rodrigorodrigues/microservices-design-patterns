@@ -67,14 +67,19 @@ class ProductEdit extends Component {
   async handleSubmit(event) {
     event.preventDefault();
     const {product, jwt} = this.state;
+    const productCopy = {
+      name: product.name,
+      category: product.category,
+      quantity: product.quantity
+    };
 
-    await fetch('/api/products', {
-      method: (product._id) ? 'PUT' : 'POST',
+    await fetch(`/api/products${product._id ? '/' + product._id.$oid : ''}`, {
+      method: (product._id ? 'PUT' : 'POST'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': jwt
       },
-      body: JSON.stringify(product),
+      body: JSON.stringify(productCopy),
       credentials: 'include'
     }).then(response => {
       console.log("Data json response: ", response);

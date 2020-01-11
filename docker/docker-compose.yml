@@ -201,14 +201,14 @@ services:
       dockerfile: Dockerfile
     container_name: product-api
     environment:
-      - NODE_ENV=dev
-      - ENV_FILE_LOCATION=./.env.docker
+      - ENV_FILE_LOCATION=./.env
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - MONGODB_URI=mongodb://mongodb-datasource/docker
+      - SERVER_PORT=3005
+      - LOG_LEVEL=TRACE
     ports:
       - 3005:3005
-    links:
-      - gateway
-      - service-discovery
-      - mongodb-datasource
     networks:
       net:
         aliases:
