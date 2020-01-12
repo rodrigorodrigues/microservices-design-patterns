@@ -56,7 +56,7 @@ jobs:
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           --build-arg SERVER_PROTOCOL=$SERVER_PROTOCOL \
-          --build-arg SERVER_URL=$SERVER_URL
+          --build-arg SERVER_URL=$SERVER_URL \
           --build-arg PORT="$REACT_WEBAPP_PORT" ./react-webapp-jhipster
 
     # Push the Docker image to Google Container Registry
