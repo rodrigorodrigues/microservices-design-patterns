@@ -1,0 +1,81 @@
+# This workflow will build a docker container, publish it to Google Container Registry, and deploy it to GKE.
+#
+# To configure this workflow:
+#
+# 1. Ensure that your repository contains the necessary configuration for your Google Kubernetes Engine cluster, including deployment.yml, kustomization.yml, service.yml, etc.
+#
+# 2. Set up secrets in your workspace: GKE_PROJECT with the name of the project, GKE_EMAIL with the service account email, GKE_KEY with the service account key.
+#
+# 3. Change the values for the GKE_ZONE, GKE_CLUSTER and IMAGE environment variables (below).
+
+name: Build Authentication Service and Deploy to GKE
+
+on:
+  push:
+    branches:
+    - master
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: europe-west1-b
+  GKE_CLUSTER: your-first-cluster-1
+  IMAGE: authentication-service
+
+jobs:
+
+  setup-build-publish-deploy:
+    if: contains(toJson(github), 'deploy authentication-service')
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    # Setup gcloud CLI
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '270.0.0'
+        service_account_email: ${{ secrets.GKE_EMAIL }}
+        service_account_key: ${{ secrets.GKE_KEY }}
+
+    # Configure docker to use the gcloud command-line tool as a credential helper
+    - run: |
+        # Set up docker to authenticate
+        # via gcloud command-line tool.
+        gcloud auth configure-docker
+
+    # Set up JDK 1.8
+    - name: JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+    # Build the Docker image with Maven
+    - name: Build
+      run: |
+        mvn clean install -B -Dspring.profiles.active=travis
+        mvn -B -f ./authentication-service/pom.xml docker:build
+        docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+
+    # Push the Docker image to Google Container Registry
+    - name: Publish
+      run: |
+        docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+        
+      # Set up docker image
+    - name: Set up docker image
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
+        gcloud components install beta --quiet
+        yes | gcloud beta container images add-tag eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA eu.gcr.io/$GKE_PROJECT/$IMAGE:latest
+
+    # Deploy the Docker image to the GKE cluster
+    - name: Deploy
+      run: |
+        kubectl config view
+        kubectl config current-context
+        kubectl patch deployment $IMAGE -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" || kubectl apply -f ./.github/workflows/kubernetes/deployment-authentication-service.yml
