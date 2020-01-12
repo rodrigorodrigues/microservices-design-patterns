@@ -43,7 +43,7 @@ jobs:
       uses: actions/setup-node@master
       with:
         node-version: '10.x'
-      run: |
+    - run: |
         npm --prefix ./react-webapp-jhipster install ./react-webapp-jhipster
         npm --prefix ./react-webapp-jhipster test
         npm --prefix ./react-webapp-jhipster run webpack:prod
