@@ -1,7 +1,7 @@
 import base64
 import logging.config
-
 import py_eureka_client.eureka_client as eureka_client
+
 from config import spring
 from flask_prometheus_metrics import register_metrics
 from prometheus_client import make_wsgi_app

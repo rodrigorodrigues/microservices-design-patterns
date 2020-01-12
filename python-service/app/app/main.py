@@ -3,11 +3,13 @@ import os
 import sys
 import datetime
 
+import requests
 from autologging import traced, logged
 from flask import Flask, request, Response
 from flask import jsonify, make_response
 from flask_jwt_extended import JWTManager, get_jwt_identity
 from flask_restplus import fields, Resource
+from flask_zipkin import Zipkin
 from werkzeug.serving import run_simple
 
 from app.core.database_setup import initialize_db
@@ -190,6 +192,10 @@ def actuator_index():
         }
     }
     return jsonify(actuator)
+
+
+zipkin = Zipkin(sample_rate=int(app.config['ZIPKIN_RATIO']))
+zipkin.init_app(app)
 
 
 api.add_namespace(ns)

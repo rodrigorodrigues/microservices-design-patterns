@@ -8,3 +8,4 @@ flask_restplus
 config-client
 gunicorn
 autologging
+flask_zipkin

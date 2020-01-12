@@ -392,7 +392,8 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Kubernetes/Minikube - Add example to use Kubernetes with Minikube
 * [X] Deploy - Google Cloud/GKE
 * [X] CI/CD - Add Travis
-* [ ] ~~Deploy - Add Herokuy~~
+* [ ] ~~CI/CD -  - Add Herokuy~~
+* [X] CI/CD - Add GitHub Actions for deploy in GCP
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

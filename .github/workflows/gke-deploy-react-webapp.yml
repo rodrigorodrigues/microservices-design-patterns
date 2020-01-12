@@ -8,7 +8,7 @@
 #
 # 3. Change the values for the GKE_ZONE, GKE_CLUSTER and IMAGE environment variables (below).
 
-name: Build React Web App and Deploy to GKE
+name: Build React Web App(Legacy) and Deploy to GKE
 
 on:
   push:
@@ -28,7 +28,7 @@ env:
 jobs:
 
   setup-build-publish-deploy:
-    if: contains(toJson(github), 'deploy react-webapp')
+    if: contains(toJson(github), '[deploy react-webapp]')
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
