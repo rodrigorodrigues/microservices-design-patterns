@@ -44,8 +44,8 @@ jobs:
       with:
         node-version: '10.x'
     - run: |
-        npm --prefix ./nodejs-service install ./nodejs-service
-        npm --prefix ./nodejs-service test
+        npm --prefix ./nodejs-service install ./nodejs-service --silent
+        npm --prefix ./nodejs-service test --silent
       
     # Build the Docker image
     - name: Build

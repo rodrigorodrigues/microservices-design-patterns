@@ -14,6 +14,8 @@ env:
   GKE_CLUSTER: your-first-cluster-1
   IMAGE: react-webapp-jhipster
   REACT_WEBAPP_PORT: 3004
+  SERVER_URL: spendingbetter.com
+  SERVER_PROTOCOL: https
 
 jobs:
 
@@ -44,9 +46,8 @@ jobs:
       with:
         node-version: '10.x'
     - run: |
-        npm --prefix ./react-webapp-jhipster install ./react-webapp-jhipster
-        npm --prefix ./react-webapp-jhipster test
-        npm --prefix ./react-webapp-jhipster run webpack:prod
+        npm --prefix ./react-webapp-jhipster install ./react-webapp-jhipster --silent
+        npm --prefix ./react-webapp-jhipster test --silent
 
     # Build the Docker image
     - name: Build
@@ -54,6 +55,8 @@ jobs:
         docker build -t eu.gcr.io/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
+          --build-arg SERVER_PROTOCOL=$SERVER_PROTOCOL \
+          --build-arg SERVER_URL=$SERVER_URL
           --build-arg PORT="$REACT_WEBAPP_PORT" ./react-webapp-jhipster
 
     # Push the Docker image to Google Container Registry

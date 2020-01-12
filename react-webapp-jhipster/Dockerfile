@@ -10,14 +10,14 @@ COPY package*.json ./
 
 RUN apt-get update && apt-get install netcat-openbsd -y
 
-RUN npm install
+RUN npm install --silent
 
 # Bundle app source
 COPY . .
 
 RUN sed -i "s#baseHref: '/'#baseHref: '/jhipster/'#g" ./webpack/webpack.common.js
 
-RUN npm run webpack:prod
+RUN npm run webpack:prod --silent
 
 ### STAGE 2: Production Environment ###
 FROM nginx:1.13.12-alpine
