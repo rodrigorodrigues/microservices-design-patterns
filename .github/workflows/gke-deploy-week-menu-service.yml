@@ -41,6 +41,8 @@ jobs:
 
     - name: Test
       uses: actions/setup-node@master
+      with:
+        node-version: '10.x'
       run: |
         npm --prefix ./nodejs-service install ./nodejs-service
         npm --prefix ./nodejs-service test

@@ -41,6 +41,8 @@ jobs:
 
     - name: Test
       uses: actions/setup-node@master
+      with:
+        node-version: '10.x'
       run: |
         npm --prefix ./react-webapp-jhipster install ./react-webapp-jhipster
         npm --prefix ./react-webapp-jhipster test
