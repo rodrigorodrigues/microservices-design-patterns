@@ -58,8 +58,8 @@ spec:
               value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: ENV_FILE_LOCATION
               value: ./.env
-#            - name: LOG_LEVEL
-#              value: TRACE
+            - name: LOG_LEVEL
+              value: TRACE
           ports:
             - containerPort: 3005
           livenessProbe:
