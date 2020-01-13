@@ -3,11 +3,28 @@
 [![Build Status](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns.svg?branch=master)](https://travis-ci.org/rodrigorodrigues/microservices-design-patterns)
 [![codecov](https://codecov.io/gh/rodrigorodrigues/microservices-design-patterns/branch/master/graph/badge.svg)](https://codecov.io/gh/rodrigorodrigues/microservices-design-patterns)
 
-The main idea for this project is to show a case of `Microservice Architecture` using multiple languages.
+The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Most all services are made in `Java with Spring Boot 2 + Webflux(Reactive Programming) + MongoDB` but there is one in `NodeJS`, `Kotlin` and web app using `React`. 
+Most all services are built in `Java with Spring Boot 2 + Webflux + MongoDB` but there are other services using `NodeJS`, `Kotlin` and `Python`.
 
-Inspired by book [Microservices Patterns](https://www.manning.com/books/microservices-patterns)(`Chris Richardson - @crichardson`).
+The web application is using `React` and also a beta version using [JHipster](https://www.jhipster.tech/).
+
+Feel free to create a new microservice using a different language(`Go?, Ruby?, C#?`), just please following the minimal requirements:
+ * Create a new folder on root and put your code
+ * Add a minimal documentation
+ * Add a Rest API
+ * Add JWT Validation
+ * Add Tests
+ * Add Dockerfile
+ * Add MongoDB or some other NoSql
+ * Add Eureka Client(if possible)
+ * Add Spring Cloud Config Client(if possible)
+
+PS: A better approach would be a microservice per repository but for simplicity all microservices are in the same repo.
+
+If you want to contribute please check [TODO List](#todo-list).  
+
+Inspired by the book [Microservices Patterns](https://www.manning.com/books/microservices-patterns)(`Chris Richardson - @crichardson`).
 
 ## Contents
 
@@ -25,36 +42,41 @@ Inspired by book [Microservices Patterns](https://www.manning.com/books/microser
   12. [Accessing React Web App](#accessing-react-app)
   13. [List of default users](#default-users)
   14. [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
-  15. [Travis CI/CD](#travis-cicd)
-  16. [TODO-LIST](#todo-list)
-  17. [References](#references)
-  18. [Postman Collection](docs/postman_collection.json?raw=true)
+  15. [~~Travis CI/CD~~](#travis-cicd)
+  16. [Github Actions CI/CD](#github-actions-cicd)
+  17. [TODO List](#todo-list)
+  18. [References](#references)
+  19. [Postman Collection](docs/postman_collection.json?raw=true)
 
 ### Microservice Patterns
 
- * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` folder, Added `<artifactId>eureka-consul-adapter</artifactId>` for `scraping data for Prometheus`
- 
- * **Client-side service discovery** - Used [Spring Cloud Eureka Client][https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html] and all microservices(`admin-server, user-service, person-service, etc`) are running as a client service discovery
- 
- * **API Gateway** - Used [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html) on `edge-server` folder
- 
- * **Externalized configuration** - Used [Spring Cloud Config Server](https://cloud.spring.io/spring-cloud-config/multi/multi__spring_cloud_config_server.html) on `config-server` folder, all yml files are on `configuration` folder 
- 
- * **Exception Tracking** - Used [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/) on `admin-server` folder
- 
- * **Access token** - [JSON Web Token](https://jwt.io) using `Oauth2 - authentication-service` and client services(`user-service, person-service, nodejs-service, kotin-service`)
- 
- * **Health Check API** - All `Java microservices` are using [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) - `<artifactId>spring-boot-starter-actuator</artifactId>` and `NodeJS` using `express-actuator`
- 
- * **Distributed tracing** - All `Java microservices` are using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) `<artifactId>spring-cloud-starter-sleuth</artifactId>`, Zipkin `<artifactId>spring-cloud-starter-zipkin</artifactId>` and `NodeJS` using `morgan, zipkin, zipkin-transport-http and zipkin-context-cls`
- 
- * **Application metrics** - All `Java microservices` are using [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) - `<artifactId>micrometer-registry-prometheus</artifactId>` and `NodeJS` using `express-prom-bundle`
- 
- * **Database per service** - All services are using `MongoDB` as a separately database
- 
- * **Shared database** - `Redis` is used for sharing sessions for services `Eureka Server, Config Server, Edge Server and Spring Boot`, login depends on users registered on `MongoDB` database
+The following list of `Microservice Patterns` was applied so far.
 
-To know more about each pattern find at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
+ * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` project.
+ 
+ * **Client-side service discovery** - Used [Spring Cloud Eureka Client](https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html) for all java microservices(`admin-server, user-service, person-service, etc`).
+ 
+ * **API Gateway** - Used [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html) on `edge-server` project.
+ 
+ * **Externalized configuration** - Used [Spring Cloud Config Server](https://cloud.spring.io/spring-cloud-config/multi/multi__spring_cloud_config_server.html) on `config-server` service. Yml files are in [config-server/configuration](config-server/configuration). 
+ 
+ * **Exception Tracking** - Used [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/) on `admin-server` project.
+ 
+ * **Access token** - Used [Spring Oauth2 with JWT](https://spring.io/projects/spring-security-oauth) on `authentication-service` project and client services(`user-service, person-service, nodejs-service, kotin-service, etc`) expect a valid JWT Token.
+ 
+ * **Health Check API** - Used [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) For `Java microservices` and `express-actuator` for `NodeJS`. 
+ 
+ * **Distributed tracing** - Used [Zipkin](https://zipkin.io/) for viewing log traces and [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) for `Java microservices`.
+ 
+ * **Application metrics** - Used [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) for `Java microservices` and `express-prom-bundle` for `NodeJS`.
+ 
+ * **Database per service** - Used [MongoDB](https://www.mongodb.com/) instance per service.
+ 
+ * **Shared database** - Used [Redis](https://redis.io/) for sharing sessions for services that require login.
+ 
+ PS: Used `<artifactId>eureka-consul-adapter</artifactId>` on `eureka-server` for `scraping data for Prometheus`
+
+To know more about each pattern look at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
 ### Prerequisites
  * JDK 1.8
@@ -346,15 +368,17 @@ kubectl top nodes
 
 ### Travis CI/CD
 
-Using [travis-ci](https://travis-ci.org) for `CI/CD`.
+Used [travis-ci](https://travis-ci.org) for building `pull requests` only.
 
-Using `Google Cloud/GKE` for deployment the `docker images`.
 
-More details of configuration look at [.travis.yml](.travis.yml) and for deploy [deploy-prod.sh](gcloud/deploy-prod.sh).
+### Github Actions CI/CD
 
-PS: To deploy using Travis first create a `Pull Request` then once when `approval/success build/code coverage` is passed then change the title and add `[trigger deploy SERVICE_NAME]`.
+Using `GitHub Actions` for deploying services into `Google Cloud/GKE`.
 
-i.e.: `[trigger deploy authentication-service;react-webapp]`.
+More details of look at [.github/workflows/gke-deploy-*](.github/workflows) for each microservice.
+
+Configuration for Kubernetes was moved to [.github/workflows/kubernetes](.github/workflows/kubernetes).
+
 
 ### Swagger UI
 
@@ -380,6 +404,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Kotlin - Add Service using Kotlin Language
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
+* [ ] Go - Add Service using Go Language
 * [X] React - Create User List
 * [X] React - Create User Page
 * [X] React - Create User Edit
@@ -394,6 +419,11 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] CI/CD - Add Travis
 * [ ] ~~CI/CD -  - Add Herokuy~~
 * [X] CI/CD - Add GitHub Actions for deploy in GCP
+* [ ] Add documentation for libraries used
+* [ ] Add documentation/how-to for each language
+* [ ] Add tests for Python
+* [ ] Add React Legacy
+
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
