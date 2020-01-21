@@ -16,11 +16,17 @@ def initialize_dispatcher(app):
 
 
 def initialize_spring_cloud_client(app):
+    server_port = app.config['SERVER_PORT']
 
     # The following code will register server to eureka server and also start to send heartbeat every 30 seconds
     eureka_client.init(eureka_server=app.config['EUREKA_SERVER'],
                        app_name="python-service",
-                       instance_port=app.config['SERVER_PORT'])
+                       instance_port=server_port,
+                       status_page_url='http://0.0.0.0:{}/actuator/info'.format(server_port),
+                       health_check_url='http://0.0.0.0:{}/actuator/health'.format(server_port),
+                       home_page_url='http://0.0.0.0:{}/actuator'.format(server_port),
+                       instance_id="127.0.0.1",
+                       instance_host="localhost")
 
     address = app.config["SPRING_CLOUD_CONFIG_URI"]
 

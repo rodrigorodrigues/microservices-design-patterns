@@ -2,7 +2,6 @@ package com.microservice.person.config;
 
 import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
 import com.microservice.jwt.common.JwtAuthenticationConverter;
-import com.microservice.jwt.common.TokenProvider;
 import com.microservice.web.common.util.HandleResponseError;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +11,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
@@ -25,7 +25,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SpringSecurityConfiguration {
-    private final TokenProvider tokenProvider;
+    private final TokenStore tokenStore;
 
     private final HandleResponseError handleResponseError;
 
@@ -73,7 +73,7 @@ public class SpringSecurityConfiguration {
 
     private AuthenticationWebFilter authenticationWebFilter() {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
-        authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenProvider));
+        authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenStore));
         NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
         authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
         authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
-import com.microservice.jwt.common.TokenProvider;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.config.SpringSecurityConfiguration;
 import com.microservice.user.dto.UserDto;
@@ -24,6 +23,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -58,7 +58,7 @@ public class UserControllerTest {
     UserService userService;
 
     @MockBean
-    TokenProvider tokenProvider;
+    TokenStore tokenStore;
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;

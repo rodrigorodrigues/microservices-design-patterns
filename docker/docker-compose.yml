@@ -316,15 +316,18 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - EUREKA_SERVER=http://service-discovery:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
-      #- DEBUG=true
+      - DEBUG=true
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
-      - CONFIGURATION_AUTHORIZE_URLS=http://localhost:9006/login;http://localhost:8888/login;http://localhost:8761/login;http://localhost:9000/login;http://localhost:3003/login
+      - LOGGING_LEVEL_COM_MICROSERVICE=debug
+      - CONFIGURATION_AUTHORIZE_URLS=http://gateway:9006/login;http://config-management:8888/login;http://service-discovery:8761/login;http://monitoring:9000/login;http://grafana:3003/login
       - SPRING_CLOUD_CONFIG_FAIL_FAST=true
     depends_on:
       - service-discovery
       - config-management
       - mongodb-datasource
+      - gateway
+      - monitoring
     ports:
       - 9999:9999
     volumes:

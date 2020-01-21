@@ -1,7 +1,6 @@
 package com.microservice.authentication.jwt.common;
 
 import com.microservice.jwt.common.JwtAuthenticationConverter;
-import com.microservice.jwt.common.TokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +10,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -22,20 +23,19 @@ import static org.mockito.Mockito.*;
 class JwtAuthenticationConverterTest {
 
     @Mock
-    TokenProvider tokenProvider;
+    TokenStore tokenStore;
 
     JwtAuthenticationConverter jwtAuthenticationConverter;
 
     @BeforeEach
     public void setup() {
-        jwtAuthenticationConverter = new JwtAuthenticationConverter(tokenProvider);
+        jwtAuthenticationConverter = new JwtAuthenticationConverter(tokenStore);
     }
 
     @Test
     void shouldValidateByAuthorizationHeaderAndReturnValidAuthentication() {
-        when(tokenProvider.validateToken(anyString())).thenReturn(true);
-        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(null, null);
-        when(tokenProvider.getAuthentication(anyString())).thenReturn(authenticationToken);
+        PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(null, null);
+        when(tokenStore.readAuthentication(anyString())).thenReturn(new OAuth2Authentication(null, authentication));
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
             .header(HttpHeaders.AUTHORIZATION, "Bearer JWT");
@@ -43,15 +43,14 @@ class JwtAuthenticationConverterTest {
         Mono<Authentication> convert = jwtAuthenticationConverter.convert(MockServerWebExchange.from(baseBuilder));
 
         StepVerifier.create(convert)
-            .expectNext(authenticationToken)
+            .expectNext(authentication)
             .verifyComplete();
     }
 
     @Test
     void shouldValidateByRequestParameterAndReturnValidAuthentication() {
-        when(tokenProvider.validateToken(anyString())).thenReturn(true);
-        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(null, null);
-        when(tokenProvider.getAuthentication(anyString())).thenReturn(authenticationToken);
+        PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(null, null);
+        when(tokenStore.readAuthentication(anyString())).thenReturn(new OAuth2Authentication(null, authentication));
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
             .queryParam(HttpHeaders.AUTHORIZATION, "Bearer JWT");
@@ -59,24 +58,23 @@ class JwtAuthenticationConverterTest {
         Mono<Authentication> convert = jwtAuthenticationConverter.convert(MockServerWebExchange.from(baseBuilder));
 
         StepVerifier.create(convert)
-            .expectNext(authenticationToken)
+            .expectNext(authentication)
             .verifyComplete();
     }
 
     @Test
     void shouldReturnEmptyAuthenticationWhenTokenIsInvalid() {
-        when(tokenProvider.validateToken(anyString())).thenReturn(false);
+        when(tokenStore.readAuthentication(anyString())).thenReturn(null);
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
             .queryParam(HttpHeaders.AUTHORIZATION, "Bearer Invalid JWT");
 
         Mono<Authentication> convert = jwtAuthenticationConverter.convert(MockServerWebExchange.from(baseBuilder));
 
-        verify(tokenProvider, never()).getAuthentication(anyString());
-
         StepVerifier.create(convert)
             .expectNextCount(0)
-            .verifyComplete();
+            .expectError()
+            .verify();
     }
 
     @Test
@@ -86,7 +84,7 @@ class JwtAuthenticationConverterTest {
 
         Mono<Authentication> convert = jwtAuthenticationConverter.convert(MockServerWebExchange.from(baseBuilder));
 
-        verify(tokenProvider, never()).getAuthentication(anyString());
+        verify(tokenStore, never()).readAuthentication(anyString());
 
         StepVerifier.create(convert)
             .expectNextCount(0)

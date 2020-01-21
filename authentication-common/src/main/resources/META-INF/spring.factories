@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.microservice.authentication.autoconfigure.AuthenticationCommonMongoConfiguration
+com.microservice.authentication.autoconfigure.AuthenticationCommonMongoConfiguration,\
+com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration

@@ -1,19 +1,9 @@
 package com.microservice.person.controller;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
-import com.microservice.jwt.common.TokenProvider;
 import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.config.SpringSecurityConfiguration;
@@ -21,9 +11,6 @@ import com.microservice.person.dto.PersonDto;
 import com.microservice.person.service.PersonService;
 import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,11 +24,23 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.UUID;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {
@@ -61,7 +60,7 @@ public class PersonControllerTest {
     PersonService personService;
 
     @MockBean
-    TokenProvider tokenProvider;
+    TokenStore tokenStore;
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;

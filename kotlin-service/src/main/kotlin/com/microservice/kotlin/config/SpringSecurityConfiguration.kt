@@ -1,6 +1,5 @@
 package com.microservice.kotlin.config
 
-import com.microservice.jwt.common.TokenProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
@@ -14,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.provider.token.TokenStore
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.filter.GenericFilterBean
 import javax.servlet.FilterChain
@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-class SpringSecurityConfiguration(@Autowired val tokenProvider: TokenProvider) : WebSecurityConfigurerAdapter() {
+class SpringSecurityConfiguration(@Autowired val tokenStore: TokenStore) : WebSecurityConfigurerAdapter() {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val WHITELIST = arrayOf(
@@ -70,11 +70,12 @@ class SpringSecurityConfiguration(@Autowired val tokenProvider: TokenProvider) :
                 }
                 authorizationHeader = authorizationHeader.replaceFirst("Bearer ", "")
                 log.debug("Authorization header: {}", authorizationHeader)
-                if (tokenProvider.validateToken(authorizationHeader).not()) {
+                val oAuth2Authentication = tokenStore.readAuthentication(authorizationHeader)
+                if (oAuth2Authentication == null) {
                     unauthorized(response as HttpServletResponse)
                     return
                 }
-                val authentication = tokenProvider.getAuthentication(authorizationHeader)
+                val authentication = oAuth2Authentication.userAuthentication
                 if (authentication != null) {
                     SecurityContextHolder.getContext().authentication = authentication
                 }

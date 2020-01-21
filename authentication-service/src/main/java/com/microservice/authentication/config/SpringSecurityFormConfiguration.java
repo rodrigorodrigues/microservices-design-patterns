@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
-import com.microservice.jwt.common.TokenProvider;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,13 +20,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Spring Security Configuration for form
@@ -39,11 +46,11 @@ import java.util.Map;
 public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapter {
     private final SharedAuthenticationService sharedAuthenticationService;
 
-    private final TokenProvider tokenProvider;
-
     private final ObjectMapper objectMapper;
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
+
+    private final ApplicationContext applicationContext;
 
     @Bean
     @Override
@@ -106,7 +113,12 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
     private AuthenticationSuccessHandler successHandler() {
         return (request, response, authentication) -> {
             if (validateApiPath(request)) {
-                String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), "true" .equals(request.getParameter("rememberMe")));
+                OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
+                    true, Collections.singleton("read"), null, null, null, null);
+                JwtAccessTokenConverter jwtAccessTokenConverter = applicationContext.getBean(JwtAccessTokenConverter.class);
+                OAuth2AccessToken enhance = jwtAccessTokenConverter.enhance(new DefaultOAuth2AccessToken(UUID.randomUUID().toString()), new OAuth2Authentication(oAuth2Request, authentication));
+                //String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), "true" .equals(request.getParameter("rememberMe")));
+                String authorization = enhance.getTokenType() + " " + enhance.getValue();
                 JwtTokenDto jwtToken = new JwtTokenDto(authorization);
                 response.addHeader(HttpHeaders.AUTHORIZATION, authorization);
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);

@@ -1,29 +1,16 @@
 package com.microservice.person;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.jwt.common.TokenProvider;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,9 +31,24 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -64,7 +66,7 @@ public class PersonServiceApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
 	@Autowired
-    TokenProvider tokenProvider;
+    JwtAccessTokenConverter jwtAccessTokenConverter;
 
 	@Autowired
     AuthenticationRepository authenticationRepository;
@@ -239,7 +241,12 @@ public class PersonServiceApplicationIntegrationTest {
         if (users.containsKey(user)) {
             Authentication authentication = authenticationRepository.findByEmail(user);
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(authentication, null, authentication.getAuthorities());
-            return "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "Something", false);
+
+            OAuth2Request oAuth2Request = new OAuth2Request(null, usernamePasswordAuthenticationToken.getName(), usernamePasswordAuthenticationToken.getAuthorities(),
+                true, Collections.singleton("read"), null, null, null, null);
+            OAuth2AccessToken enhance = jwtAccessTokenConverter.enhance(new DefaultOAuth2AccessToken(UUID.randomUUID().toString()), new OAuth2Authentication(oAuth2Request, usernamePasswordAuthenticationToken));
+
+            return enhance.getTokenType() + " " + enhance.getValue();
         } else {
             return null;
         }

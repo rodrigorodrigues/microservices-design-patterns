@@ -3,7 +3,6 @@ import os
 import sys
 import datetime
 
-import requests
 from autologging import traced, logged
 from flask import Flask, request, Response
 from flask import jsonify, make_response
@@ -162,6 +161,11 @@ def health():
 
 
 server_port = app.config['SERVER_PORT']
+
+
+@app.route('/actuator/info')
+def actuator_info():
+    return jsonify({})
 
 
 @app.route('/actuator')

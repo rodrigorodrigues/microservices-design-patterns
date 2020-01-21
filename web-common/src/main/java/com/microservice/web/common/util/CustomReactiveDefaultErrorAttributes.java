@@ -1,11 +1,11 @@
 package com.microservice.web.common.util;
 
-import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ResponseStatusException;
@@ -48,7 +48,7 @@ public class CustomReactiveDefaultErrorAttributes extends DefaultErrorAttributes
             httpStatus = ((HttpStatusCodeException) ex).getStatusCode();
         } else if (ex instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) ex).getStatus();
-        } else if (ex instanceof AuthenticationException || ex instanceof SignatureException) {
+        } else if (ex instanceof AuthenticationException || ex instanceof OAuth2Exception) {
             httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (ex instanceof ConstraintViolationException) {
             httpStatus = HttpStatus.BAD_REQUEST;
