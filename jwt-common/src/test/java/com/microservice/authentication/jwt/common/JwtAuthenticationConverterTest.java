@@ -9,10 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -34,7 +34,7 @@ class JwtAuthenticationConverterTest {
 
     @Test
     void shouldValidateByAuthorizationHeaderAndReturnValidAuthentication() {
-        PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(null, null);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(null, null);
         when(tokenStore.readAuthentication(anyString())).thenReturn(new OAuth2Authentication(null, authentication));
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
@@ -49,7 +49,7 @@ class JwtAuthenticationConverterTest {
 
     @Test
     void shouldValidateByRequestParameterAndReturnValidAuthentication() {
-        PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(null, null);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(null, null);
         when(tokenStore.readAuthentication(anyString())).thenReturn(new OAuth2Authentication(null, authentication));
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
@@ -64,8 +64,6 @@ class JwtAuthenticationConverterTest {
 
     @Test
     void shouldReturnEmptyAuthenticationWhenTokenIsInvalid() {
-        when(tokenStore.readAuthentication(anyString())).thenReturn(null);
-
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
             .queryParam(HttpHeaders.AUTHORIZATION, "Bearer Invalid JWT");
 

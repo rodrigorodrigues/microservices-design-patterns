@@ -7,7 +7,6 @@ import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,11 +19,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -33,7 +31,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Spring Security Configuration for form
@@ -50,7 +47,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
-    private final ApplicationContext applicationContext;
+    private final DefaultTokenServices defaultTokenServices;
 
     @Bean
     @Override
@@ -115,8 +112,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             if (validateApiPath(request)) {
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
-                JwtAccessTokenConverter jwtAccessTokenConverter = applicationContext.getBean(JwtAccessTokenConverter.class);
-                OAuth2AccessToken enhance = jwtAccessTokenConverter.enhance(new DefaultOAuth2AccessToken(UUID.randomUUID().toString()), new OAuth2Authentication(oAuth2Request, authentication));
+                OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, authentication));
                 //String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), "true" .equals(request.getParameter("rememberMe")));
                 String authorization = enhance.getTokenType() + " " + enhance.getValue();
                 JwtTokenDto jwtToken = new JwtTokenDto(authorization);

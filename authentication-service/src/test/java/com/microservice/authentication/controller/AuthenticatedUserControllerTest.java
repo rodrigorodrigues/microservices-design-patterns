@@ -16,7 +16,7 @@ import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 
 import java.util.Date;
 import java.util.Map;
@@ -31,18 +31,18 @@ import static org.mockito.Mockito.when;
 class AuthenticatedUserControllerTest {
 
     @Mock
-    JwtAccessTokenConverter jwtAccessTokenConverter;
+    DefaultTokenServices defaultTokenServices;
 
     AuthenticatedUserController authenticatedUserController;
 
     @BeforeEach
     public void setup() {
-        authenticatedUserController = new AuthenticatedUserController(jwtAccessTokenConverter);
+        authenticatedUserController = new AuthenticatedUserController(defaultTokenServices);
     }
 
     @Test
     void testAuthenticatedUser() {
-        when(jwtAccessTokenConverter.enhance(any(), any())).thenReturn(new OAuth2AccessToken() {
+        when(defaultTokenServices.createAccessToken(any())).thenReturn(new OAuth2AccessToken() {
             @Override
             public Map<String, Object> getAdditionalInformation() {
                 return null;
@@ -113,6 +113,6 @@ class AuthenticatedUserControllerTest {
         assertThat(jwtTokenDtoResponseEntity.getBody()).isNotNull();
         assertThat(jwtTokenDtoResponseEntity.getBody().getIdToken()).isEqualTo("bearer Mock JWT");
 
-        verifyZeroInteractions(jwtAccessTokenConverter);
+        verifyZeroInteractions(defaultTokenServices);
     }
 }

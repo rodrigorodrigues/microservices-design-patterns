@@ -64,11 +64,11 @@ class SpringSecurityConfiguration(@Autowired val tokenStore: TokenStore) : WebSe
                     authorizationHeader = request.getHeader("authorization")
                 }
 
-                if (authorizationHeader.isBlank() || !authorizationHeader.startsWith("Bearer ")) {
+                if (authorizationHeader.isBlank() || !authorizationHeader.startsWith("Bearer ", true)) {
                     unauthorized(response as HttpServletResponse)
                     return
                 }
-                authorizationHeader = authorizationHeader.replaceFirst("Bearer ", "")
+                authorizationHeader = authorizationHeader.replaceFirst("bearer ", "", true)
                 log.debug("Authorization header: {}", authorizationHeader)
                 val oAuth2Authentication = tokenStore.readAuthentication(authorizationHeader)
                 if (oAuth2Authentication == null) {

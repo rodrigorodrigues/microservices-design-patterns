@@ -17,10 +17,11 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.token.TokenStore
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -38,7 +39,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
     @BeforeEach
     fun setup() {
-        val authentication = PreAuthenticatedAuthenticationToken(null, null)
+        val authentication = UsernamePasswordAuthenticationToken(null, null, listOf(SimpleGrantedAuthority("ADMIN")))
         `when`(tokenStore.readAuthentication(ArgumentMatchers.anyString())).thenReturn(OAuth2Authentication(null, authentication))
         `when`(taskRepository.findAll()).thenReturn(listOf(
             Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "rodrigo"),

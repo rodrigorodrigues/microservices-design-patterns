@@ -41,21 +41,11 @@ public class ReactivePreAuthenticatedAuthenticationManager
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         return Mono.just(authentication)
-            .filter(this::supports)
             .map(Authentication::getName)
             .flatMap(userDetailsService::findByUsername)
-            .switchIfEmpty(Mono.error(() -> new UsernameNotFoundException("User not found")))
+            .switchIfEmpty(Mono.error(() -> new UsernameNotFoundException(String.format("User(%s) not found", authentication.getName()))))
             .doOnNext(userDetailsChecker::check)
-            .map(ud -> {
-                PreAuthenticatedAuthenticationToken result = new PreAuthenticatedAuthenticationToken(
-                    ud, authentication.getCredentials(), ud.getAuthorities());
-                result.setDetails(authentication.getDetails());
-
-                return result;
-            });
+            .map(ud -> authentication);
     }
 
-    private boolean supports(Authentication authentication) {
-        return PreAuthenticatedAuthenticationToken.class.isAssignableFrom(authentication.getClass());
-    }
 }

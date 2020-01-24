@@ -31,11 +31,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -54,7 +53,8 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "logging.level.com.microservice.person=debug"})
+            "debug=true",
+            "logging.level.com.microservice=debug"})
 @AutoConfigureWebTestClient(timeout = "1s")
 @Import(PersonServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class)
 public class PersonServiceApplicationIntegrationTest {
@@ -66,7 +66,7 @@ public class PersonServiceApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
 	@Autowired
-    JwtAccessTokenConverter jwtAccessTokenConverter;
+    DefaultTokenServices defaultTokenServices;
 
 	@Autowired
     AuthenticationRepository authenticationRepository;
@@ -244,7 +244,7 @@ public class PersonServiceApplicationIntegrationTest {
 
             OAuth2Request oAuth2Request = new OAuth2Request(null, usernamePasswordAuthenticationToken.getName(), usernamePasswordAuthenticationToken.getAuthorities(),
                 true, Collections.singleton("read"), null, null, null, null);
-            OAuth2AccessToken enhance = jwtAccessTokenConverter.enhance(new DefaultOAuth2AccessToken(UUID.randomUUID().toString()), new OAuth2Authentication(oAuth2Request, usernamePasswordAuthenticationToken));
+            OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, usernamePasswordAuthenticationToken));
 
             return enhance.getTokenType() + " " + enhance.getValue();
         } else {

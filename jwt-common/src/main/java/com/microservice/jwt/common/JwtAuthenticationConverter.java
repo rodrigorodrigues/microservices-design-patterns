@@ -27,15 +27,16 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
         String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         log.debug("authorizationHeader: {}", authorizationHeader);
         return Mono.justOrEmpty(authorizationHeader)
-                .switchIfEmpty(Mono.justOrEmpty(Optional.ofNullable(request.getQueryParams())
+                .switchIfEmpty(Mono.justOrEmpty(Optional.of(request.getQueryParams())
                         .map(r -> r.getFirst(HttpHeaders.AUTHORIZATION)))
-                );
+                )
+                .filter(t -> t.toLowerCase().startsWith("bearer "))
+                .map(t -> t.substring(7));
     }
 
     @Override
     public Mono<Authentication> convert(ServerWebExchange exchange) {
         return resolveToken(exchange)
-                .map(tokenStore::readAccessToken)
                 .map(tokenStore::readAuthentication)
                 .map(OAuth2Authentication::getUserAuthentication);
     }
