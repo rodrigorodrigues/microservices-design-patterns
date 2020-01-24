@@ -17,14 +17,15 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.security.oauth2.provider.token.TokenStore
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.*
 
@@ -39,8 +40,8 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
     @BeforeEach
     fun setup() {
-        val authentication = UsernamePasswordAuthenticationToken(null, null, listOf(SimpleGrantedAuthority("ADMIN")))
-        `when`(tokenStore.readAuthentication(ArgumentMatchers.anyString())).thenReturn(OAuth2Authentication(null, authentication))
+        val oAuth2Request = OAuth2Request(null, null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")), true, null, null, null, null, null)
+        `when`(tokenStore.readAuthentication(ArgumentMatchers.anyString())).thenReturn(OAuth2Authentication(oAuth2Request, null))
         `when`(taskRepository.findAll()).thenReturn(listOf(
             Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "rodrigo"),
             Task(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "gustavo")
@@ -68,6 +69,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
             .header(AUTHORIZATION, "Bearer Mock JWT"))
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
             .andExpect(jsonPath("$..name").value(containsInAnyOrder("Test")))
     }
 
