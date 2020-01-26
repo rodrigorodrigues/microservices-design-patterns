@@ -3,7 +3,6 @@ package com.microservice.user.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
-import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.config.SpringSecurityConfiguration;
 import com.microservice.user.dto.UserDto;
@@ -47,8 +46,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @Import({SpringSecurityConfiguration.class,
         HandleResponseError.class,
         CustomReactiveDefaultErrorAttributes.class,
-        ErrorWebFluxAutoConfiguration.class,
-        JwtCommonAutoConfiguration.class})
+        ErrorWebFluxAutoConfiguration.class})
 public class UserControllerTest {
 
     @Autowired

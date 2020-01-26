@@ -34,12 +34,6 @@
 
         <dependency>
             <groupId>com.springboot</groupId>
-            <artifactId>jwt-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.springboot</groupId>
             <artifactId>authentication-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>

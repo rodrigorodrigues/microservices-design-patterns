@@ -3,8 +3,6 @@ package com.microservice.person.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
-import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
-import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.config.SpringSecurityConfiguration;
 import com.microservice.person.dto.PersonDto;
@@ -47,14 +45,11 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
         "configuration.initialLoad=false",
         "configuration.mongo=false"},
 controllers = PersonController.class, excludeAutoConfiguration = MongoReactiveAutoConfiguration.class)
-@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomReactiveDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class, JwtCommonAutoConfiguration.class})
+@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomReactiveDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class})
 public class PersonControllerTest {
 
     @Autowired
     WebTestClient client;
-
-    @Autowired
-    Java8SpringConfigurationProperties configurationProperties;
 
     @MockBean
     PersonService personService;

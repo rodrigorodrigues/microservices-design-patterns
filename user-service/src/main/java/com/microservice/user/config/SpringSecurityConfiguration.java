@@ -1,7 +1,7 @@
 package com.microservice.user.config;
 
 import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
-import com.microservice.jwt.common.JwtAuthenticationConverter;
+import com.microservice.authentication.common.jwt.JwtAuthenticationConverter;
 import com.microservice.web.common.util.HandleResponseError;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;

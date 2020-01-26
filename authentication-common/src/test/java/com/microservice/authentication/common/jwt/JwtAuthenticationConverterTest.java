@@ -1,10 +1,11 @@
-package com.microservice.authentication.jwt.common;
+package com.microservice.authentication.common.jwt;
 
-import com.microservice.jwt.common.JwtAuthenticationConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -15,9 +16,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationConverterTest {
@@ -35,7 +33,7 @@ class JwtAuthenticationConverterTest {
     @Test
     void shouldValidateByAuthorizationHeaderAndReturnValidAuthentication() {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(null, null);
-        when(tokenStore.readAuthentication(anyString())).thenReturn(new OAuth2Authentication(null, authentication));
+        Mockito.when(tokenStore.readAuthentication(ArgumentMatchers.anyString())).thenReturn(new OAuth2Authentication(null, authentication));
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
             .header(HttpHeaders.AUTHORIZATION, "Bearer JWT");
@@ -50,7 +48,7 @@ class JwtAuthenticationConverterTest {
     @Test
     void shouldValidateByRequestParameterAndReturnValidAuthentication() {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(null, null);
-        when(tokenStore.readAuthentication(anyString())).thenReturn(new OAuth2Authentication(null, authentication));
+        Mockito.when(tokenStore.readAuthentication(ArgumentMatchers.anyString())).thenReturn(new OAuth2Authentication(null, authentication));
 
         MockServerHttpRequest.BaseBuilder<?> baseBuilder = MockServerHttpRequest.get("/anything")
             .queryParam(HttpHeaders.AUTHORIZATION, "Bearer JWT");
@@ -82,7 +80,7 @@ class JwtAuthenticationConverterTest {
 
         Mono<Authentication> convert = jwtAuthenticationConverter.convert(MockServerWebExchange.from(baseBuilder));
 
-        verify(tokenStore, never()).readAuthentication(anyString());
+        Mockito.verify(tokenStore, Mockito.never()).readAuthentication(ArgumentMatchers.anyString());
 
         StepVerifier.create(convert)
             .expectNextCount(0)

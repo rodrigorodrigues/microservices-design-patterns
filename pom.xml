@@ -35,7 +35,6 @@
         <module>authentication-service</module>
         <module>edge-server</module>
         <module>user-service</module>
-        <module>jwt-common</module>
         <module>admin-server</module>
         <module>authentication-common</module>
         <module>ssl-client-configuration</module>
@@ -100,6 +99,7 @@
                 <excludes>
                   <exclude>**/model/**/*</exclude>
                   <exclude>**/dto/**/*</exclude>
+                  <exclude>**/constants/**/*</exclude>
                   <exclude>**/*Configuration*.*</exclude>
                   <exclude>**/*Properties*.*</exclude>
                   <exclude>**/*Application*.*</exclude>

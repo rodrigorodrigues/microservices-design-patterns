@@ -1,11 +1,3 @@
-configuration:
-  jwt:
-    # This token must be encoded using Base64 (you can type `echo 'secret-key'|base64` on your command line)
-    base64-secret: dGVzdC1zcHJpbmctYm9vdC1hcHBsaWNhdGlvbi13aXRoLXJlYWN0LXNpbmdsZS1wYWdlLWFwcGxpY2F0aW9uCg==
-    # Token is valid 24 hours
-    token-validity-in-seconds: 86400
-    token-validity-in-seconds-for-remember-me: 2592000
-
 eureka:
   client:
     enabled: false
@@ -20,3 +12,8 @@ spring:
       enabled: false
     config:
         enabled: false
+security:
+    oauth2:
+        resource:
+            jwt:
+                key-value: dGVzdC1zcHJpbmctYm9vdC1hcHBsaWNhdGlvbi13aXRoLXJlYWN0LXNpbmdsZS1wYWdlLWFwcGxpY2F0aW9uCg==

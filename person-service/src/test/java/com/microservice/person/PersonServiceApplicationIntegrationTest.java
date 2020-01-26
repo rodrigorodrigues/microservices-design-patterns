@@ -53,7 +53,6 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "debug=true",
             "logging.level.com.microservice=debug"})
 @AutoConfigureWebTestClient(timeout = "1s")
 @Import(PersonServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class)
