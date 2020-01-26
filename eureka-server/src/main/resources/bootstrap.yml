@@ -7,6 +7,8 @@ spring:
     mvc:
         async:
             request-timeout: 35000
+    main:
+        allow-bean-definition-overriding: true
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 

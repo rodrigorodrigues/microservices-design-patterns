@@ -14,6 +14,8 @@ spring:
                 multiplier: 2
             headers:
                 X-Encrypt-Key: ${X_ENCRYPT_KEY:}
+    main:
+        allow-bean-definition-overriding: true
 
 eureka:
     client:
