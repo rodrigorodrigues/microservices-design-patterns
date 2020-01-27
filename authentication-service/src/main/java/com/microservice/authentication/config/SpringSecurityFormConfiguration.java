@@ -113,7 +113,6 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
                 OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, authentication));
-                //String authorization = "Bearer " + tokenProvider.createToken(authentication, authentication.getName(), "true" .equals(request.getParameter("rememberMe")));
                 String authorization = enhance.getTokenType() + " " + enhance.getValue();
                 JwtTokenDto jwtToken = new JwtTokenDto(authorization);
                 response.addHeader(HttpHeaders.AUTHORIZATION, authorization);

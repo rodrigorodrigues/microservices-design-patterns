@@ -43,7 +43,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     private ApplicationContext applicationContext;
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         endpoints.tokenStore(tokenStore)
             .authenticationManager(authenticationManager)
             .accessTokenConverter(jwtAccessTokenConverter);

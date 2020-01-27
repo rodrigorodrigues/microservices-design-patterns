@@ -79,12 +79,18 @@ public class AuthenticationCommonConfiguration {
                 if (authentication.getUserAuthentication() instanceof Authentication) {
                     additionalInfo.put("name",
                         ((Authentication) authentication.getUserAuthentication().getPrincipal()).getFullName());
+                } else {
+                    additionalInfo.put("name", authentication.getName());
                 }
                 additionalInfo.put("auth", authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(joining(",")));
                 additionalInfo.put("type", "access");
                 additionalInfo.put("fresh", true);
+                additionalInfo.put("sub", authentication.getName());
+                long expiration = accessToken.getExpiration().getTime() / 1000;
+                additionalInfo.put("iat", expiration);
+                additionalInfo.put("nbf", expiration);
                 ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
                 return super.enhance(accessToken, authentication);
             }
