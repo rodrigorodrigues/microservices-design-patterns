@@ -13,18 +13,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -43,7 +41,7 @@ class UserServiceApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
     @Autowired
-    JwtAccessTokenConverter jwtAccessTokenConverter;
+    DefaultTokenServices defaultTokenServices;
 
     @Test
     @DisplayName("Test - When Calling GET - /api/users should return list of users and response 200 - OK")
@@ -137,7 +135,7 @@ class UserServiceApplicationIntegrationTest {
 
         OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                 true, Collections.singleton("read"), null, null, null, null);
-        OAuth2AccessToken enhance = jwtAccessTokenConverter.enhance(new DefaultOAuth2AccessToken(UUID.randomUUID().toString()), new OAuth2Authentication(oAuth2Request, authentication));
+        OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, authentication));
 
 
         return enhance.getTokenType() + " " + enhance.getValue();
