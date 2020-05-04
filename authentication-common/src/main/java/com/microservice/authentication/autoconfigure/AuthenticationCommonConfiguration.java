@@ -1,6 +1,7 @@
 package com.microservice.authentication.autoconfigure;
 
 import com.microservice.authentication.common.model.Authentication;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
@@ -10,9 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -22,13 +22,10 @@ import org.springframework.security.oauth2.provider.token.ResourceServerTokenSer
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 
@@ -88,22 +85,32 @@ public class AuthenticationCommonConfiguration {
                 additionalInfo.put("type", "access");
                 additionalInfo.put("fresh", true);
                 additionalInfo.put("sub", authentication.getName());
-                long expiration = accessToken.getExpiration().getTime() / 1000;
-                additionalInfo.put("iat", expiration);
-                additionalInfo.put("nbf", expiration);
+                long currentTime = new Date().getTime() / 1000;
+                additionalInfo.put("iat", currentTime);
+                additionalInfo.put("nbf", currentTime);
+                additionalInfo.put("iss", "jwt");
+                additionalInfo.put("aud", "jwt");
                 ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
                 return super.enhance(accessToken, authentication);
             }
         };
-        String keyValue = this.resource.getJwt().getKeyValue();
-        if (!org.springframework.util.StringUtils.hasText(keyValue)) {
-            keyValue = getKeyFromServer();
-        }
-        if (org.springframework.util.StringUtils.hasText(keyValue) && !keyValue.startsWith("-----BEGIN")) {
-            converter.setSigningKey(keyValue);
-        }
-        if (keyValue != null) {
+        ResourceServerProperties.Jwt jwt = this.resource.getJwt();
+        String keyValue = jwt.getKeyValue();
+        if (StringUtils.isNotBlank(keyValue)) {
+            if (!keyValue.startsWith("-----BEGIN")) {
+                converter.setSigningKey(keyValue);
+            }
             converter.setVerifierKey(keyValue);
+        } else if (jwt.getKeyStore() != null) {
+            Resource keyStore = new FileSystemResource(jwt.getKeyStore());
+            char[] keyStorePassword = jwt.getKeyStorePassword().toCharArray();
+            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
+
+            String keyAlias = jwt.getKeyAlias();
+            char[] keyPassword = Optional.ofNullable(
+                jwt.getKeyPassword())
+                .map(String::toCharArray).orElse(keyStorePassword);
+            converter.setKeyPair(keyStoreKeyFactory.getKeyPair(keyAlias, keyPassword));
         }
         if (!CollectionUtils.isEmpty(this.configurers)) {
             AnnotationAwareOrderComparator.sort(this.configurers);
@@ -112,28 +119,6 @@ public class AuthenticationCommonConfiguration {
             }
         }
         return converter;
-    }
-
-    private String getKeyFromServer() {
-        RestTemplate keyUriRestTemplate = new RestTemplate();
-        if (!CollectionUtils.isEmpty(this.customizers)) {
-            for (JwtAccessTokenConverterRestTemplateCustomizer customizer : this.customizers) {
-                customizer.customize(keyUriRestTemplate);
-            }
-        }
-        HttpHeaders headers = new HttpHeaders();
-        String username = this.resource.getClientId();
-        String password = this.resource.getClientSecret();
-        if (username != null && password != null) {
-            byte[] token = Base64.getEncoder()
-                .encode((username + ":" + password).getBytes());
-            headers.add("Authorization", "Basic " + new String(token));
-        }
-        HttpEntity<Void> request = new HttpEntity<>(headers);
-        String url = this.resource.getJwt().getKeyUri();
-        return (String) keyUriRestTemplate
-            .exchange(url, HttpMethod.GET, request, Map.class).getBody()
-            .get("value");
     }
 
 }

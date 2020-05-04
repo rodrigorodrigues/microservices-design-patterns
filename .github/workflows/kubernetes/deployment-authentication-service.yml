@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: eu.gcr.io/spring-boot-gke-243520/authentication-service:latest
+          image: eu.gcr.io/x-alcove-270419/authentication-service:latest
 #          imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -56,14 +56,14 @@ spec:
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-#            - name: EUREKA_CLIENT_ENABLED
-#              value: "false"
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
 #            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
 #              value: "false"
-#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-#              value: "false"
-            - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/eureka/
+            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+              value: "false"
+#            - name: EUREKA_SERVER
+#              value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
             - name: SPRING_CLOUD_CONFIG_FAIL_FAST
@@ -76,15 +76,23 @@ spec:
               value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS
               value: spring-boot
-            - name: LOGGING_LEVEL_COM_MICROSERVICE
-              value: debug
-#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+#            - name: LOGGING_LEVEL_COM_MICROSERVICE
 #              value: debug
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+#              value: debug
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+              value: debug
             - name: KEYSTORE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: secrets
                   key: KEYSTORE_PASSWORD
+#            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_ORIGINS
+#              value: "*"
+#            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_METHODS
+#              value: "*"
+#            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
+#              value: "true"
           command: ["/bin/sh"]
           args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
           ports:

@@ -19,6 +19,8 @@ from app.model.models import Product
 
 app = Flask(__name__)
 app.config.from_envvar('ENV_FILE_LOCATION')
+app.debug = app.config['DEBUG']
+
 for v in os.environ:
     env = os.getenv(v)
     if v == 'SERVER_PORT':

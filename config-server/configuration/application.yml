@@ -3,6 +3,10 @@ management:
         web:
             exposure:
                 include: '*'
+            cors:
+                allowed-origins: '*'
+                allow-credentials: true
+                allowed-methods: '*'
     server:
         port: ${server.port}
     endpoint:
@@ -24,13 +28,31 @@ security:
     oauth2:
         client:
             accessTokenUri: ${ACCESS_TOKEN_URI:http://localhost:9999/oauth/token}
-            userAuthorizationUri: ${AUTHORIZATION_URL:http://localhost:9999/oauth/authorize}
+            userAuthorizationUri: ${AUTHORIZATION_URL:http://localhost:99   99/oauth/authorize}
             clientId: ${OAUTH_CLIENT_ID:client}
             clientSecret: ${OAUTH_CLIENT_SECRET:secret}
         resource:
             jwt:
                 keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
             user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}
+---
+spring:
+    profiles: quarkus
+
+security:
+    oauth2:
+        resource:
+            jwt:
+                keyValue: |
+                    -----BEGIN PUBLIC KEY-----
+                    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqhmjWuwMHhi4BzmAtJA3
+                    hDZAq+iy6jPSkTvDfMeSOnRmdAnCdH9AXv3IzDgsLRmVtYZu23GSyLVUUgxB8enp
+                    sGc90V0PUCoW/Zcq7H4TdSsgPTMmB4Vq1LRyUZm31/7IYyNj+g2px8U0aHtGlWoC
+                    EdHZ1V+wr0y9pWJX4MC6Vfg7SNrlZlIXCMnzazHrvZ+5CQIosYy3leK/Gb0ANEFA
+                    yZMQQnSV9qc1AJS3lmDIFFT/LkZtzCmdpHUfFDAAXOSxQfEjnbJP3j9cppIwGEdg
+                    mVm3YuTw9SFxhqzYG8ggXeYrlGcplVoBIrfa+90a+cRxpYFfsfFw+N9Yonnk8sWq
+                    IwIDAQAB
+                    -----END PUBLIC KEY-----
 
 ---
 spring:

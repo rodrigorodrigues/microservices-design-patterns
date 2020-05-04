@@ -10,6 +10,8 @@ spring:
                     skip-ssl-validation: true
     application:
         name: config-server
+    main:
+        allow-bean-definition-overriding: true
 eureka:
     client:
         serviceUrl:

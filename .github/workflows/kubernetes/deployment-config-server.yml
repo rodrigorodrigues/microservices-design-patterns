@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: eu.gcr.io/spring-boot-gke-243520/config-server:latest
+          image: eu.gcr.io/x-alcove-270419/config-server:latest
           resources:
             requests:
               memory: "256Mi"
@@ -49,20 +49,22 @@ spec:
               value: "8888"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
+#            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+#              value: "true"
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-#            - name: EUREKA_CLIENT_ENABLED
-#              value: "false"
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+            - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING
+              value: "true"
 #            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
 #              value: "false"
-            - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/eureka/
+#            - name: EUREKA_SERVER
+#              value: http://eureka-server:8761/eureka/eureka/
             - name: KEYSTORE
               value: file:/etc/ssl_certs_jks/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS

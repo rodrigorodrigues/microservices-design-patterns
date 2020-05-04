@@ -40,6 +40,9 @@ public class WebSecurity {
             log.debug("encryptParameter:before: {}", encryptParameter);
             String servletPath = request.getServletPath();
             encryptParameter = extractEncryptFromQueryString(encryptParameter, servletPath);
+            if (StringUtils.isNotBlank(encryptParameter)) {
+                encryptParameter = encryptParameter.replaceFirst(servletPath, "");
+            }
             log.debug("encryptHeader: {}\tservletPath: {}\tencryptParameter:after: {}", encryptHeader, servletPath, encryptParameter);
             if (StringUtils.isNotBlank(encryptHeader)) {
                 return configServerProperties.getPassword().equals(textEncryptor.decrypt(encryptHeader));

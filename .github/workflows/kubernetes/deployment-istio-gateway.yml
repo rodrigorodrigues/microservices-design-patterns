@@ -7,22 +7,24 @@ spec:
     istio: ingressgateway # use istio default controller
   servers:
     - port:
-        number: 443
-        name: https
-        protocol: HTTPS
+        number: 80
+        name: http
+        protocol: HTTP
       hosts:
-        - "spendingbetter.com"
-      tls:
-        mode: SIMPLE
-        credentialName: "gateway-tls"
+#        - "spendingbetter.com"
+        - "*"
+#      tls:
+#        mode: SIMPLE
+#        credentialName: "gateway-tls"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: react-webapp
+  name: virtual-service-apps
 spec:
   hosts:
-    - "spendingbetter.com"
+    - "*"
+#    - "spendingbetter.com"
   gateways:
     - gateway
   http:
@@ -41,7 +43,7 @@ metadata:
   name: grafana
 spec:
   hosts:
-    - "spendingbetter.com"
+    - "*"
   gateways:
     - gateway
   http:
@@ -60,7 +62,7 @@ metadata:
   name: user-service
 spec:
   hosts:
-    - "spendingbetter.com"
+    - "*"
   gateways:
     - gateway
   http:
@@ -72,3 +74,68 @@ spec:
             host: user-service
             port:
               number: 8083
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: person-service
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api/persons
+      route:
+        - destination:
+            host: person-service
+            port:
+              number: 8082
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kotlin-service
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api/tasks
+      route:
+        - destination:
+            host: kotlin-service
+            port:
+              number: 9092
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: authentication-service
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - gateway
+  http:
+    - match:
+        - uri:
+            prefix: /auth/(.*)
+        - uri:
+            prefix: /api/account
+        - uri:
+            prefix: /api/authenticate
+        - uri:
+            prefix: /api/authenticatedUser
+        - uri:
+            prefix: /api/logout
+      route:
+        - destination:
+            host: authentication-service
+            port:
+              number: 9999

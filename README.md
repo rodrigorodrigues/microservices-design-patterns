@@ -287,6 +287,7 @@ kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com
 #create generic certs
 kubectl create secret generic spendingbetter-p12 --from-file=/etc/sslmate/www.spendingbetter.com.p12
 kubectl create secret generic spendingbetter-crt --from-file=/etc/sslmate/www.spendingbetter.com.crt
+kubectl create secret generic spendingbetter-jks --from-file=/etc/sslmate/www.spendingbetter.com.jks
 
 #list certs
 kubectl get secrets
@@ -402,6 +403,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Add Oauth2 Security layer
 * [X] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [X] Kotlin - Add Service using Kotlin Language
+* [X] Quarkus - Add Service using Quarkus framework
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
 * [ ] Go - Add Service using Go Language

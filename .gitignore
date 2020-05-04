@@ -42,3 +42,6 @@ transaction-logs
 */.vscode
 kubernetes/istio-*
 .github/workflows/kubernetes/istio-*
+docker/openshift.local.clusterup
+off.yaml
+lsp

@@ -237,10 +237,11 @@ public class PersonControllerTest {
 
     @Test
     @DisplayName("Test - When Calling DELETE - /api/persons/{id} with valid authorization the response should be 200 - OK")
-    @WithMockUser(roles = "PERSON_DELETE")
+    @WithMockUser(roles = "PERSON_DELETE", username = "mock")
     public void whenCallDeleteShouldDeleteById() {
         PersonDto person = new PersonDto();
         person.setId("12345");
+        person.setCreatedByUser("mock");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());
 
@@ -248,6 +249,23 @@ public class PersonControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();
+    }
+
+    @Test
+    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with different user  the response should be 403 - Forbidden")
+    @WithMockUser(roles = "PERSON_DELETE", username = "test")
+    public void whenCallDeleteWithDifferentUSerShouldResponseForbidden() {
+        PersonDto person = new PersonDto();
+        person.setId("12345");
+        person.setCreatedByUser("mock");
+        when(personService.findById(anyString())).thenReturn(Mono.just(person));
+        when(personService.deleteById(anyString())).thenReturn(Mono.empty());
+
+        client.delete().uri("/api/persons/{id}", person.getId())
+            .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+            .exchange()
+            .expectStatus().isForbidden()
+            .expectBody().jsonPath("$.message").value(containsString("User(test) does not have access to delete this resource"));
     }
 
     @Test

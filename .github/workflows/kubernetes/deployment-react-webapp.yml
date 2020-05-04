@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/spring-boot-gke-243520/react-webapp:latest
+          image: eu.gcr.io/x-alcove-270419/react-webapp:latest
           resources:
             requests:
               memory: "256Mi"
