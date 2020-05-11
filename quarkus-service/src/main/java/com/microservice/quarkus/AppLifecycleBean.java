@@ -1,22 +1,21 @@
 package com.microservice.quarkus;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.stream.Stream;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-
 import com.microservice.quarkus.model.Company;
 import com.mongodb.client.MongoClient;
 import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 public class AppLifecycleBean {
@@ -32,23 +31,35 @@ public class AppLifecycleBean {
 	@Inject
 	MongoClient mongoClient;
 
-	void onStart(@Observes StartupEvent ev) throws IOException {
+	void onStart(@Observes StartupEvent ev) {
 		log.info("Set Public Key: {}", jwtValue);
 		log.info("MongoDB settings: {}", mongoClient.getClusterDescription());
 		File file = new File(AppLifecycleBean.class.getResource("/META-INF/resources").getFile(), "publicKey.pem");
-		Files.write(file.toPath(), Collections.singletonList(jwtValue), StandardCharsets.UTF_8);
-		if (loadMockedData && Company.count() == 0) {
-			Company company = new Company();
-			company.name = "Facebook";
-			company.createdByUser = "default@admin.com";
-			Company company1 = new Company();
-			company1.name = "Google";
-			company1.createdByUser = "default@admin.com";
-			Company company2 = new Company();
-			company2.name = "Amazon";
-			company2.createdByUser = "default@admin.com";
-			Stream.of(company, company1, company2)
-					.forEach(c -> c.persistOrUpdate());
+		try {
+			Files.write(file.toPath(), Collections.singletonList(jwtValue), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			log.error("IO write error", e);
+			throw new RuntimeException(e);
+		}
+		if (loadMockedData) {
+			Company.count()
+					.subscribe().with(i -> {
+						log.info("count: {}", i);
+						if (i == 0) {
+							Company company = new Company();
+							company.name = "Facebook";
+							company.createdByUser = "default@admin.com";
+							Company company1 = new Company();
+							company1.name = "Google";
+							company1.createdByUser = "default@admin.com";
+							Company company2 = new Company();
+							company2.name = "Amazon";
+							company2.createdByUser = "default@admin.com";
+							Company.persist(Stream.of(company, company1, company2))
+									.await()
+									.indefinitely();
+						}
+					}, RuntimeException::new);
 		}
 	}
 

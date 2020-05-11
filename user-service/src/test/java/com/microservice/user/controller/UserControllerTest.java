@@ -36,7 +36,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {
@@ -132,7 +132,7 @@ public class UserControllerTest {
         client.post().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -152,7 +152,7 @@ public class UserControllerTest {
         client.put().uri("/api/users/{id}", userDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -171,7 +171,7 @@ public class UserControllerTest {
         client.put().uri("/api/users/{id}", userDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isNotFound();
     }

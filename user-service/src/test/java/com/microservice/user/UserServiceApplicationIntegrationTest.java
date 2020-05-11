@@ -27,7 +27,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
@@ -61,7 +61,7 @@ class UserServiceApplicationIntegrationTest {
         client.post().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -83,7 +83,7 @@ class UserServiceApplicationIntegrationTest {
         String id = client.post().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -102,7 +102,7 @@ class UserServiceApplicationIntegrationTest {
         client.put().uri("/api/users/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)

@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -178,7 +179,7 @@ public class PersonServiceApplicationIntegrationTest {
 		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(fromObject(convertToJson(person)))
+				.body(fromValue(convertToJson(person)))
 				.exchange()
 				.expectStatus().isCreated()
 				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -215,7 +216,7 @@ public class PersonServiceApplicationIntegrationTest {
 		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(fromObject(convertToJson(person)))
+				.body(fromValue(convertToJson(person)))
 				.exchange()
 				.expectStatus().isBadRequest()
 				.expectBody().jsonPath("$.message").value(containsString("fullName: size must be between 5 and 200"));
@@ -231,7 +232,7 @@ public class PersonServiceApplicationIntegrationTest {
 		client.post().uri("/api/persons")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(fromObject(convertToJson(person)))
+				.body(fromValue(convertToJson(person)))
 				.exchange()
 				.expectStatus().isForbidden();
 	}

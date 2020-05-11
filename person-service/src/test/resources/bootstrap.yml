@@ -1,7 +1,6 @@
 eureka:
   client:
     enabled: false
-
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -12,6 +11,10 @@ spring:
       enabled: false
     config:
         enabled: false
+  profiles:
+      active: test
+  zipkin:
+      enabled: false
 security:
     oauth2:
         resource:

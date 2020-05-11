@@ -1,15 +1,14 @@
 package com.microservice.quarkus.model;
 
-import java.time.Instant;
-import java.util.List;
+import io.quarkus.mongodb.panache.MongoEntity;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
+import io.smallrye.mutiny.Multi;
 
 import javax.validation.constraints.NotBlank;
-
-import io.quarkus.mongodb.panache.MongoEntity;
-import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import java.time.Instant;
 
 @MongoEntity(collection = "company")
-public class Company extends PanacheMongoEntity {
+public class Company extends ReactivePanacheMongoEntity {
 	@NotBlank
 	public String name;
 	@NotBlank
@@ -19,11 +18,11 @@ public class Company extends PanacheMongoEntity {
 	public String lastModifiedByUser;
 	public Instant lastModifiedDate = Instant.now();
 
-	public static List<Company> findActiveCompanies() {
-		return list("activated", true);
+	public static Multi<Company> findActiveCompanies() {
+		return stream("activated", true);
 	}
 
-	public static List<Company> findActiveCompaniesByUser(String user) {
-		return list("activated = ?1 and createdByUser = ?2", true, user);
+	public static Multi<Company> findActiveCompaniesByUser(String user) {
+		return stream("activated = ?1 and createdByUser = ?2", true, user);
 	}
 }

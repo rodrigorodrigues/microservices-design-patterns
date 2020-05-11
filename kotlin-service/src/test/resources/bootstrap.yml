@@ -9,6 +9,8 @@ spring:
       enabled: false
     config:
         enabled: false
+  zipkin:
+      enabled: false
   main:
       allow-bean-definition-overriding: true
 security:

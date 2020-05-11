@@ -273,6 +273,31 @@ services:
         aliases:
           - task-api
 
+  company-api:
+    image: quarkus-service
+    container_name: company-api
+    environment:
+      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
+      - SPRING_PROFILES_ACTIVE=quarkus
+      - SPRING_CLOUD_CONFIG_URL=http://config-management:8888/quarkus-service/quarkus?X-Encrypt-Key=${X_ENCRYPT_KEY}
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - QUARKUS_HTTP_PORT=9093
+      - MONGODB_URI=mongodb://mongodb-datasource:27017
+      - MONGODB_DATABASE=docker
+    depends_on:
+      - service-discovery
+      - config-management
+      - mongodb-datasource
+    ports:
+      - 9093:9093
+#    volumes:
+#      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+#    command: sh ./docker-entrypoint.sh config-management:8888
+    networks:
+      net:
+        aliases:
+          - task-api
+
   user-api:
     image: user-service
     container_name: user-api

@@ -50,4 +50,5 @@ public class Person implements Serializable {
     @LastModifiedDate
     private Instant lastModifiedDate = Instant.now();
 
+    private Boolean activated = true;
 }

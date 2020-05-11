@@ -12,6 +12,8 @@ spring:
       enabled: false
     config:
         enabled: false
+  zipkin:
+    enabled: false
 security:
   oauth2:
     resource:
