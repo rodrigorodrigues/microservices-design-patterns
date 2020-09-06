@@ -1,36 +1,30 @@
 package com.microservice.quarkus.resource;
 
-import java.net.URI;
-import java.util.function.Predicate;
-
-import javax.annotation.security.RolesAllowed;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import com.microservice.quarkus.dto.CompanyDto;
 import com.microservice.quarkus.model.Company;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Metered;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.mapstruct.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import java.net.URI;
+import java.util.function.Predicate;
 
 @Path("/api/companies")
 @Produces(MediaType.APPLICATION_JSON)
@@ -63,6 +57,19 @@ public class CompanyResource {
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_READ", "ROLE_COMPANY_SAVE", "COMPANY_DELETE", "ROLE_COMPANY_CREATE"})
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @SseElementType(MediaType.APPLICATION_JSON)
+    @Timed(name = "getAllActiveCompaniesTimed",
+            description = "Monitor the time getAllActiveCompanies method takes",
+            unit = MetricUnits.MILLISECONDS,
+            absolute = true)
+    @Metered(name = "getAllActiveCompaniesMetered",
+            unit = MetricUnits.MILLISECONDS,
+            description = "Monitor the rate events occurred",
+            absolute = true)
+    @Counted(
+            name = "getAllActiveCompaniesCounted",
+            absolute = true,
+            displayName = "getAllActiveCompanies",
+            description = "Monitor how many times getAllActiveCompanies method was called")
     public Multi<CompanyDto> getAllActiveCompanies(@Context SecurityContext ctx) {
         String name = ctx.getUserPrincipal().getName();
         log.info("hello {}", name);

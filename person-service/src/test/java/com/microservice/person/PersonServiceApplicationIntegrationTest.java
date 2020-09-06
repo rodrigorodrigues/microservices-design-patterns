@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @Slf4j
@@ -219,6 +218,7 @@ public class PersonServiceApplicationIntegrationTest {
 				.body(fromValue(convertToJson(person)))
 				.exchange()
 				.expectStatus().isBadRequest()
+//                .expectBody(String.class).consumeWith(c -> log.info("Response: {}", c.getResponseBody()))
 				.expectBody().jsonPath("$.message").value(containsString("fullName: size must be between 5 and 200"));
 	}
 

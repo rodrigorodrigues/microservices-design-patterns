@@ -7,6 +7,8 @@ import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -27,6 +29,7 @@ import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -91,8 +94,9 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private AuthenticationFailureHandler authenticationFailureHandler() {
         return (request, response, exception) -> {
+            request.setAttribute(DefaultErrorAttributes.class.getName() + ".ERROR", exception);
             if (validateApiPath(request)) {
-                Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(request, exception, true);
+                Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
                 response.setStatus(Integer.parseInt(errorAttributes.get("status").toString()));
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 response.getWriter().append(objectMapper.writeValueAsString(errorAttributes));

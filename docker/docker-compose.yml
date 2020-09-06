@@ -284,6 +284,7 @@ services:
       - QUARKUS_HTTP_PORT=9093
       - MONGODB_URI=mongodb://mongodb-datasource:27017
       - MONGODB_DATABASE=docker
+      - QUARKUS_LOG_LEVEL=DEBUG
     depends_on:
       - service-discovery
       - config-management

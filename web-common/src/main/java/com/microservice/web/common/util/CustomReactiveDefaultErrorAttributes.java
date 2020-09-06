@@ -2,6 +2,7 @@ package com.microservice.web.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
@@ -22,12 +23,12 @@ public class CustomReactiveDefaultErrorAttributes extends DefaultErrorAttributes
     /**
      * Return custom error message according to exception.
      * @param request the current request
-     * @param includeStackTrace set false
+     * @param options injected by spring
      * @return error message
      */
     @Override
-    public Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
-        Map<String, Object> errorAttributes = super.getErrorAttributes(request, includeStackTrace);
+    public Map<String, Object> getErrorAttributes(ServerRequest request, ErrorAttributeOptions options) {
+        Map<String, Object> errorAttributes = super.getErrorAttributes(request, options);
         Throwable error = getError(request);
         HttpStatus status = getHttpStatusError(error);
         errorAttributes.put("status", status.value());

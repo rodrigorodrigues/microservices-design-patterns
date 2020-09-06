@@ -139,3 +139,43 @@ spec:
             host: authentication-service
             port:
               number: 9999
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: spring-boot
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api/companies
+      route:
+        - destination:
+            host: spring-boot
+            port:
+              number: 8084
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: quarkus
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - gateway
+  http:
+    - match:
+        - uri:
+            prefix: /quarkus/api/companies
+      rewrite:
+        uri: /api/companies
+      route:
+        - destination:
+            host: quarkus
+            port:
+              number: 8085

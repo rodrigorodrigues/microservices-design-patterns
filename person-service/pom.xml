@@ -95,7 +95,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <configuration combine.self="override">>
+                <configuration combine.self="override">
                     <verbose>true</verbose>
                     <images>
                         <image>
