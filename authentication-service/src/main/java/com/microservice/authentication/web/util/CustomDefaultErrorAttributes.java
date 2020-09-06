@@ -1,23 +1,26 @@
 package com.microservice.authentication.web.util;
 
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
+
+import javax.validation.ConstraintViolationException;
+import java.util.Map;
 
 @Slf4j
 @AllArgsConstructor
 public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
-    public Map<String, Object> getErrorAttributes(HttpServletRequest request, Throwable throwable, boolean includeStackTrace) {
-        Map<String, Object> errorAttributes = super.getErrorAttributes(new ServletWebRequest(request), includeStackTrace);
+    @Override
+    public Map<String, Object> getErrorAttributes(WebRequest request, ErrorAttributeOptions options) {
+        Map<String, Object> errorAttributes = super.getErrorAttributes(request, options);
+        Throwable throwable = getError(request);
         HttpStatus status = getHttpStatusError(throwable);
         errorAttributes.put("status", status.value());
         errorAttributes.put("message", ExceptionUtils.getMessage(throwable));

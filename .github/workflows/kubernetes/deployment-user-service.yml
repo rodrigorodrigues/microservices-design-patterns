@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/spring-boot-gke-243520/user-service:latest
+          image: eu.gcr.io/x-alcove-270419/user-service:latest
 #          imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -60,14 +60,14 @@ spec:
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-#            - name: EUREKA_CLIENT_ENABLED
-#              value: "false"
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
 #            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
 #              value: "false"
-#            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-#              value: "false"
-            - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/eureka/
+            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
+              value: "false"
+#            - name: EUREKA_SERVER
+#              value: http://eureka-server:8761/eureka/eureka/
             - name: SPRING_CLOUD_CONFIG_URI
               value: http://config-server:8888
             - name: SPRING_CLOUD_CONFIG_FAIL_FAST

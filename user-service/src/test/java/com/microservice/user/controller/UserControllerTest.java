@@ -3,8 +3,6 @@ package com.microservice.user.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
-import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
-import com.microservice.jwt.common.TokenProvider;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.config.SpringSecurityConfiguration;
 import com.microservice.user.dto.UserDto;
@@ -24,6 +22,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -37,7 +36,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {
@@ -47,8 +46,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @Import({SpringSecurityConfiguration.class,
         HandleResponseError.class,
         CustomReactiveDefaultErrorAttributes.class,
-        ErrorWebFluxAutoConfiguration.class,
-        JwtCommonAutoConfiguration.class})
+        ErrorWebFluxAutoConfiguration.class})
 public class UserControllerTest {
 
     @Autowired
@@ -58,7 +56,7 @@ public class UserControllerTest {
     UserService userService;
 
     @MockBean
-    TokenProvider tokenProvider;
+    TokenStore tokenStore;
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;
@@ -134,7 +132,7 @@ public class UserControllerTest {
         client.post().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -154,7 +152,7 @@ public class UserControllerTest {
         client.put().uri("/api/users/{id}", userDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -173,7 +171,7 @@ public class UserControllerTest {
         client.put().uri("/api/users/{id}", userDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isNotFound();
     }

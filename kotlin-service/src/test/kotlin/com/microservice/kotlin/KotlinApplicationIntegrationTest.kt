@@ -1,7 +1,6 @@
 package com.microservice.kotlin
 
 import com.jayway.jsonpath.JsonPath.read
-import com.microservice.jwt.common.TokenProvider
 import com.microservice.kotlin.model.Task
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -16,13 +15,16 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
-                                       @Autowired val tokenProvider: TokenProvider) {
+                                       @Autowired val defaultTokenServices: DefaultTokenServices) {
 
     @Test
     @DisplayName("When Calling POST - /api/tasks should create task response 201 - Created")
@@ -32,7 +34,7 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
         val task = Task(name = "New Task")
 
         val headers = HttpHeaders()
-        headers.add("authorization", "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "User", false))
+        headers.add("authorization", createToken(usernamePasswordAuthenticationToken))
         var responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.POST, HttpEntity(task, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.CREATED)
@@ -51,14 +53,14 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     fun shouldFilterListByCreatedByUserWhenCallingApi() {
         var headers = HttpHeaders()
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_TASK_READ")))
-        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "User", false))
+        headers.add(HttpHeaders.AUTHORIZATION, createToken(usernamePasswordAuthenticationToken))
         var responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(read<List<String>>(responseEntity.body, "$")).isEmpty()
 
         headers = HttpHeaders()
-        headers.add("authorization", "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "User", false))
+        headers.add("authorization", createToken(usernamePasswordAuthenticationToken))
         responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
@@ -70,7 +72,7 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     fun shouldReturnListOfTasksWhenCallingApi() {
         val headers = HttpHeaders()
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
-        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "Administrator", false))
+        headers.add(HttpHeaders.AUTHORIZATION, createToken(usernamePasswordAuthenticationToken))
         val responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
@@ -83,10 +85,16 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     fun shouldResponseForbiddenWhenRoleIsNotAppropriatedToListOfTask() {
         val headers = HttpHeaders()
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("TASK_DELETE")))
-        headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.createToken(usernamePasswordAuthenticationToken, "Administrator", false))
+        headers.add(HttpHeaders.AUTHORIZATION, createToken(usernamePasswordAuthenticationToken))
         val responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
     }
 
+    private fun createToken(usernamePasswordAuthenticationToken: UsernamePasswordAuthenticationToken): String {
+        var oAuth2Request = OAuth2Request(null, usernamePasswordAuthenticationToken.getName(), usernamePasswordAuthenticationToken.getAuthorities(),
+            true, setOf("read"), null, null, null, null)
+        var enhance = defaultTokenServices.createAccessToken(OAuth2Authentication(oAuth2Request, usernamePasswordAuthenticationToken))
+        return enhance.tokenType + " " + enhance.value
+    }
 }

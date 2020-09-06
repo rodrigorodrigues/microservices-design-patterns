@@ -261,7 +261,7 @@ anonymous@gmail.com/test - ROLE_PERSON_READ
 
 ### Kubernetes - Google Cloud Platform
 
-The code is deployed at `Google Cloud Platform`, to access it go through `https://spendingbetter.com`.
+The code is deployed at `Google Cloud Platform`, ~~to access it go through `https://spendingbetter.com`~~.
 
 Following useful commands for kubernetes
 
@@ -287,6 +287,7 @@ kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com
 #create generic certs
 kubectl create secret generic spendingbetter-p12 --from-file=/etc/sslmate/www.spendingbetter.com.p12
 kubectl create secret generic spendingbetter-crt --from-file=/etc/sslmate/www.spendingbetter.com.crt
+kubectl create secret generic spendingbetter-jks --from-file=/etc/sslmate/www.spendingbetter.com.jks
 
 #list certs
 kubectl get secrets
@@ -402,6 +403,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Add Oauth2 Security layer
 * [X] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [X] Kotlin - Add Service using Kotlin Language
+* [X] Quarkus - Add Service using Quarkus framework
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
 * [ ] Go - Add Service using Go Language
@@ -423,6 +425,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Add documentation/how-to for each language
 * [ ] Add tests for Python
 * [ ] Add React Legacy
+* [ ] Rename `/api/persons` to `/api/people`
 
 
 ### References
@@ -449,3 +452,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Istio Gateway](https://medium.com/@tufin/test-7daa5ee3782b)
 
 [Automatic Deployment using Travis and GKE](https://engineering.hexacta.com/automatic-deployment-of-multiple-docker-containers-to-google-container-engine-using-travis-e5d9e191d5ad)
+
+[Microprofile with Metrics](https://kodnito.com/posts/getting-started-with-microprofile-metrics-and-prometheus/)

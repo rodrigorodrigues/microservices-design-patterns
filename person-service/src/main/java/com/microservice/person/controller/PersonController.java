@@ -130,10 +130,17 @@ public class PersonController {
     @ApiOperation(value = "Api for deleting a person")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE')")
-    public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id) {
+    public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id,
+                             @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         return personService.findById(id)
             .switchIfEmpty(responseNotFound())
-            .flatMap(u -> personService.deleteById(id));
+            .flatMap(u -> {
+                if (hasRoleAdmin(authentication) || u.getCreatedByUser().equals(authentication.getName())) {
+                    return personService.deleteById(id);
+                } else {
+                    return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("User(%s) does not have access to delete this resource", authentication.getName())));
+                }
+            });
     }
 
     private boolean hasRoleAdmin(Authentication authentication) {

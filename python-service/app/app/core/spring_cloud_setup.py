@@ -16,11 +16,12 @@ def initialize_dispatcher(app):
 
 
 def initialize_spring_cloud_client(app):
+    server_port = app.config['SERVER_PORT']
 
     # The following code will register server to eureka server and also start to send heartbeat every 30 seconds
     eureka_client.init(eureka_server=app.config['EUREKA_SERVER'],
                        app_name="python-service",
-                       instance_port=app.config['SERVER_PORT'])
+                       instance_port=server_port)
 
     address = app.config["SPRING_CLOUD_CONFIG_URI"]
 
@@ -40,11 +41,12 @@ def initialize_spring_cloud_client(app):
 
     if profile != 'prod':
         try:
-            jwt_secret = config_client.config['propertySources'][0]['source']['configuration.jwt.base64-secret']
+            jwt_secret = config_client.config['propertySources'][0]['source']['security.oauth2.resource.jwt.keyValue']
         except Exception:
-            jwt_secret = config_client.config['propertySources'][1]['source']['configuration.jwt.base64-secret']
+            jwt_secret = config_client.config['propertySources'][1]['source']['security.oauth2.resource.jwt.keyValue']
         log.debug('Jwt Secret: %s', jwt_secret)
         app.config['JWT_SECRET_KEY'] = base64.b64decode(jwt_secret)
+        app.config['SECRET_KEY'] = app.config['JWT_SECRET_KEY']
 
     else:
         app.config['JWT_PUBLIC_KEY'] = open(app.config['JWT_PUBLIC_KEY'], "r").read()

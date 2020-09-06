@@ -1,39 +1,28 @@
 package com.microservice.authentication.config;
 
-import com.microservice.authentication.common.model.Authentication;
-import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.netflix.discovery.EurekaClient;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -43,19 +32,21 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     private final AuthenticationManager authenticationManager;
 
-    private final Java8SpringConfigurationProperties configurationProperties;
-
     private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationProperties authenticationProperties;
 
+    private final JwtAccessTokenConverter jwtAccessTokenConverter;
+
+    private final TokenStore tokenStore;
+
     private ApplicationContext applicationContext;
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.tokenStore(tokenStore())
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+        endpoints.tokenStore(tokenStore)
             .authenticationManager(authenticationManager)
-            .accessTokenConverter(jwtAccessTokenConverter());
+            .accessTokenConverter(jwtAccessTokenConverter);
     }
 
     private List<String> getListOfServices() {
@@ -100,38 +91,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         authorizeUrls.stream()
             .flatMap(s -> Arrays.stream(s.split(";")))
             .forEach(listOfServices::add);
-    }
-
-    @Bean
-    public TokenStore tokenStore() {
-        return new JwtTokenStore(jwtAccessTokenConverter());
-    }
-
-    @Bean
-    JwtAccessTokenConverter jwtAccessTokenConverter() {
-        JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter() {
-            @Override
-            public OAuth2AccessToken enhance(
-                OAuth2AccessToken accessToken,
-                OAuth2Authentication authentication) {
-                if (authentication.getUserAuthentication() instanceof Authentication) {
-                    Map<String, Object> additionalInfo = new HashMap<>();
-                    additionalInfo.put("name",
-                        ((Authentication) authentication.getUserAuthentication().getPrincipal()).getFullName());
-                    ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
-                }
-                return super.enhance(accessToken, authentication);
-            }
-        };
-        Java8SpringConfigurationProperties.Jwt jwt = configurationProperties.getJwt();
-        if (StringUtils.isNotBlank(jwt.getBase64Secret())) {
-            jwtAccessTokenConverter.setSigningKey(jwt.getBase64Secret());
-            jwtAccessTokenConverter.setVerifierKey(jwt.getBase64Secret());
-        } else {
-            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeystore()), jwt.getKeystorePassword().toCharArray());
-            jwtAccessTokenConverter.setKeyPair(keyStoreKeyFactory.getKeyPair(jwt.getKeystoreAlias()));
-        }
-        return jwtAccessTokenConverter;
     }
 
     @Override

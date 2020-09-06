@@ -9,9 +9,7 @@ node_js: "0.10"
 services:
 - docker
 
-branches:
-  only:
-  - master-travis-ci
+if: type = pull_request
 
 cache:
   directories:

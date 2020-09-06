@@ -7,6 +7,8 @@ spring:
     mvc:
         async:
             request-timeout: 35000
+    main:
+        allow-bean-definition-overriding: true
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log
 
@@ -40,13 +42,6 @@ security:
 spring:
     profiles: prod
 
-configuration:
-    jwt:
-        base64-secret:
-        keystore: ${KEYSTORE:}
-        keystoreAlias: ${KEYSTORE_ALIAS:}
-        keystorePassword: ${KEYSTORE_PASSWORD:}
-
 security:
     oauth2:
         client:
@@ -57,9 +52,9 @@ security:
         resource:
             jwt:
                 keyValue:
-                key-store: ${configuration.jwt.keystore:}
-                key-store-password: ${configuration.jwt.keystorePassword:}
-                key-alias: ${configuration.jwt.keystoreAlias:}
+                key-store: ${KEYSTORE:}
+                key-store-password: ${KEYSTORE_PASSWORD:}
+                key-alias: ${KEYSTORE_ALIAS:}
             user-info-uri: ${USER_INFO_URI:https://spendingbetter.com/auth/api/authenticatedUser}
 
 #eureka:

@@ -1,29 +1,14 @@
 package com.microservice.person.controller;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
-import com.microservice.jwt.autoconfigure.JwtCommonAutoConfiguration;
-import com.microservice.jwt.common.TokenProvider;
-import com.microservice.jwt.common.config.Java8SpringConfigurationProperties;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.config.SpringSecurityConfiguration;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.service.PersonService;
 import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,31 +22,40 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.UUID;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
+
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(properties = {
         "configuration.initialLoad=false",
         "configuration.mongo=false"},
 controllers = PersonController.class, excludeAutoConfiguration = MongoReactiveAutoConfiguration.class)
-@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomReactiveDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class, JwtCommonAutoConfiguration.class})
+@Import({SpringSecurityConfiguration.class, HandleResponseError.class, CustomReactiveDefaultErrorAttributes.class, ErrorWebFluxAutoConfiguration.class})
 public class PersonControllerTest {
 
     @Autowired
     WebTestClient client;
 
-    @Autowired
-    Java8SpringConfigurationProperties configurationProperties;
-
     @MockBean
     PersonService personService;
 
     @MockBean
-    TokenProvider tokenProvider;
+    TokenStore tokenStore;
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;
@@ -197,7 +191,7 @@ public class PersonControllerTest {
         client.post().uri("/api/persons")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(personDto)))
+                .body(fromValue(convertToJson(personDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -217,7 +211,7 @@ public class PersonControllerTest {
         client.put().uri("/api/persons/{id}", personDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(personDto)))
+                .body(fromValue(convertToJson(personDto)))
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -236,17 +230,18 @@ public class PersonControllerTest {
         client.put().uri("/api/persons/{id}", personDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(personDto)))
+                .body(fromValue(convertToJson(personDto)))
                 .exchange()
                 .expectStatus().isNotFound();
     }
 
     @Test
     @DisplayName("Test - When Calling DELETE - /api/persons/{id} with valid authorization the response should be 200 - OK")
-    @WithMockUser(roles = "PERSON_DELETE")
+    @WithMockUser(roles = "PERSON_DELETE", username = "mock")
     public void whenCallDeleteShouldDeleteById() {
         PersonDto person = new PersonDto();
         person.setId("12345");
+        person.setCreatedByUser("mock");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());
 
@@ -254,6 +249,23 @@ public class PersonControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();
+    }
+
+    @Test
+    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with different user  the response should be 403 - Forbidden")
+    @WithMockUser(roles = "PERSON_DELETE", username = "test")
+    public void whenCallDeleteWithDifferentUSerShouldResponseForbidden() {
+        PersonDto person = new PersonDto();
+        person.setId("12345");
+        person.setCreatedByUser("mock");
+        when(personService.findById(anyString())).thenReturn(Mono.just(person));
+        when(personService.deleteById(anyString())).thenReturn(Mono.empty());
+
+        client.delete().uri("/api/persons/{id}", person.getId())
+            .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+            .exchange()
+            .expectStatus().isForbidden()
+            .expectBody().jsonPath("$.message").value(containsString("User(test) does not have access to delete this resource"));
     }
 
     @Test

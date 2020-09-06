@@ -1,16 +1,8 @@
 package com.microservice.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservice.jwt.common.TokenProvider;
 import com.microservice.user.dto.UserDto;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +13,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
@@ -36,7 +41,7 @@ class UserServiceApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
     @Autowired
-    TokenProvider tokenProvider;
+    DefaultTokenServices defaultTokenServices;
 
     @Test
     @DisplayName("Test - When Calling GET - /api/users should return list of users and response 200 - OK")
@@ -56,7 +61,7 @@ class UserServiceApplicationIntegrationTest {
         client.post().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -78,7 +83,7 @@ class UserServiceApplicationIntegrationTest {
         String id = client.post().uri("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -97,7 +102,7 @@ class UserServiceApplicationIntegrationTest {
         client.put().uri("/api/users/{id}", id)
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromObject(convertToJson(userDto)))
+                .body(fromValue(convertToJson(userDto)))
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
@@ -126,7 +131,14 @@ class UserServiceApplicationIntegrationTest {
     }
 
     private String authorizationHeader(List<SimpleGrantedAuthority> permissions) {
-        return "Bearer " + tokenProvider.createToken(new UsernamePasswordAuthenticationToken("admin@gmail.com", null, permissions), "Something", false);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("admin@gmail.com", null, permissions);
+
+        OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
+                true, Collections.singleton("read"), null, null, null, null);
+        OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, authentication));
+
+
+        return enhance.getTokenType() + " " + enhance.getValue();
     }
 
     private String convertToJson(Object object) throws JsonProcessingException {
