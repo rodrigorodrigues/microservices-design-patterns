@@ -51,7 +51,7 @@ class PersonList extends Component {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
-        const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/persons`, {
+        const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/people`, {
           headers: {
             'Authorization': jwt
           }
@@ -89,7 +89,7 @@ class PersonList extends Component {
     if (confirm) {
       let id = person.id;
       let jwt = this.state.jwt;
-      await fetch(`/api/persons/${id}`, {
+      await fetch(`/api/people/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt

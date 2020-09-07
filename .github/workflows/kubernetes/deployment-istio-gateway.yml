@@ -87,7 +87,7 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /api/persons
+            prefix: /api/people
       route:
         - destination:
             host: person-service

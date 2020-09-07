@@ -29,7 +29,7 @@ import java.net.URI;
 @Slf4j
 @RestController
 @Api(value = "persons", description = "Methods for managing persons")
-@RequestMapping("/api/persons")
+@RequestMapping("/api/people")
 @AllArgsConstructor
 public class PersonController {
     private final PersonService personService;
@@ -110,7 +110,7 @@ public class PersonController {
                                                   @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
         return personService.save(person)
-                .map(p -> ResponseEntity.created(URI.create(String.format("/api/persons/%s", p.getId())))
+                .map(p -> ResponseEntity.created(URI.create(String.format("/api/people/%s", p.getId())))
                         .body(p));
     }
 

@@ -134,17 +134,17 @@ public class PersonServiceApplicationIntegrationTest {
     }
 
     @Test
-	@DisplayName("Test - When Calling GET - /api/persons should return filter list of people and response 200 - OK")
+	@DisplayName("Test - When Calling GET - /api/people should return filter list of people and response 200 - OK")
 	public void shouldReturnListOfPersonsWhenCallApi() {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 
-		client.get().uri("/api/persons")
+		client.get().uri("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.exchange()
 				.expectStatus().isOk()
                 .expectBodyList(PersonDto.class).hasSize(1);
 
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
             .exchange()
             .expectStatus().isOk()
@@ -158,11 +158,11 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons should return list of people and response 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/people should return list of people and response 200 - OK")
     public void shouldReturnListOfAllPersonsWhenCallApi() {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
             .exchange()
             .expectStatus().isOk()
@@ -170,19 +170,19 @@ public class PersonServiceApplicationIntegrationTest {
     }
 
 	@Test
-    @DisplayName("Test - When Calling POST - /api/persons should create a new person and response 201 - Created")
+    @DisplayName("Test - When Calling POST - /api/people should create a new person and response 201 - Created")
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 		PersonDto person = createPerson();
 
-		client.post().uri("/api/persons")
+		client.post().uri("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromValue(convertToJson(person)))
 				.exchange()
 				.expectStatus().isCreated()
 				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-				.expectHeader().value(HttpHeaders.LOCATION, containsString("/api/persons/"))
+				.expectHeader().value(HttpHeaders.LOCATION, containsString("/api/people/"))
 				.expectBody()
                     .jsonPath("$.id").isNotEmpty()
                     .jsonPath("$.createdByUser").isEqualTo("master@gmail.com")
@@ -190,7 +190,7 @@ public class PersonServiceApplicationIntegrationTest {
 
 		assertThat(person.getId()).isNotEmpty();
 
-		client.delete().uri("/api/persons/{id}", person.getId())
+		client.delete().uri("/api/people/{id}", person.getId())
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader("admin@gmail.com"))
             .exchange()
             .expectStatus().is2xxSuccessful();
@@ -205,14 +205,14 @@ public class PersonServiceApplicationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling POST - /api/persons without mandatory field should response 400 - Bad Request")
+    @DisplayName("Test - When Calling POST - /api/people without mandatory field should response 400 - Bad Request")
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws JsonProcessingException {
 		String authorizationHeader = authorizationHeader("admin@gmail.com");
 
 		PersonDto person = createPerson();
 		person.setFullName("");
 
-		client.post().uri("/api/persons")
+		client.post().uri("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromValue(convertToJson(person)))
@@ -223,13 +223,13 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
 	@Test
-    @DisplayName("Test - When Calling POST - /api/persons without valid authorization should response 403 - Forbidden")
+    @DisplayName("Test - When Calling POST - /api/people without valid authorization should response 403 - Forbidden")
 	public void shouldResponseForbiddenWhenCallApiWithoutRightPermission() throws Exception {
 		String authorizationHeader = authorizationHeader("anonymous@gmail.com");
 
 		PersonDto person = createPerson();
 
-		client.post().uri("/api/persons")
+		client.post().uri("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(fromValue(convertToJson(person)))

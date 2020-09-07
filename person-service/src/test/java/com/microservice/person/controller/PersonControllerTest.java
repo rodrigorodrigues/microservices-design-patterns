@@ -67,25 +67,25 @@ public class PersonControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons without valid authorization the response should be 403 - Forbidden")
+    @DisplayName("Test - When Calling GET - /api/people without valid authorization the response should be 403 - Forbidden")
     @WithMockUser(roles = "INVALID_ROLE")
     public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() {
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isForbidden();
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons without authorization the response should be 401 - Unauthorized")
+    @DisplayName("Test - When Calling GET - /api/people without authorization the response should be 401 - Unauthorized")
     public void whenCallFindAllShouldReturnUnauthorizedWhenDoesNotHavePermission() {
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons with different user should return empty list and response 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/people with different user should return empty list and response 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "test")
     public void whenCallFindAllShouldReturnEmptyList() {
         PersonDto person = new PersonDto();
@@ -96,7 +96,7 @@ public class PersonControllerTest {
         person2.setId("200");
         when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
 
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
             .exchange()
             .expectStatus().isOk()
@@ -105,7 +105,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons with admin role the response should be a list of People - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/people with admin role the response should be a list of People - 200 - OK")
     @WithMockUser(roles = "ADMIN")
     public void whenCallFindAllShouldReturnListOfPersons() {
         PersonDto person = new PersonDto();
@@ -116,7 +116,7 @@ public class PersonControllerTest {
 
         ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
 
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isOk()
@@ -126,7 +126,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons with person_read role the response should be filtered - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/people with person_read role the response should be filtered - 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "me")
     public void whenCallShouldFilterListOfPersons() {
         PersonDto person = new PersonDto();
@@ -139,7 +139,7 @@ public class PersonControllerTest {
 
         ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
 
-        client.get().uri("/api/persons")
+        client.get().uri("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
             .exchange()
             .expectStatus().isOk()
@@ -149,7 +149,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons/{id} with valid authorization the response should be person - 200 - OK")
+    @DisplayName("Test - When Calling GET - /api/people/{id} with valid authorization the response should be person - 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "me")
     public void whenCallFindByIdShouldReturnPerson() {
         PersonDto person = new PersonDto();
@@ -157,7 +157,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("me");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
 
-        client.get().uri("/api/persons/{id}", 100)
+        client.get().uri("/api/people/{id}", 100)
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().isOk()
@@ -166,7 +166,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/persons/{id} with different user should response 403 - Forbidden")
+    @DisplayName("Test - When Calling GET - /api/people/{id} with different user should response 403 - Forbidden")
     @WithMockUser(roles = "PERSON_READ", username = "test")
     public void whenCallFindByIdShouldResponseForbidden() {
         PersonDto person = new PersonDto();
@@ -174,7 +174,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("test1");
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
 
-        client.get().uri("/api/persons/{id}", 100)
+        client.get().uri("/api/people/{id}", 100)
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
             .exchange()
             .expectStatus().isForbidden()
@@ -182,13 +182,13 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling POST - /api/persons with valid authorization the response should be a person - 201 - Created")
+    @DisplayName("Test - When Calling POST - /api/people with valid authorization the response should be a person - 201 - Created")
     @WithMockUser(roles = "PERSON_CREATE")
     public void whenCallCreateShouldSavePerson() throws Exception {
         PersonDto personDto = createPersonDto();
         when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
-        client.post().uri("/api/persons")
+        client.post().uri("/api/people")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromValue(convertToJson(personDto)))
@@ -199,7 +199,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling PUT - /api/persons/{id} with valid authorization the response should be a person - 200 - OK")
+    @DisplayName("Test - When Calling PUT - /api/people/{id} with valid authorization the response should be a person - 200 - OK")
     @WithMockUser(roles = "PERSON_SAVE")
     public void whenCallUpdateShouldUpdatePerson() throws Exception {
         PersonDto personDto = createPersonDto();
@@ -208,7 +208,7 @@ public class PersonControllerTest {
         when(personService.findById(anyString())).thenReturn(Mono.just(personDto));
         when(personService.save(any(PersonDto.class))).thenReturn(Mono.just(personDto));
 
-        client.put().uri("/api/persons/{id}", personDto.getId())
+        client.put().uri("/api/people/{id}", personDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromValue(convertToJson(personDto)))
@@ -220,14 +220,14 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling PUT - /api/persons/{id} with invalid id the response should be 404 - Not Found")
+    @DisplayName("Test - When Calling PUT - /api/people/{id} with invalid id the response should be 404 - Not Found")
     @WithMockUser(roles = "PERSON_SAVE")
     public void whenCallUpdateShouldResponseNotFound() throws Exception {
         PersonDto personDto = createPersonDto();
         personDto.setId("999");
         when(personService.findById(anyString())).thenReturn(Mono.empty());
 
-        client.put().uri("/api/persons/{id}", personDto.getId())
+        client.put().uri("/api/people/{id}", personDto.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromValue(convertToJson(personDto)))
@@ -236,7 +236,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with valid authorization the response should be 200 - OK")
+    @DisplayName("Test - When Calling DELETE - /api/people/{id} with valid authorization the response should be 200 - OK")
     @WithMockUser(roles = "PERSON_DELETE", username = "mock")
     public void whenCallDeleteShouldDeleteById() {
         PersonDto person = new PersonDto();
@@ -245,14 +245,14 @@ public class PersonControllerTest {
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());
 
-        client.delete().uri("/api/persons/{id}", person.getId())
+        client.delete().uri("/api/people/{id}", person.getId())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .exchange()
                 .expectStatus().is2xxSuccessful();
     }
 
     @Test
-    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with different user  the response should be 403 - Forbidden")
+    @DisplayName("Test - When Calling DELETE - /api/people/{id} with different user  the response should be 403 - Forbidden")
     @WithMockUser(roles = "PERSON_DELETE", username = "test")
     public void whenCallDeleteWithDifferentUSerShouldResponseForbidden() {
         PersonDto person = new PersonDto();
@@ -261,7 +261,7 @@ public class PersonControllerTest {
         when(personService.findById(anyString())).thenReturn(Mono.just(person));
         when(personService.deleteById(anyString())).thenReturn(Mono.empty());
 
-        client.delete().uri("/api/persons/{id}", person.getId())
+        client.delete().uri("/api/people/{id}", person.getId())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
             .exchange()
             .expectStatus().isForbidden()
@@ -269,12 +269,12 @@ public class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling DELETE - /api/persons/{id} with id that does not exist should response 404 - Not Found")
+    @DisplayName("Test - When Calling DELETE - /api/people/{id} with id that does not exist should response 404 - Not Found")
     @WithMockUser(roles = "PERSON_DELETE")
     public void whenCallDeleteShouldResponseNotFound() {
         when(personService.findById(anyString())).thenReturn(Mono.empty());
 
-        client.delete().uri("/api/persons/{id}", "12345")
+        client.delete().uri("/api/people/{id}", "12345")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
             .exchange()
             .expectStatus().isNotFound();

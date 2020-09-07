@@ -19,7 +19,7 @@ zuul:
             stripPrefix: true
             sensitiveHeaders:
         person-service:
-            path: /api/persons/**
+            path: /api/people/**
             serviceId: person-service
             stripPrefix: false
             sensitiveHeaders:

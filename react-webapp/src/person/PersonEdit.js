@@ -54,7 +54,7 @@ class PersonEdit extends Component {
       } else {
         if (this.props.match.params.id !== 'new') {
           try {
-            const person = await (await fetch(`/api/persons/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            const person = await (await fetch(`/api/people/${this.props.match.params.id}`, { method: 'GET',      headers: {
               'Content-Type': 'application/json',
               'Authorization': jwt
             }})).json();
@@ -101,7 +101,7 @@ class PersonEdit extends Component {
     event.preventDefault();
     const {person, jwt} = this.state;
     console.log("handleSubmit:person", person);
-    const url = '/api/persons' + (person.id ? '/' + person.id : '');
+    const url = '/api/people' + (person.id ? '/' + person.id : '');
 
     await fetch(url, {
       method: (person.id) ? 'PUT' : 'POST',

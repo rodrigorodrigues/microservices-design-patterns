@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:8080/api/persons",
+			"name": "http://localhost:8080/api/people",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -21,7 +21,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/persons",
+					"raw": "http://localhost:8080/api/people",
 					"protocol": "http",
 					"host": [
 						"localhost"

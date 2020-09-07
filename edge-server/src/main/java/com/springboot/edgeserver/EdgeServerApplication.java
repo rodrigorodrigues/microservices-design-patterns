@@ -3,15 +3,17 @@ package com.springboot.edgeserver;
 import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -27,19 +29,20 @@ import javax.net.ssl.HttpsURLConnection;
 @EnableZuulProxy
 @EnableDiscoveryClient
 @Import(ActuatorResourceServerConfiguration.class)
-@EnableRedisHttpSession
 @EnableZuulSpringfoxSwagger
+@EnableRedisHttpSession
 public class EdgeServerApplication {
-
-	@Autowired
-	private Environment environment;
-
 	static {
 		HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());
 	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(EdgeServerApplication.class, args);
+	}
+
+	@Bean
+	RedisConnectionFactory lettuceConnectionFactory(RedisProperties redisProperties) {
+		return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
 	}
 
 	@Bean
@@ -51,7 +54,7 @@ public class EdgeServerApplication {
 	}
 
 	@Bean
-	CorsFilter corsWebFilter() {
+	CorsFilter corsWebFilter(Environment environment) {
 		log.debug("active profiles: {}", environment.getActiveProfiles());
 		CorsConfiguration corsConfig = new CorsConfiguration();
 		corsConfig.setAllowCredentials(true);

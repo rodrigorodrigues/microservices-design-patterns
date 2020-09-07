@@ -105,7 +105,7 @@ spec:
             backend:
               serviceName: user-service
               servicePort: http-port
-          - path: /api/persons
+          - path: /api/people
             backend:
               serviceName: person-service
               servicePort: http-port
