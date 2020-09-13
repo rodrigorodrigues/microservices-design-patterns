@@ -133,7 +133,7 @@ class PersonList extends Component {
         <td>{address}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/persons/" + person.id} disabled={!hasSaveAccess}>Edit</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/people/" + person.id} disabled={!hasSaveAccess}>Edit</Button>
             <Button size="sm" color="danger" onClick={() => this.remove({ 'id': person.id, 'name': person.fullName })} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
@@ -166,7 +166,7 @@ class PersonList extends Component {
           <TabContent activeTab={this.state.activeTab}>
             <TabPane tabId="1">
               <div className="float-right">
-                <Button color="success" tag={Link} to="/persons/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
+                <Button color="success" tag={Link} to="/people/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
               </div>
               <Table striped responsive>
                 <thead>

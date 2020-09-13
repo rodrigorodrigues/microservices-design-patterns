@@ -91,29 +91,31 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
                 <configuration combine.self="override">
-                    <verbose>true</verbose>
-                    <images>
-                        <image>
-                            <name>${docker.image.name}</name>
-                            <build>
-                                <from>openjdk:8-jre-alpine</from>
-                                <tags>
-                                    <tag>latest</tag>
-                                    <tag>${project.version}</tag>
-                                </tags>
-                                <assembly>
-                                    <descriptorRef>artifact</descriptorRef>
-                                </assembly>
-                                <env>
-                                    <JAVA_CMD>java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</JAVA_CMD>
-                                </env>
-                                <cmd>java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar maven/${project.artifactId}-${project.version}.jar</cmd>
-                            </build>
-                        </image>
-                    </images>
+                    <from>
+                        <image>openjdk:8-jre-alpine</image>
+                    </from>
+                    <to>
+                        <image>${docker.image.name}</image>
+                        <tags>
+                            <tag>latest</tag>
+                        </tags>
+                    </to>
+                    <container>
+                        <jvmFlags>
+                            <jvmFlag>-Xmx512m</jvmFlag>
+                            <jvmFlag>-Dfile.encoding=UTF-8</jvmFlag>
+                            <jvmFlag>-XX:+UseG1GC</jvmFlag>
+                            <jvmFlag>-verbose:gc</jvmFlag>
+                            <jvmFlag>-XX:+PrintGCDetails</jvmFlag>
+                            <jvmFlag>-XX:+PrintGCDateStamps</jvmFlag>
+                            <jvmFlag>-XX:+PrintGCTimeStamps</jvmFlag>
+                            <jvmFlag>-Xloggc:/var/log/gc.log</jvmFlag>
+                            <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
+                        </jvmFlags>
+                    </container>
                 </configuration>
             </plugin>
         </plugins>

@@ -117,9 +117,9 @@ class App extends Component {
                 setAuthentication={this.setAuthentication} />} />
             <Route path='/logout' exact={true} 
               component={() => <Logout {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
-            <Route path='/persons' exact={true} 
+            <Route path='/people' exact={true} 
               component={() => <PersonList {...this.state} />} />
-            <Route path='/persons/:id'
+            <Route path='/people/:id'
               component={() => <PersonEdit {...this.state} />} />
             <Route path='/users' exact={true}
                    component={() => <UserList {...this.state} />} />

@@ -84,7 +84,7 @@ function HomeContent({notDisplayMessage}) {
 function displayButtonManagePeople(authorities) {
     const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
     || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE')
-    return <Link to="/persons" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage People</Link>
+    return <Link to="/people" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage People</Link>
 }
 
 function displayButtonManageUsers(authorities) {

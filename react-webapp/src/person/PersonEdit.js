@@ -114,7 +114,7 @@ class PersonEdit extends Component {
     }).then(response => response.json())
         .then(data => {
           if (data.id) {
-            this.props.history.push('/persons');
+            this.props.history.push('/people');
           } else {
             this.setState({ displayError: errorMessage(data)});
           }
@@ -190,7 +190,7 @@ class PersonEdit extends Component {
             </div>
             <AvGroup>
               <Button color="primary" type="submit">{person.id ? 'Save' : 'Create'}</Button>{' '}
-              <Button color="secondary" tag={Link} to="/persons">Cancel</Button>
+              <Button color="secondary" tag={Link} to="/people">Cancel</Button>
             </AvGroup>
           </AvForm>
           </div>

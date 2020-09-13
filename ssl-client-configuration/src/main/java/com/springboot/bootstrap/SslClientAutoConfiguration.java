@@ -62,10 +62,8 @@ public class SslClientAutoConfiguration {
             for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
                 if (beanDefinitionName.equalsIgnoreCase("discoveryClientOptionalArgs")) {
                     BeanDefinition beanDefinition = registry.containsBeanDefinition(beanDefinitionName) ? registry.getBeanDefinition(beanDefinitionName) : null;
-                    if (beanDefinition != null) {
-                        if (registry.containsBeanDefinition(beanDefinitionName)) {
-                            registry.removeBeanDefinition(beanDefinitionName);
-                        }
+                    if (beanDefinition != null && registry.containsBeanDefinition(beanDefinitionName)) {
+                        registry.removeBeanDefinition(beanDefinitionName);
                     }
                 }
             }
