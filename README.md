@@ -96,7 +96,7 @@ On `root folder` first need to generate the docker images.
 
 ```bash
 # at once for building the docker images
-mvn clean install docker:build
+mvn clean install jib:dockerBuild
 ```
 
 Then on `docker folder` run all microservices using
