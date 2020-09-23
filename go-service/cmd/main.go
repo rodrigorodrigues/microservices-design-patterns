@@ -9,76 +9,134 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
-type (
-	post struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	}
-)
+type Post struct {
+	ID   bson.ObjectId    `json:"id"`
+	Name string `json:"name"`
+	CreatedDate time.Time `json:"createdDate"`
+	LastModifiedDate time.Time `json:"lastModifiedDate"`
+	CreatedByUser string `json:"createdByUser"`
+	LastModifiedByUser string `json:"lastModifiedByUser"`
+}
 
 var (
-	posts = map[int]*post{}
 	echoRestApi = echo.New()
+	session = connectMongo()
+	collection = session.DB(getEnv("MONGODB_DATABASE", "docker")).C("Posts")
 )
+
+func connectMongo() *mgo.Session {
+	// Mongodb
+	session, err := mgo.Dial(getEnv("MONGODB_URI", ""))
+	if err != nil {
+		panic(err)
+	}
+	return session
+}
+
+
 
 //----------
 // Handlers
 //----------
 func createDefaultPosts() {
-	u := &post{
-		ID: 1,
-		Name: "Golang",
+	count, _ := collection.Count()
+	if count > 0 {
+		return
 	}
-	posts[u.ID] = u
-	u = &post{
-		ID:   2,
-		Name: "Test",
+	var posts = []Post{
+		{
+			ID: bson.NewObjectId(),
+			Name:               "Golang",
+			CreatedDate:        time.Time{},
+			LastModifiedDate:   time.Time{},
+			CreatedByUser:      "",
+			LastModifiedByUser: "",
+		},
+		{
+			ID: bson.NewObjectId(),
+			Name:               "Test",
+			CreatedDate:        time.Time{},
+			LastModifiedDate:   time.Time{},
+			CreatedByUser:      "",
+			LastModifiedByUser: "",
+		},
 	}
-	posts[u.ID] = u
+
+	for _, post := range posts {
+		err := collection.Insert(post)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 func getAllPosts(c echo.Context) error {
+	var posts []Post
+	if err := collection.Find(nil).All(&posts); err != nil {
+		return err
+	}
 	return c.JSON(http.StatusOK, posts)
 }
 
 func createPost(c echo.Context) error {
-	seq := len(posts)+1
-	u := &post{
-		ID: seq,
-		Name: c.FormValue("name"),
-	}
+	u := new(Post)
 	if err := c.Bind(u); err != nil {
 		return err
 	}
-	posts[u.ID] = u
+	if err := collection.Insert(u); err != nil {
+		return err
+	}
 	return c.JSON(http.StatusCreated, u)
 }
 
 func getPost(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
-	return c.JSON(http.StatusOK, posts[id])
+	post := Post{}
+	if err := collection.Find(bson.M{"ID": id}).One(post); err != nil {
+		return err
+	}
+	if post.ID == "" {
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found id: %v", id))
+	}
+	return c.JSON(http.StatusOK, post)
 }
 
 func updatePost(c echo.Context) error {
-	u := new(post)
+	id, _ := strconv.Atoi(c.Param("id"))
+	post := Post{}
+	if err := collection.Find(bson.M{"ID": id}).One(post); err != nil {
+		return err
+	}
+	if post.ID == "" {
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found id: %v", id))
+	}
+
+	u := new(Post)
 	if err := c.Bind(u); err != nil {
 		return err
 	}
-	id, _ := strconv.Atoi(c.Param("id"))
-	posts[id].Name = u.Name
-	return c.JSON(http.StatusOK, posts[id])
+
+	if err := collection.UpdateId(id, u); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, u)
 }
 
 func deletePost(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
-	delete(posts, id)
+	if err := collection.RemoveId(id); err != nil {
+		return err
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -146,13 +204,20 @@ func init()  {
 			SigningMethod: "RS256",
 		})
 	} else {
-		//echoRestApi.Use(middleware.JWT([]byte(config.PropertySources[0].Source(map[string]interface{})["foo"])))
+		secretKey := config.PropertySources[0].Source["security.oauth2.resource.jwt.keyValue"]
+		if secretKey == nil {
+			secretKey = config.PropertySources[1].Source["security.oauth2.resource.jwt.keyValue"]
+		}
+		if secretKey == nil {
+			panic("Not found secretKey")
+		}
+		echoRestApi.Use(middleware.JWT([]byte(secretKey.(string))))
 	}
 
 	// Middleware
 	echoRestApi.Use(middleware.Recover(),
-		middleware.Logger(),
-		middleware.CSRF())
+		middleware.Logger())
+		//middleware.CSRF())
 
 	// Routes
 	echoRestApi.Logger.SetLevel(log.DEBUG)
