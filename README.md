@@ -5,11 +5,11 @@
 
 The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Most all services are built in `Java with Spring Boot 2 + Webflux + MongoDB` but there are other services using `NodeJS`, `Kotlin` and `Python`.
+Most all services are built in `Java with Spring Boot 2 + Webflux + MongoDB` but there are other services using `NodeJS, Kotlin, Python and Go`.
 
 The web application is using `React` and a beta version using [JHipster](https://www.jhipster.tech/).
 
-Feel free to create a new microservice using a different language(`Go?, Ruby?, C#?`), just please following the minimal requirements:
+Feel free to create a new microservice using a different language(`Ruby?, C#?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
  * Add a minimal documentation
  * Add a Rest API
@@ -426,6 +426,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Add tests for Python
 * [ ] Add React Legacy
 * [X] Rename `/api/persons` to `/api/people`
+* [X] Add Go example
 
 
 ### References

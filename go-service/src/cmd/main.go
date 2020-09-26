@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/ArthurHlt/go-eureka-client/eureka"
 	"github.com/Piszmog/cloudconfigclient"
@@ -9,8 +10,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -20,27 +23,29 @@ import (
 )
 
 type Post struct {
-	ID   bson.ObjectId    `json:"id"`
-	Name string `json:"name"`
-	CreatedDate time.Time `json:"createdDate"`
-	LastModifiedDate time.Time `json:"lastModifiedDate"`
-	CreatedByUser string `json:"createdByUser"`
-	LastModifiedByUser string `json:"lastModifiedByUser"`
+	ID                 primitive.ObjectID    `bson:"_id" json:"id" form:"id" query:"id"`
+	Name               string    `json:"name" form:"name" query:"name"`
+	CreatedDate        time.Time `json:"createdDate" form:"createDate" query:"createDate"`
+	LastModifiedDate   time.Time `json:"lastModifiedDate"`
+	CreatedByUser      string    `json:"createdByUser"`
+	LastModifiedByUser string    `json:"lastModifiedByUser"`
 }
 
 var (
 	echoRestApi = echo.New()
-	session = connectMongo()
-	collection = session.DB(getEnv("MONGODB_DATABASE", "docker")).C("Posts")
+	client      = connectMongo()
+	collection  = client.Database(getEnv("MONGODB_DATABASE", "docker")).Collection("posts")
 )
 
-func connectMongo() *mgo.Session {
+func connectMongo() *mongo.Client {
 	// Mongodb
-	session, err := mgo.Dial(getEnv("MONGODB_URI", ""))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(getEnv("MONGODB_URI", "mongodb://localhost:27017")))
 	if err != nil {
 		panic(err)
 	}
-	return session
+	return client
 }
 
 
@@ -49,31 +54,27 @@ func connectMongo() *mgo.Session {
 // Handlers
 //----------
 func createDefaultPosts() {
-	count, _ := collection.Count()
+	count, _ := collection.CountDocuments(context.TODO(), bson.D{})
 	if count > 0 {
 		return
 	}
 	var posts = []Post{
 		{
-			ID: bson.NewObjectId(),
+			ID: primitive.NewObjectID(),
 			Name:               "Golang",
-			CreatedDate:        time.Time{},
-			LastModifiedDate:   time.Time{},
-			CreatedByUser:      "",
-			LastModifiedByUser: "",
+			CreatedDate:        time.Now(),
+			CreatedByUser:      "default@admin.com",
 		},
 		{
-			ID: bson.NewObjectId(),
+			ID: primitive.NewObjectID(),
 			Name:               "Test",
-			CreatedDate:        time.Time{},
-			LastModifiedDate:   time.Time{},
-			CreatedByUser:      "",
-			LastModifiedByUser: "",
+			CreatedDate:        time.Now(),
+			CreatedByUser:      "default@admin.com",
 		},
 	}
 
 	for _, post := range posts {
-		err := collection.Insert(post)
+		_, err := collection.InsertOne(context.TODO(), post)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,9 +82,18 @@ func createDefaultPosts() {
 }
 
 func getAllPosts(c echo.Context) error {
-	var posts []Post
-	if err := collection.Find(nil).All(&posts); err != nil {
+	ctx := context.TODO()
+	cur, err := collection.Find(ctx, bson.D{})
+	if err != nil {
 		return err
+	}
+	var posts []*Post
+	for cur.Next(ctx) {
+		var post Post
+		if err := cur.Decode(&post); err != nil {
+			return err
+		}
+		posts = append(posts, &post)
 	}
 	return c.JSON(http.StatusOK, posts)
 }
@@ -93,32 +103,45 @@ func createPost(c echo.Context) error {
 	if err := c.Bind(u); err != nil {
 		return err
 	}
-	if err := collection.Insert(u); err != nil {
+	u.CreatedDate = time.Now()
+	u.LastModifiedByUser = ""
+	claims := getAuthUser(c)
+	u.CreatedByUser = claims["sub"].(string)
+	if _, err := collection.InsertOne(context.TODO(), u); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, u)
 }
 
+func getAuthUser(c echo.Context) jwt.MapClaims {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	return claims
+}
+
 func getPost(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id := c.Param("id")
 	post := Post{}
-	if err := collection.Find(bson.M{"ID": id}).One(post); err != nil {
+	filter := bson.D{{"_id", id}}
+	if err := collection.FindOne(context.TODO(), filter).Decode(&post); err != nil {
 		return err
 	}
-	if post.ID == "" {
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found id: %v", id))
+	if post.ID.IsZero() {
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found ID: %v", id))
 	}
 	return c.JSON(http.StatusOK, post)
 }
 
 func updatePost(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id := c.Param("id")
 	post := Post{}
-	if err := collection.Find(bson.M{"ID": id}).One(post); err != nil {
+	ctx := context.TODO()
+	filter := bson.D{{"_id", id}}
+	if err := collection.FindOne(ctx, filter).Decode(&post); err != nil {
 		return err
 	}
-	if post.ID == "" {
-		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found id: %v", id))
+	if post.ID.IsZero() {
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found ID: %v", id))
 	}
 
 	u := new(Post)
@@ -126,15 +149,17 @@ func updatePost(c echo.Context) error {
 		return err
 	}
 
-	if err := collection.UpdateId(id, u); err != nil {
+	u.LastModifiedDate = time.Now()
+	u.LastModifiedByUser = getAuthUser(c)["sub"].(string)
+	if _, err := collection.UpdateOne(ctx, filter, u); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, u)
 }
 
 func deletePost(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
-	if err := collection.RemoveId(id); err != nil {
+	id := c.Param("ID")
+	if _, err := collection.DeleteOne(context.TODO(), id); err != nil {
 		return err
 	}
 	return c.NoContent(http.StatusNoContent)
