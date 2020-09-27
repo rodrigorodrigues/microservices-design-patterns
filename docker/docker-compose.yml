@@ -214,6 +214,27 @@ services:
         aliases:
           - product-api
 
+  post-api:
+    build:
+      args:
+        - PORT=3006
+      context: ../go-service
+      dockerfile: Dockerfile
+    container_name: post-api
+    environment:
+      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
+      - MONGODB_URI=mongodb://mongodb-datasource
+      - MONGODB_DATABASE=docker
+      - SERVER_PORT=3006
+      - LOG_LEVEL=TRACE
+    ports:
+      - 3006:3006
+    networks:
+      net:
+        aliases:
+          - post-api
+
   person-api:
     image: person-service
     container_name: person-api

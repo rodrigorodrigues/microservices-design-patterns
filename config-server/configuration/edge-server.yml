@@ -73,11 +73,17 @@ zuul:
             swaggerUri: api-documentation
             stripPrefix: true
             sensitiveHeaders:
-#        authenticated-oauth-service:
-#            path: /oauth/**
-#            serviceId: authentication-service
-#            stripPrefix: false
-#            sensitiveHeaders:
+        authenticated-oauth-service:
+            path: /oauth/**
+            serviceId: authentication-service
+            stripPrefix: false
+            sensitiveHeaders:
+        go-service:
+            path: /api/posts/**
+            serviceId: go-service
+            swaggerUri: api-documentation
+            stripPrefix: false
+            sensitiveHeaders:
 #        grafana-service:
 #            path: /grafana/**
 #            url: ${GRAFANA_URL:http://localhost:3000}
