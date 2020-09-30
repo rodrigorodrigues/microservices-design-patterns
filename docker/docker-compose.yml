@@ -218,18 +218,26 @@ services:
     build:
       args:
         - PORT=3006
+        - ENV=docker
       context: ../go-service
       dockerfile: Dockerfile
     container_name: post-api
     environment:
-      - EUREKA_SERVER=http://service-discovery:8761/eureka/
+      - EUREKA_SERVER=http://service-discovery:8761/eureka
       - SPRING_CLOUD_CONFIG_URI=http://config-management:8888
       - MONGODB_URI=mongodb://mongodb-datasource
       - MONGODB_DATABASE=docker
       - SERVER_PORT=3006
       - LOG_LEVEL=TRACE
+    depends_on:
+      - service-discovery
+      - config-management
+      - mongodb-datasource
     ports:
       - 3006:3006
+    volumes:
+      - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+    command: sh /tmp/docker-entrypoint.sh service-discovery:8761
     networks:
       net:
         aliases:

@@ -7,9 +7,11 @@ import (
 	"github.com/Piszmog/cloudconfigclient"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,17 +33,22 @@ type Post struct {
 	LastModifiedByUser string    `json:"lastModifiedByUser"`
 }
 
+type JsonResponse struct {
+	Status	string	 `json:"status"`
+}
+
 var (
-	echoRestApi = echo.New()
+	loadEnvFlag = true
+	e           = echo.New()
 	client      = connectMongo()
-	collection  = client.Database(getEnv("MONGODB_DATABASE", "docker")).Collection("posts")
+	collection  = client.Database(getEnv("MONGODB_DATABASE")).Collection("posts")
 )
 
 func connectMongo() *mongo.Client {
 	// Mongodb
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(getEnv("MONGODB_URI", "mongodb://localhost:27017")))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(getEnv("MONGODB_URI")))
 	if err != nil {
 		panic(err)
 	}
@@ -165,24 +172,38 @@ func deletePost(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func getEnv(key string, defaultVal string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-
-	return defaultVal
+func healthCheck(c echo.Context) error  {
+	json := JsonResponse{Status: "OK"}
+	return c.JSON(http.StatusOK, json)
 }
 
-func getEnvAsInt(name string, defaultVal int) int {
-	valueStr := getEnv(name, "")
-	if value, err := strconv.Atoi(valueStr); err == nil {
-		return value
+func getEnv(key string) string {
+	if loadEnvFlag {
+		loadEnv()
+		loadEnvFlag = false
 	}
-
-	return defaultVal
+	value := os.Getenv(key)
+	if "" == value {
+		valueEnv, exists := os.LookupEnv(key)
+		if  !exists {
+			panic("Not found variable: " + key)
+		}
+		value = valueEnv
+	}
+	fmt.Print(fmt.Sprintf("Env = %+v\tvalue = %v\n", key, value))
+	return value
 }
 
-func init()  {
+func getEnvAsInt(key string) int {
+	value, err := strconv.Atoi(getEnv(key))
+	if err != nil {
+		panic("Not found variable: " + key)
+	}
+
+	return value
+}
+
+func loadEnv()  {
 	// loads values from .env into the system
 	env := ".env"
 	environment := os.Getenv("ENVIRONMENT")
@@ -190,39 +211,65 @@ func init()  {
 		env += "." + environment
 	}
 
+	fmt.Print(fmt.Sprintf("Env = %+v\n", env))
 	if err := godotenv.Load(env); err != nil {
 		panic(err)
 	}
+}
 
+func init()  {
+	appId := processEurekaClient()
+
+	profiles, config := processConfigClient(appId)
+
+	middlewareObj := processJwt(profiles, config)
+
+	processRestApi(middlewareObj)
+}
+
+func processEurekaClient() string {
+	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
 	client := eureka.NewClient([]string{
-		getEnv("EUREKA_SERVER", "http://127.0.0.1:8761/eureka"), //From a spring boot based eureka server
+		getEnv("EUREKA_SERVER"), //From a spring boot based eureka server
 		// add others servers here
 	})
-	appId := getEnv("APP_ID", "go-service")
-	instance := eureka.NewInstanceInfo(getEnv("HOSTNAME", "localhost"),
+	log.Infof("Eureka Client = %+v", client)
+	appId := getEnv("APP_ID")
+	instance := eureka.NewInstanceInfo(getEnv("HOSTNAME"),
 		appId,
-		getEnv("IP_ADDRESS", "0.0.0.0"),
-		getEnvAsInt("SERVER_PORT", 9091), 30, false) //Create a new instance to register
+		getEnv("IP_ADDRESS"),
+		getEnvAsInt("SERVER_PORT"), 30, false) //Create a new instance to register
 	instance.Metadata = &eureka.MetaData{
 		Map: make(map[string]string),
 	}
-	client.RegisterInstance(appId, instance)
+	log.Infof("Instance = %+v", instance)
+	if err := client.RegisterInstance(appId, instance); err != nil {
+		panic(err)
+	}
+	return appId
+}
 
-	springConfigUrl := getEnv("SPRING_CLOUD_CONFIG_URI", "http://localhost:8888")
-	springConfigUrl = fmt.Sprintf("%v?X-Encrypt-Key=%v", springConfigUrl, getEnv("X_ENCRYPT_KEY", "test"))
+func processConfigClient(appId string) (string, cloudconfigclient.Source) {
+	springConfigUrl := getEnv("SPRING_CLOUD_CONFIG_URI")
+	springConfigUrl = fmt.Sprintf("%v?X-Encrypt-Key=%v", springConfigUrl, getEnv("X_ENCRYPT_KEY"))
 	configClient, err := cloudconfigclient.NewLocalClient(&http.Client{}, []string{springConfigUrl})
-
+	log.Infof("ConfigClient = %+v", configClient)
 	if err != nil {
 		panic(err)
 	}
 
-	profiles := getEnv("SPRING_PROFILES_ACTIVE", "dev")
+	profiles := getEnv("SPRING_PROFILES_ACTIVE")
 	config, err := configClient.GetConfiguration(appId, []string{profiles})
 	log.Infof("CONFIG Client = %+v", config)
+	return profiles, config
+}
 
+func processJwt(profiles string, config cloudconfigclient.Source) echo.MiddlewareFunc {
 	//JWT
+	middlewareObj := middleware.JWT([]byte("secret"))
 	if strings.Contains(profiles, "prod") {
-		bytes, err := ioutil.ReadFile(getEnv("PUBLIC_KEY_PATH", "/tmp/public.key"))
+		bytes, err := ioutil.ReadFile(getEnv("PUBLIC_KEY_PATH"))
 		if err != nil {
 			panic(err)
 		}
@@ -230,7 +277,7 @@ func init()  {
 		if err != nil {
 			panic(err)
 		}
-		middleware.JWTWithConfig(middleware.JWTConfig{
+		middlewareObj = middleware.JWTWithConfig(middleware.JWTConfig{
 			SigningKey:    pem,
 			SigningMethod: "RS256",
 		})
@@ -242,26 +289,43 @@ func init()  {
 		if secretKey == nil {
 			panic("Not found secretKey")
 		}
-		echoRestApi.Use(middleware.JWT([]byte(secretKey.(string))))
+		middlewareObj = middleware.JWT([]byte(secretKey.(string)))
 	}
+	return middlewareObj
+}
 
+// urlSkipper ignores metrics route on some middleware
+func urlSkipper(c echo.Context) bool {
+	if strings.HasPrefix(c.Path(), "/actuator") {
+		return true
+	}
+	return false
+}
+
+func processRestApi(middlewareObj echo.MiddlewareFunc) {
 	// Middleware
-	echoRestApi.Use(middleware.Recover(),
+	e.Use(middleware.Recover(),
 		middleware.Logger())
-		//middleware.CSRF())
+	//middleware.CSRF())
 
 	// Routes
-	echoRestApi.Logger.SetLevel(log.DEBUG)
-	echoRestApi.GET("/api/posts", getAllPosts)
-	echoRestApi.POST("/api/posts", createPost)
-	echoRestApi.GET("/api/posts/:id", getPost)
-	echoRestApi.PUT("/api/posts/:id", updatePost)
-	echoRestApi.DELETE("/api/posts/:id", deletePost)
+	e.Logger.SetLevel(log.DEBUG)
+	e.GET("/api/posts", getAllPosts, middlewareObj)
+	e.POST("/api/posts", createPost, middlewareObj)
+	e.GET("/api/posts/:id", getPost, middlewareObj)
+	e.PUT("/api/posts/:id", updatePost, middlewareObj)
+	e.DELETE("/api/posts/:id", deletePost, middlewareObj)
+	e.GET("/actuator/info", healthCheck)
+	e.GET("/actuator/health", healthCheck)
+
+	p := prometheus.NewPrometheus("echo", urlSkipper)
+	p.MetricsPath = "/actuator/metrics"
+	p.Use(e)
 }
 
 func main() {
 	createDefaultPosts()
 
 	// Start server
-	echoRestApi.Logger.Fatal(echoRestApi.Start(":"+getEnv("SERVER_PORT", "9091")))
+	e.Logger.Fatal(e.Start(":"+getEnv("SERVER_PORT")))
 }
