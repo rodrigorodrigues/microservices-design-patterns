@@ -6,6 +6,7 @@ import (
 	"github.com/ArthurHlt/go-eureka-client/eureka"
 	"github.com/Piszmog/cloudconfigclient"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
@@ -24,18 +25,24 @@ import (
 	"time"
 )
 
-type Post struct {
-	ID                 primitive.ObjectID    `bson:"_id" json:"id" form:"id" query:"id"`
-	Name               string    `json:"name" form:"name" query:"name"`
-	CreatedDate        time.Time `json:"createdDate" form:"createDate" query:"createDate"`
-	LastModifiedDate   time.Time `json:"lastModifiedDate"`
-	CreatedByUser      string    `json:"createdByUser"`
-	LastModifiedByUser string    `json:"lastModifiedByUser"`
-}
+type (
+	Post struct {
+		ID                 primitive.ObjectID    `bson:"_id" json:"id,omitempty" form:"id" query:"id"`
+		Name               string    `json:"name,omitempty" form:"name" query:"name" validate:"required,gte=5,lte=255"`
+		CreatedDate        time.Time `json:"createdDate,omitempty" form:"createDate" query:"createDate"`
+		LastModifiedDate   time.Time `json:"lastModifiedDate,omitempty"`
+		CreatedByUser      string    `json:"createdByUser,omitempty"`
+		LastModifiedByUser string    `json:"lastModifiedByUser,omitempty"`
+	}
 
-type JsonResponse struct {
-	Status	string	 `json:"status"`
-}
+	JsonResponse struct {
+		Status	string	 `json:"status"`
+	}
+
+	CustomValidator struct {
+		validator *validator.Validate
+	}
+)
 
 var (
 	loadEnvFlag = true
@@ -110,8 +117,11 @@ func createPost(c echo.Context) error {
 	if err := c.Bind(u); err != nil {
 		return err
 	}
+	if err := c.Validate(u); err != nil {
+		return err
+	}
+	u.ID = primitive.NewObjectID()
 	u.CreatedDate = time.Now()
-	u.LastModifiedByUser = ""
 	claims := getAuthUser(c)
 	u.CreatedByUser = claims["sub"].(string)
 	if _, err := collection.InsertOne(context.TODO(), u); err != nil {
@@ -128,9 +138,17 @@ func getAuthUser(c echo.Context) jwt.MapClaims {
 
 func getPost(c echo.Context) error {
 	id := c.Param("id")
+	if "" == id {
+		panic("Id is mandatory!")
+	}
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		panic(err)
+	}
 	post := Post{}
-	filter := bson.D{{"_id", id}}
-	if err := collection.FindOne(context.TODO(), filter).Decode(&post); err != nil {
+	filter := bson.M{"_id": objId}
+	opts := options.FindOne().SetSort(bson.D{{"createdDate", 1}})
+	if err := collection.FindOne(context.TODO(), filter, opts).Decode(&post); err != nil {
 		return err
 	}
 	if post.ID.IsZero() {
@@ -141,9 +159,16 @@ func getPost(c echo.Context) error {
 
 func updatePost(c echo.Context) error {
 	id := c.Param("id")
+	if "" == id {
+		panic("Id is mandatory!")
+	}
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		panic(err)
+	}
 	post := Post{}
 	ctx := context.TODO()
-	filter := bson.D{{"_id", id}}
+	filter := bson.M{"_id": objId}
 	if err := collection.FindOne(ctx, filter).Decode(&post); err != nil {
 		return err
 	}
@@ -153,6 +178,9 @@ func updatePost(c echo.Context) error {
 
 	u := new(Post)
 	if err := c.Bind(u); err != nil {
+		return err
+	}
+	if err := c.Validate(u); err != nil {
 		return err
 	}
 
@@ -165,8 +193,13 @@ func updatePost(c echo.Context) error {
 }
 
 func deletePost(c echo.Context) error {
-	id := c.Param("ID")
-	if _, err := collection.DeleteOne(context.TODO(), id); err != nil {
+	id := c.Param("id")
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		panic(err)
+	}
+	filter := bson.M{"_id": objId}
+	if _, err := collection.DeleteOne(context.TODO(), filter); err != nil {
 		return err
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -203,8 +236,8 @@ func getEnvAsInt(key string) int {
 	return value
 }
 
+// loads values from .env into the system
 func loadEnv()  {
-	// loads values from .env into the system
 	env := ".env"
 	environment := os.Getenv("ENVIRONMENT")
 	if environment != "" {
@@ -215,6 +248,10 @@ func loadEnv()  {
 	if err := godotenv.Load(env); err != nil {
 		panic(err)
 	}
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
 }
 
 func init()  {
@@ -318,6 +355,9 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 	e.GET("/actuator/info", healthCheck)
 	e.GET("/actuator/health", healthCheck)
 
+	e.Validator = &CustomValidator{validator: validator.New()}
+
+	// Prometheus
 	p := prometheus.NewPrometheus("echo", urlSkipper)
 	p.MetricsPath = "/actuator/metrics"
 	p.Use(e)
