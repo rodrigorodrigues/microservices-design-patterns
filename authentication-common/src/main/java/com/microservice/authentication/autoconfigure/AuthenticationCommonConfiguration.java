@@ -1,7 +1,7 @@
 package com.microservice.authentication.autoconfigure;
 
 import com.microservice.authentication.common.model.Authentication;
-import org.apache.commons.lang.StringUtils;
+import io.micrometer.core.instrument.util.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;

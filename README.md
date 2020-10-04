@@ -406,7 +406,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Quarkus - Add Service using Quarkus framework
 * [ ] Scala - Add Service using Scala Language
 * [ ] C# - Add Service using C# Language
-* [ ] Go - Add Service using Go Language
+* [X] Go - Add Service using Go Language
 * [X] React - Create User List
 * [X] React - Create User Page
 * [X] React - Create User Edit
@@ -426,7 +426,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Add tests for Python
 * [ ] Add React Legacy
 * [X] Rename `/api/persons` to `/api/people`
-* [X] Add Go example
+* [ ] Fix Eureka Client for Golang
 
 
 ### References

@@ -273,15 +273,28 @@ func processEurekaClient() string {
 	})
 	log.Infof("Eureka Client = %+v", client)
 	appId := getEnv("APP_ID")
-	instance := eureka.NewInstanceInfo(getEnv("HOSTNAME"),
+	hostname := getEnv("HOSTNAME")
+	protocol := getEnv("PROTOCOL")
+	ssl := false
+	if "https" == protocol {
+		ssl = true
+	}
+	port := getEnvAsInt("SERVER_PORT")
+	instance := eureka.NewInstanceInfo(hostname,
 		appId,
 		getEnv("IP_ADDRESS"),
-		getEnvAsInt("SERVER_PORT"), 30, false) //Create a new instance to register
+		port, 30, ssl) //Create a new instance to register
 	instance.Metadata = &eureka.MetaData{
 		Map: make(map[string]string),
 	}
+	instance.HomePageUrl = fmt.Sprintf("%v://%v:%v/actuator/info", protocol, hostname, port)
+	instance.HealthCheckUrl = fmt.Sprintf("%v://%v:%v/actuator/health", protocol, hostname, port)
+	instance.StatusPageUrl = instance.HomePageUrl
 	log.Infof("Instance = %+v", instance)
 	if err := client.RegisterInstance(appId, instance); err != nil {
+		panic(err)
+	}
+	if err := client.SendHeartbeat(appId, hostname); err != nil {
 		panic(err)
 	}
 	return appId

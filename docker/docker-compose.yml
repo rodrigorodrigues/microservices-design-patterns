@@ -229,6 +229,7 @@ services:
       - MONGODB_DATABASE=docker
       - SERVER_PORT=3006
       - LOG_LEVEL=TRACE
+      - HOSTNAME-0.0.0.0
     depends_on:
       - service-discovery
       - config-management
