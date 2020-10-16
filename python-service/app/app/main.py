@@ -2,6 +2,7 @@ import logging.config
 import os
 import sys
 import datetime
+import opentracing
 
 from autologging import traced, logged
 from flask import Flask, request, Response
@@ -10,12 +11,14 @@ from flask_jwt_extended import JWTManager, get_jwt_identity
 from flask_restplus import fields, Resource
 from flask_zipkin import Zipkin
 from werkzeug.serving import run_simple
+from flask_opentracing import FlaskTracing
+from jaeger_client import Config
 
-from app.core.database_setup import initialize_db
-from app.core.spring_cloud_setup import initialize_spring_cloud_client, initialize_dispatcher
-from app.core.api_setup import initialize_api
-from app.jwt_custom_decorator import admin_required
-from app.model.models import Product
+from core.database_setup import initialize_db
+from core.spring_cloud_setup import initialize_spring_cloud_client, initialize_dispatcher
+from core.api_setup import initialize_api
+from jwt_custom_decorator import admin_required
+from model.models import Product
 
 app = Flask(__name__)
 app.config.from_envvar('ENV_FILE_LOCATION')
@@ -53,6 +56,17 @@ productModel = api.model('Product', {
     'category': fields.String(required=True, description='Category Name'),
 })
 
+# Create configuration object with enabled logging and sampling of all requests.
+config = Config(config={'sampler': {'type': 'const', 'param': 1},
+                        'logging': True,
+                        'local_agent':
+                        # Also, provide a hostname of Jaeger instance to send traces to.
+                            {'reporting_host': app.config['JAEGER_HOST']}},
+                # Service name can be arbitrary string describing this particular web service.
+                service_name=app.config['APP_NAME'])
+jaeger_tracer = config.initialize_tracer()
+tracing = FlaskTracing(jaeger_tracer)
+
 
 @traced(log)
 @logged(log)
@@ -73,6 +87,7 @@ class ProductsApi(Resource):
         403: 'Forbidden',
         500: 'Unexpected Error'
     })
+    @tracing.trace()
     def get(self):
         log.debug('Get all products')
         products = Product.objects().to_json()
@@ -89,6 +104,7 @@ class ProductsApi(Resource):
         500: 'Unexpected Error'
     })
     @ns.expect(productModel)
+    @tracing.trace()
     def post(self):
         user_id = get_jwt_identity()
         body = request.get_json()
@@ -117,6 +133,7 @@ class ProductApi(Resource):
         500: 'Unexpected Error'
     })
     @ns.expect(productModel)
+    @tracing.trace()
     def put(self, id):
         user_id = get_jwt_identity()
         product = Product.objects.get(id=id)
@@ -136,6 +153,7 @@ class ProductApi(Resource):
         403: 'Forbidden',
         500: 'Unexpected Error'
     })
+    @tracing.trace()
     def delete(self, id):
         user_id = get_jwt_identity()
         movie = Product.objects.get(id=id)
@@ -143,6 +161,7 @@ class ProductApi(Resource):
         return make_response(jsonify(msg='Deleted product id: ' + id), 200)
 
     @findByIdPermissions
+    @tracing.trace()
     def get(self, id):
         product = Product.objects.get(id=id).to_json()
         return Response(product, mimetype="application/json", status=200)

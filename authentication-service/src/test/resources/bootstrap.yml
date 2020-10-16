@@ -1,7 +1,3 @@
-eureka:
-  client:
-    enabled: false
-
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -10,7 +6,7 @@ spring:
   cloud:
     discovery:
       enabled: false
-    config:
+    consul:
         enabled: false
 security:
     oauth2:

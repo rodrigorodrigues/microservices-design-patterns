@@ -36,7 +36,7 @@ spec:
             - name: PORT
               value: "3004"
             - name: SERVER_API_URL
-              value: https://spendingbetter.com/
+              value: https://YOUR_DOMAIN.com/
             - name: NODE_ENV
               value: production
           ports:

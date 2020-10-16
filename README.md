@@ -17,8 +17,7 @@ Feel free to create a new microservice using a different language(`Ruby?, C#?`),
  * Add Tests
  * Add Dockerfile
  * Add MongoDB or some other NoSql
- * Add Eureka Client(if possible)
- * Add Spring Cloud Config Client(if possible)
+ * Add Consul Client(if possible)
 
 PS: A better approach would be a microservice per repository but for simplicity all microservices are in the same repo.
 
@@ -33,49 +32,40 @@ Inspired by the book [Microservices Patterns](https://www.manning.com/books/micr
   3. [Microservice Diagram](#microservice-diagram)
   4. [Installing all services using Docker Compose](#installing-all-services-using-docker-compose)
   5. [Docker Commands](#docker-commands)
-  6. [Monitoring - Spring Boot Admin](#monitoring---spring-boot-admin)
-  7. [Service Discovery - Eureka](#service-discovery---eureka)
-  8. [Externalized Configuration - Spring Config](#externalized-configuration---spring-cloud-config)
-  9. [Prometheus and Grafana](#prometheus-and-grafana)
-  10. [Zipkin Request Tracing](#request-tracing-zipkin)
-  11. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
-  12. [Accessing React Web App](#accessing-react-app)
-  13. [List of default users](#default-users)
-  14. [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
-  15. [~~Travis CI/CD~~](#travis-cicd)
-  16. [Github Actions CI/CD](#github-actions-cicd)
-  17. [TODO List](#todo-list)
-  18. [References](#references)
-  19. [Postman Collection](docs/postman_collection.json?raw=true)
+  6. [Manual Installation - NOT RECOMMENDED](#manual-installation---not-recommended)
+  7. [Accessing React Web App](#accessing-react-app)
+  8. [List of default users](#default-users)
+  9. [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
+  10. [~~Travis CI/CD~~](#travis-cicd)
+  11. [Github Actions CI/CD](#github-actions-cicd)
+  12. [TODO List](#todo-list)
+  13. [References](#references)
+  14. [Postman Collection](docs/postman_collection.json?raw=true)
 
 ### Microservice Patterns
 
 The following list of `Microservice Patterns` was applied so far.
 
- * **Server-side service discovery** - Used [Spring Cloud Eureka Server](https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-eureka-server.html) on `eureka-server` project.
+ * **Server-side service discovery** - [Consul](https://www.consul.io/)
  
- * **Client-side service discovery** - Used [Spring Cloud Eureka Client](https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html) for all java microservices(`admin-server, user-service, person-service, etc`).
+ * **API Gateway** - [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html)
  
- * **API Gateway** - Used [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html) on `edge-server` project.
+ * **Externalized configuration** - [Consul](https://www.consul.io/) using `Spring Cloud Config` yaml format(with spring profiles), more details look at [docker/spring-cloud-config](docker/spring-cloud-config) 
  
- * **Externalized configuration** - Used [Spring Cloud Config Server](https://cloud.spring.io/spring-cloud-config/multi/multi__spring_cloud_config_server.html) on `config-server` service. Yml files are in [config-server/configuration](config-server/configuration). 
+ * **Exception Tracking** - [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/)
  
- * **Exception Tracking** - Used [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin/current/) on `admin-server` project.
+ * **Access token** - [Spring Oauth2 with JWT](https://spring.io/projects/spring-security-oauth)
  
- * **Access token** - Used [Spring Oauth2 with JWT](https://spring.io/projects/spring-security-oauth) on `authentication-service` project and client services(`user-service, person-service, nodejs-service, kotin-service, etc`) expect a valid JWT Token.
+ * **Health Check API** - [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) 
  
- * **Health Check API** - Used [Spring Boot Actuator Starter](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) For `Java microservices` and `express-actuator` for `NodeJS`. 
+ * **Distributed tracing** - [Jaeger](https://www.jaegertracing.io/)
  
- * **Distributed tracing** - Used [Zipkin](https://zipkin.io/) for viewing log traces and [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) for `Java microservices`.
+ * **Application metrics** - [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector)
  
- * **Application metrics** - Used [Spring Micrometer Prometheus](https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector) for `Java microservices` and `express-prom-bundle` for `NodeJS`.
+ * **Database per service** - [MongoDB](https://www.mongodb.com/) an instance per service
  
- * **Database per service** - Used [MongoDB](https://www.mongodb.com/) instance per service.
+ * **Shared database** - [Redis](https://redis.io/) for sharing http sessions
  
- * **Shared database** - Used [Redis](https://redis.io/) for sharing sessions for services that require login.
- 
- PS: Used `<artifactId>eureka-consul-adapter</artifactId>` on `eureka-server` for `scraping data for Prometheus`
-
 To know more about each pattern look at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
 ### Prerequisites
@@ -99,16 +89,10 @@ On `root folder` first need to generate the docker images.
 mvn clean install jib:dockerBuild
 ```
 
-Then on `docker folder` run all microservices using
+On `docker folder` run all microservices
 
 ```bash
 docker-compose up -d
-```
-
-PS: Whenever change is made on the source code it is necessary to rebuild the image, you can use the following command:
-
-```bash
-docker-compose up --build week-menu-api react-webapp
 ```
 
 ### Docker Commands
@@ -141,98 +125,13 @@ docker-compose stop SERVICE_NAME
 docker-compose rm SERVICE_NAME
 ```
 
-### Monitoring - Spring Boot Admin
-
-To see information(environment, instances, logs, etc) related to `all microservices registered with Eureka` use [Spring Boot Admin](http://localhost:9000) - `http://localhost:9000`.
-
-![Spring Boot](docs/spring_boot_admin.png)
-
-PS: Need login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
-
-### Service Discovery - Eureka
-
-To see `all microservices registered with Eureka` use http://localhost:8761.
-
-![Eureka](docs/eureka.png)
-
-PS: Need login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
-
-### Externalized Configuration - Spring Cloud Config
-
-To see configuration related to specific service use [Spring Config](http://localhost:8888/edge-server/default) `http://localhost:8888/${SERVICE_NAME}/${SPRING_PROFILE}`.
-
-![Spring Config](docs/spring_config.png)
-
-PS: Need login with a valid user and role `ADMIN`. See at [Default Users](#default-users)
-
-### Prometheus and Grafana
-
-`Prometheus` is a tool for generating metrics from the requests.
-
-`Grafana` is a tool for communicate with `Prometheus` and display the data with dashboards.
-
-Spring Boot 2 by default uses [Micrometer](https://micrometer.io) for monitoring `JVM/Microservices Applications`.
-
-To access [Prometheus UI](http://localhost:9090)
-
-![Prometheus](docs/prometheus.png) 
- 
-To access [Grafana Dashboard](http://localhost:3000).
-
-![Grafana](docs/grafana.png)
-
-PS: It depends on docker.
-
-### Sleuth and Zipkin
-
-`Sleuth` is used for creating a unique identifier(Span) and set to a request for all `microservices calls`.
-
-`Zipkin` is used for request tracing through `microservices`.
-
-To access [Zipkin UI](http://localhost:9411).
-
-![Zipkin1](docs/zipkin1.png)
-![Zipkin2](docs/zipkin2.png)
-
 ### Manual Installation - NOT RECOMMENDED
 
-If for some reason you cannot install `docker/docker-compose` you can run all services manually.
-
-On `root folder` run the following command at once:
-
-`mvn clean install`
-
-**Run Spring Boot**
-
-To run the services use the following command in each `Microservices folders`:
+If for some reason you cannot install `docker/docker-compose` you can run all services manually using the following command for `Java` applications.
 
 `mvn spring-boot:run -Dspring-boot.run.arguments="--server.port={PORT}"`
 
-```
-eureka-server - PORT=8761
-config-server - PORT=8888
-edge-server - PORT=9006
-admin-server - PORT=9000
-authentication-service - PORT=9999
-person-service - PORT=8082
-user-service - PORT=8083
-```
-
-PS: To login at `Eureka/Config/Edge/Admin` need a user with role `ADMIN`. See at [Default Users](#default-users)
-
-**Run Node.js service**
-
-On `nodejs-service folder` run the following commands:
-
-```
-sudo npm install
-
-sudo npm start
-```
-
-**Run React Web app**
-
-On `react-webapp folder` run the following commands:
+To run `NodeJS and React` applications on folders `nodejs-service and react-webapp`:
 
 ```
 sudo npm install
@@ -426,7 +325,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Add tests for Python
 * [ ] Add React Legacy
 * [X] Rename `/api/persons` to `/api/people`
-* [ ] Fix Eureka Client for Golang
+* [X] Replace Eureka/Spring Config Server to Consul
 
 
 ### References
@@ -461,3 +360,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Go Echo Rest Api](https://echo.labstack.com/)
 
 [Go Tutorial](https://tour.golang.org/list)
+
+[Go Consul](http://varunksaini.com/consul-service-discovery-golang/)

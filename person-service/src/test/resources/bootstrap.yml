@@ -1,15 +1,10 @@
-eureka:
-  client:
-    enabled: false
 spring:
-  main:
-    allow-bean-definition-overriding: true
   application:
     name: person-service
   cloud:
     discovery:
       enabled: false
-    config:
+    consul:
         enabled: false
   profiles:
       active: test

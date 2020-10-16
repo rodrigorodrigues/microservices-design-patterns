@@ -71,7 +71,7 @@ spec:
             - name: X_ENCRYPT_KEY
               value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: CONFIGURATION_AUTHORIZE_URLS
-              value: "https://spendingbetter.com/grafana/login/generic_oauth;https://spendingbetter.com/eureka/login;https://spendingbetter.com/monitoring/monitoring/login;https://spendingbetter.com/login"
+              value: "https://YOUR_DOMAIN.com/grafana/login/generic_oauth;https://YOUR_DOMAIN.com/eureka/login;https://YOUR_DOMAIN.com/monitoring/monitoring/login;https://YOUR_DOMAIN.com/login"
             - name: KEYSTORE
               value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS

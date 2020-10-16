@@ -1,25 +1,14 @@
 spring:
+    main:
+        allow-bean-definition-overriding: true
     application:
         name: edge-server
     cloud:
-        config:
-            fail-fast: false
-            discovery:
-                enabled: true
-                service-id: ${CONFIG_SERVER:config-server}
-            retry:
-                initial-interval: 8000
-                max-attempts: 6
-                max-interval: 128000
-                multiplier: 2
-            headers:
-                X-Encrypt-Key: ${X_ENCRYPT_KEY:}
-    main:
-        allow-bean-definition-overriding: true
-eureka:
-    client:
-        serviceUrl:
-            defaultZone: ${EUREKA_SERVER:http://127.0.0.1:8761/eureka/}
+        consul:
+            config:
+                fail-fast: ${FAIL_FAST:true}
+                format: yaml
+
 
 #zuul:
 #    prefix: /api

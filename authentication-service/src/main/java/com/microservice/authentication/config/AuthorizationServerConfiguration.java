@@ -1,10 +1,10 @@
 package com.microservice.authentication.config;
 
-import com.netflix.discovery.EurekaClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,15 +52,15 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     private List<String> getListOfServices() {
         try {
-            EurekaClient eurekaClient = applicationContext.getBean(EurekaClient.class);
-            return eurekaClient.getApplications()
-                .getRegisteredApplications()
+            DiscoveryClient eurekaClient = applicationContext.getBean(DiscoveryClient.class);
+            return eurekaClient.getServices()
                 .stream()
-                .flatMap(a -> a.getInstances().stream())
-                .flatMap(a -> Stream.of(String.format("http://%s:%s/login", a.getIPAddr(), a.getPort()), String.format("http://localhost:%s/login", a.getPort())))
+                .map(eurekaClient::getInstances)
+                .flatMap(Collection::stream)
+                .flatMap(a -> Stream.of(String.format("http://%s:%s/login", a.getHost(), a.getPort()), String.format("http://localhost:%s/login", a.getPort())))
                 .collect(Collectors.toList());
         } catch (NoSuchBeanDefinitionException ne) {
-            log.debug("Not registered with eureka");
+            log.warn("Error on method getListOfServices", ne);
             return new ArrayList<>();
         }
     }

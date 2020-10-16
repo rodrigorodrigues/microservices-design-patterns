@@ -1,8 +1,8 @@
 import base64
 import logging.config
-import py_eureka_client.eureka_client as eureka_client
 
-from config import spring
+import yaml
+from flask_consulate import Consul
 from flask_prometheus_metrics import register_metrics
 from prometheus_client import make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -18,32 +18,35 @@ def initialize_dispatcher(app):
 def initialize_spring_cloud_client(app):
     server_port = app.config['SERVER_PORT']
 
-    # The following code will register server to eureka server and also start to send heartbeat every 30 seconds
-    eureka_client.init(eureka_server=app.config['EUREKA_SERVER'],
-                       app_name="python-service",
-                       instance_port=server_port)
+    app_name = app.config['APP_NAME']
 
-    address = app.config["SPRING_CLOUD_CONFIG_URI"]
+    # Consul
+    # This extension should be the first one if enabled:
+    consul = Consul(app=app)
+    # Fetch the conviguration:
+    consul.apply_remote_config(namespace='config/application/data')
+    # Register Consul service:
+    consul.register_service(
+        name=app_name,
+        interval='30s',
+        tags=[app_name],
+        port=server_port,
+        httpcheck="http://localhost:" + str(server_port) + "/actuator/health"
+    )
 
     profile = app.config['SPRING_PROFILES_ACTIVE']
 
-    app_name = app.config['APP_NAME']
-
-    config_client = spring.ConfigClient(
-        app_name=app_name,
-        url="{address}/{app_name}/{profile}.json",
-        profile=profile,
-        branch=None,
-        address=address
-    )
-    config_client.url = config_client.url[:-5]
-    config_client.get_config(headers={'X-Encrypt-Key': app.config['X_ENCRYPT_KEY']})
-
     if profile != 'prod':
-        try:
-            jwt_secret = config_client.config['propertySources'][0]['source']['security.oauth2.resource.jwt.keyValue']
-        except Exception:
-            jwt_secret = config_client.config['propertySources'][1]['source']['security.oauth2.resource.jwt.keyValue']
+        jwt_secret = ""
+        for data in yaml.load_all(app.config[''], Loader=yaml.BaseLoader):
+            try:
+                jwt_secret = data['security']['oauth2']['resource']['jwt']['keyValue']
+                break
+            except Exception:
+                log.warning("Not found jwt_secret")
+
+        if jwt_secret == "":
+            raise Exception("jwt_secret not found")
         log.debug('Jwt Secret: %s', jwt_secret)
         app.config['JWT_SECRET_KEY'] = base64.b64decode(jwt_secret)
         app.config['SECRET_KEY'] = app.config['JWT_SECRET_KEY']

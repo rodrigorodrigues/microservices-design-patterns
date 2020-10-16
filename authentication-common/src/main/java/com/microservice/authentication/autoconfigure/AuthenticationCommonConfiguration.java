@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.util.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterRestTemplateCustomizer;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,14 +35,10 @@ public class AuthenticationCommonConfiguration {
 
     private final List<JwtAccessTokenConverterConfigurer> configurers;
 
-    private final List<JwtAccessTokenConverterRestTemplateCustomizer> customizers;
-
     public AuthenticationCommonConfiguration(ResourceServerProperties resource,
-                                         ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers,
-                                         ObjectProvider<List<JwtAccessTokenConverterRestTemplateCustomizer>> customizers) {
+                                         ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers) {
         this.resource = resource;
         this.configurers = configurers.getIfAvailable();
-        this.customizers = customizers.getIfAvailable();
     }
 
     @Primary

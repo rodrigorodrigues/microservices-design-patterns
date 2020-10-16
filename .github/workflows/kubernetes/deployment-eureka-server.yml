@@ -70,11 +70,11 @@ spec:
             - name: SERVER_SERVLET_CONTEXT_PATH
               value: /eureka
             - name: ACCESS_TOKEN_URI
-              value: https://spendingbetter.com/auth/oauth/token
+              value: https://YOUR_DOMAIN.com/auth/oauth/token
             - name: AUTHORIZATION_URL
-              value: https://spendingbetter.com/auth/oauth/authorize
+              value: https://YOUR_DOMAIN.com/auth/oauth/authorize
             - name: USER_INFO_URI
-              value: https://spendingbetter.com/auth/api/authenticatedUser
+              value: https://YOUR_DOMAIN.com/auth/api/authenticatedUser
 #            - name: SERVER_SSL_KEY_STORE
 #              value: "/etc/ssl_certs_p12/www.spendingbetter.com.p12"
 #            - name: SERVER_SSL_KEY_STORE_PASSWORD

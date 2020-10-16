@@ -31,7 +31,7 @@
     "test": "cross-env CI=true react-scripts test --coverage",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:9006",
+  "proxy": "http://localhost:8080",
   "eslintConfig": {
     "extends": "react-app"
   },

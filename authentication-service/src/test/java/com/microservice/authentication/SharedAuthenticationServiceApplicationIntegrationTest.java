@@ -6,10 +6,6 @@ import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.web.common.util.constants.DefaultUsers;
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.discovery.EurekaClient;
-import com.netflix.discovery.shared.Application;
-import com.netflix.discovery.shared.Applications;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +19,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
@@ -45,7 +40,6 @@ import redis.embedded.RedisServer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,8 +47,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -133,7 +125,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
                 .build());
             log.debug(String.format("Created Master Authentication: %s", authentication));
         }
-
+/*
         @Bean
         EurekaClient eurekaClient() {
             EurekaClient eurekaClient = mock(EurekaClient.class);
@@ -148,7 +140,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             when(applications.getRegisteredApplications()).thenReturn(Arrays.asList(application));
             when(eurekaClient.getApplications()).thenReturn(applications);
             return eurekaClient;
-        }
+        }*/
 
         private List<Authority> permissions(String ... permissions) {
             return Stream.of(permissions)

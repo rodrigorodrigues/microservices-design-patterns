@@ -3,20 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ArthurHlt/go-eureka-client/eureka"
-	"github.com/Piszmog/cloudconfigclient"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
+	"github.com/hashicorp/consul/api"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -255,70 +254,33 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func init()  {
-	appId := processEurekaClient()
+	client := processConsulClient()
 
-	profiles, config := processConfigClient(appId)
-
-	middlewareObj := processJwt(profiles, config)
+	middlewareObj := processJwt(client)
 
 	processRestApi(middlewareObj)
 }
 
-func processEurekaClient() string {
-	logrus.SetLevel(logrus.DebugLevel)
-	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
-	client := eureka.NewClient([]string{
-		getEnv("EUREKA_SERVER"), //From a spring boot based eureka server
-		// add others servers here
-	})
-	log.Infof("Eureka Client = %+v", client)
-	appId := getEnv("APP_ID")
-	hostname := getEnv("HOSTNAME")
-	protocol := getEnv("PROTOCOL")
-	ssl := false
-	if "https" == protocol {
-		ssl = true
-	}
-	port := getEnvAsInt("SERVER_PORT")
-	instance := eureka.NewInstanceInfo(hostname,
-		appId,
-		getEnv("IP_ADDRESS"),
-		port, 30, ssl) //Create a new instance to register
-	instance.Metadata = &eureka.MetaData{
-		Map: make(map[string]string),
-	}
-	instance.HomePageUrl = fmt.Sprintf("%v://%v:%v/actuator/info", protocol, hostname, port)
-	instance.HealthCheckUrl = fmt.Sprintf("%v://%v:%v/actuator/health", protocol, hostname, port)
-	instance.StatusPageUrl = instance.HomePageUrl
-	log.Infof("Instance = %+v", instance)
-	if err := client.RegisterInstance(appId, instance); err != nil {
-		panic(err)
-	}
-	if err := client.SendHeartbeat(appId, hostname); err != nil {
-		panic(err)
-	}
-	return appId
-}
-
-func processConfigClient(appId string) (string, cloudconfigclient.Source) {
-	springConfigUrl := getEnv("SPRING_CLOUD_CONFIG_URI")
-	springConfigUrl = fmt.Sprintf("%v?X-Encrypt-Key=%v", springConfigUrl, getEnv("X_ENCRYPT_KEY"))
-	configClient, err := cloudconfigclient.NewLocalClient(&http.Client{}, []string{springConfigUrl})
-	log.Infof("ConfigClient = %+v", configClient)
+func processConsulClient() *api.Client {
+	client, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
 		panic(err)
 	}
-
-	profiles := getEnv("SPRING_PROFILES_ACTIVE")
-	config, err := configClient.GetConfiguration(appId, []string{profiles})
-	log.Infof("CONFIG Client = %+v", config)
-	return profiles, config
+	registration := &api.AgentServiceRegistration{
+		ID:   getEnv("APP_ID"),
+		Name: getEnv("APP_ID"),
+		Port: getEnvAsInt("SERVER_PORT"),
+	}
+	if err := client.Agent().ServiceRegister(registration); err != nil {
+		panic(err)
+	}
+	return client
 }
 
-func processJwt(profiles string, config cloudconfigclient.Source) echo.MiddlewareFunc {
+func processJwt(config *api.Client) echo.MiddlewareFunc {
 	//JWT
 	middlewareObj := middleware.JWT([]byte("secret"))
-	if strings.Contains(profiles, "prod") {
+	if strings.Contains(getEnv("SPRING_PROFILES_ACTIVE"), "prod") {
 		bytes, err := ioutil.ReadFile(getEnv("PUBLIC_KEY_PATH"))
 		if err != nil {
 			panic(err)
@@ -332,14 +294,23 @@ func processJwt(profiles string, config cloudconfigclient.Source) echo.Middlewar
 			SigningMethod: "RS256",
 		})
 	} else {
-		secretKey := config.PropertySources[0].Source["security.oauth2.resource.jwt.keyValue"]
-		if secretKey == nil {
-			secretKey = config.PropertySources[1].Source["security.oauth2.resource.jwt.keyValue"]
+		pair, _, err := config.KV().List("config/application/data", nil)
+		if err != nil {
+			panic(err)
 		}
-		if secretKey == nil {
-			panic("Not found secretKey")
+		if pair == nil {
+			panic("Not found consul configuration")
 		}
-		middlewareObj = middleware.JWT([]byte(secretKey.(string)))
+		yamlMap := make(map[interface{}]interface{})
+		if err = yaml.Unmarshal(pair[0].Value, yamlMap); err != nil {
+			panic(err)
+		}
+		
+		key := yamlMap["security"].(map[interface{}]interface{})["oauth2"].(map[interface{}]interface{})["resource"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
+		if key == nil {
+			panic("Not found jwt")
+		}
+		middlewareObj = middleware.JWT(key)
 	}
 	return middlewareObj
 }

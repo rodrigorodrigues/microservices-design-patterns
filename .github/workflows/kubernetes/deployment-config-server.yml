@@ -75,11 +75,11 @@ spec:
                   name: secrets
                   key: KEYSTORE_PASSWORD
             - name: ACCESS_TOKEN_URI
-              value: https://spendingbetter.com/auth/oauth/token
+              value: https://YOUR_DOMAIN.com/auth/oauth/token
             - name: AUTHORIZATION_URL
-              value: https://spendingbetter.com/auth/oauth/authorize
+              value: https://YOUR_DOMAIN.com/auth/oauth/authorize
             - name: USER_INFO_URI
-              value: https://spendingbetter.com/auth/api/authenticatedUser
+              value: https://YOUR_DOMAIN.com/auth/api/authenticatedUser
           command: ["/bin/sh"]
           args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
           ports:

@@ -117,7 +117,7 @@
 					"raw": "{\n\"username\": \"admin@gmail.com\",\n\"password\": \"password\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:9006/api/authenticate",
+					"raw": "http://localhost:8080/api/authenticate",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -132,7 +132,7 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:9006/api/week-menu/v2/category",
+			"name": "http://localhost:8080/api/week-menu/v2/category",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -147,7 +147,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9006/api/week-menu/v2/category",
+					"raw": "http://localhost:8080/api/week-menu/v2/category",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -179,7 +179,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9006/api/week-menu/v2/category",
+					"raw": "http://localhost:8080/api/week-menu/v2/category",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -196,7 +196,7 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:9006/api/week-menu/v2/category",
+			"name": "http://localhost:8080/api/week-menu/v2/category",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -211,7 +211,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9006/api/week-menu/v2/recipe",
+					"raw": "http://localhost:8080/api/week-menu/v2/recipe",
 					"protocol": "http",
 					"host": [
 						"localhost"
