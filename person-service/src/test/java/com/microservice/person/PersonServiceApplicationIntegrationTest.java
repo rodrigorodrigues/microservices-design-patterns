@@ -102,14 +102,16 @@ public class PersonServiceApplicationIntegrationTest {
 
     @BeforeEach
     public void setup() {
-        users.entrySet().stream()
-            .map(e -> Authentication.builder().email(e.getKey())
-                .password(passwordEncoder.encode("password123"))
-                .authorities(e.getValue().stream().map(a -> new Authority(a.getAuthority())).collect(Collectors.toList()))
-                .fullName("Master of something")
-                .enabled(true)
-                .build())
-        .forEach(authenticationRepository::save);
+        if (authenticationRepository.count() == 0) {
+            users.entrySet().stream()
+                .map(e -> Authentication.builder().email(e.getKey())
+                    .password(passwordEncoder.encode("password123"))
+                    .authorities(e.getValue().stream().map(a -> new Authority(a.getAuthority())).collect(Collectors.toList()))
+                    .fullName("Master of something")
+                    .enabled(true)
+                    .build())
+                .forEach(authenticationRepository::save);
+        }
 
         Authentication authentication = authenticationRepository.findByEmail("master@gmail.com");
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(authentication, null, authentication.getAuthorities());
@@ -129,8 +131,7 @@ public class PersonServiceApplicationIntegrationTest {
 
     @AfterEach
     public void tearDown() {
-        authenticationRepository.deleteAll();
-        personRepository.delete(person).subscribe(p -> log.debug("Deleted person entity"));
+        personRepository.delete(person).block();
     }
 
     @Test

@@ -15,16 +15,18 @@ def initialize_dispatcher(app):
     return DispatcherMiddleware(app.wsgi_app, {"/actuator/prometheus": make_wsgi_app()})
 
 
-def initialize_spring_cloud_client(app):
+def initialize_consul_client(app):
     server_port = app.config['SERVER_PORT']
 
     app_name = app.config['APP_NAME']
+
+    profile = app.config['SPRING_PROFILES_ACTIVE']
 
     # Consul
     # This extension should be the first one if enabled:
     consul = Consul(app=app)
     # Fetch the conviguration:
-    consul.apply_remote_config(namespace='config/application/data')
+    consul.apply_remote_config(namespace=f'config/application,{profile}/data')
     # Register Consul service:
     consul.register_service(
         name=app_name,
@@ -33,8 +35,6 @@ def initialize_spring_cloud_client(app):
         port=server_port,
         httpcheck="http://localhost:" + str(server_port) + "/actuator/health"
     )
-
-    profile = app.config['SPRING_PROFILES_ACTIVE']
 
     if profile != 'prod':
         jwt_secret = ""

@@ -10,6 +10,8 @@ spring:
       active: test
   zipkin:
       enabled: false
+  main:
+      allow-bean-definition-overriding: true
 security:
     oauth2:
         resource:

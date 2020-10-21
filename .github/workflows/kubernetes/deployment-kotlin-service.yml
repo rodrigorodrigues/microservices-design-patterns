@@ -71,8 +71,6 @@ spec:
               value: http://config-server:8888
 #            - name: SPRING_CLOUD_CONFIG_FAIL_FAST
 #              value: "true"
-            - name: X_ENCRYPT_KEY
-              value: b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "true"
             - name: KEYSTORE

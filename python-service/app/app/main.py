@@ -1,24 +1,22 @@
+import datetime
 import logging.config
 import os
 import sys
-import datetime
-import opentracing
 
 from autologging import traced, logged
+from core.api_setup import initialize_api
+from core.consul_setup import initialize_consul_client, initialize_dispatcher
+from core.database_setup import initialize_db
 from flask import Flask, request, Response
 from flask import jsonify, make_response
 from flask_jwt_extended import JWTManager, get_jwt_identity
+from flask_opentracing import FlaskTracing
 from flask_restplus import fields, Resource
 from flask_zipkin import Zipkin
-from werkzeug.serving import run_simple
-from flask_opentracing import FlaskTracing
 from jaeger_client import Config
-
-from core.database_setup import initialize_db
-from core.spring_cloud_setup import initialize_spring_cloud_client, initialize_dispatcher
-from core.api_setup import initialize_api
 from jwt_custom_decorator import admin_required
 from model.models import Product
+from werkzeug.serving import run_simple
 
 app = Flask(__name__)
 app.config.from_envvar('ENV_FILE_LOCATION')
@@ -44,7 +42,7 @@ logging.basicConfig(
     stream=sys.stdout
 )
 
-initialize_spring_cloud_client(app)
+initialize_consul_client(app)
 initialize_db(app)
 api = initialize_api(app)
 
@@ -65,7 +63,7 @@ config = Config(config={'sampler': {'type': 'const', 'param': 1},
                 # Service name can be arbitrary string describing this particular web service.
                 service_name=app.config['APP_NAME'])
 jaeger_tracer = config.initialize_tracer()
-tracing = FlaskTracing(jaeger_tracer)
+tracing = FlaskTracing(tracer=jaeger_tracer, app=app)
 
 
 @traced(log)
@@ -222,10 +220,8 @@ def actuator_index():
 zipkin = Zipkin(sample_rate=int(app.config['ZIPKIN_RATIO']))
 zipkin.init_app(app)
 
-
 api.add_namespace(ns)
 debug_flag = app.config['DEBUG']
-
 
 if __name__ == "__main__":
     run_simple(hostname="0.0.0.0", port=server_port, application=initialize_dispatcher(app), use_debugger=debug_flag)

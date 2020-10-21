@@ -32,7 +32,6 @@ services:
     container_name: gateway
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=8080
@@ -67,7 +66,6 @@ services:
       - SERVER_PORT=9000
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - OAUTH_CLIENT_ID=actuator
       - OAUTH_CLIENT_SECRET=actuator_password
@@ -215,7 +213,6 @@ services:
     image: person-service
     container_name: person-api
     environment:
-      - X_ENCRYPT_KEY=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=8082
@@ -324,8 +321,8 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - CONFIGURATION_AUTHORIZE_URLS=http://gateway:8080/login;http://service-discovery:8761/login;http://monitoring:9000/login;http://grafana:3003/login
     depends_on:
