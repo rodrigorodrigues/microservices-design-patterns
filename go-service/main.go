@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/consul/api"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo-contrib/jaegertracing"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -280,7 +281,8 @@ func processConsulClient() *api.Client {
 func processJwt(config *api.Client) echo.MiddlewareFunc {
 	//JWT
 	middlewareObj := middleware.JWT([]byte("secret"))
-	if strings.Contains(getEnv("SPRING_PROFILES_ACTIVE"), "prod") {
+	profile := getEnv("SPRING_PROFILES_ACTIVE")
+	if strings.Contains(profile, "prod") {
 		bytes, err := ioutil.ReadFile(getEnv("PUBLIC_KEY_PATH"))
 		if err != nil {
 			panic(err)
@@ -294,7 +296,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 			SigningMethod: "RS256",
 		})
 	} else {
-		pair, _, err := config.KV().List("config/application/data", nil)
+		pair, _, err := config.KV().List(fmt.Sprintf("config/application,%v/data", profile), nil)
 		if err != nil {
 			panic(err)
 		}
@@ -349,6 +351,10 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 
 func main() {
 	createDefaultPosts()
+
+	// Enable tracing middleware
+	c := jaegertracing.New(e, urlSkipper)
+	defer c.Close()
 
 	// Start server
 	e.Logger.Fatal(e.Start(":"+getEnv("SERVER_PORT")))

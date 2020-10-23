@@ -15,6 +15,7 @@ require (
 	github.com/labstack/gommon v0.3.0
 	github.com/prometheus/client_golang v1.7.1 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
+	github.com/uber/jaeger-client-go v2.19.1-0.20191002155754-0be28c34dabf+incompatible
 	go.mongodb.org/mongo-driver v1.4.1
 	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect
