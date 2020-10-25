@@ -220,7 +220,8 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
-      #- DEBUG=true
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
+      - DEBUG=true
     depends_on:
       - service-discovery
       - mongodb-datasource

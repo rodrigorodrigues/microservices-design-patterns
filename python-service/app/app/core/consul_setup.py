@@ -25,7 +25,7 @@ def initialize_consul_client(app):
     # Consul
     # This extension should be the first one if enabled:
     consul = Consul(app=app)
-    # Fetch the conviguration:
+    # Fetch the configuration:
     consul.apply_remote_config(namespace=f'config/application,{profile}/data')
     # Register Consul service:
     consul.register_service(
