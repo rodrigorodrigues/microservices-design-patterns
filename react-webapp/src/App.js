@@ -22,12 +22,14 @@ import TaskEdit from "./task/TaskEdit";
 import IngredientList from "./WeekMenu/IngredientList";
 import ProductList from "./product/ProductList";
 import ProductEdit from "./product/ProductEdit";
+import PostList from './posts/PostList';
+import PostEdit from './posts/PostEdit';
 
 
-const eurekaUrl = process.env.REACT_APP_EUREKA_URL;
+const consulUrl = process.env.REACT_APP_CONSUL_URL;
 const monitoringUrl = process.env.REACT_APP_MONITORING_URL;
 const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
-const zipkinUrl = process.env.REACT_APP_ZIPKIN_URL;
+const jaegerUrl = process.env.REACT_APP_JAEGER_URL;
 
 class App extends Component {
   state = {
@@ -76,6 +78,7 @@ class App extends Component {
 
   setAuthentication = (data) => {
     let token = data.id_token;
+    token = token.replace('bearer', 'Bearer');
     this.setState({ displayError: null });
     this.decodeJwt(token);
     window.localStorage.setItem('jhi-authenticationToken', token.slice(7, token.length));
@@ -139,10 +142,14 @@ class App extends Component {
                    component={() => <ProductList {...this.state} />} />
             <Route path='/products/:id'
                    component={() => <ProductEdit {...this.state} />} />
-            <Route path='/admin-eureka' component={() => this.adminLink(eurekaUrl)} />
+            <Route path='/posts' exact={true}
+                   component={() => <PostList {...this.state} />} />
+            <Route path='/posts/:id'
+                   component={() => <PostEdit {...this.state} />} />
+            <Route path='/admin-consul' component={() => this.adminLink(consulUrl)} />
             <Route path='/admin-monitoring' component={() => this.adminLink(monitoringUrl)} />
             <Route path='/admin-grafana' component={() => this.adminLink(grafanaUrl)} />
-            <Route path='/admin-tracing' component={() => this.adminLink(zipkinUrl)} />
+            <Route path='/admin-tracing' component={() => this.adminLink(jaegerUrl)} />
             <Route path='/ingredients' exact={true}
                    component={() => <IngredientList {...this.state} />} />
           </Switch>

@@ -165,7 +165,7 @@ services:
       args:
         - PORT=3005
       context: ../python-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfilezip
     container_name: product-api
     environment:
       - ENV_FILE_LOCATION=./.env
@@ -195,7 +195,6 @@ services:
       - MONGODB_DATABASE=docker
       - SERVER_PORT=3006
       - LOG_LEVEL=TRACE
-      - HOSTNAME-0.0.0.0
     depends_on:
       - service-discovery
       - mongodb-datasource

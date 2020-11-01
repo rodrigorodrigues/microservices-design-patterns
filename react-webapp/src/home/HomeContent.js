@@ -20,6 +20,9 @@ function HomeContent({notDisplayMessage}) {
                     {displayButtonManageProducts(authorities)}
                 </Col>
                 <Col xs="auto">
+                    {displayButtonManagePosts(authorities)}
+                </Col>
+                <Col xs="auto">
                     {displayWeekMenu(authorities)}
                 </Col>
                 <Col xs="auto">
@@ -101,7 +104,7 @@ function displayButtonAdmin(authorities) {
                 </DropdownToggle>
                 <DropdownMenu>
                 <DropdownItem>
-                    <Link to="/admin-eureka" className={"link" + (!isAdmin ? " disabled-link" : "")}>Eureka Server</Link>
+                    <Link to="/admin-consul" className={"link" + (!isAdmin ? " disabled-link" : "")}>Consul</Link>
                 </DropdownItem>
                 <DropdownItem>
                     <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Spring Boot Admin</Link>
@@ -110,7 +113,7 @@ function displayButtonAdmin(authorities) {
                     <Link to="/admin-grafana" className={"link" + (!isAdmin ? " disabled-link" : "")}>Grafana</Link>
                 </DropdownItem>
                 <DropdownItem>
-                    <Link to="/admin-tracing" className={"link" + (!isAdmin ? " disabled-link" : "")}>Zipkin</Link>
+                    <Link to="/admin-tracing" className={"link" + (!isAdmin ? " disabled-link" : "")}>Jaeger</Link>
                 </DropdownItem>
             </DropdownMenu>
             </UncontrolledDropdown>
@@ -156,6 +159,12 @@ function displayButtonManageProducts(authorities) {
     const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_READ' 
     || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE')
     return <Link to="/products" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Products</Link>
+}
+
+function displayButtonManagePosts(authorities) {
+    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_READ' 
+    || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE')
+    return <Link to="/posts" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Posts</Link>
 }
 
 export default HomeContent

@@ -12,7 +12,6 @@ from flask import jsonify, make_response
 from flask_jwt_extended import JWTManager, get_jwt_identity
 from flask_opentracing import FlaskTracing
 from flask_restplus import fields, Resource
-from flask_zipkin import Zipkin
 from jaeger_client import Config
 from jwt_custom_decorator import admin_required
 from model.models import Product
@@ -216,9 +215,6 @@ def actuator_index():
     }
     return jsonify(actuator)
 
-
-zipkin = Zipkin(sample_rate=int(app.config['ZIPKIN_RATIO']))
-zipkin.init_app(app)
 
 api.add_namespace(ns)
 debug_flag = app.config['DEBUG']

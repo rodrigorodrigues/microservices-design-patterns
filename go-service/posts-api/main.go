@@ -68,6 +68,7 @@ func processConsulClient() *api.Client {
 	registration := &api.AgentServiceRegistration{
 		ID:   util.GetEnv("APP_ID"),
 		Name: util.GetEnv("APP_ID"),
+		Address: util.GetEnv("HOSTNAME"),
 		Port: util.GetEnvAsInt("SERVER_PORT"),
 	}
 	if err := client.Agent().ServiceRegister(registration); err != nil {
