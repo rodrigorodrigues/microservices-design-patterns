@@ -38,7 +38,7 @@ jobs:
       # Build the Docker image with Maven
       - name: Build
         run: |
-          mvn clean install -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis jib:dockerBuild 1>/dev/null
+          mvn clean install -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis jib:dockerBuild
           docker tag person-service:latest fielcapao/microservices-design-patterns-person-service
       # Login to Dockerhub
       - name: Login to DockerHub
