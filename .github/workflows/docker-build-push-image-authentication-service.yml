@@ -51,4 +51,4 @@ jobs:
       # Push the Docker image
       - name: Push
         run: |
-          docker push fielcapao/microservices-design-patterns/authentication-service
+          docker push fielcapao/microservices-design-patterns
