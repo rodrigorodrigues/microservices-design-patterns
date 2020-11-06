@@ -21,6 +21,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
       - uses: actions/checkout@v2
 
       # Set up JDK 1.8
@@ -51,6 +52,9 @@ jobs:
           push: true
           tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
           build-args: |
-            GITHUB_SHA=$GITHUB_SHA
-            GITHUB_REF=$GITHUB_REF
+            GITHUB_SHA="$GITHUB_SHA"
+            GITHUB_REF="$GITHUB_REF"
             PORT=3003
+            
+      - name: Image Digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
