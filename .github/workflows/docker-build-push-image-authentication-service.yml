@@ -39,7 +39,7 @@ jobs:
       - name: Build
         run: |
           mvn clean install -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis jib:dockerBuild 1>/dev/null
-          docker tag authentication-service:latest fielcapao/microservices-design-patterns:authentication-service
+          docker tag authentication-service:latest fielcapao/microservices-design-patterns/authentication-service
 
       # Login to Dockerhub
       - name: Login to DockerHub
@@ -51,4 +51,4 @@ jobs:
       # Push the Docker image
       - name: Push
         run: |
-          docker push fielcapao/microservices-design-patterns:authentication-service
+          docker push fielcapao/microservices-design-patterns/authentication-service
