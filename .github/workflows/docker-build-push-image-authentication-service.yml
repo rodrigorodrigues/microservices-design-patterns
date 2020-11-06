@@ -13,7 +13,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     if: contains(toJson(github), 'build authentication-service')
-    name: Build Jar and Build/Publish Docker Image
+    name: Build Jar/Docker IMage and Publish to DockerHub
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
