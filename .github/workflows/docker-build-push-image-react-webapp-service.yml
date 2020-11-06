@@ -47,7 +47,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./react-webapp
           push: true
           tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
           build-args: |
