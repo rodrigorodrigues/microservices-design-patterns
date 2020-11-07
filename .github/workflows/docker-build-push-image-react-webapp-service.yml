@@ -37,19 +37,32 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Push the Docker image
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: ./react-webapp
-          file: ./Dockerfile
-          push: true
-          tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
-          build-args: |
-            GITHUB_SHA="$GITHUB_SHA"
-            GITHUB_REF="$GITHUB_REF"
-            PORT=3003
+      # Build the Docker image with Maven
+      - name: Build
+        run: |
+          docker build -t fielcapao/microservices-design-patterns-react-webapp-service:latest \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+          --build-arg PORT="$REACT_WEBAPP_PORT" ./react-webapp
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+      # Push the Docker image
+      - name: Push
+        run: |
+          docker push fielcapao/microservices-design-patterns-react-webapp-service
+
+      # Push the Docker image
+#      - name: Build and push
+#        id: docker_build
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: ./react-webapp
+#          file: ./Dockerfile
+#          push: true
+#          tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
+#          build-args: |
+#            GITHUB_SHA="$GITHUB_SHA"
+#            GITHUB_REF="$GITHUB_REF"
+#            PORT=3003
+
+#      - name: Image digest
+#        run: echo ${{ steps.docker_build.outputs.digest }}
