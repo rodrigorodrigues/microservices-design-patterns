@@ -22,7 +22,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       # Set up JDK 1.8
       - name: JDK
@@ -55,3 +55,6 @@ jobs:
             GITHUB_SHA="$GITHUB_SHA"
             GITHUB_REF="$GITHUB_REF"
             PORT=3003
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
