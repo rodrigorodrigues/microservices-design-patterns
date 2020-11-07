@@ -36,13 +36,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push
-      id: docker_build
-      uses: docker/build-push-action@v2
-      with:
-        context: ./go-service
-        push: true
-        tags: fielcapao/microservices-design-patterns-go-service:latest
-        build-args: |
-          PORT=3006
-          ENV=docker
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./go-service
+          push: true
+          tags: fielcapao/microservices-design-patterns-go-service:latest
+          build-args: |
+            PORT=3006
+            ENV=docker
