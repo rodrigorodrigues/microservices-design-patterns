@@ -24,12 +24,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Set up JDK 1.8
-      - name: JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -49,6 +43,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./react-webapp
+          file: ./Dockerfile
           push: true
           tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
           build-args: |
