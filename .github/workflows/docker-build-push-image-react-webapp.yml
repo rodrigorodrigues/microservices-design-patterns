@@ -43,7 +43,7 @@ jobs:
           docker build -t fielcapao/microservices-design-patterns-react-webapp-service:latest \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
-          --build-arg PORT="$REACT_WEBAPP_PORT" ./react-webapp
+          --build-arg PORT="3003" ./react-webapp
 
       # Push the Docker image
       - name: Push
