@@ -40,6 +40,7 @@ jobs:
       # Build the Docker image with Maven
       - name: Build
         run: |
+          sed -i 's/node:10.15.3-slim/balenalib\/raspberry-pi-debian-node/g' ./react-webapp/Dockerfile
           docker build -t fielcapao/microservices-design-patterns-react-webapp-service:latest \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
