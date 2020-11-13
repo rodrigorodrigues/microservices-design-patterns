@@ -15,11 +15,14 @@ spec:
   selector:
     app: authentication-service
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: authentication-service
 spec:
+  selector:
+    matchLabels:
+      app: authentication-service
   replicas: 1
   template:
     metadata:
@@ -29,70 +32,32 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: eu.gcr.io/x-alcove-270419/authentication-service:latest
-#          imagePullPolicy: IfNotPresent
+          image: authentication-service
+          #          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-          volumeMounts:
-            - name: spendingbetter-crt
-              mountPath: "/etc/crt"
-              readOnly: true
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs_jks"
-              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "9999"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
+              value: mongodb://mongo:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-            - name: EUREKA_CLIENT_ENABLED
+            - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
-#            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
-#              value: "false"
-            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-              value: "false"
-#            - name: EUREKA_SERVER
-#              value: http://eureka-server:8761/eureka/eureka/
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-server:8888
-            - name: SPRING_CLOUD_CONFIG_FAIL_FAST
-              value: "true"
-            - name: CONFIGURATION_AUTHORIZE_URLS
-              value: "https://YOUR_DOMAIN.com/grafana/login/generic_oauth;https://YOUR_DOMAIN.com/eureka/login;https://YOUR_DOMAIN.com/monitoring/monitoring/login;https://YOUR_DOMAIN.com/login"
-            - name: KEYSTORE
-              value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
-            - name: KEYSTORE_ALIAS
-              value: spring-boot
-#            - name: LOGGING_LEVEL_COM_MICROSERVICE
-#              value: debug
-#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
-#              value: debug
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+              value: "default"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: debug
-            - name: KEYSTORE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: KEYSTORE_PASSWORD
-#            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_ORIGINS
-#              value: "*"
-#            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_METHODS
-#              value: "*"
-#            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
-#              value: "true"
-          command: ["/bin/sh"]
-          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
           ports:
             - containerPort: 9999
           livenessProbe:
@@ -100,12 +65,5 @@ spec:
               scheme: HTTP
               path: /actuator/health
               port: 9999
-            initialDelaySeconds: 200
+            initialDelaySeconds: 1000
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-crt
-          secret:
-            secretName: spendingbetter-crt
-        - name: spendingbetter-jks
-          secret:
-            secretName: spendingbetter-jks

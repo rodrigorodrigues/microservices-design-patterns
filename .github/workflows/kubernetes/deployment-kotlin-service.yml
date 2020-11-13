@@ -15,17 +15,17 @@ spec:
   selector:
     app: kotlin-service
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kotlin-service
   labels:
     app: kotlin-service
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: kotlin-service
+  replicas: 1
   template:
     metadata:
       labels:
@@ -33,19 +33,12 @@ spec:
     spec:
       containers:
         - name: kotlin-service
-          image: eu.gcr.io/x-alcove-270419/kotlin-service:latest
+          image: fielcapao/microservices-design-patterns-kotlin-service:latest
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
             limits:
-              memory: "512Mi"
-          volumeMounts:
-            - name: spendingbetter-crt
-              mountPath: "/etc/crt"
-              readOnly: true
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs_jks"
-              readOnly: true
+              memory: "256Mi"
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
@@ -53,41 +46,6 @@ spec:
               value: "9092"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
-            - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
-            - name: SPRING_DATA_MONGODB_DATABASE
-              value: docker
-            - name: SPRING_REDIS_HOST
-              value: redis
-            - name: EUREKA_CLIENT_ENABLED
-              value: "false"
-#            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
-#              value: "false"
-            - name: SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED
-              value: "false"
-#            - name: EUREKA_SERVER
-#              value: http://eureka-server:8761/eureka/eureka/
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-server:8888
-#            - name: SPRING_CLOUD_CONFIG_FAIL_FAST
-#              value: "true"
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
-            - name: KEYSTORE
-              value: /etc/ssl_certs_jks/www.spendingbetter.com.jks
-            - name: KEYSTORE_ALIAS
-              value: spring-boot
-            - name: KEYSTORE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: KEYSTORE_PASSWORD
-            - name: SPRING_ZIPKIN_ENABLED
-              value: "true"
-            - name: SPRING_ZIPKIN_BASE_URL
-              value: http://zipkin-server:9411
-          command: ["/bin/sh"]
-          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
           ports:
             - containerPort: 9092
           livenessProbe:
@@ -97,10 +55,3 @@ spec:
               port: 9092
             initialDelaySeconds: 200
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-crt
-          secret:
-            secretName: spendingbetter-crt
-        - name: spendingbetter-jks
-          secret:
-            secretName: spendingbetter-jks

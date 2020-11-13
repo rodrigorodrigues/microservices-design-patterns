@@ -3,16 +3,16 @@ kind: Deployment
 metadata:
   name: redis
   labels:
-    appdb: redis
+    app: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      appdb: redis
+      app: redis
   template:
     metadata:
       labels:
-        appdb: redis
+        app: redis
     spec:
       containers:
         - name: redis
@@ -39,4 +39,4 @@ spec:
     - port: 6379
       protocol: TCP
   selector:
-    appdb: redis
+    app: redis

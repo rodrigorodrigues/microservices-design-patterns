@@ -11,11 +11,12 @@ from flask import Flask, request, Response
 from flask import jsonify, make_response
 from flask_jwt_extended import JWTManager, get_jwt_identity
 from flask_opentracing import FlaskTracing
-from flask_restplus import fields, Resource
+from flask_restx import fields, Resource
 from jaeger_client import Config
 from jwt_custom_decorator import admin_required
 from model.models import Product
 from werkzeug.serving import run_simple
+
 
 app = Flask(__name__)
 app.config.from_envvar('ENV_FILE_LOCATION')

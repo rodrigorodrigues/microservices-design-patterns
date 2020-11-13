@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: spring-boot
-          image: eu.gcr.io/x-alcove-270419/spring-boot:latest
+          image: spring-boot:latest
           resources:
             requests:
               memory: "256Mi"

@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: person-service
-          image: eu.gcr.io/x-alcove-270419/person-service:latest
+          image: person-service:latest
           resources:
             requests:
               memory: "256Mi"

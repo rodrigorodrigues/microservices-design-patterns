@@ -3,11 +3,10 @@ requests
 flask_prometheus_metrics
 flask_mongoengine
 flask_jwt_extended
-flask_restplus
+flask_restx
 flask_consulate
 gunicorn
 autologging
 Flask-Opentracing
-Werkzeug==0.16.1
 pyyaml
 jaeger-client

@@ -21,6 +21,11 @@
 
 	<dependencies>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
             <version>3.2.2</version>
@@ -109,7 +114,19 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <configuration combine.self="override">
                     <from>
-                        <image>openjdk:8-jre-alpine</image>
+                        <image>${docker.image.from}</image>
+<!--
+                        <platforms>
+                            <platform>
+                                <architecture>amd64</architecture>
+                                <os>linux</os>
+                            </platform>
+                            <platform>
+                                <architecture>arm64</architecture>
+                                <os>linux</os>
+                            </platform>
+                        </platforms>
+-->
                     </from>
                     <to>
                         <image>${docker.image.name}</image>

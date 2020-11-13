@@ -22,6 +22,7 @@
         <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
         <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
         <docker.image.name>${project.artifactId}</docker.image.name>
+        <docker.image.from>openjdk:8-jre-alpine</docker.image.from>
         <jib-maven-plugin.version>2.5.2</jib-maven-plugin.version>
     </properties>
 

@@ -1,5 +1,5 @@
 from flask import url_for
-from flask_restplus import Api
+from flask_restx import Api
 
 
 class CustomApi(Api):

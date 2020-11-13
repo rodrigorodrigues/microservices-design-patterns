@@ -1,92 +1,91 @@
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: ingress-gateway-forward-https
-  annotations:
-    kubernetes.io/ingress.class: nginx
-#    ingress.kubernetes.io/force-ssl-redirect: "true"
-#    kubernetes.io/ingress.allow-http: "false"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-#    nginx.ingress.kubernetes.io/configuration-snippet: |
-#      if ($http_x_forwarded_proto = "http") {
-#         return 301 https://$host$request_uri;
-#      }
-spec:
-  tls:
-  - secretName: ingress-tls
-    hosts:
-      - spendingbetter.com
-  rules:
-    - host: spendingbetter.com
-      http:
-        paths:
-#          - path: /grafana
+#apiVersion: extensions/v1beta1
+#kind: Ingress
+#metadata:
+#  name: ingress-gateway-forward-https
+#  annotations:
+#    kubernetes.io/ingress.class: nginx
+##    ingress.kubernetes.io/force-ssl-redirect: "true"
+##    kubernetes.io/ingress.allow-http: "false"
+#    nginx.ingress.kubernetes.io/rewrite-target: /$1
+##    nginx.ingress.kubernetes.io/configuration-snippet: |
+##      if ($http_x_forwarded_proto = "http") {
+##         return 301 https://$host$request_uri;
+##      }
+#spec:
+##  tls:
+##  - secretName: ingress-tls
+##    hosts:
+##      - "*"
+#  rules:
+#    - host: "*"
+#      http:
+#        paths:
+##          - path: /grafana
+##            backend:
+##              serviceName: grafana
+##              servicePort: 3000
+#          - path: /auth/(.*)
 #            backend:
-#              serviceName: grafana
-#              servicePort: 3000
-          - path: /auth/(.*)
-            backend:
-              serviceName: authentication-service
-              servicePort: http-port
-#          - path: /zipkin/(.*)
-#            backend:
-#              serviceName: zipkin-server
+#              serviceName: authentication-service
 #              servicePort: http-port
-          - path: /swagger/week-menu/(.*)
-            backend:
-              serviceName: week-menu-api
-              servicePort: http-port
-          - path: /swagger/persons/(.*)
-            backend:
-              serviceName: person-service
-              servicePort: http-port
-          - path: /swagger/users/(.*)
-            backend:
-              serviceName: user-service
-              servicePort: http-port
-          - path: /swagger/kotlin-service/(.*)
-            backend:
-              serviceName: kotlin-service
-              servicePort: http-port
-          - path: /api/week-menu/(.*)
-            backend:
-              serviceName: week-menu-api
-              servicePort: http-port
-          - path: /jhipster/(.*)
-            backend:
-              serviceName: react-webapp-jhipster
-              servicePort: http-port
-          - path: /jhipster
-            backend:
-              serviceName: react-webapp-jhipster
-              servicePort: http-port
-          - path: /actuator/(.*)
-            backend:
-              serviceName: eureka-server
-              servicePort: http-port
-          - path: /swagger/python-service/(.*)
-            backend:
-              serviceName: python-service
-              servicePort: http-port
-
+##          - path: /zipkin/(.*)
+##            backend:
+##              serviceName: zipkin-server
+##              servicePort: http-port
+#          - path: /swagger/week-menu/(.*)
+#            backend:
+#              serviceName: week-menu-api
+#              servicePort: http-port
+#          - path: /swagger/persons/(.*)
+#            backend:
+#              serviceName: person-service
+#              servicePort: http-port
+#          - path: /swagger/users/(.*)
+#            backend:
+#              serviceName: user-service
+#              servicePort: http-port
+#          - path: /swagger/kotlin-service/(.*)
+#            backend:
+#              serviceName: kotlin-service
+#              servicePort: http-port
+#          - path: /api/week-menu/(.*)
+#            backend:
+#              serviceName: week-menu-api
+#              servicePort: http-port
+#          - path: /jhipster/(.*)
+#            backend:
+#              serviceName: react-webapp-jhipster
+#              servicePort: http-port
+#          - path: /jhipster
+#            backend:
+#              serviceName: react-webapp-jhipster
+#              servicePort: http-port
+#          - path: /actuator/(.*)
+#            backend:
+#              serviceName: eureka-server
+#              servicePort: http-port
+#          - path: /swagger/python-service/(.*)
+#            backend:
+#              serviceName: python-service
+#              servicePort: http-port
+#
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: ingress-gateway-web
+  name: ingress
   annotations:
     kubernetes.io/ingress.class: nginx
-    kubernetes.io/ingress.allow-http: "true"
 spec:
   backend:
     serviceName: react-webapp
     servicePort: 3003
-  tls:
-    - secretName: ingress-tls
-      hosts:
-        - spendingbetter.com
+#  tls:
+#    - secretName: ingress-tls
+#      hosts:
+#        - "*"
   rules:
-    - host: spendingbetter.com
+    - host: "*"
       http:
         paths:
           - path: /grafana

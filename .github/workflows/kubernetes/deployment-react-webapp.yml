@@ -11,11 +11,14 @@ spec:
   selector:
     app: react-webapp
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: react-webapp
 spec:
+  selector:
+    matchLabels:
+      app: react-webapp
   replicas: 1
   template:
     metadata:
@@ -24,13 +27,13 @@ spec:
     spec:
       containers:
         - name: react-webapp
-          image: eu.gcr.io/x-alcove-270419/react-webapp:latest
+          image: fielcapao/microservices-design-patterns-react-webapp-service:latest
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "50m"
             limits:
-              memory: "512Mi"
+              memory: "256Mi"
               cpu: "50m"
           env:
             - name: PORT

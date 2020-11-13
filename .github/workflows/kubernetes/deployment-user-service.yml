@@ -22,10 +22,10 @@ metadata:
   labels:
     app: user-service
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: user-service
+  replicas: 1
   template:
     metadata:
       labels:
@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: eu.gcr.io/x-alcove-270419/user-service:latest
+          image: user-service:latest
 #          imagePullPolicy: IfNotPresent
           resources:
             requests:
