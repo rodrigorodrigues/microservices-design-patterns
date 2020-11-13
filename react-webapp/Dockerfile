@@ -13,7 +13,7 @@ COPY package*.json ./
 
 #COPY node_modules/ ./
 
-RUN apt-get update && apt-get install netcat-openbsd -y
+RUN apt-get update && apt-get install npm nodejs -y && apt-get install netcat-openbsd -y
 
 RUN npm install --silent
 RUN npm install react-scripts -g --silent
