@@ -36,16 +36,26 @@ spec:
           image: fielcapao/microservices-design-patterns-kotlin-service:latest
           resources:
             requests:
-              memory: "128Mi"
-            limits:
               memory: "256Mi"
+            limits:
+              memory: "512Mi"
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "9092"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
+            - name: SPRING_DATA_MONGODB_URI
+              value: mongodb://mongo:27017
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: docker
+            - name: SPRING_CLOUD_CONSUL_ENABLED
+              value: "false"
+            - name: OPENTRACING_JAEGER_ENABLED
+              value: "false"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+              value: "default"
           ports:
             - containerPort: 9092
           livenessProbe:

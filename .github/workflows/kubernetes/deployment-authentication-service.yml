@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: authentication-service
+          image: fielcapao/microservices-design-patterns-authentication-service:latest
           #          imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -53,6 +53,8 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
             - name: SPRING_CLOUD_CONSUL_ENABLED
+              value: "false"
+            - name: OPENTRACING_JAEGER_ENABLED
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
