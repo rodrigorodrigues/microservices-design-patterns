@@ -35,6 +35,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Check arch64
+        if: contains(toJson(github), "build arch64")
+        run: |
+          sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openjdk:8/g' pom.xml
+
       # Build the Docker image with Maven
       - name: Build
         run: |
