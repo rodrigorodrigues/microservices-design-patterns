@@ -1,4 +1,5 @@
 FROM golang:1.15.2-alpine3.12
+#balenalib/raspberry-pi-alpine-golang:latest
 ARG PORT
 ARG ENV
 RUN mkdir /app

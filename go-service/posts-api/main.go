@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/ericchiang/k8s"
+	corev1 "github.com/ericchiang/k8s/apis/core/v1"
 	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/consul/api"
 	"github.com/labstack/echo-contrib/jaegertracing"
@@ -53,11 +56,51 @@ func actuator(c echo.Context) error  {
 }
 
 func init()  {
-	client := processConsulClient()
+	var middlewareObj echo.MiddlewareFunc
+	if !strings.Contains(util.GetEnv("SPRING_PROFILES_ACTIVE"), "kubernetes") {
+		client := processConsulClient()
 
-	middlewareObj := processJwt(client)
+		middlewareObj = processJwt(client)
+	} else {
+		middlewareObj = processKubernetes()
+	}
 
 	processRestApi(middlewareObj)
+}
+
+func processKubernetes() echo.MiddlewareFunc {
+	//JWT
+	profile := util.GetEnv("SPRING_PROFILES_ACTIVE")
+	if strings.Contains(profile, "prod") {
+		return processJwt(nil)
+	} else {
+
+		client, err := k8s.NewInClusterClient()
+		if err != nil {
+			panic(err)
+		}
+
+		var nodes corev1.NodeList
+		ctx := context.Background()
+		if err := client.List(ctx, "", &nodes); err != nil {
+			panic(err)
+		}
+
+		var configMap corev1.ConfigMap
+		if err := client.Get(ctx, "default", "go-service", &configMap); err != nil {
+			panic(err)
+		}
+		yamlMap := make(map[interface{}]interface{})
+		if err = yaml.Unmarshal([]byte(configMap.String()), yamlMap); err != nil {
+			panic(err)
+		}
+		log.Info(fmt.Sprintf("yaml confiMap = %v", yamlMap))
+		key := yamlMap["security"].(map[interface{}]interface{})["oauth2"].(map[interface{}]interface{})["resource"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
+		if key == nil {
+			panic("Not found jwt")
+		}
+		return middleware.JWT([]byte(fmt.Sprintf("%v", key)))
+	}
 }
 
 func processConsulClient() *api.Client {

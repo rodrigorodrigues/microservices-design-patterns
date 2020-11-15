@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"go-service/posts-api/model"
 	"go-service/posts-api/util"
 	"go.mongodb.org/mongo-driver/bson"
@@ -65,7 +64,7 @@ func CreateDefaultPosts() {
 	for _, post := range posts {
 		_, err := collection.InsertOne(context.TODO(), post)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 	}
 }
