@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -20,6 +21,7 @@ import javax.net.ssl.HttpsURLConnection;
 @SpringBootApplication
 @EnableAdminServer
 @EnableDiscoveryClient
+@EnableScheduling
 @Import(ActuatorResourceServerConfiguration.class)
 @EnableRedisHttpSession
 public class AdminServerApplication {

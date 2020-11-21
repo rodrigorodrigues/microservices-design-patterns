@@ -6,5 +6,9 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
+        kubernetes:
+            discovery:
+                service-labels:
+                    spring-boot: true
     main:
         allow-bean-definition-overriding: true
