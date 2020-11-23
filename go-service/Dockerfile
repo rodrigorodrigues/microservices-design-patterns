@@ -7,8 +7,8 @@ WORKDIR /app
 COPY go.mod .
 ## Add this go mod download command to pull in any dependencies
 RUN go mod download
-#RUN sed 's/github.com\/ericchiang.k8s.watch.versioned.Event/k8s.io.kubernetes.pkg.watch.versioned.Event/g' ${GOPATH}a/pkg/mod/github.com/ericchiang/k8s@v1.2.0/watch/versioned/generated.pb.go
-RUN sed 's/github.com\/ericchiang.k8s.watch.versioned.Event/k8s.io.kubernetes.pkg.watch.versioned.Event/g' ${GOPATH}/pkg/mod/github.com/ericchiang/k8s@v1.2.0/watch/versioned/generated.pb.go
+RUN chmod 777 ${GOPATH}a/pkg/mod/github.com/ericchiang/k8s@v1.2.0/watch/versioned/generated.pb.go
+RUN sed 's/k8s.io.kubernetes.pkg.watch.versioned.Event/github.com\/ericchiang.k8s.watch.versioned.Event/g' ${GOPATH}/pkg/mod/github.com/ericchiang/k8s@v1.2.0/watch/versioned/generated.pb.go
 COPY . .
 ## Our project will now successfully build with the necessary go libraries included.
 RUN go build -o main ./posts-api
