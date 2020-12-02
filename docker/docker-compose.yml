@@ -63,6 +63,7 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SERVER_PORT=9000
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
@@ -215,6 +216,7 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=8082
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -224,6 +226,7 @@ services:
     depends_on:
       - service-discovery
       - mongodb-datasource
+      - jaeger
     ports:
       - 8082:8082
     volumes:
@@ -241,6 +244,7 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=9092
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -250,6 +254,7 @@ services:
     depends_on:
       - service-discovery
       - mongodb-datasource
+      - jaeger
     ports:
       - 9092:9092
     volumes:
@@ -290,6 +295,7 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=8083
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
@@ -299,6 +305,7 @@ services:
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
     links:
       - authentication-api
+      - jaeger
     ports:
       - 8083:8083
     volumes:
@@ -331,6 +338,7 @@ services:
       - gateway
       - monitoring
       - redisdb
+      - jaeger
     ports:
       - 9999:9999
     volumes:
