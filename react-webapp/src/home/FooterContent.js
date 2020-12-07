@@ -1,21 +1,34 @@
 import React from 'react';
-import { Table } from 'reactstrap';
+import Footer from 'rc-footer';
 
 const FooterContent = () => {
     return (
-        <footer>
-            <div className="footer float-left">
-                <Table size="sm" borderless>
-                    <tr>
-                        <td>Microservice Design Patterns</td>
-                        <td><a href="https://github.com/rodrigorodrigues/microservices-design-patterns">GitHub</a></td>
-                        <td><b>{process.env.REACT_APP_VERSION}</b></td>
-                        <td><b>{process.env.REACT_APP_HOSTNAME}</b></td>
-                    </tr>
-                </Table>
-            </div>
-            <div className="footer float-right"><a href="https://spendingbetter.com">https://spendingbetter.com</a></div>
-        </footer>
+        <div>
+            <Footer
+            columns={[
+                {
+                    items: [{
+                        icon: (
+                            <i className="fa fa-fw fa-github" style={{ fontSize: '1.5em' }} />
+                        ),
+                        url: 'https://github.com/rodrigorodrigues/microservices-design-patterns',
+                        description: 'GitHub',
+                        openExternal: true
+                    },
+                    {
+                        title: 'Environment',
+                        description: (<b>{process.env.NODE_ENV}</b>),
+                    },
+                    {
+                        title: 'URL Api',
+                        description: (<b>{process.env.REACT_APP_GATEWAY_URL}</b>),
+                    }]
+                },
+            ]}
+                bottom="Microservice Design Patterns"
+                theme="light"
+            />
+        </div>
     )
 }
 

@@ -114,7 +114,9 @@ class App extends Component {
         <Router>
           <Switch>
             <Route path='/' exact={true} 
-              component={() =><Home error={this.state.error} />} />
+              component={() =><Home {...this.state} />} />
+            <Route path='/home' exact={true} 
+              component={() =><Home {...this.state} />} />
             <Route path='/login' exact={true} 
               component={() => <Login {...this.state} 
                 setAuthentication={this.setAuthentication} />} />

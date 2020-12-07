@@ -8,6 +8,7 @@ import { errorMessage } from '../common/Util';
 import Cookies from 'js-cookie';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
+import HomeContent from '../home/HomeContent';
 
 class Login extends Component {
   constructor(props) {
@@ -20,7 +21,6 @@ class Login extends Component {
       displayError: null,
       isAuthenticated: props.isAuthenticated
     };
-    console.log("state: ", this.state);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
@@ -39,6 +39,16 @@ class Login extends Component {
   validateForm = () => {
     const { username, password } = this.state.login;
     return username.length > 0 && password.length > 0;
+  }
+
+  marginLeft = () => {
+    const expanded = window.localStorage.getItem('expanded');
+    console.log("marginLeft:expanded: "+expanded);
+    if (expanded) {
+      return 240;
+    } else {
+      return 64;
+    }
   }
 
   async handleSubmit(event) {
@@ -80,6 +90,14 @@ class Login extends Component {
     return <div>
       <AppNavbar />
       <Container fluid>
+        <HomeContent {...this.state} />
+        <div
+                    style={{
+                        marginLeft: this.marginLeft(),
+                        padding: '15px 20px 0 20px'
+                    }}
+                >
+        
         <h2>Login</h2>
         <Form onSubmit={this.handleSubmit}>
           <FormGroup className="col-md-3 mb-3">
@@ -109,6 +127,7 @@ class Login extends Component {
           </FormGroup>
           <MessageAlert {...displayError}></MessageAlert>
         </Form>
+        </div>
         <FooterContent></FooterContent>
       </Container>
     </div>

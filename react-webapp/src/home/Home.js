@@ -7,6 +7,16 @@ import { errorMessage } from '../common/Util';
 import FooterContent from './FooterContent';
 
 class Home extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      authorities: props.authorities,
+      isAuthenticated: props.isAuthenticated,
+      error: props.error,
+      user: props.user
+    };
+  }
+
 
   displayMessage = () => {
     const { error } = this.props;
@@ -20,7 +30,7 @@ class Home extends Component {
     return (
       <div className="content">
         <AppNavbar />
-        <HomeContent></HomeContent>
+        <HomeContent {...this.state} />
         {this.displayMessage()}
         <FooterContent></FooterContent>
       </div>

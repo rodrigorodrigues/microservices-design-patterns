@@ -6,6 +6,9 @@ import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css'
+import '@trendmicro/react-sidenav/dist/react-sidenav.css';
+import 'rc-footer/assets/index.css';
+import '@trendmicro/react-breadcrumbs/dist/react-breadcrumbs.css';
 
 // Call it once in your app. At the root of your app is the best place
 toast.configure({

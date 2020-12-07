@@ -1,170 +1,280 @@
-import React from 'react';
-import { Container, Row, Col, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Table, Jumbotron } from 'reactstrap';
-import { Link } from 'react-router-dom';
-import UserContext from '../UserContext';
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import styled from 'styled-components';
+import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from './StyledSideNav';
+import ClickOutside from 'react-click-outside';
+import Breadcrumbs from '@trendmicro/react-breadcrumbs';
+import useGlobal from "../common/useGlobal";
+import Anchor from '@trendmicro/react-anchor';
 
-function HomeContent({notDisplayMessage}) {
-    const displayButton = (isAuthenticated, authorities) => {
-        if (isAuthenticated) {
-            return <Row>
-                <Col xs="auto">
-                    {displayButtonManagePeople(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonManageUsers(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonManageTasks(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonManageProducts(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonManagePosts(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayWeekMenu(authorities)}
-                </Col>
-                <Col xs="auto">
-                    {displayButtonAdmin(authorities)}
-                </Col>
-                <Col xs="auto">
-                    <Link className="link" to="/logout">Logout</Link>
-                </Col>
-            </Row>
-        }
-        return <Row>
-            <Col xs="auto">
-                <Link className="link" to="/login">Login</Link>
-            </Col>
-            </Row>
+const navWidthCollapsed = 64;
+const navWidthExpanded = 280;
+
+const NavHeader = styled.div`
+    display: ${props => (props.expanded ? 'block' : 'none')};
+    white-space: nowrap;
+    background-color: #db3d44;
+    color: #fff;
+    > * {
+        color: inherit;
+        background-color: inherit;
     }
-    const displayMessage = (user) => {
-        if (notDisplayMessage) {
-            return "";
-        }
-        return user ?
-            <h2>Welcome, {user}!</h2> :
-            <p>Please log in to manage.</p>;
+`;
+
+// height: 20px + 10px + 10px = 40px
+const NavTitle = styled.div`
+    font-size: 2em;
+    line-height: 20px;
+    padding: 10px 0;
+`;
+
+// height: 20px + 4px = 24px;
+const NavSubTitle = styled.div`
+    font-size: 1em;
+    line-height: 20px;
+    padding-bottom: 4px;
+`;
+
+const NavInfoPane = styled.div`
+    float: left;
+    width: 100%;
+    padding: 10px 20px;
+    background-color: #eee;
+`;
+
+const Separator = styled.div`
+    clear: both;
+    position: relative;
+    margin: .8rem 0;
+    background-color: #ddd;
+    height: 1px;
+`;
+
+const Main = styled.main`
+    position: relative;
+    overflow: hidden;
+    transition: all .15s;
+    padding: 0 20px;
+    margin-left: ${props => (props.expanded ? 240 : 64)}px;
+`;
+
+class HomeContent extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            selected: 'home',
+            expanded: false,
+            authorities: props.authorities,
+            isAuthenticated: props.isAuthenticated,
+            user: props.user
+        };
     }
-    const displayUserPermissions = (user, jwt, authorities) => {
-        if (notDisplayMessage || !user) {
-            return "";
-        }
-        return (<div>
-            <Jumbotron fluid>
-                <h1 className="display-3">User Details Permission</h1>
-                <hr className="my-2" />
-                <Table size="sm" borderless>
-                    <tbody>
-                        <tr>
-                            <td><b>User</b></td>
-                            <td>{user}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Authorities</b></td>
-                            <td>{authorities}</td>
-                        </tr>
-                        <tr>
-                            <td><b>JWT</b></td>
-                            <td style={{ whiteSpace: 'unset' }}>{jwt}</td>
-                        </tr>
-                    </tbody>
-                </Table>
-            </Jumbotron>
-        </div>
-        )
+
+    lastUpdateTime = new Date().toISOString();
+
+    onSelect = (selected) => {
+        console.log("Selected: " + selected);        
+        this.setState({ selected: selected });
+    };
+
+    onToggle = (expanded) => {
+        this.setState({ expanded: expanded });
+        console.log("onToggle:expanded: "+expanded);
+    };
+
+    displayPeopleButton(authorities) {
+        console.log("authorities: "+authorities);
+        const hasManageReadAccess = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
+        || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE'));
+        console.log("hasManageReadAccess: "+hasManageReadAccess);
+        return (<NavItem eventKey="people" disabled={(!hasManageReadAccess)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-user" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="People">
+                People
+            </NavText>
+        </NavItem>);
     }
-    return <UserContext.Consumer >
-        {({user, isAuthenticated, authorities, jwt}) => <Container fluid>
-            {displayMessage(user)}
-            {displayButton(isAuthenticated, authorities)}
-            {displayUserPermissions(user, jwt, authorities)}
-        </Container>}
-    </UserContext.Consumer> 
+
+    displayAdminButtons(authorities) {
+        const isAdmin = this.hasAdminAccess(authorities);
+        console.log("isAdmin: "+isAdmin);
+        if (isAdmin) {
+            return (<NavItem eventKey="admin">
+            <NavIcon>
+                <i className="fa fa-fw fa-cogs" style={{ fontSize: '1.5em' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Admin">
+                Admin
+            </NavText>
+            <NavItem eventKey="users">
+                <NavIcon>
+                    <i className="fa fa-fw fa-users" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Users">
+                    Users
+                </NavText>
+            </NavItem>
+            <NavItem eventKey="settings/network">
+                <NavText title="NETWORK">
+                    NETWORK
+                </NavText>
+            </NavItem>
+        </NavItem>);
+        } else {
+            return null;
+        }
+    }
+
+    hasAdminAccess(authorities) {
+        return ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN'));
+    }
+
+    displayLogoutButton() {
+        console.log("isAuthenticated: "+this.state.isAuthenticated);
+        if (this.state.isAuthenticated) {
+            return (<NavItem eventKey="logout">
+            <NavIcon>
+                <i className="fa fa-fw fa-power-off" style={{ fontSize: '1.5em' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Sign-out">
+                Sign-out
+            </NavText>
+        </NavItem>);
+        } else {
+            return null;
+        }
+    }
+
+    displayLoginButton() {
+        if (!this.state.isAuthenticated) {
+            return (                        <NavItem eventKey="login">
+            <NavIcon>
+                <i className="fa fa-fw fa-sign-in" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Sign-in">
+                Sign-in
+            </NavText>
+            </NavItem>);
+        } else {
+            return null;
+        }
+    }
+
+    shareExpanded = (expanded) => {//TODO Need to figure out how to call this
+        const [globalState, globalActions] = useGlobal();
+        console.log("shareExpanded:globalState: "+globalState);
+        globalActions.shareExpanded(expanded);
+        return null;
+      };
+      
+
+    renderBreadcrumbs() {
+        return (
+            <Breadcrumbs showLineSeparator>
+                <Breadcrumbs.Item>
+                    <Anchor href="/home">Home</Anchor>
+                </Breadcrumbs.Item>
+                {!this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/login">Login</Anchor>
+                </Breadcrumbs.Item>}
+                {this.hasAdminAccess(this.state.authorities) &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/users">Manage Users</Anchor>
+                </Breadcrumbs.Item>}
+                {this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/people">Manage People</Anchor>
+                </Breadcrumbs.Item>}
+                {this.hasAdminAccess(this.state.authorities) &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/admin">Admin Access</Anchor>
+                </Breadcrumbs.Item>}
+                {this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/logout">Logout</Anchor>
+                </Breadcrumbs.Item>}
+            </Breadcrumbs>            
+        );
+    }
+
+    render() {
+        const { expanded, selected, authorities, user } = this.state;
+
+        return (
+            <div>
+                <div
+                    style={{
+                        marginLeft: expanded ? 240 : 64,
+                        padding: '15px 20px 0 20px'
+                    }}
+                >
+                <ClickOutside
+                    onClickOutside={() => {
+                        this.onToggle(false);
+                    }}
+                >
+                <SideNav
+                    expanded={this.state.expanded}
+                    style={{ minWidth: expanded ? navWidthExpanded : navWidthCollapsed }}
+                    onToggle={this.onToggle}
+                    onSelect={(selected) => {
+                        console.log("Selected App: " + selected);
+                        console.log("This properties: " + this.props);
+                        const to = '/' + selected;
+                        if (this.props.location.pathname !== to) {
+                            this.props.history.push(to);
+                        }
+                    }}
+                >
+
+                    <Toggle />
+                    <NavHeader expanded={expanded}>
+                        <NavTitle>Menu</NavTitle>
+                        <NavSubTitle>spendingbetter.com</NavSubTitle>
+                    </NavHeader>
+                    {expanded && user &&
+                    <NavInfoPane>
+                        <div>Time: {this.lastUpdateTime}</div>
+                        <div>User: {user}</div>
+                    </NavInfoPane>
+                    }
+                    <Nav
+                        defaultSelected={selected}
+                    >
+                        <NavItem eventKey="home">
+                            <NavIcon>
+                                <i className="fa fa-fw fa-home" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                            </NavIcon>
+                            <NavText style={{ paddingRight: 32 }} title="Home">
+                                Home
+                            </NavText>
+                        </NavItem>
+                        {this.displayAdminButtons(authorities)}
+                        {this.displayLoginButton()}
+                        {this.displayPeopleButton(authorities)}
+                        <NavItem eventKey="reports">
+                            <NavIcon>
+                                <i className="fa fa-fw fa-list-alt" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                            </NavIcon>
+                            <NavText style={{ paddingRight: 32 }} title="REPORTS">
+                                REPORTS
+                            </NavText>
+                        </NavItem>
+                        <Separator />
+                        {this.displayLogoutButton()}
+                    </Nav>
+                </SideNav>
+                </ClickOutside>
+                </div>
+                <Main expanded={expanded}>
+                    {this.renderBreadcrumbs()}
+                </Main>
+            </div>
+        );
+    }
 }
 
-function displayButtonManagePeople(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
-    || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE')
-    return <Link to="/people" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage People</Link>
-}
-
-function displayButtonManageUsers(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    return <Link to="/users" className={"link" + (!isAdmin ? " disabled-link" : "")}>Manage Users</Link>
-}
-
-function displayButtonAdmin(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
-    return (
-        <UncontrolledDropdown>
-                <DropdownToggle nav caret>
-                    Admin
-                </DropdownToggle>
-                <DropdownMenu>
-                <DropdownItem>
-                    <Link to="/admin-consul" className={"link" + (!isAdmin ? " disabled-link" : "")}>Consul</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="/admin-monitoring" className={"link" + (!isAdmin ? " disabled-link" : "")}>Spring Boot Admin</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="/admin-grafana" className={"link" + (!isAdmin ? " disabled-link" : "")}>Grafana</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="/admin-tracing" className={"link" + (!isAdmin ? " disabled-link" : "")}>Jaeger</Link>
-                </DropdownItem>
-            </DropdownMenu>
-            </UncontrolledDropdown>
-    )
-}
-
-function displayWeekMenu(authorities) {
-    const isAdmin = authorities.some(item => item === 'ROLE_ADMIN');
-    const hasCategoryReadAccess = authorities.some(item => item === 'ROLE_CATEGORY_READ' 
-    || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')
-    const hasRecipeReadAccess = authorities.some(item => item === 'ROLE_RECIPE_READ' 
-    || item === 'ROLE_RECIPE_CREATE' || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')
-    const hasIngredientReadAccess = authorities.some(item => item === 'ROLE_INGREDIENT_READ' 
-    || item === 'ROLE_INGREDIENT_CREATE' || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE')
-
-    return (
-        <UncontrolledDropdown>
-                <DropdownToggle nav caret>
-                    Week Menu
-                </DropdownToggle>
-                <DropdownMenu>
-                <DropdownItem>
-                    <Link to="/categories" className={"link" + (isAdmin || hasCategoryReadAccess ? "" : " disabled-link")}>Manage Categories</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="/recipes" className={"link" + (isAdmin || hasRecipeReadAccess ? "" : " disabled-link")}>Manage Recipes</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="/ingredients" className={"link" + (isAdmin || hasIngredientReadAccess ? "" : " disabled-link")}>Manage Ingredients</Link>
-                </DropdownItem>
-            </DropdownMenu>
-            </UncontrolledDropdown>
-    )
-}
-
-function displayButtonManageTasks(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
-    || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE')
-    return <Link to="/tasks" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Tasks</Link>
-}
-
-function displayButtonManageProducts(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_READ' 
-    || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE')
-    return <Link to="/products" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Products</Link>
-}
-
-function displayButtonManagePosts(authorities) {
-    const hasManageReadAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_READ' 
-    || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE')
-    return <Link to="/posts" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage Posts</Link>
-}
-
-export default HomeContent
+export default withRouter(HomeContent);

@@ -27,7 +27,9 @@ class PersonList extends Component {
       authorities: props.authorities,
       displayAlert: false,
       displaySwagger: false,
-      activeTab: '1'
+      activeTab: '1',
+      isAuthenticated: props.isAuthenticated,
+      user: props.user
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -207,7 +209,7 @@ class PersonList extends Component {
       <div>
         <AppNavbar />
         <Container fluid>
-          <HomeContent notDisplayMessage={true}></HomeContent>
+          <HomeContent {...this.state}></HomeContent>
           {displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
