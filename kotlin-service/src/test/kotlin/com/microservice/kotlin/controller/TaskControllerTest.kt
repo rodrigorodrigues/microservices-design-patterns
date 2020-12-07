@@ -3,6 +3,7 @@ package com.microservice.kotlin.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
+import com.querydsl.core.types.Predicate
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
 import org.springframework.http.MediaType.APPLICATION_JSON
@@ -42,17 +45,17 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun setup() {
         val oAuth2Request = OAuth2Request(null, null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")), true, null, null, null, null, null)
         `when`(tokenStore.readAuthentication(ArgumentMatchers.anyString())).thenReturn(OAuth2Authentication(oAuth2Request, null))
-        `when`(taskRepository.findAll()).thenReturn(listOf(
+        `when`(taskRepository.findAll(any(Predicate::class.java), any(Pageable::class.java))).thenReturn(PageImpl(listOf(
             Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "rodrigo"),
             Task(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "gustavo")
-        ))
+        ), Pageable.unpaged(), 2))
     }
 
     @Test
     @DisplayName("Test - When Calling GET - /api/tasks should return empty list and response 200 - OK")
     @WithMockUser(roles = ["TASK_READ"], username = "rodrigo")
     fun shouldReturnEmptyList() {
-        `when`(taskRepository.findAll()).thenReturn(listOf())
+        `when`(taskRepository.findAll(any(Predicate::class.java), any(Pageable::class.java))).thenReturn(PageImpl(listOf(), Pageable.unpaged(), 0))
 
         client.perform(get("/api/tasks")
             .header(AUTHORIZATION, "Bearer Mock JWT"))

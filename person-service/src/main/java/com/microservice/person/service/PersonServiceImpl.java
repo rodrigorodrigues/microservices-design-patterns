@@ -4,7 +4,9 @@ import com.microservice.person.dto.PersonDto;
 import com.microservice.person.mapper.PersonMapper;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
+import com.querydsl.core.types.Predicate;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,17 +29,22 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    public Flux<PersonDto> findAll() {
-        return personMapper.entityToDto(personRepository.findAll());
+    public Flux<PersonDto> findAll(Pageable pageable, Predicate predicate) {
+        return personMapper.entityToDto(personRepository.findAll(predicate), pageable);
     }
 
     @Override
-    public Flux<PersonDto> findAllByNameStartingWith(String name) {
-        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name));
+    public Flux<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable) {
+        return personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser), pageable);
     }
 
     @Override
-    public Flux<PersonDto> findByChildrenExists() {
+    public Flux<PersonDto> findAllByNameStartingWith(String name, Pageable pageable) {
+        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name), pageable);
+    }
+
+    @Override
+    public Flux<PersonDto> findByChildrenExists(Pageable pageable) {
         return personMapper.entityToDto(personRepository.findByChildrenExists(true));
     }
 

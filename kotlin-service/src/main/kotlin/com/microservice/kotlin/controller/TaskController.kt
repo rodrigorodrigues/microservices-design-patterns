@@ -1,10 +1,14 @@
 package com.microservice.kotlin.controller
 
+import com.microservice.kotlin.model.QTask
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
+import com.querydsl.core.types.dsl.BooleanExpression
 import io.swagger.annotations.ApiParam
 import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -23,7 +27,6 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api/tasks")
 class TaskController(@Autowired val repository: TaskRepository) {
-
     @GetMapping("/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE')")
     fun findById(@PathVariable id: String,
@@ -40,12 +43,26 @@ class TaskController(@Autowired val repository: TaskRepository) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE', 'TASK_DELETE', 'TASK_CREATE')")
     @PostFilter("hasRole('ADMIN') or filterObject.createdByUser == authentication.name")
-    fun findAll(): List<Task> {
-        val findAll = repository.findAll()
+    fun findAll(@RequestParam(name = "page", defaultValue = "0", required = false) page: Int,
+                @RequestParam(name = "size", defaultValue = "10", required = false) size: Int,
+                @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) sortDirection: String,
+                @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) sortIdx: List<String>,
+                @RequestParam(required = false) search: String?): List<Task> {
+        var predicate: BooleanExpression = QTask.task.id.isNotNull
+        if (StringUtils.isNotBlank(search)) {
+            for (token in search!!.split(";".toRegex()).toTypedArray()) {
+                if (StringUtils.containsIgnoreCase(token, "name:")) {
+                    predicate = QTask.task.name.containsIgnoreCase(token.replaceFirst("name:".toRegex(RegexOption.IGNORE_CASE), ""))
+                }
+            }
+        }
+
+        val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), *sortIdx.toTypedArray()))
+        val findAll = repository.findAll(predicate, pageRequest)
         return if (findAll.count() == 0) {
             mutableListOf()
         } else {
-            findAll.toList()
+            findAll.toMutableList()
         }
     }
 

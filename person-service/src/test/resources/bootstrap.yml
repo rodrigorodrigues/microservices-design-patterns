@@ -6,10 +6,10 @@ spring:
       enabled: false
     consul:
         enabled: false
+    kubernetes:
+        enabled: false
   profiles:
       active: test
-  zipkin:
-      enabled: false
   main:
       allow-bean-definition-overriding: true
 security:
@@ -17,3 +17,6 @@ security:
         resource:
             jwt:
                 key-value: dGVzdC1zcHJpbmctYm9vdC1hcHBsaWNhdGlvbi13aXRoLXJlYWN0LXNpbmdsZS1wYWdlLWFwcGxpY2F0aW9uCg==
+opentracing:
+    jaeger:
+        enabled: false

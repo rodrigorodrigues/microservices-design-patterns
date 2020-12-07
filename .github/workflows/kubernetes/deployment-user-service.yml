@@ -15,7 +15,7 @@ spec:
   selector:
     app: user-service
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
@@ -66,5 +66,5 @@ spec:
               scheme: HTTP
               path: /actuator/health
               port: 8083
-            initialDelaySeconds: 200
+            initialDelaySeconds: 1000
             periodSeconds: 5

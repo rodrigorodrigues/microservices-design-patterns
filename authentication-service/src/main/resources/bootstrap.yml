@@ -6,3 +6,8 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
+management:
+    endpoints:
+        web:
+            exposure:
+                include: '*'

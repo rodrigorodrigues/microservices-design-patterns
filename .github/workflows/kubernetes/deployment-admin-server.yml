@@ -15,11 +15,14 @@ spec:
   selector:
     app: admin-server
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: admin-server
 spec:
+  selector:
+    matchLabels:
+      app: admin-server
   replicas: 1
   template:
     metadata:
@@ -29,19 +32,12 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: eu.gcr.io/spring-boot-gke-243520/admin-server:latest
+          image: fielcapao/microservices-design-patterns-admin-service:latest
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-          volumeMounts:
-            - name: spendingbetter-crt
-              mountPath: "/etc/crt"
-              readOnly: true
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs_jks"
-              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xm512m
@@ -57,43 +53,28 @@ spec:
               value: docker
             - name: SPRING_REDIS_HOST
               value: redis
-            - name: EUREKA_SERVER
-              value: http://eureka-server:8761/eureka/eureka/
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-server:8888
-            - name: SPRING_CLOUD_CONFIG_FAIL_FAST
-              value: "true"
             - name: OAUTH_CLIENT_ID
               value: actuator
             - name: OAUTH_CLIENT_SECRET
               value: actuator_password
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
-              value: debug
-            - name: LOGGING_LEVEL_COM_MICROSERVICE
-              value: debug
             - name: SPRING_BOOT_ADMIN_CONTEXT_PATH
               value: /monitoring
             - name: SERVER_SERVLET_CONTEXT_PATH
               value: /monitoring
             - name: SERVER_USE_FORWARD_HEADERS
               value: "true"
-            - name: KEYSTORE
-              value: file:/etc/ssl_certs_jks/www.spendingbetter.com.jks
-            - name: KEYSTORE_ALIAS
-              value: spring-boot
-            - name: KEYSTORE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: KEYSTORE_PASSWORD
-            - name: ACCESS_TOKEN_URI
-              value: https://YOUR_DOMAIN.com/auth/oauth/token
-            - name: AUTHORIZATION_URL
-              value: https://YOUR_DOMAIN.com/auth/oauth/authorize
-            - name: USER_INFO_URI
-              value: https://YOUR_DOMAIN.com/auth/api/authenticatedUser
-          command: ["/bin/sh"]
-          args: ["-c", "keytool -import -trustcacerts -alias spendingbetter.com -file /etc/crt/www.spendingbetter.com.crt -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -noprompt && $JAVA_CMD"]
+            - name: SPRING_CLOUD_CONSUL_ENABLED
+              value: "false"
+            - name: OPENTRACING_JAEGER_ENABLED
+              value: "false"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+              value: "default"
+#            - name: ACCESS_TOKEN_URI
+#              value: https://YOUR_DOMAIN.com/auth/oauth/token
+#            - name: AUTHORIZATION_URL
+#              value: https://YOUR_DOMAIN.com/auth/oauth/authorize
+#            - name: USER_INFO_URI
+#              value: https://YOUR_DOMAIN.com/auth/api/authenticatedUser
           ports:
             - containerPort: 9000
           livenessProbe:
@@ -101,12 +82,5 @@ spec:
               scheme: HTTP
               path: /monitoring/actuator/health
               port: 9000
-            initialDelaySeconds: 200
+            initialDelaySeconds: 1000
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-crt
-          secret:
-            secretName: spendingbetter-crt
-        - name: spendingbetter-jks
-          secret:
-            secretName: spendingbetter-jks

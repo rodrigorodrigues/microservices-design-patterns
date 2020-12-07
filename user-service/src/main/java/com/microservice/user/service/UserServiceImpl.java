@@ -4,9 +4,11 @@ import com.microservice.user.dto.UserDto;
 import com.microservice.user.mapper.UserMapper;
 import com.microservice.user.model.User;
 import com.microservice.user.repository.UserRepository;
+import com.querydsl.core.types.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -67,8 +69,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Flux<UserDto> findAll() {
-        return userMapper.entityToDto(userRepository.findAll());
+    public Flux<UserDto> findAll(Pageable pageable, Predicate predicate) {
+        return userMapper.entityToDto(userRepository.findAll(predicate), pageable);
     }
 
     @Override

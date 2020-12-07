@@ -9,6 +9,7 @@ import com.microservice.person.dto.PersonDto;
 import com.microservice.person.service.PersonService;
 import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -31,6 +33,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -88,13 +91,7 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling GET - /api/people with different user should return empty list and response 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "test")
     public void whenCallFindAllShouldReturnEmptyList() {
-        PersonDto person = new PersonDto();
-        person.setId("100");
-        person.setCreatedByUser("anotherUser");
-        PersonDto person2 = new PersonDto();
-        person2.setCreatedByUser("anotherUser");
-        person2.setId("200");
-        when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class))).thenReturn(Flux.empty());
 
         client.get().uri("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
@@ -112,7 +109,7 @@ public class PersonControllerTest {
         person.setId("100");
         PersonDto person2 = new PersonDto();
         person2.setId("200");
-        when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
+        when(personService.findAll(any(Pageable.class), any(Predicate.class))).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
 
         ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
 
@@ -132,10 +129,7 @@ public class PersonControllerTest {
         PersonDto person = new PersonDto();
         person.setId("100");
         person.setCreatedByUser("me");
-        PersonDto person2 = new PersonDto();
-        person2.setCreatedByUser("someone");
-        person2.setId("200");
-        when(personService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(person, person2)));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class))).thenReturn(Flux.fromIterable(Collections.singletonList(person)));
 
         ParameterizedTypeReference<ServerSentEvent<PersonDto>> type = new ParameterizedTypeReference<ServerSentEvent<PersonDto>>() {};
 

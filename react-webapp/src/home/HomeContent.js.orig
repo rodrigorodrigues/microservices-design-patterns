@@ -90,10 +90,46 @@ function displayButtonManagePeople(authorities) {
     return <Link to="/people" className={"link" + (!hasManageReadAccess ? " disabled-link" : "")}>Manage People</Link>
 }
 
+<<<<<<< Updated upstream
 function displayButtonManageUsers(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')
     return <Link to="/users" className={"link" + (!isAdmin ? " disabled-link" : "")}>Manage Users</Link>
 }
+=======
+    renderBreadcrumbs() {
+        return (
+            <Breadcrumbs showLineSeparator>
+                <Breadcrumbs.Item>
+                    <Anchor href="/home">Home</Anchor>
+                </Breadcrumbs.Item>
+                {!this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/login">Login</Anchor>
+                </Breadcrumbs.Item>}
+                {this.hasAdminAccess(this.state.authorities) &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/users">Manage Users</Anchor>
+                </Breadcrumbs.Item>}
+                {this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/people">Manage People</Anchor>
+                </Breadcrumbs.Item>}
+                {this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/tasks">Manage Tasks</Anchor>
+                </Breadcrumbs.Item>}
+                {this.hasAdminAccess(this.state.authorities) &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/admin">Admin Access</Anchor>
+                </Breadcrumbs.Item>}
+                {this.state.isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/logout">Logout</Anchor>
+                </Breadcrumbs.Item>}
+            </Breadcrumbs>            
+        );
+    }
+>>>>>>> Stashed changes
 
 function displayButtonAdmin(authorities) {
     const isAdmin = authorities.some(item => item === 'ROLE_ADMIN')

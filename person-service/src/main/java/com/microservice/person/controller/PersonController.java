@@ -2,12 +2,17 @@ package com.microservice.person.controller;
 
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.dto.PersonDto;
+import com.microservice.person.model.QPerson;
 import com.microservice.person.service.PersonService;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -60,14 +65,26 @@ public class PersonController {
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE')")
-    public Flux<PersonDto> findAll(@AuthenticationPrincipal Authentication authentication) {
+    public Flux<PersonDto> findAll(@AuthenticationPrincipal Authentication authentication,
+                              @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
+                              @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
+                              @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
+                              @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
+                              @RequestParam(required = false) String search) {
+        BooleanExpression predicate = QPerson.person.id.isNotNull();
+        if (StringUtils.isNotBlank(search)) {
+            for (String token : search.split(";")) {
+                if (StringUtils.containsIgnoreCase(token, "address:")) {
+                    predicate = QPerson.person.address.address.containsIgnoreCase(token.replaceFirst("(?i)address:", ""));
+                }
+            }
+        }
+        log.info("predicate: {}", predicate);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
         if (hasRoleAdmin(authentication)) {
-            return personService.findAll();
+            return personService.findAll(pageRequest, predicate);
         } else {
-            return personService.findAll()
-                .filter(p -> p.getCreatedByUser().equals(authentication.getName()))
-                .collectList()
-                .flatMapMany(Flux::fromIterable);
+            return personService.findAllByCreatedByUser(authentication.getName(), pageRequest);
         }
     }
 

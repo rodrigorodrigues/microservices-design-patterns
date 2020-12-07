@@ -21,7 +21,7 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
+@SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false", "logging.level.org.springframework.security=debug"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
                                        @Autowired val defaultTokenServices: DefaultTokenServices) {
@@ -73,11 +73,26 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
         val headers = HttpHeaders()
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
         headers.add(HttpHeaders.AUTHORIZATION, createToken(usernamePasswordAuthenticationToken))
-        val responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
+        var responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(read<List<String>>(responseEntity.body, "$..id")).hasSize(3)
         assertThat(read<List<String>>(responseEntity.body, "$..createdByUser").distinct()).containsExactly("default@admin.com")
+
+        responseEntity = restTemplate.exchange("/api/tasks?search=NAME:ar", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(read<List<String>>(responseEntity.body, "$..id")).hasSize(2)
+
+        responseEntity = restTemplate.exchange("/api/tasks?search=name:Learn", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(read<List<String>>(responseEntity.body, "$..id")).hasSize(1)
+
+        responseEntity = restTemplate.exchange("/api/tasks?search=name:Something else", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(read<List<String>>(responseEntity.body, "$")).isEmpty()
     }
 
     @Test

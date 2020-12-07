@@ -326,6 +326,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Add React Legacy
 * [X] Rename `/api/persons` to `/api/people`
 * [X] Replace Eureka/Spring Config Server to Consul
+* [X] Add Query DSL
 
 
 ### References
