@@ -1,67 +1,57 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kotlin-service
+  name: go-service
   annotations:
     cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
-    app: kotlin-service
+    app: go-service
 spec:
   ports:
     - name: https-port
       port: 8443
     - name: http-port
-      port: 9092
+      port: 3006
   selector:
-    app: kotlin-service
+    app: go-service
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kotlin-service
+  name: go-service
   labels:
-    app: kotlin-service
+    app: go-service
 spec:
   selector:
     matchLabels:
-      app: kotlin-service
+      app: go-service
   replicas: 1
   template:
     metadata:
       labels:
-        app: kotlin-service
+        app: go-service
     spec:
       containers:
-        - name: kotlin-service
-          image: fielcapao/microservices-design-patterns-kotlin-service:latest
+        - name: go-service
+          image: fielcapao/microservices-design-patterns-go-service:latest
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
           env:
-            - name: JAVA_OPTS
-              value: -Xms256m -Xmx512m
             - name: SERVER_PORT
-              value: "9092"
+              value: "3006"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
-            - name: SPRING_DATA_MONGODB_URI
+              value: kubernetes
+            - name: MONGODB_URI
               value: mongodb://mongo:27017
-            - name: SPRING_DATA_MONGODB_DATABASE
-              value: docker
-            - name: SPRING_CLOUD_CONSUL_ENABLED
-              value: "false"
-            - name: OPENTRACING_JAEGER_ENABLED
-              value: "false"
-            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
-              value: "default"
           ports:
-            - containerPort: 9092
+            - containerPort: 3006
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health
-              port: 9092
+              port: 3006
             initialDelaySeconds: 1000
             periodSeconds: 5

@@ -9,6 +9,7 @@ import com.microservice.user.dto.UserDto;
 import com.microservice.user.service.UserService;
 import com.microservice.web.common.util.CustomReactiveDefaultErrorAttributes;
 import com.microservice.web.common.util.HandleResponseError;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -93,7 +95,7 @@ public class UserControllerTest {
         userDto.setId("100");
         UserDto userDto1 = new UserDto();
         userDto1.setId("200");
-        when(userService.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(userDto, userDto1)));
+        when(userService.findAll(any(Pageable.class), any(Predicate.class))).thenReturn(Flux.fromIterable(Arrays.asList(userDto, userDto1)));
 
         ParameterizedTypeReference<ServerSentEvent<UserDto>> type = new ParameterizedTypeReference<ServerSentEvent<UserDto>>() {};
 

@@ -46,10 +46,30 @@ class UserServiceApplicationIntegrationTest {
     @Test
     @DisplayName("Test - When Calling GET - /api/users should return list of users and response 200 - OK")
     public void shouldReturnListOfUsersWhenCallApi() {
+        String authorizationHeader = authorizationHeader(Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
         client.get().uri("/api/users")
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .exchange()
                 .expectStatus().isOk();
+
+        client.get().uri("/api/users?search=fullName:An")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(UserDto.class).hasSize(2);
+
+        client.get().uri("/api/users?search=FULLNAME:Ano")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(UserDto.class).hasSize(1);
+
+        client.get().uri("/api/users?search=fullname:Something else")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().isEmpty();
+
     }
 
     @Test

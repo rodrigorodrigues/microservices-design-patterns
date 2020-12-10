@@ -1,0 +1,35 @@
+version: '3.2'
+services:
+  mongodb-datasource:
+    image: arm64v8/mongo
+    command: mongod --port 27017
+    container_name: mongodb-datasource
+    ports:
+      - 27017:27017
+    networks:
+      net:
+        aliases:
+          - mongodb-datasource
+
+  redisdb:
+    image: arm64v8/redis
+    container_name: redisdb
+    ports:
+      - 6379:6379
+    networks:
+      net:
+        aliases:
+          - redisdb
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      net:
+        aliases:
+          - jaeger
+networks:
+  net:

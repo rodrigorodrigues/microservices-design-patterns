@@ -1,6 +1,8 @@
 package com.microservice.person.service;
 
 import com.microservice.person.dto.PersonDto;
+import com.querydsl.core.types.Predicate;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,23 +25,35 @@ public interface PersonService {
     Mono<PersonDto> findById(String id);
 
     /**
-     * Return list of users.
-     * @return list of users
+     * Return list of people.
+     * @param pageable pagination request
+     * @param predicate condition predicate
+     * @return list of people
      */
-    Flux<PersonDto> findAll();
+    Flux<PersonDto> findAll(Pageable pageable, Predicate predicate);
 
     /**
-     * Return list of users by name starting with
+     * Return list of people created by specific user
+     * @param createdByUser current user
+     * @param pageable pagination request
+     * @return list of people
+     */
+    Flux<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable);
+
+    /**
+     * Return list of people by name starting with
      * @param name starts with
-     * @return list of users
+     * @param pageable pagination request
+     * @return list of people
      */
-    Flux<PersonDto> findAllByNameStartingWith(String name);
+    Flux<PersonDto> findAllByNameStartingWith(String name, Pageable pageable);
 
     /**
-     * Return list of users that have children.
-     * @return list of users
+     * Return list of people that have children.
+     * @param pageable pagination request
+     * @return list of people
      */
-    Flux<PersonDto> findByChildrenExists();
+    Flux<PersonDto> findByChildrenExists(Pageable pageable);
 
     /**
      * Delete a user by id.

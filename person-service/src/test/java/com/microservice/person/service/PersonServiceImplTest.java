@@ -4,20 +4,22 @@ import com.microservice.person.dto.PersonDto;
 import com.microservice.person.mapper.PersonMapper;
 import com.microservice.person.mapper.PersonMapperImpl;
 import com.microservice.person.model.Person;
+import com.microservice.person.model.QPerson;
 import com.microservice.person.repository.PersonRepository;
-import com.microservice.person.service.PersonServiceImpl;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,29 +62,35 @@ public class PersonServiceImplTest {
 
     @Test
     public void whenCallFindAllShouldReturnListOfPersons() {
-        when(personRepository.findAll()).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person(), new Person())));
+        when(personRepository.findAll(any(Predicate.class))).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person(), new Person())));
 
-        Flux<PersonDto> persons = personService.findAll();
+        Flux<PersonDto> people = personService.findAll(PageRequest.of(0, 10), QPerson.person.id.isNotNull());
 
-        assertThat(persons.count().block()).isEqualTo(3);
+        StepVerifier.create(people)
+            .expectNextCount(3)
+            .verifyComplete();
     }
 
     @Test
     public void whenCallFindAllByNameStartingWithShouldReturnListOfPersons() {
         when(personRepository.findAllByFullNameIgnoreCaseStartingWith(anyString())).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person())));
 
-        Flux<PersonDto> persons = personService.findAllByNameStartingWith(anyString());
+        Flux<PersonDto> people = personService.findAllByNameStartingWith("test", PageRequest.of(0, 10));
 
-        assertThat(persons.count().block()).isEqualTo(2);
+        StepVerifier.create(people)
+            .expectNextCount(2)
+            .verifyComplete();
     }
 
     @Test
     public void whenCallFindByChildrenExistsShouldReturnListOfPersons() {
         when(personRepository.findByChildrenExists(anyBoolean())).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person())));
 
-        Flux<PersonDto> persons = personService.findByChildrenExists();
+        Flux<PersonDto> people = personService.findByChildrenExists(any(Pageable.class));
 
-        assertThat(persons.count().block()).isEqualTo(2);
+        StepVerifier.create(people)
+            .expectNextCount(2)
+            .verifyComplete();
     }
 
     @Test

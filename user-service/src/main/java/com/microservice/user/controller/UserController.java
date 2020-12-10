@@ -2,12 +2,17 @@ package com.microservice.user.controller;
 
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.dto.UserDto;
+import com.microservice.user.model.QUser;
 import com.microservice.user.service.UserService;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,11 +44,26 @@ public class UserController {
 
     @ApiOperation(value = "Api for return list of users")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<UserDto> findAll(@ApiIgnore @AuthenticationPrincipal Authentication authentication) {
+    public Flux<UserDto> findAll(@ApiIgnore @AuthenticationPrincipal Authentication authentication,
+                                 @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
+                                 @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
+                                 @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
+                                 @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
+                                 @RequestParam(required = false) String search) {
+        BooleanExpression predicate = QUser.user.id.isNotNull();
+        if (StringUtils.isNotBlank(search)) {
+            for (String token : search.split(";")) {
+                if (StringUtils.containsIgnoreCase(token, "fullName:")) {
+                    predicate = QUser.user.fullName.containsIgnoreCase(token.replaceFirst("(?i)fullName:", ""));
+                }
+            }
+        }
+        log.info("predicate: {}", predicate);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
         if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"))) {
-            return userService.findAll();
+            return userService.findAll(pageRequest, predicate);
         } else {
-            return userService.findAll()
+            return userService.findAll(pageRequest, predicate)
                     .filter(p -> p.getCreatedByUser().equals(authentication.getName()))
                     .collectList()
                     .flatMapMany(Flux::fromIterable);

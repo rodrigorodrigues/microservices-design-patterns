@@ -1,8 +1,8 @@
 package com.microservice.person.repository;
 
 import com.microservice.person.model.Person;
-import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
@@ -11,13 +11,12 @@ import reactor.core.publisher.Flux;
  * Name convention are binding using Spring Data MongoDB - https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#repositories.query-methods.query-creation
  */
 @Repository
-public interface PersonRepository extends ReactiveMongoRepository<Person, String> {
+public interface PersonRepository extends ReactiveCrudRepository<Person, String>, ReactiveQuerydslPredicateExecutor<Person> {
     //TODO Check later how to use @Tailable with React EventSource
 //    @Tailable
     Flux<Person> findAllByFullNameIgnoreCaseStartingWith(String name);
 
     Flux<Person> findByChildrenExists(boolean exists);
 
-    @Query("{}")
-    Flux<Person> findAllStream();
+    Flux<Person> findAllByCreatedByUser(String createdByUser);
 }

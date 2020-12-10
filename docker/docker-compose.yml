@@ -37,11 +37,9 @@ services:
       - SERVER_PORT=8080
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       #- DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
-      - SPRING_ZIPKIN_ENABLED=true
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
     depends_on:
       - service-discovery
@@ -145,8 +143,6 @@ services:
       #            - NODE_DEBUG=request
       - HOST_NAME=week-menu-api
       - IP_ADDRESS=week-menu-api
-      - ZIPKIN_HOST=zipkin
-      - ZIPKIN_PORT=9411
     depends_on:
       - service-discovery
     links:
@@ -219,7 +215,6 @@ services:
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
       - DEBUG=true
@@ -227,6 +222,7 @@ services:
       - service-discovery
       - mongodb-datasource
       - jaeger
+      - service-discovery-load-configuration
     ports:
       - 8082:8082
     volumes:
@@ -247,7 +243,6 @@ services:
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       #- DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
@@ -255,6 +250,7 @@ services:
       - service-discovery
       - mongodb-datasource
       - jaeger
+      - service-discovery-load-configuration
     ports:
       - 9092:9092
     volumes:
@@ -298,7 +294,6 @@ services:
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       #- DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
@@ -326,12 +321,12 @@ services:
       - SERVER_PORT=9999
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
       - DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - CONFIGURATION_AUTHORIZE_URLS=http://gateway:8080/login;http://service-discovery:8761/login;http://monitoring:9000/login;http://grafana:3003/login
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -339,6 +334,7 @@ services:
       - monitoring
       - redisdb
       - jaeger
+      - service-discovery-load-configuration
     ports:
       - 9999:9999
     volumes:

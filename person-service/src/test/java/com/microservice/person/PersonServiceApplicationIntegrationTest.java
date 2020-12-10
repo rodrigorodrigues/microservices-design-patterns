@@ -53,7 +53,8 @@ import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "logging.level.com.microservice=debug"})
+            "logging.level.com.microservice=debug",
+            "logging.level.or.springframework.data=debug"})
 @AutoConfigureWebTestClient(timeout = "1s")
 @Import(PersonServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class)
 public class PersonServiceApplicationIntegrationTest {
@@ -136,7 +137,7 @@ public class PersonServiceApplicationIntegrationTest {
 
     @Test
 	@DisplayName("Test - When Calling GET - /api/people should return filter list of people and response 200 - OK")
-	public void shouldReturnListOfPersonsWhenCallApi() {
+	public void shouldReturnListOfPeopleWhenCallApi() {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 
 		client.get().uri("/api/people")
@@ -160,7 +161,7 @@ public class PersonServiceApplicationIntegrationTest {
 
     @Test
     @DisplayName("Test - When Calling GET - /api/people should return list of people and response 200 - OK")
-    public void shouldReturnListOfAllPersonsWhenCallApi() {
+    public void shouldReturnListOfAllPeopleWhenCallApi() {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
         client.get().uri("/api/people")
@@ -170,7 +171,43 @@ public class PersonServiceApplicationIntegrationTest {
             .expectBodyList(PersonDto.class).hasSize(4);
     }
 
-	@Test
+    @Test
+    @DisplayName("Test - When Calling GET - /api/people should return list of people and paging - OK")
+    public void shouldReturnListOfAllPeopleAndPagingWhenCallApi() {
+        String authorizationHeader = authorizationHeader("admin@gmail.com");
+
+        client.get().uri("/api/people?size=2")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBodyList(PersonDto.class).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/people should return list of people using query dsl - OK")
+    public void shouldReturnListOfAllPeopleWithQueryDslCallApi() {
+        String authorizationHeader = authorizationHeader("admin@gmail.com");
+
+        client.get().uri("/api/people?search=address:street")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBodyList(PersonDto.class).hasSize(3);
+
+        client.get().uri("/api/people?search=address:123")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBodyList(PersonDto.class).hasSize(1);
+
+        client.get().uri("/api/people?search=address:something else")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody().isEmpty();
+    }
+
+    @Test
     @DisplayName("Test - When Calling POST - /api/people should create a new person and response 201 - Created")
 	public void shouldInsertNewPersonWhenCallApi() throws Exception {
 		String authorizationHeader = authorizationHeader("master@gmail.com");

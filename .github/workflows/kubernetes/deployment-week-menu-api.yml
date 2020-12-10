@@ -73,7 +73,7 @@ spec:
               scheme: HTTP
               path: /actuator/health
               port: 3002
-            initialDelaySeconds: 200
+            initialDelaySeconds: 1000
             periodSeconds: 5
       volumes:
         - name: spendingbetter-pub-key

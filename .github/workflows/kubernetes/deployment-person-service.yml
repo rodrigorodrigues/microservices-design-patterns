@@ -15,14 +15,14 @@ spec:
   selector:
     app: person-service
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: person-service
 spec:
   selector:
     matchLabels:
-      app: user-service
+      app: person-service
   replicas: 1
   template:
     metadata:
@@ -64,5 +64,5 @@ spec:
               scheme: HTTP
               path: /actuator/health
               port: 8082
-            initialDelaySeconds: 200
+            initialDelaySeconds: 1000
             periodSeconds: 5

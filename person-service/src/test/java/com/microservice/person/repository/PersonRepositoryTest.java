@@ -5,6 +5,7 @@ import com.microservice.authentication.common.service.SharedAuthenticationServic
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Child;
 import com.microservice.person.model.Person;
+import com.microservice.person.model.QPerson;
 import com.microservice.person.repository.PersonRepositoryTest.MockServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +35,8 @@ import static org.mockito.Mockito.mock;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
+@DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug",
+    "logging.level.org.springframework.data=debug"})
 @Import({ObjectMapper.class, MockServiceConfiguration.class})
 public class PersonRepositoryTest {
     @Autowired
@@ -73,6 +75,22 @@ public class PersonRepositoryTest {
         StepVerifier.create(personRepository.findAll())
                 .expectNextCount(3)
                 .verifyComplete();
+
+        StepVerifier.create(personRepository.findAll(QPerson.person.id.isNotNull()))
+            .expectNextCount(3)
+            .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Test - Return size of list of People")
+    public void testCount() {
+        StepVerifier.create(personRepository.count(QPerson.person.id.isNotNull()))
+            .expectNextMatches(n -> n == 3L)
+            .verifyComplete();
+
+        StepVerifier.create(personRepository.count(QPerson.person.fullName.equalsIgnoreCase("Anonymous")))
+            .expectNextMatches(n -> n == 1L)
+            .verifyComplete();
     }
 
     @Test
