@@ -36,7 +36,6 @@
         <module>authentication-common</module>
         <module>kotlin-service</module>
         <module>nodejs-service</module>
-        <module>react-webapp-jhipster</module>
         <module>quarkus-service</module>
     </modules>
 
