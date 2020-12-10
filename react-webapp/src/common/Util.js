@@ -12,3 +12,11 @@ export function errorMessage(message) {
         }
     }
 }
+
+export function marginLeft(expanded) {
+    if (expanded) {
+        return 255;
+      } else {
+        return 40;
+    }  
+}

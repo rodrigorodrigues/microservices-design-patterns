@@ -12,6 +12,7 @@ import { confirmDialog } from '../common/ConfirmDialog';
 import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import { toast } from 'react-toastify';
+import { marginLeft } from '../common/Util';
 
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
@@ -29,10 +30,15 @@ class PersonList extends Component {
       displaySwagger: false,
       activeTab: '1',
       isAuthenticated: props.isAuthenticated,
-      user: props.user
+      user: props.user,
+      expanded: false
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   toggle(tab) {
@@ -109,11 +115,7 @@ class PersonList extends Component {
   }
 
   render() {
-    const { persons, isLoading, displayError, authorities, displayAlert, displaySwagger } = this.state;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
+    const { persons, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
 
     const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE');
 
@@ -206,11 +208,17 @@ class PersonList extends Component {
     }
 
     return (
-      <div>
+      <div
+      style={{
+        marginLeft: marginLeft(expanded),
+        padding: '15px 20px 0 20px'
+      }}
+      >
         <AppNavbar />
         <Container fluid>
-          <HomeContent {...this.state}></HomeContent>
-          {displayContent()}
+          <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+          {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+          {!isLoading && displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
         </Container>

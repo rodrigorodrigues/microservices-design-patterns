@@ -4,8 +4,9 @@ import styled from 'styled-components';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from './StyledSideNav';
 import ClickOutside from 'react-click-outside';
 import Breadcrumbs from '@trendmicro/react-breadcrumbs';
-import useGlobal from "../common/useGlobal";
 import Anchor from '@trendmicro/react-anchor';
+import { marginLeft } from '../common/Util';
+import { toast } from 'react-toastify';
 
 const navWidthCollapsed = 64;
 const navWidthExpanded = 280;
@@ -55,7 +56,7 @@ const Main = styled.main`
     overflow: hidden;
     transition: all .15s;
     padding: 0 20px;
-    margin-left: ${props => (props.expanded ? 240 : 64)}px;
+    margin-left: ${props => marginLeft(props.expanded)};
 `;
 
 class HomeContent extends Component {
@@ -66,11 +67,16 @@ class HomeContent extends Component {
             expanded: false,
             authorities: props.authorities,
             isAuthenticated: props.isAuthenticated,
-            user: props.user
+            user: props.user,
+            jwt: props.jwt
         };
     }
 
-    lastUpdateTime = new Date().toISOString();
+    componentDidMount() {
+        toast.dismiss('Error');
+        let jwt = this.state.jwt;
+        console.log("HomeContent:componentDidMount:jwt: "+jwt);
+    }
 
     onSelect = (selected) => {
         console.log("Selected: " + selected);        
@@ -79,6 +85,8 @@ class HomeContent extends Component {
 
     onToggle = (expanded) => {
         this.setState({ expanded: expanded });
+        const { setExpanded } = this.props;
+        setExpanded(expanded);
         console.log("onToggle:expanded: "+expanded);
     };
 
@@ -97,18 +105,59 @@ class HomeContent extends Component {
         </NavItem>);
     }
 
+    displayTasksButton(authorities) {
+        const hasTaskPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
+        || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE'));
+        console.log("hasTaskPermission: "+hasTaskPermission);
+        return (<NavItem eventKey="tasks" disabled={(!hasTaskPermission)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-tasks" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Tasks">
+                Tasks
+            </NavText>
+        </NavItem>);
+    }
+
+    displayPostsButton(authorities) {
+        const hasPostPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_READ' 
+        || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE'));
+        console.log("hasTaskPermission: "+hasPostPermission);
+        return (<NavItem eventKey="posts" disabled={(!hasPostPermission)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-comments" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Posts">
+                Posts
+            </NavText>
+        </NavItem>);
+    }
+
+    displayProductsButton(authorities) {
+        const hasProductPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_READ' 
+        || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE'));
+        console.log("hasTaskPermission: "+hasProductPermission);
+        return (<NavItem eventKey="products" disabled={(!hasProductPermission)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-truck" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Products">
+                Products
+            </NavText>
+        </NavItem>);
+    }
+
     displayAdminButtons(authorities) {
         const isAdmin = this.hasAdminAccess(authorities);
         console.log("isAdmin: "+isAdmin);
-        if (isAdmin) {
-            return (<NavItem eventKey="admin">
+        return (<NavItem eventKey="admin" disabled={(!isAdmin)}>
             <NavIcon>
                 <i className="fa fa-fw fa-cogs" style={{ fontSize: '1.5em' }} />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="Admin">
                 Admin
             </NavText>
-            <NavItem eventKey="users">
+            <NavItem eventKey="users" disabled={(!isAdmin)}>
                 <NavIcon>
                     <i className="fa fa-fw fa-users" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
                 </NavIcon>
@@ -116,15 +165,39 @@ class HomeContent extends Component {
                     Users
                 </NavText>
             </NavItem>
-            <NavItem eventKey="settings/network">
-                <NavText title="NETWORK">
-                    NETWORK
+            <NavItem eventKey="consul" disabled={(!isAdmin)}>
+                <NavIcon>
+                    <i className="fa fa-fw fa-codepen" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Consul - Discovery Server">
+                    Consul
+                </NavText>
+            </NavItem>
+            <NavItem eventKey="grafana" disabled={(!isAdmin)}>
+                <NavIcon>
+                    <i className="fa fa-fw fa-pie-chart" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Grafana">
+                    Grafana
+                </NavText>
+            </NavItem>
+            <NavItem eventKey="prometheus" disabled={(!isAdmin)}>
+                <NavIcon>
+                    <i className="fa fa-fw fa-free-code-camp" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Prometheus">
+                    Prometheus
+                </NavText>
+            </NavItem>
+            <NavItem eventKey="jaeger" disabled={(!isAdmin)}>
+                <NavIcon>
+                    <i className="fa fa-fw fa-bug" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Jaeger">
+                    Jaeger
                 </NavText>
             </NavItem>
         </NavItem>);
-        } else {
-            return null;
-        }
     }
 
     hasAdminAccess(authorities) {
@@ -162,37 +235,42 @@ class HomeContent extends Component {
         }
     }
 
-    shareExpanded = (expanded) => {//TODO Need to figure out how to call this
-        const [globalState, globalActions] = useGlobal();
-        console.log("shareExpanded:globalState: "+globalState);
-        globalActions.shareExpanded(expanded);
-        return null;
-      };
-      
-
     renderBreadcrumbs() {
+        const { isAuthenticated, authorities } = this.props;
         return (
             <Breadcrumbs showLineSeparator>
                 <Breadcrumbs.Item>
                     <Anchor href="/home">Home</Anchor>
                 </Breadcrumbs.Item>
-                {!this.state.isAuthenticated &&
+                {!isAuthenticated &&
                 <Breadcrumbs.Item>
                     <Anchor href="/login">Login</Anchor>
                 </Breadcrumbs.Item>}
-                {this.hasAdminAccess(this.state.authorities) &&
+                {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
                     <Anchor href="/users">Manage Users</Anchor>
                 </Breadcrumbs.Item>}
-                {this.state.isAuthenticated &&
+                {isAuthenticated &&
                 <Breadcrumbs.Item>
                     <Anchor href="/people">Manage People</Anchor>
                 </Breadcrumbs.Item>}
-                {this.hasAdminAccess(this.state.authorities) &&
+                {isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/tasks">Manage Tasks</Anchor>
+                </Breadcrumbs.Item>}
+                {isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/posts">Manage Posts</Anchor>
+                </Breadcrumbs.Item>}
+                {isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="/products">Manage Products</Anchor>
+                </Breadcrumbs.Item>}
+                {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
                     <Anchor href="/admin">Admin Access</Anchor>
                 </Breadcrumbs.Item>}
-                {this.state.isAuthenticated &&
+                {isAuthenticated &&
                 <Breadcrumbs.Item>
                     <Anchor href="/logout">Logout</Anchor>
                 </Breadcrumbs.Item>}
@@ -205,12 +283,7 @@ class HomeContent extends Component {
 
         return (
             <div>
-                <div
-                    style={{
-                        marginLeft: expanded ? 240 : 64,
-                        padding: '15px 20px 0 20px'
-                    }}
-                >
+                <div>
                 <ClickOutside
                     onClickOutside={() => {
                         this.onToggle(false);
@@ -222,7 +295,7 @@ class HomeContent extends Component {
                     onToggle={this.onToggle}
                     onSelect={(selected) => {
                         console.log("Selected App: " + selected);
-                        console.log("This properties: " + this.props);
+                        this.onSelect(selected);
                         const to = '/' + selected;
                         if (this.props.location.pathname !== to) {
                             this.props.history.push(to);
@@ -237,8 +310,7 @@ class HomeContent extends Component {
                     </NavHeader>
                     {expanded && user &&
                     <NavInfoPane>
-                        <div>Time: {this.lastUpdateTime}</div>
-                        <div>User: {user}</div>
+                        <div>User: <b>{user}</b></div>
                     </NavInfoPane>
                     }
                     <Nav
@@ -252,17 +324,12 @@ class HomeContent extends Component {
                                 Home
                             </NavText>
                         </NavItem>
-                        {this.displayAdminButtons(authorities)}
                         {this.displayLoginButton()}
+                        {this.displayAdminButtons(authorities)}
                         {this.displayPeopleButton(authorities)}
-                        <NavItem eventKey="reports">
-                            <NavIcon>
-                                <i className="fa fa-fw fa-list-alt" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
-                            </NavIcon>
-                            <NavText style={{ paddingRight: 32 }} title="REPORTS">
-                                REPORTS
-                            </NavText>
-                        </NavItem>
+                        {this.displayTasksButton(authorities)}
+                        {this.displayPostsButton(authorities)}
+                        {this.displayProductsButton(authorities)}
                         <Separator />
                         {this.displayLogoutButton()}
                     </Nav>

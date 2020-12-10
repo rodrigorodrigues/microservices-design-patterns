@@ -24,12 +24,13 @@ import ProductList from "./product/ProductList";
 import ProductEdit from "./product/ProductEdit";
 import PostList from './posts/PostList';
 import PostEdit from './posts/PostEdit';
-
+import ModalPopup from './common/Modal';
 
 const consulUrl = process.env.REACT_APP_CONSUL_URL;
 const monitoringUrl = process.env.REACT_APP_MONITORING_URL;
 const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
 const jaegerUrl = process.env.REACT_APP_JAEGER_URL;
+const prometheusUrl = process.env.REACT_APP_PROMETHEUS_URL;
 
 class App extends Component {
   state = {
@@ -45,6 +46,7 @@ class App extends Component {
 
   async componentDidMount() {
     try {
+      console.log("App:componentDidMount:first");
       if (this.state.isAuthenticated === false) {
           let data = await getWithCredentials('authenticatedUser', false);
           if (data.id_token) {
@@ -95,28 +97,18 @@ class App extends Component {
     this.setState({ isAuthenticated: true, user: jwtDecoded.name, jwt: token, authorities: jwtDecoded.authorities });
   }
 
-  adminLink = (link) => {
-    let state = {...this.state};
-    if (!state.isAuthenticated || !state.authorities.some(item => item === "ROLE_ADMIN")) {
-      const jsonError = { 'error': 'Only user with ADMIN role can access this page!' };
-      this.setState({ displayError: errorMessage(JSON.stringify(jsonError)), isLoading: false});
-    } else {
-      window.location.href = link; 
-    }
-    return null;
-  }
-
   render() {
-    const {displayError} = this.state;
+    const { displayError, isAuthenticated, authorities } = this.state;
+    const isAdmin = isAuthenticated && authorities.some(item => item === "ROLE_ADMIN");
 
     return (
       <UserContext.Provider value={this.state}>
         <Router>
           <Switch>
             <Route path='/' exact={true} 
-              component={() =><Home {...this.state} />} />
+              component={() =><Home {...this.state} error={this.state.error} />} />
             <Route path='/home' exact={true} 
-              component={() =><Home {...this.state} />} />
+              component={() =><Home {...this.state} error={this.state.error} />} />
             <Route path='/login' exact={true} 
               component={() => <Login {...this.state} 
                 setAuthentication={this.setAuthentication} />} />
@@ -148,10 +140,11 @@ class App extends Component {
                    component={() => <PostList {...this.state} />} />
             <Route path='/posts/:id'
                    component={() => <PostEdit {...this.state} />} />
-            <Route path='/admin-consul' component={() => this.adminLink(consulUrl)} />
-            <Route path='/admin-monitoring' component={() => this.adminLink(monitoringUrl)} />
-            <Route path='/admin-grafana' component={() => this.adminLink(grafanaUrl)} />
-            <Route path='/admin-tracing' component={() => this.adminLink(jaegerUrl)} />
+            <Route path='/consul' exact={true} component={() => <ModalPopup link={consulUrl} modal={isAdmin} {...this.state} />} />
+            <Route path='/monitoring' component={() => <ModalPopup link={monitoringUrl} modal={isAdmin} {...this.state} />} />
+            <Route path='/grafana' component={() => <ModalPopup link={grafanaUrl} modal={isAdmin} {...this.state} />} />
+            <Route path='/tracing' component={() => <ModalPopup link={jaegerUrl} modal={isAdmin} {...this.state} />} />
+            <Route path='/prometheus' component={() => <ModalPopup link={prometheusUrl} modal={isAdmin} {...this.state} />} />
             <Route path='/ingredients' exact={true}
                    component={() => <IngredientList {...this.state} />} />
           </Switch>

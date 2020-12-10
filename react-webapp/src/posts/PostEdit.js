@@ -7,6 +7,7 @@ import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import FooterContent from '../home/FooterContent';
 import HomeContent from '../home/HomeContent';
+import { marginLeft } from '../common/Util';
 
 class PostEdit extends Component {
   emptyPost = {
@@ -21,10 +22,16 @@ class PostEdit extends Component {
       displayError: null,
       displayAlert: false,
       authorities: props.authorities,
-      isLoading: true
+      isLoading: true,
+      expanded: false,
+      isAuthenticated: props.isAuthenticated
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   async componentDidMount() {
@@ -91,12 +98,8 @@ class PostEdit extends Component {
   }
 
   render() {
-    const {post, displayError, displayAlert, isLoading} = this.state;
+    const { post, displayError, displayAlert, isLoading, expanded } = this.state;
     const title = <h2>{post.id ? 'Edit Post' : 'Add Post'}</h2>;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
 
     const displayContent = () => {
       if (displayAlert) {
@@ -125,15 +128,22 @@ class PostEdit extends Component {
       }
     }
 
-    return <div>
+    return (
+      <div
+        style={{
+          marginLeft: marginLeft(expanded),
+          padding: '15px 20px 0 20px'
+      }}
+      >
       <AppNavbar/>
       <Container fluid>
-        <HomeContent notDisplayMessage={true}></HomeContent>
-        {displayContent()}
+        <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+        {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+        {!isLoading && displayContent()}
         <MessageAlert {...displayError}></MessageAlert>
         <FooterContent></FooterContent>
       </Container>
-    </div>
+    </div>);
   }
 }
 

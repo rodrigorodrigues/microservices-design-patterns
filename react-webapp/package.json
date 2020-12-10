@@ -31,8 +31,7 @@
     "react-toastify": "5.4.1",
     "reactstrap": "^8.7.1",
     "reactstrap-confirm": "^1.2.0",
-    "styled-components": "^5.2.1",
-    "use-global-hook": "^0.2.1"
+    "styled-components": "^5.2.1"
   },
   "scripts": {
     "start": "react-scripts start",

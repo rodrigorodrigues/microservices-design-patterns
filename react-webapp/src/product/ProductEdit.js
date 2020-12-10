@@ -7,6 +7,7 @@ import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
 import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
+import { marginLeft } from '../common/Util';
 
 class ProductEdit extends Component {
   emptyProduct = {
@@ -23,10 +24,16 @@ class ProductEdit extends Component {
       jwt: props.jwt,
       authorities: props.authorities,
       isLoading: true,
-      displayAlert: false
+      displayAlert: false,
+      expanded: false,
+      isAuthenticated: props.isAuthenticated
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   async componentDidMount() {
@@ -99,12 +106,8 @@ class ProductEdit extends Component {
   }
 
   render() {
-    const {product, displayError, displayAlert, isLoading} = this.state;
+    const { product, displayError, displayAlert, isLoading, expanded } = this.state;
     const title = <h2>{product._id ? 'Edit Product' : 'Add Product'}</h2>;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
 
     const displayContent = () => {
       if (displayAlert) {
@@ -149,15 +152,22 @@ class ProductEdit extends Component {
       }
     }
 
-    return <div>
+    return (
+      <div
+        style={{
+          marginLeft: marginLeft(expanded),
+          padding: '15px 20px 0 20px'
+      }}
+      >
       <AppNavbar/>
       <Container fluid>
-        <HomeContent notDisplayMessage={true}></HomeContent>
-        {displayContent()}
+        <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+        {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+        {!isLoading && displayContent()}
         <MessageAlert {...displayError}></MessageAlert>
         <FooterContent></FooterContent>
       </Container>
-    </div>
+    </div>);
   }
 }
 

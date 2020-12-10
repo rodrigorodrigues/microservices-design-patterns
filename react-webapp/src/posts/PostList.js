@@ -11,6 +11,7 @@ import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
+import { marginLeft } from '../common/Util';
 const moment = require('moment');
 
 const postSwaggerUrl = process.env.REACT_APP_POST_SWAGGER_URL;
@@ -26,7 +27,9 @@ class PostList extends Component {
       activeTab: '1',
       authorities: props.authorities,
       displayAlert: false,
-      displaySwagger: false
+      displaySwagger: false,
+      expanded: false,
+      isAuthenticated: props.isAuthenticated
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -36,6 +39,10 @@ class PostList extends Component {
     if (this.state.activeTab !== tab) {
       this.setState({ activeTab: tab });
     }
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   async componentDidMount() {
@@ -92,11 +99,7 @@ class PostList extends Component {
   }
 
   render() {
-    const { posts, isLoading, displayError, authorities, displayAlert, displaySwagger } = this.state;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
+    const { posts, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
 
     const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_CREATE');
 
@@ -183,11 +186,17 @@ class PostList extends Component {
     }
 
     return (
-      <div>
+      <div
+      style={{
+          marginLeft: marginLeft(expanded),
+          padding: '15px 20px 0 20px'
+      }}
+      >
         <AppNavbar />
         <Container fluid>
-          <HomeContent notDisplayMessage={true}></HomeContent>
-          {displayContent()}
+          <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+          {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+          {!isLoading && displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
         </Container>

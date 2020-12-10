@@ -11,6 +11,7 @@ import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
+import { marginLeft } from '../common/Util';
 
 const productSwaggerUrl = process.env.REACT_APP_PRODUCT_SWAGGER_URL;
 
@@ -25,10 +26,16 @@ class ProductList extends Component {
       displayAlert: false,
       displaySwagger: false,
       activeTab: '1',
-      authorities: props.authorities
+      authorities: props.authorities,
+      expanded: false,
+      isAuthenticated: props.isAuthenticated
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   toggle(tab) {
@@ -88,11 +95,7 @@ class ProductList extends Component {
   }
 
   render() {
-    const { products, isLoading, displayError, displayAlert, displaySwagger } = this.state;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
+    const { products, isLoading, displayError, displayAlert, displaySwagger, expanded } = this.state;
 
     const productList = products.map(product => {
       return <tr key={product._id.$oid}>
@@ -169,11 +172,17 @@ class ProductList extends Component {
     }
 
     return (
-      <div>
+      <div
+      style={{
+          marginLeft: marginLeft(expanded),
+          padding: '15px 20px 0 20px'
+      }}
+      >
         <AppNavbar/>
         <Container fluid>
-          <HomeContent notDisplayMessage={true}></HomeContent>
-          {displayContent()}
+          <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+          {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+          {!isLoading && displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
         </Container>

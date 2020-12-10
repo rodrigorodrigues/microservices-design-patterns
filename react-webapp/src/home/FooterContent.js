@@ -22,6 +22,10 @@ const FooterContent = () => {
                     {
                         title: 'URL Api',
                         description: (<b>{process.env.REACT_APP_GATEWAY_URL}</b>),
+                    },
+                    {
+                        title: 'App Version',
+                        description: (<b>{process.env.REACT_APP_VERSION}</b>),
                     }]
                 },
             ]}

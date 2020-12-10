@@ -9,12 +9,13 @@ import DatePicker from "react-datepicker";
 import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import "react-datepicker/dist/react-datepicker.css";
+import { marginLeft } from '../common/Util';
 const moment = require('moment');
 
 class PersonEdit extends Component {
   emptyPerson = {
     fullName: '',
-    dateOfBirth: moment().format("YYYY-MM-DD"),
+    dateOfBirth: moment().subtract(10, 'years').format("YYYY-MM-DD"),
     /*children: [{
       name: '',
       dateOfBirth: ''
@@ -35,12 +36,18 @@ class PersonEdit extends Component {
       displayError: null,
       jwt: props.jwt,
       displayAlert: false,
-      authorities: props.authorities
+      authorities: props.authorities,
+      expanded: false,
+      isAuthenticated: props.isAuthenticated
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleDateChange = this.handleDateChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleAddressChange = this.handleAddressChange.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   async componentDidMount() {
@@ -125,12 +132,8 @@ class PersonEdit extends Component {
   }
 
   render() {
-    const {person, displayError, displayAlert, isLoading} = this.state;
+    const { person, displayError, displayAlert, isLoading, expanded} = this.state;
     const title = <h2>{person.id ? 'Edit Person' : 'Add Person'}</h2>;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
 
     const displayContent = () => {
       if (displayAlert) {
@@ -156,7 +159,7 @@ class PersonEdit extends Component {
             <AvGroup>
               <Label for="dateOfBirth">Date Of Birth</Label>
               <DatePicker
-                selected={person.dateOfBirth}
+                selected={moment(person.dateOfBirth).toDate()}
                 onChange={this.handleDateChange}
                 required
               />
@@ -197,11 +200,17 @@ class PersonEdit extends Component {
       }
     }
 
-    return <div>
+    return <div
+    style={{
+      marginLeft: marginLeft(expanded),
+      padding: '15px 20px 0 20px'
+    }}
+    >
       <AppNavbar/>
-      <HomeContent notDisplayMessage={true}></HomeContent>
+      <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
       <Container fluid>
-      {displayContent()}
+      {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+      {!isLoading && displayContent()}
       <MessageAlert {...displayError}></MessageAlert>
       <FooterContent></FooterContent>
       </Container>

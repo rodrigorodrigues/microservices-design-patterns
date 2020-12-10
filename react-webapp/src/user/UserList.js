@@ -3,7 +3,7 @@ import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavIte
 import AppNavbar from '../home/AppNavbar';
 import {Link, withRouter} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
-import {errorMessage} from '../common/Util';
+import { errorMessage, marginLeft } from '../common/Util';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import HomeContent from '../home/HomeContent';
 import { confirmDialog } from '../common/ConfirmDialog';
@@ -28,10 +28,15 @@ class UserList extends Component {
       activeTab: '1',
       authorities: props.authorities,
       isAuthenticated: props.isAuthenticated,
-      user: props.user
+      user: props.user,
+      expanded: false
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   toggle(tab) {
@@ -106,11 +111,7 @@ class UserList extends Component {
   }
 
   render() {
-    const { users, isLoading, displayError, displayAlert, displaySwagger} = this.state;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
+    const { users, isLoading, displayError, displayAlert, displaySwagger, expanded} = this.state;
 
     const userList = users.map(user => {
       return <tr key={user.id}>
@@ -192,11 +193,17 @@ class UserList extends Component {
     }
 
     return (
-      <div>
+      <div
+      style={{
+          marginLeft: marginLeft(expanded),
+          padding: '15px 20px 0 20px'
+      }}
+      >
         <AppNavbar/>
         <Container fluid>
-          <HomeContent {...this.state}></HomeContent>
-          {displayContent()}
+          <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+          {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+          {!isLoading && displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>
         </Container>

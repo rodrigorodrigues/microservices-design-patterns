@@ -8,6 +8,7 @@ import {errorMessage} from '../common/Util';
 import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import Switch from "react-switch";
+import { marginLeft } from '../common/Util';
 
 class UserEdit extends Component {
   emptyUser = {
@@ -26,11 +27,17 @@ class UserEdit extends Component {
       jwt: props.jwt,
       authorities: props.authorities,
       isLoading: true,
-      displayAlert: false
+      displayAlert: false,
+      expanded: false,
+      isAuthenticated: props.isAuthenticated
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleAuthorityChange = this.handleAuthorityChange.bind(this);
+  }
+
+  setExpanded = (expanded) => {
+    this.setState({expanded: expanded});
   }
 
   async componentDidMount() {
@@ -121,12 +128,8 @@ class UserEdit extends Component {
   }
 
   render() {
-    const {user, displayError, permissions, displayAlert, isLoading} = this.state;
+    const { user, displayError, permissions, displayAlert, isLoading, expanded } = this.state;
     const title = <h2>{user.id ? 'Edit User' : 'Add User'}</h2>;
-
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
 
     const switchToggle = (permissions, user) => {
       return permissions.map(e => 
@@ -209,11 +212,17 @@ class UserEdit extends Component {
     }
 
     return (
-    <div>
+      <div
+        style={{
+          marginLeft: marginLeft(expanded),
+          padding: '15px 20px 0 20px'
+      }}
+      >
       <AppNavbar/>
       <Container fluid>
-      <HomeContent notDisplayMessage={true}></HomeContent>
-      {displayContent()}
+      <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+      {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+      {!isLoading && displayContent()}
       <MessageAlert {...displayError}></MessageAlert>
       <FooterContent></FooterContent>
       </Container>
