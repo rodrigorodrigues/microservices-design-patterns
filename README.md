@@ -7,7 +7,7 @@ The idea for this project is to show a case for applying `Microservice Architect
 
 Most all services are built in `Java with Spring Boot 2 + Webflux + MongoDB` but there are other services using `NodeJS, Kotlin, Python and Go`.
 
-The web application is using `React` and a beta version using [JHipster](https://www.jhipster.tech/).
+The web application is using `React`.
 
 Feel free to create a new microservice using a different language(`Ruby?, C#?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
