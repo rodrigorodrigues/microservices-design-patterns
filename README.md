@@ -5,7 +5,7 @@
 
 The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Most all services are built in `Java with Spring Boot 2 + Webflux + MongoDB` but there are other services using `NodeJS, Kotlin, Python and Go`.
+Services are built in `Java + Spring Boot 2 + Webflux + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
 
 The web application is using `React`.
 
