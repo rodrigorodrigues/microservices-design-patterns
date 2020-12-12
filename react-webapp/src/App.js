@@ -41,7 +41,8 @@ class App extends Component {
     jwt: null,
     authorities: [],
     notDisplayMessage: false,
-    displayError: null
+    displayError: null,
+    imageUrl: null
   };
 
   async componentDidMount() {
@@ -94,7 +95,8 @@ class App extends Component {
 
   decodeJwt(token) {
     let jwtDecoded = jwt_decode(token);
-    this.setState({ isAuthenticated: true, user: jwtDecoded.name, jwt: token, authorities: jwtDecoded.authorities });
+    let username = (jwtDecoded.name !== undefined ? jwtDecoded.name : jwtDecoded.user_name);
+    this.setState({ isAuthenticated: true, user: username, jwt: token, authorities: jwtDecoded.authorities, imageUrl: jwtDecoded.imageUrl });
   }
 
   render() {

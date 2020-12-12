@@ -1,6 +1,7 @@
 package com.microservice.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.microservice.authentication.common.model.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +27,8 @@ public class UserDto {
     private String lastModifiedByUser;
     private Instant lastModifiedDate;
     private Boolean activated;
+    private UserType userType;
+    private String imageUrl;
 
     private List<AuthorityDto> authorities;
 

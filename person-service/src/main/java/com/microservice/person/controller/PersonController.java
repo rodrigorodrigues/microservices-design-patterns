@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -64,7 +65,7 @@ public class PersonController {
 */
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
     public Flux<PersonDto> findAll(@AuthenticationPrincipal Authentication authentication,
                               @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
                               @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
@@ -106,7 +107,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for return a person by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE') or hasAuthority('SCOPE_openid')")
     public Mono<PersonDto> findById(@ApiParam(required = true) @PathVariable String id,
                                     @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         return personService.findById(id)
@@ -122,7 +123,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for creating a person")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
     public Mono<ResponseEntity<PersonDto>> create(@RequestBody @ApiParam(required = true) PersonDto person,
                                                   @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         springSecurityAuditorAware.setCurrentAuthenticatedUser(authentication);
@@ -133,7 +134,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for updating a person")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_SAVE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_SAVE') or hasAuthority('SCOPE_openid') and (hasRole('ADMIN') or #person.createdByUser == authentication.name)")
     public Mono<PersonDto> update(@RequestBody @ApiParam(required = true) PersonDto person,
                                   @PathVariable @ApiParam(required = true) String id,
                                   @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
@@ -146,7 +147,7 @@ public class PersonController {
 
     @ApiOperation(value = "Api for deleting a person")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE') or hasAuthority('SCOPE_openid')")
     public Mono<Void> delete(@PathVariable @ApiParam(required = true) String id,
                              @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
         return personService.findById(id)

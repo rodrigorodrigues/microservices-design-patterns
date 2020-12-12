@@ -15,7 +15,8 @@ public class ActuatorResourceServerConfiguration extends ResourceServerConfigure
             .requestMatchers().antMatchers("/actuator/**")
             .and()
             .authorizeRequests()
-            .anyRequest().permitAll()
+            .antMatchers("/actuator/info", "/actuator/health", "/actuator/prometheus").permitAll()
+            .antMatchers("/actuator/**").hasRole("ADMIN")
             .and()
             .httpBasic().disable()
             .csrf().disable();

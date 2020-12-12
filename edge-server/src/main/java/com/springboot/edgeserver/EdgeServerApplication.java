@@ -2,7 +2,6 @@ package com.springboot.edgeserver;
 
 import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
@@ -22,8 +21,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import ru.reliabletech.zuul.swagger.EnableZuulSpringfoxSwagger;
 
-import javax.net.ssl.HttpsURLConnection;
-
 @Slf4j
 @SpringBootApplication
 @EnableZuulProxy
@@ -32,10 +29,6 @@ import javax.net.ssl.HttpsURLConnection;
 @EnableZuulSpringfoxSwagger
 @EnableRedisHttpSession
 public class EdgeServerApplication {
-	static {
-		HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(EdgeServerApplication.class, args);
 	}

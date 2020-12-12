@@ -1,4 +1,4 @@
-package com.microservice.authentication.config;
+package com.microservice.authentication.autoconfigure;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -6,5 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "configuration")
 public class AuthenticationProperties {
-    private String homeUrl = "http://localhost:9999/api/authenticatedUser";
+    private String issuer = "https://spendingbetter.com";
+    private String aud = "https://spendingbetter.com";
 }

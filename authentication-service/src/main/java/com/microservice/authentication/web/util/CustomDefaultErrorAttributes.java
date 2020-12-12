@@ -21,10 +21,12 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
     public Map<String, Object> getErrorAttributes(WebRequest request, ErrorAttributeOptions options) {
         Map<String, Object> errorAttributes = super.getErrorAttributes(request, options);
         Throwable throwable = getError(request);
-        HttpStatus status = getHttpStatusError(throwable);
-        errorAttributes.put("status", status.value());
-        errorAttributes.put("message", ExceptionUtils.getMessage(throwable));
-        errorAttributes.put("error", status);
+        if (throwable != null) {
+            HttpStatus status = getHttpStatusError(throwable);
+            errorAttributes.put("status", status.value());
+            errorAttributes.put("message", ExceptionUtils.getMessage(throwable));
+            errorAttributes.put("error", status);
+        }
         log.debug("Default Error Attributes: {}", errorAttributes);
         return errorAttributes;
     }

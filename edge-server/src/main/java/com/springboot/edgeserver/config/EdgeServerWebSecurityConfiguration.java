@@ -19,7 +19,9 @@ public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAda
             "/**/*.js",
             "/**/*.css",
             "/**/*.html",
-            "/favicon.ico"
+            "/favicon.ico",
+            "/actuator/**",
+            "/error"
     };
 
     private final SharedAuthenticationService sharedAuthenticationService;

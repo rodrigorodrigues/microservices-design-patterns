@@ -6,6 +6,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -15,6 +16,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
@@ -28,6 +31,7 @@ import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 
+@EnableConfigurationProperties(AuthenticationProperties.class)
 @Configuration
 public class AuthenticationCommonConfiguration {
 
@@ -35,21 +39,25 @@ public class AuthenticationCommonConfiguration {
 
     private final List<JwtAccessTokenConverterConfigurer> configurers;
 
+    private final AuthenticationProperties authenticationProperties;
+
     public AuthenticationCommonConfiguration(ResourceServerProperties resource,
-                                         ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers) {
+                                             ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers, AuthenticationProperties authenticationProperties) {
         this.resource = resource;
         this.configurers = configurers.getIfAvailable();
+        this.authenticationProperties = authenticationProperties;
     }
 
     @Primary
     @Bean
     @ConditionalOnMissingBean(ResourceServerTokenServices.class)
     public DefaultTokenServices jwtTokenServices(TokenStore jwtTokenStore, JwtAccessTokenConverter jwtTokenEnhancer) {
-        DefaultTokenServices services = new DefaultTokenServices();
-        services.setTokenStore(jwtTokenStore);
-        services.setTokenEnhancer(jwtTokenEnhancer);
-        services.setSupportRefreshToken(true);
-        return services;
+        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore(jwtTokenStore);
+        defaultTokenServices.setTokenEnhancer(jwtTokenEnhancer);
+        defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setAccessTokenValiditySeconds(60 * 30);
+        return defaultTokenServices;
     }
 
     @Primary
@@ -71,20 +79,25 @@ public class AuthenticationCommonConfiguration {
                 if (authentication.getUserAuthentication() instanceof Authentication) {
                     additionalInfo.put("name",
                         ((Authentication) authentication.getUserAuthentication().getPrincipal()).getFullName());
+                    additionalInfo.put("sub", authentication.getName());
+                } else if (authentication.getPrincipal() instanceof OidcUser) {
+                    DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
+                    additionalInfo.put("name", oidcUser.getEmail());
+                    additionalInfo.put("sub", oidcUser.getFullName());
+                    additionalInfo.put("imageUrl", oidcUser.getPicture());
                 } else {
-                    additionalInfo.put("name", authentication.getName());
+                    additionalInfo.put("sub", authentication.getName());
                 }
                 additionalInfo.put("auth", authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(joining(",")));
                 additionalInfo.put("type", "access");
                 additionalInfo.put("fresh", true);
-                additionalInfo.put("sub", authentication.getName());
                 long currentTime = new Date().getTime() / 1000;
                 additionalInfo.put("iat", currentTime);
                 additionalInfo.put("nbf", currentTime);
-                additionalInfo.put("iss", "jwt");
-                additionalInfo.put("aud", "jwt");
+                additionalInfo.put("iss", authenticationProperties.getIssuer());
+                additionalInfo.put("aud", authenticationProperties.getAud());
                 ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
                 return super.enhance(accessToken, authentication);
             }

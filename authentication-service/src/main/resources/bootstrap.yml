@@ -6,6 +6,8 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
+    main:
+        allow-bean-definition-overriding: true
 management:
     endpoints:
         web:

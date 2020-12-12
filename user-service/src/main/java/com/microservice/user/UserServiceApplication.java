@@ -5,12 +5,7 @@ import com.microservice.authentication.common.service.ReactivePreAuthenticatedAu
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.user.model.User;
 import com.microservice.user.repository.UserRepository;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.net.ssl.HttpsURLConnection;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,14 +18,14 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Slf4j
 @SpringBootApplication
 @EnableDiscoveryClient
 public class UserServiceApplication {
-    static {
-        HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());
-    }
-
     public static void main(String[] args) {
         SpringApplication.run(UserServiceApplication.class, args);
     }

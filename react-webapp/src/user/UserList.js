@@ -122,6 +122,7 @@ class UserList extends Component {
         <td>{user.createdDate}</td>
         <td>{user.lastModifiedByUser}</td>
         <td>{user.lastModifiedDate}</td>
+        <td>{user.userType === 'GOOGLE' ? <i class="fa fa-google" title="Connected by Google" aria-hidden="true"></i> : ''}</td>
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/users/" + user.id}>Edit</Button>
@@ -169,6 +170,7 @@ class UserList extends Component {
                 <th>Created Date</th>
                 <th>Last Modified By User</th>
                 <th>Last Modified By Date</th>
+                <th>User Type</th>
                 <th>Actions</th>
               </tr>
               </thead>

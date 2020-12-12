@@ -6,12 +6,7 @@ import com.microservice.person.model.Address;
 import com.microservice.person.model.Child;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import javax.net.ssl.HttpsURLConnection;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,14 +19,14 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Arrays;
+
 @Slf4j
 @SpringBootApplication
 @EnableDiscoveryClient
 public class PersonServiceApplication {
-    static {
-        HttpsURLConnection.setDefaultHostnameVerifier(new NoopHostnameVerifier());
-    }
-
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
 	}

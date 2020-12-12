@@ -3,6 +3,7 @@ package com.microservice.authentication.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.authentication.dto.JwtTokenDto;
+import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +25,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.web.authentication.*;
-import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -42,7 +41,7 @@ import java.util.Map;
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
-@Order(2)
+@Order(300)
 public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapter {
     private final SharedAuthenticationService sharedAuthenticationService;
 
@@ -50,7 +49,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
-    private final DefaultTokenServices defaultTokenServices;
+    private final RedisTokenStoreService redisTokenStoreService;
 
     @Bean
     @Override
@@ -81,7 +80,11 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             .logout()
             .logoutUrl("/api/logout")
             .deleteCookies("SESSIONID")
-            .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+            .logoutSuccessHandler((request, response, authentication) -> {
+                redisTokenStoreService.removeAllTokensByAuthenticationUser(authentication);
+                response.setStatus(HttpStatus.OK.value());
+                response.getWriter().flush();
+            })
             .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
             .invalidateHttpSession(true)
             .and()
@@ -116,8 +119,9 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             if (validateApiPath(request)) {
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
-                OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, authentication));
-                String authorization = enhance.getTokenType() + " " + enhance.getValue();
+                OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
+                OAuth2AccessToken token = redisTokenStoreService.generateToken(authentication, oAuth2Authentication);
+                String authorization = token.getTokenType() + " " + token.getValue();
                 JwtTokenDto jwtToken = new JwtTokenDto(authorization);
                 response.addHeader(HttpHeaders.AUTHORIZATION, authorization);
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);

@@ -93,7 +93,7 @@ class HomeContent extends Component {
     displayPeopleButton(authorities) {
         console.log("authorities: "+authorities);
         const hasManageReadAccess = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
-        || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE'));
+        || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE' || item === 'SCOPE_openid'));
         console.log("hasManageReadAccess: "+hasManageReadAccess);
         return (<NavItem eventKey="people" disabled={(!hasManageReadAccess)}>
             <NavIcon>
@@ -107,7 +107,7 @@ class HomeContent extends Component {
 
     displayTasksButton(authorities) {
         const hasTaskPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
-        || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE'));
+        || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid'));
         console.log("hasTaskPermission: "+hasTaskPermission);
         return (<NavItem eventKey="tasks" disabled={(!hasTaskPermission)}>
             <NavIcon>
@@ -121,7 +121,7 @@ class HomeContent extends Component {
 
     displayPostsButton(authorities) {
         const hasPostPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_READ' 
-        || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE'));
+        || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE' || item === 'SCOPE_openid'));
         console.log("hasTaskPermission: "+hasPostPermission);
         return (<NavItem eventKey="posts" disabled={(!hasPostPermission)}>
             <NavIcon>
@@ -135,7 +135,7 @@ class HomeContent extends Component {
 
     displayProductsButton(authorities) {
         const hasProductPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_READ' 
-        || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE'));
+        || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE' || item === 'SCOPE_openid'));
         console.log("hasTaskPermission: "+hasProductPermission);
         return (<NavItem eventKey="products" disabled={(!hasProductPermission)}>
             <NavIcon>

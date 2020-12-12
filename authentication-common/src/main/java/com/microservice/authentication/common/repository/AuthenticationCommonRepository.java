@@ -5,4 +5,6 @@ import org.springframework.data.repository.Repository;
 
 public interface AuthenticationCommonRepository extends Repository<Authentication, String> {
     Authentication findByEmail(String email);
+    Authentication findById(String id);
+    Authentication save(Authentication authentication);
 }

@@ -28,7 +28,7 @@ import javax.validation.Valid
 @RequestMapping("/api/tasks")
 class TaskController(@Autowired val repository: TaskRepository) {
     @GetMapping("/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE') or hasAuthority('SCOPE_openid')")
     fun findById(@PathVariable id: String,
                  @ApiIgnore @AuthenticationPrincipal authentication: Authentication): Task = repository.findById(id)
         .map {
@@ -41,7 +41,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
         .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
 
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE', 'TASK_DELETE', 'TASK_CREATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE', 'TASK_DELETE', 'TASK_CREATE') or hasAuthority('SCOPE_openid')")
     @PostFilter("hasRole('ADMIN') or filterObject.createdByUser == authentication.name")
     fun findAll(@RequestParam(name = "page", defaultValue = "0", required = false) page: Int,
                 @RequestParam(name = "size", defaultValue = "10", required = false) size: Int,
@@ -67,7 +67,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     }
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_CREATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_CREATE') or hasAuthority('SCOPE_openid')")
     fun create(@RequestBody @Valid @ApiParam(required = true) task: Task,
                @ApiIgnore @AuthenticationPrincipal authentication: Authentication): ResponseEntity<Task> {
         if (StringUtils.isNotBlank(task.id)) {
@@ -81,7 +81,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     }
 
     @PutMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_SAVE') and (hasRole('ADMIN') or #task.createdByUser == authentication.name)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_SAVE') or hasAuthority('SCOPE_openid') and (hasRole('ADMIN') or #task.createdByUser == authentication.name)")
     fun update(@RequestBody @ApiParam(required = true) task: Task,
                @PathVariable @ApiParam(required = true) id: String): ResponseEntity<Task> {
         task.id = id
@@ -91,7 +91,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_DELETE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_DELETE') or hasAuthority('SCOPE_openid')")
     fun delete(@PathVariable @ApiParam(required = true) id: String,
                @ApiIgnore @AuthenticationPrincipal authentication: Authentication) = repository.findById(id)
         .map {

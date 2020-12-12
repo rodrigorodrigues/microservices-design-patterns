@@ -8,6 +8,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
+
+import com.microservice.authentication.common.model.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -57,4 +59,8 @@ public class User implements Serializable {
 
     @LastModifiedDate
     private Instant lastModifiedDate = Instant.now();
+
+    private String imageUrl;
+
+    private UserType userType;
 }

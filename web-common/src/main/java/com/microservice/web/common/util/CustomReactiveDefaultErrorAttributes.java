@@ -30,10 +30,12 @@ public class CustomReactiveDefaultErrorAttributes extends DefaultErrorAttributes
     public Map<String, Object> getErrorAttributes(ServerRequest request, ErrorAttributeOptions options) {
         Map<String, Object> errorAttributes = super.getErrorAttributes(request, options);
         Throwable error = getError(request);
-        HttpStatus status = getHttpStatusError(error);
-        errorAttributes.put("status", status.value());
-        errorAttributes.put("message", ExceptionUtils.getMessage(error));
-        errorAttributes.put("error", status);
+        if (error != null) {
+            HttpStatus status = getHttpStatusError(error);
+            errorAttributes.put("status", status.value());
+            errorAttributes.put("message", ExceptionUtils.getMessage(error));
+            errorAttributes.put("error", status);
+        }
         log.debug("Default Error Attributes: {}", errorAttributes);
         return errorAttributes;
     }

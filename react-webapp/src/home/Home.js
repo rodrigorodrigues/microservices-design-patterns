@@ -8,6 +8,13 @@ import FooterContent from './FooterContent';
 import { Container, Jumbotron, Table } from 'reactstrap';
 import { withRouter } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Card from "./Card";
+import Menu from "./Menu";
+
+const styles = {
+  fontFamily: "sans-serif",
+  textAlign: "center"
+};
 
 class Home extends Component {
   constructor(props) {
@@ -18,7 +25,8 @@ class Home extends Component {
       error: props.error,
       user: props.user,
       expanded: false,
-      jwt: props.jwt
+      jwt: props.jwt,
+      imageUrl: props.imageUrl
     };
   }
 
@@ -38,8 +46,34 @@ class Home extends Component {
       return <MessageAlert {... errorMessage(error)}></MessageAlert>
     }
     return user ?
-    <h2>Welcome, {user}!</h2> :
-    <p>Please log in.</p>;
+    <h2>Welcome, {user}!</h2> : '';
+  }
+
+  displayHomeScrollView = () => {
+    const { isAuthenticated } = this.props;
+    if (!isAuthenticated) {
+      return (<div style={styles}>
+        <Menu cards={4} />
+        <Card card="1" />
+        <Card card="2" bgcolor="#eee" />
+        <Card card="3" bgcolor="#ccc" />
+        <Card card="4" bgcolor="#ddd" />
+      </div>);
+    } else {
+      return null;
+    }
+  }
+
+  displayImageUrl = () => {
+    const { imageUrl } = this.props;
+    if (imageUrl) {
+      return (<tr>
+        <td>&nbsp;</td>
+        <td><img src={imageUrl} alt="avatar" /></td>
+      </tr>)
+    } else {
+      return null;
+    }
   }
 
   displayUserPermissions = () => {
@@ -57,6 +91,7 @@ class Home extends Component {
                             <td><b>User</b></td>
                             <td>{user}</td>
                         </tr>
+                        {this.displayImageUrl()}
                         <tr>
                             <td><b>Authorities</b></td>
                             <td>{authorities}</td>
@@ -73,7 +108,7 @@ class Home extends Component {
   }
 
   render() {
-    const { expanded } = this.state;
+    const { expanded, isAuthenticated } = this.state;
 
     return (
       <div
@@ -84,7 +119,8 @@ class Home extends Component {
       >
         <AppNavbar/>
         <Container fluid>
-        <HomeContent setExpanded={this.setExpanded} {...this.state} />
+        {isAuthenticated && <HomeContent setExpanded={this.setExpanded} {...this.state} />}
+        {this.displayHomeScrollView()}
         {this.displayMessage()}
         {this.displayUserPermissions()}
         <FooterContent></FooterContent>

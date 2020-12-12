@@ -10,6 +10,8 @@ import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import HomeContent from '../home/HomeContent';
 
+const googleOauthUrl = process.env.REACT_APP_GOOGLE_OAUTH_URL;
+
 class Login extends Component {
   constructor(props) {
     super(props);
@@ -116,6 +118,9 @@ class Login extends Component {
               className={this.validateForm() === false ? 'disabled' : ''}
               type="submit">
               Submit
+            </Button>
+            <Button color="primary" block type="button" onClick={() => window.location.href=`${googleOauthUrl}`}>
+              <i className="fa fa-fw fa-google" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} /> Google login
             </Button>
           </FormGroup>
           <MessageAlert {...displayError}></MessageAlert>

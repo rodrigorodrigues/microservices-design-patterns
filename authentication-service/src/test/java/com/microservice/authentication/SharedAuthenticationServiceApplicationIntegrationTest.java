@@ -8,6 +8,7 @@ import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,14 +18,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -59,8 +56,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "logging.level.com.microservice=debug",
         "spring.redis.port=6370"})
 @AutoConfigureWebTestClient
-@Import({SharedAuthenticationServiceApplicationIntegrationTest.MockAuthenticationMongoConfiguration.class, SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
+@Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
 @AutoConfigureMockMvc
+@Disabled
 public class SharedAuthenticationServiceApplicationIntegrationTest {
 
     @Autowired
@@ -99,19 +97,10 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         }
     }
 
-    @TestConfiguration
-    @EnableMongoAuditing
-    @EnableMongoRepositories(basePackageClasses = AuthenticationRepository.class, considerNestedRepositories = true)
-    static class MockAuthenticationMongoConfiguration {
-    }
-
-    interface AuthenticationRepository extends AuthenticationCommonRepository, CrudRepository<Authentication, String> {
-    }
-
     @Configuration
     @AllArgsConstructor
     static class UserMockConfiguration {
-        private final AuthenticationRepository authenticationRepository;
+        private final AuthenticationCommonRepository authenticationRepository;
 
         private final PasswordEncoder passwordEncoder;
 

@@ -18,10 +18,12 @@ public class SharedAuthenticationServiceImpl implements SharedAuthenticationServ
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Searching username: {}", username);
-        Authentication authentication = Optional.ofNullable(authenticationCommonRepository.findByEmail(username))
+        Optional<Authentication> authentication = Optional.ofNullable(authenticationCommonRepository.findByEmail(username));
+        if (!authentication.isPresent()) {
+            authentication = Optional.ofNullable(authenticationCommonRepository.findById(username));
+        }
+        return authentication
             .orElseThrow(() -> new UsernameNotFoundException(String.format("Authentication(%s) not found!", username)));
-        log.debug("Authentication: {}", authentication);
-        return authentication;
     }
 
     @Override

@@ -79,31 +79,6 @@ services:
         aliases:
           - monitoring
 
-  react-webapp-jhipster:
-      build:
-          args:
-              - PORT=3004
-              - SERVER_PROTOCOL=https
-              - SERVER_URL=spendingbetter.com
-          context: ../react-webapp-jhipster
-          dockerfile: Dockerfile
-      container_name: react-webapp-jhipster
-      ports:
-          - 3004:3004
-      links:
-        - gateway
-      environment:
-        - NODE_ENV=production
-        - SERVER_API_URL=https://YOUR_DOMAIN.com/
-      volumes:
-          - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-#            - ./node_modules:/usr/src/app/
-      command: sh /tmp/docker-entrypoint.sh gateway:8080
-      networks:
-        net:
-          aliases:
-            - react-webapp-jhipster
-
   react-webapp:
     build:
       args:

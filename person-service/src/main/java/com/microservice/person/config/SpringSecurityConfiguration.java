@@ -45,7 +45,10 @@ public class SpringSecurityConfiguration {
         "/**/*.html",
         "/favicon.ico",
         // other public endpoints of your API may be appended to this array
-        "/actuator/**"
+        "/actuator/info",
+        "/actuator/health",
+        "/actuator/prometheus",
+        "/error"
     };
 
     @Bean
@@ -62,6 +65,7 @@ public class SpringSecurityConfiguration {
                 .logout().disable()
                 .authorizeExchange()
                 .pathMatchers(WHITELIST).permitAll()
+                .pathMatchers("/actuator/**").hasRole("ADMIN")
                 .anyExchange().authenticated()
             .and()
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)

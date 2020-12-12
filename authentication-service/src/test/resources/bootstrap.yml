@@ -18,3 +18,5 @@ security:
 opentracing:
     jaeger:
         enabled: false
+oauth:
+    enabled: false
