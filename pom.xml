@@ -24,6 +24,7 @@
         <docker.image.name>${project.artifactId}</docker.image.name>
         <docker.image.from>openjdk:8-jre-alpine</docker.image.from>
         <jib-maven-plugin.version>2.5.2</jib-maven-plugin.version>
+        <code-coverage>0.8</code-coverage>
     </properties>
 
     <modules>
@@ -120,7 +121,7 @@
                           <limit>
                             <counter>LINE</counter>
                             <value>COVEREDRATIO</value>
-                            <minimum>0.8</minimum>
+                            <minimum>${code-coverage}</minimum>
                           </limit>
                         </limits>
                       </rule>
