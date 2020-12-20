@@ -5,7 +5,7 @@
 
 The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Services are built in `Java + Spring Boot 2 + Webflux + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
+Services are built in `Java + Spring Boot 2 + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
 
 The web application is using `React`.
 
@@ -21,7 +21,7 @@ Feel free to create a new microservice using a different language(`Ruby?, C#?`),
 
 PS: A better approach would be a microservice per repository but for simplicity all microservices are in the same repo.
 
-If you want to contribute please check [TODO List](#todo-list).  
+If you want to contribute please check [TODO List](#todo-list).
 
 Inspired by the book [Microservices Patterns](https://www.manning.com/books/microservices-patterns)(`Chris Richardson - @crichardson`).
 

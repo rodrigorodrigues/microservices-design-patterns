@@ -107,14 +107,11 @@ public class AuthenticationCommonConfiguration {
             converter.setVerifierKey(keyValue);
         } else if (jwt.getKeyStore() != null) {
             Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
-            char[] keyStorePassword = jwt.getKeyStorePassword().toCharArray();
+            char[] keyStorePassword = getPassword(jwt);
             KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
 
             String keyAlias = jwt.getKeyAlias();
-            char[] keyPassword = Optional.ofNullable(
-                jwt.getKeyPassword())
-                .map(String::toCharArray).orElse(keyStorePassword);
-            converter.setKeyPair(keyStoreKeyFactory.getKeyPair(keyAlias, keyPassword));
+            converter.setKeyPair(keyStoreKeyFactory.getKeyPair(keyAlias, keyStorePassword));
         }
         if (!CollectionUtils.isEmpty(this.configurers)) {
             AnnotationAwareOrderComparator.sort(this.configurers);
@@ -123,6 +120,14 @@ public class AuthenticationCommonConfiguration {
             }
         }
         return converter;
+    }
+
+    private char[] getPassword(ResourceServerProperties.Jwt jwt) {
+        try {
+            return new String(Base64.getDecoder().decode(jwt.getKeyStorePassword())).toCharArray();
+        } catch (Exception e) {
+            return jwt.getKeyStorePassword().toCharArray();
+        }
     }
 
 }
