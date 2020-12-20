@@ -1,4 +1,4 @@
-package com.microservice.authentication.web.util;
+package com.microservice.web.common.util;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
      * @param ex current exception
      * @return httpStatus
      */
-    private HttpStatus getHttpStatusError(Throwable ex) {
+    public HttpStatus getHttpStatusError(Throwable ex) {
         HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
         if (ex instanceof HttpStatusCodeException) {
             httpStatus = ((HttpStatusCodeException) ex).getStatusCode();

@@ -3,15 +3,15 @@ spring:
   sleuth:
     sampler:
       probability: 0.1
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWKS_URL:https://spendingbetter.com/.well-known/jwks.json}
 
-security:
-  oauth2:
-    client:
-      accessTokenUri: ${ACCESS_TOKEN_URI:https://spendingbetter.com/auth/oauth/token}
-      userAuthorizationUri: ${AUTHORIZATION_URL:https://spendingbetter.com/auth/oauth/authorize}
-      clientId: ${OAUTH_CLIENT_ID:client}
-      clientSecret: ${OAUTH_CLIENT_SECRET:secret}
-    resource:
+com:
+  microservice:
+    authentication:
       jwt:
         key-store: ${KEYSTORE:}
         key-store-password: ${KEYSTORE_PASSWORD:}

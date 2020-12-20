@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
@@ -12,7 +12,7 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
-const moment = require('moment');
+import Pagination from "react-js-pagination";
 
 const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
 
@@ -29,8 +29,17 @@ class TaskList extends Component {
       displayAlert: false,
       displaySwagger: false,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      search: null,
+      activePage: 1,
+      totalPages: null,
+      itemsCountPerPage: null,
+      totalItemsCount: null,
+      pageSize: 10
     };
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handlePageChange = this.handlePageChange.bind(this);
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
   }
@@ -45,7 +54,21 @@ class TaskList extends Component {
     }
   }
 
+  handleChange(event) {
+    const target = event.target;
+    const value = target.value;
+    this.setState({search: value});
+  }
+
+  async handleSubmit(event) {
+    event.preventDefault();
+    await this.findAllTasks();
+  }
+
   async componentDidMount() {
+    if (this.props.match.params.page !== undefined) {
+      this.setState({activePage: this.props.match.params.page});
+    }
     toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
@@ -53,27 +76,48 @@ class TaskList extends Component {
 
       if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
       || item === 'ROLE_TASK_READ' || item === 'ROLE_TASK_CREATE' 
-      || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE')) {
+      || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
-        try {
-          let data = await get('tasks', true, false, jwt);
-          if (data) {
-            if (Array.isArray(data)) {
-              this.setState({ isLoading: false, tasks: data, displaySwagger: true });
-            } else {
-              if (data.status === 401) {
-                this.setState({displayAlert: true});
-              }
-              this.setState({ isLoading: false, displayError: errorMessage(data) });
-            }
-          }
-        } catch (error) {
-          this.setState({ displayError: errorMessage(error) });
-        }
+        await this.findAllTasks();
       }
     }
+  }
+
+  async findAllTasks() {
+    try {
+      const { pageSize, activePage, search, jwt } = this.state;
+      let url = `tasks?${search ? search : ''}${activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
+      console.log("URL: {}", url);
+      let data = await get(url, true, false, jwt);
+      if (data) {
+        if (Array.isArray(data.content)) {
+          this.setState({ 
+            isLoading: false, 
+            tasks: data.content, 
+            displaySwagger: true, 
+            totalPages: data.totalPages, 
+            itemsCountPerPage: data.size, 
+            totalItemsCount: data.totalElements
+          });
+          this.props.history.push(`/${url}`);
+        } else {
+          if (data.status === 401) {
+            this.setState({ displayAlert: true });
+          }
+          this.setState({ isLoading: false, displayError: errorMessage(data) });
+        }
+      }
+    } catch (error) {
+      this.setState({ displayError: errorMessage(error) });
+    }
+  }
+
+  async handlePageChange(pageNumber) {
+    console.log(`active page is ${pageNumber}`);
+    this.setState({activePage: pageNumber})
+    await this.findAllTasks();
   }
 
   async remove(task) {
@@ -101,20 +145,20 @@ class TaskList extends Component {
   render() {
     const { tasks, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
 
-    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE');
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'SCOPE_openid');
 
-    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_SAVE');
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_SAVE' || item === 'SCOPE_openid');
 
-    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_DELETE');
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid');
 
     const taskList = tasks.map(task => {
       return <tr key={task.id}>
         <th scope="row">{task.id}</th>
         <td style={{ whiteSpace: 'nowrap' }}>{task.name}</td>
         <td>{task.createdByUser}</td>
-        <td>{moment.unix(task.createdDate).format()}</td>
+        <td>{task.createdDate}</td>
         <td>{task.lastModifiedByUser}</td>
-        <td>{moment.unix(task.lastModifiedDate).format()}</td>
+        <td>{task.lastModifiedDate}</td>
         <td>
           <ButtonGroup>
             <Button size="sm" color="primary" tag={Link} to={"/tasks/" + task.id} disabled={!hasSaveAccess}>Edit</Button>
@@ -125,6 +169,7 @@ class TaskList extends Component {
     });
 
     const displayContent = () => {
+      const { activePage, itemsCountPerPage, totalItemsCount } = this.state;
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
         401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -152,6 +197,30 @@ class TaskList extends Component {
           <div className="float-right">
             <Button color="success" tag={Link} to="/tasks/new" disabled={!hasCreateAccess || displayAlert}>Add Task</Button>
           </div>
+          <Form onSubmit={this.handleSubmit} inline>
+            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+              <Label for="search" className="mr-sm-2">Search</Label>
+              <Input 
+                type="text" 
+                name="search" 
+                id="search" 
+                onChange={this.handleChange} 
+                placeholder="name=something" />
+            </FormGroup>
+            <Button>Search</Button>
+          </Form>
+          <div className="d-flex justify-content-center">
+          <Pagination
+              hideNavigation
+              activePage={activePage}
+              itemsCountPerPage={itemsCountPerPage}
+              totalItemsCount={totalItemsCount}
+              pageRangeDisplayed={10}
+              itemClass='page-item'
+              linkClass='btn btn-light'
+              onChange={this.handlePageChange}
+              />
+          </div>
           <Table striped responsive>
             <thead>
               <tr>
@@ -168,6 +237,18 @@ class TaskList extends Component {
               {taskList}
             </tbody>
           </Table>
+          <div className="d-flex justify-content-center">
+          <Pagination
+              hideNavigation
+              activePage={activePage}
+              itemsCountPerPage={itemsCountPerPage}
+              totalItemsCount={totalItemsCount}
+              pageRangeDisplayed={10}
+              itemClass='page-item'
+              linkClass='btn btn-light'
+              onChange={this.handlePageChange}
+              />
+            </div>
         </TabPane>
         <TabPane tabId="2">
           {/*this.state.activeTab === 2 ? <h3>Tab 2 Contents</h3> : null*/}

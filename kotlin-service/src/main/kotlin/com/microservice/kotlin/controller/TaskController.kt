@@ -1,18 +1,19 @@
 package com.microservice.kotlin.controller
 
-import com.microservice.kotlin.model.QTask
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
-import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.core.types.Predicate
 import io.swagger.annotations.ApiParam
 import org.apache.commons.lang.StringUtils
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.data.querydsl.binding.QuerydslPredicate
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -27,6 +28,8 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api/tasks")
 class TaskController(@Autowired val repository: TaskRepository) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @GetMapping("/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE') or hasAuthority('SCOPE_openid')")
     fun findById(@PathVariable id: String,
@@ -42,27 +45,18 @@ class TaskController(@Autowired val repository: TaskRepository) {
 
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE', 'TASK_DELETE', 'TASK_CREATE') or hasAuthority('SCOPE_openid')")
-    @PostFilter("hasRole('ADMIN') or filterObject.createdByUser == authentication.name")
     fun findAll(@RequestParam(name = "page", defaultValue = "0", required = false) page: Int,
                 @RequestParam(name = "size", defaultValue = "10", required = false) size: Int,
                 @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) sortDirection: String,
                 @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) sortIdx: List<String>,
-                @RequestParam(required = false) search: String?): List<Task> {
-        var predicate: BooleanExpression = QTask.task.id.isNotNull
-        if (StringUtils.isNotBlank(search)) {
-            for (token in search!!.split(";".toRegex()).toTypedArray()) {
-                if (StringUtils.containsIgnoreCase(token, "name:")) {
-                    predicate = QTask.task.name.containsIgnoreCase(token.replaceFirst("name:".toRegex(RegexOption.IGNORE_CASE), ""))
-                }
-            }
-        }
-
+                @QuerydslPredicate(root = Task::class, bindings = TaskRepository::class) predicate: Predicate,
+                @ApiIgnore @AuthenticationPrincipal authentication: Authentication): ResponseEntity<Page<Task>> {
+        log.info("Predicate: {}", predicate)
         val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), *sortIdx.toTypedArray()))
-        val findAll = repository.findAll(predicate, pageRequest)
-        return if (findAll.count() == 0) {
-            mutableListOf()
+        return if (authentication.hasAdminAuthority()) {
+            ResponseEntity.ok(repository.findAll(predicate, pageRequest))
         } else {
-            findAll.toMutableList()
+            ResponseEntity.ok(repository.findAllByCreatedByUser(authentication.name, pageRequest))
         }
     }
 
@@ -81,7 +75,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     }
 
     @PutMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @PreAuthorize("hasAnyRole('ADMIN', 'TASK_SAVE') or hasAuthority('SCOPE_openid') and (hasRole('ADMIN') or #task.createdByUser == authentication.name)")
+    @PreAuthorize("(hasAnyRole('ADMIN', 'TASK_SAVE') or hasAuthority('SCOPE_openid')) and (hasRole('ADMIN') or #task.createdByUser == authentication.name)")
     fun update(@RequestBody @ApiParam(required = true) task: Task,
                @PathVariable @ApiParam(required = true) id: String): ResponseEntity<Task> {
         task.id = id

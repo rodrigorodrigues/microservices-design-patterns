@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Controller for authenticated user.
@@ -46,8 +48,10 @@ public class AuthenticatedUserController {
         if (authentication instanceof OAuth2AuthenticationToken) {
             DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
             Map attributes = oidcUser.getAttributes();
+            com.microservice.authentication.common.model.Authentication findUserByEmail = authenticationCommonRepository.findByEmail(oidcUser.getEmail());
+            Set<String> scopes = (findUserByEmail != null ? findUserByEmail.getScopes() : new HashSet<>());
             oAuth2Request = new OAuth2Request(attributes, authentication.getName(), authentication.getAuthorities(),
-                true, authenticationCommonRepository.findByEmail(oidcUser.getEmail()).getScopes(), null, null, null, null);
+                true, scopes, null, null, null, null);
             oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
         } else {
             oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
@@ -57,10 +61,11 @@ public class AuthenticatedUserController {
         }
         OAuth2AccessToken token = redisTokenStoreService.generateToken(authentication, oAuth2Authentication);
         httpHeaders.add(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
-
+        JwtTokenDto body = new JwtTokenDto(httpHeaders.getFirst(HttpHeaders.AUTHORIZATION));
+        log.debug("AuthenticatedUserController:body: {}", body);
         return ResponseEntity
             .status(HttpStatus.OK)
             .headers(httpHeaders)
-            .body(new JwtTokenDto(httpHeaders.getFirst(HttpHeaders.AUTHORIZATION)));
+            .body(body);
     }
 }

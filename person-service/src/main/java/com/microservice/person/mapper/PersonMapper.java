@@ -3,30 +3,20 @@ package com.microservice.person.mapper;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
 import org.mapstruct.Mapper;
-import org.springframework.data.domain.Pageable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import org.springframework.data.domain.Page;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PersonMapper {
-    default Mono<PersonDto> entityToDto(Mono<Person> person) {
-        return person.map(this::map);
+    default Page<PersonDto> entityToDto(Page<Person> people, long count) {
+        return PageableExecutionUtils.getPage(entityToDto(people.getContent()), people.getPageable(), () -> count);
     }
 
-    default Flux<PersonDto> entityToDto(Flux<Person> people, Pageable pageable) {
-        Flux<Person> flux = people.buffer(pageable.getPageSize(), (pageable.getPageNumber() + 1))
-            .elementAt(pageable.getPageNumber(), new ArrayList<>())
-            .flatMapMany(Flux::fromIterable);
-        return entityToDto(flux);
-    }
+    List<PersonDto> entityToDto(List<Person> people);
 
-    default Flux<PersonDto> entityToDto(Flux<Person> people) {
-        return people.map(this::map);
-    }
+    PersonDto entityToDto(Person person);
 
     Person dtoToEntity(PersonDto personDto);
-
-    PersonDto map(Person person);
 }

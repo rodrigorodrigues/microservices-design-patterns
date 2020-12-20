@@ -1,5 +1,6 @@
 package com.microservice.kotlin.repository
 
+import com.microservice.kotlin.model.QTask
 import com.microservice.kotlin.model.Task
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
@@ -16,26 +19,31 @@ class TaskRepositoryTest(@Autowired private val taskRepository: TaskRepository) 
     @BeforeEach
     fun setup() {
         val listOf = arrayListOf(
-            Task(name = "Fix Computer", createdByUser =  "rodrigo", lastModifiedByUser = "rodrigo"),
-            Task(name = "Fix Laptop", createdByUser = "gustavo", lastModifiedByUser = "rodrigo"),
-            Task(name = "Fix TV", createdByUser = "rodrigo", lastModifiedByUser = "rodrigo")
+            Task(name = "Fix Computer", createdByUser =  "admin", lastModifiedByUser = "admin"),
+            Task(name = "Fix Laptop", createdByUser = "anonymous", lastModifiedByUser = "anonymous"),
+            Task(name = "Fix TV", createdByUser = "admin", lastModifiedByUser = "test")
         )
         taskRepository.saveAll(listOf)
     }
 
     @Test
     fun testFindAllByCreatedByUser() {
-        var list = taskRepository.findAllByCreatedByUser("rodrigo")
+        var list = taskRepository.findAllByCreatedByUser("admin", Pageable.unpaged())
 
-        assertThat(list.size).isEqualTo(2)
+        assertThat(list.content).hasSize(2)
 
-        list = taskRepository.findAllByCreatedByUser("gustavo")
+        list = taskRepository.findAllByCreatedByUser("anonymous", Pageable.unpaged())
 
-        assertThat(list.size).isEqualTo(1)
+        assertThat(list.content).hasSize(1)
 
-        list = taskRepository.findAllByCreatedByUser("juninho")
+        list = taskRepository.findAllByCreatedByUser("something else", Pageable.unpaged())
 
-        assertThat(list.isEmpty()).isTrue()
+        assertThat(list.content).hasSize(0)
+
+        list = taskRepository.findAll(QTask.task.name.containsIgnoreCase("Fix"), PageRequest.of(0, 2))
+
+        assertThat(list.content).hasSize(2)
+        assertThat(list.content.stream().map { it.name }).containsExactlyInAnyOrder("Fix Computer", "Fix Laptop")
     }
 
     @AfterEach

@@ -1,22 +1,30 @@
 package com.microservice.person.repository;
 
 import com.microservice.person.model.Person;
-import org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import com.microservice.person.model.QPerson;
+import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.core.types.dsl.StringPath;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.SingleValueBinding;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
 
-/**
- * Repository for Person Object using MongoDB.
- * Name convention are binding using Spring Data MongoDB - https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#repositories.query-methods.query-creation
- */
 @Repository
-public interface PersonRepository extends ReactiveCrudRepository<Person, String>, ReactiveQuerydslPredicateExecutor<Person> {
-    //TODO Check later how to use @Tailable with React EventSource
-//    @Tailable
-    Flux<Person> findAllByFullNameIgnoreCaseStartingWith(String name);
+public interface PersonRepository extends PagingAndSortingRepository<Person, String>, QuerydslPredicateExecutor<Person>, QuerydslBinderCustomizer<QPerson> {
+    Page<Person> findAllByFullNameIgnoreCaseStartingWith(String name, Pageable pageable);
 
-    Flux<Person> findByChildrenExists(boolean exists);
+    Page<Person> findByChildrenExists(boolean exists, Pageable pageable);
 
-    Flux<Person> findAllByCreatedByUser(String createdByUser);
+    Page<Person> findAllByCreatedByUser(String createdByUser, Pageable pageable);
+
+    @Override
+    default void customize(QuerydslBindings bindings, QPerson root) {
+        // Make case-insensitive 'like' filter for all string properties
+        bindings.bind(String.class)
+            .first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
+    }
 }

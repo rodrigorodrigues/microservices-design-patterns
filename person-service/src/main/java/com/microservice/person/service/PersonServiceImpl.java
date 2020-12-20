@@ -6,10 +6,11 @@ import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
 import com.querydsl.core.types.Predicate;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @AllArgsConstructor
@@ -18,38 +19,38 @@ public class PersonServiceImpl implements PersonService {
 
     private final PersonMapper personMapper;
 
-    public Mono<PersonDto> save(PersonDto personDto) {
+    public PersonDto save(PersonDto personDto) {
         Person person = personMapper.dtoToEntity(personDto);
         return personMapper.entityToDto(personRepository.save(person));
     }
 
     @Override
-    public Mono<PersonDto> findById(String id) {
-        return personMapper.entityToDto(personRepository.findById(id));
+    public PersonDto findById(String id) {
+        return personMapper.entityToDto(personRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
     @Override
-    public Flux<PersonDto> findAll(Pageable pageable, Predicate predicate) {
-        return personMapper.entityToDto(personRepository.findAll(predicate), pageable);
+    public Page<PersonDto> findAll(Pageable pageable, Predicate predicate) {
+        return personMapper.entityToDto(personRepository.findAll(predicate, pageable), personRepository.count(predicate));
     }
 
     @Override
-    public Flux<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable) {
-        return personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser), pageable);
+    public Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable) {
+        return personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser, pageable), personRepository.count());
     }
 
     @Override
-    public Flux<PersonDto> findAllByNameStartingWith(String name, Pageable pageable) {
-        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name), pageable);
+    public Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable) {
+        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable), personRepository.count());
     }
 
     @Override
-    public Flux<PersonDto> findByChildrenExists(Pageable pageable) {
-        return personMapper.entityToDto(personRepository.findByChildrenExists(true));
+    public Page<PersonDto> findByChildrenExists(Pageable pageable) {
+        return personMapper.entityToDto(personRepository.findByChildrenExists(true, pageable), personRepository.count());
     }
 
     @Override
-    public Mono<Void> deleteById(String id) {
-        return personRepository.deleteById(id);
+    public void deleteById(String id) {
+        personRepository.deleteById(id);
     }
 }

@@ -8,13 +8,12 @@ import com.querydsl.core.types.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -27,15 +26,15 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Mono<UserDto> save(UserDto userDto) {
+    public UserDto save(UserDto userDto) {
         boolean newUser = StringUtils.isBlank(userDto.getId());
         if (newUser) {
             if (StringUtils.isBlank(userDto.getPassword()) || StringUtils.isBlank(userDto.getConfirmPassword())) {
-                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must not be null!"));
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must not be null!");
             }
 
             if (!StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword())) {
-                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!"));
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!");
             }
         }
         User user = userMapper.dtoToEntity(userDto);
@@ -44,38 +43,46 @@ public class UserServiceImpl implements UserService {
             return userMapper.entityToDto(userRepository.save(user));
         } else {
             return userRepository.findById(userDto.getId())
-                    .flatMap(u -> {
-                        if (StringUtils.isNotBlank(userDto.getPassword())) {
-                            if (!passwordEncoder.matches(userDto.getCurrentPassword(), u.getPassword())) {
-                                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect!"));
-                            }
-
-                            if (!StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword()))  {
-                                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!"));
-                            }
-
-                            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-                        } else {
-                            user.setPassword(u.getPassword());
+                .map(u -> {
+                    if (StringUtils.isNotBlank(userDto.getPassword())) {
+                        if (!passwordEncoder.matches(userDto.getCurrentPassword(), u.getPassword())) {
+                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect!");
                         }
-                        return userMapper.entityToDto(userRepository.save(user));
-                    });
+
+                        if (!StringUtils.equals(userDto.getPassword(), userDto.getConfirmPassword()))  {
+                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirm password is different than password!");
+                        }
+
+                        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+                    } else {
+                        user.setPassword(u.getPassword());
+                    }
+                    return userMapper.entityToDto(userRepository.save(user));
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         }
     }
 
     @Override
-    public Mono<UserDto> findById(String id) {
-        return userMapper.entityToDto(userRepository.findById(id));
+    public UserDto findById(String id) {
+        return userRepository.findById(id)
+            .map(userMapper::entityToDto)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @Override
-    public Flux<UserDto> findAll(Pageable pageable, Predicate predicate) {
-        return userMapper.entityToDto(userRepository.findAll(predicate), pageable);
+    public Page<UserDto> findAll(Pageable pageable, Predicate predicate) {
+        return userMapper.entityToDto(userRepository.findAll(predicate, pageable), userRepository.count(predicate));
     }
 
     @Override
-    public Mono<Void> deleteById(String id) {
-        return userRepository.deleteById(id);
+    public Page<UserDto> findAllByCreatedByUser(String createdByUser, Pageable pageable) {
+        return userMapper.entityToDto(userRepository.findAllByCreatedByUser(createdByUser, pageable), userRepository.count());
+    }
+
+    @Override
+    public void deleteById(String id) {
+        userRepository.deleteById(id);
     }
 
 }

@@ -1,13 +1,11 @@
 package com.springboot.edgeserver.config;
 
-import com.microservice.authentication.common.service.SharedAuthenticationService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
@@ -15,21 +13,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final String[] WHITELIST = {
-            "/api/**",
-            "/**/*.js",
-            "/**/*.css",
-            "/**/*.html",
-            "/favicon.ico",
-            "/actuator/**",
-            "/error"
+        "/api/**",
+        "/oauth2/**",
+        "/.well-known/jwks.json",
+        "/swagger/**",
+        "/**/*.js",
+        "/**/*.css",
+        "/**/*.html",
+        "/favicon.ico",
+        "/actuator/**",
+        "/error"
     };
-
-    private final SharedAuthenticationService sharedAuthenticationService;
-
-    @Override
-    protected UserDetailsService userDetailsService() {
-        return sharedAuthenticationService;
-    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

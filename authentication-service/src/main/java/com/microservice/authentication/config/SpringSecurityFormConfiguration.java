@@ -1,12 +1,10 @@
 package com.microservice.authentication.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.service.RedisTokenStoreService;
-import com.microservice.authentication.web.util.CustomDefaultErrorAttributes;
+import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
@@ -21,7 +19,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
@@ -37,19 +34,37 @@ import java.util.Map;
 /**
  * Spring Security Configuration for form
  */
-@Slf4j
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
-@Order(300)
+@Order(301)
 public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapter {
-    private final SharedAuthenticationService sharedAuthenticationService;
-
     private final ObjectMapper objectMapper;
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
     private final RedisTokenStoreService redisTokenStoreService;
+
+    private static final String[] WHITELIST = {
+        // -- swagger ui
+        "/v2/api-docs",
+        "/swagger-resources",
+        "/swagger-resources/**",
+        "/configuration/ui",
+        "/configuration/security",
+        "/swagger-ui.html",
+        "/webjars/**",
+        "/**/*.js",
+        "/**/*.css",
+        "/**/*.html",
+        "/favicon.ico",
+        // other public endpoints of your API may be appended to this array
+        "/actuator/info",
+        "/actuator/health",
+        "/actuator/prometheus",
+        "/error",
+        "/.well-known/jwks.json"
+    };
 
     @Bean
     @Override
@@ -58,41 +73,39 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
     }
 
     @Override
-    protected UserDetailsService userDetailsService() {
-        return sharedAuthenticationService;
-    }
-
-    @Override
     protected void configure(HttpSecurity http) throws Exception {
-        log.debug("SpringSecurityFormConfiguration:Set paths");
         http.requestMatchers()
-            .antMatchers("/api/**", "/", "/error")
+            .antMatchers("/api/**", "/", "/error", "/actuator/**")
             .and()
-            .authorizeRequests()
-            .antMatchers("/error").permitAll()
-            .anyRequest().authenticated()
+                .formLogin()
+                .loginProcessingUrl("/api/authenticate").permitAll()
+                .successHandler(successHandler())
+                .failureHandler(authenticationFailureHandler())
             .and()
-            .formLogin()
-            .loginProcessingUrl("/api/authenticate").permitAll()
-            .successHandler(successHandler())
-            .failureHandler(authenticationFailureHandler())
+                .logout()
+                .logoutUrl("/api/logout")
+                .deleteCookies("SESSIONID")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    redisTokenStoreService.removeAllTokensByAuthenticationUser(authentication);
+                    response.setStatus(HttpStatus.OK.value());
+                    response.getWriter().flush();
+                })
+                .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
+                .invalidateHttpSession(true)
             .and()
-            .logout()
-            .logoutUrl("/api/logout")
-            .deleteCookies("SESSIONID")
-            .logoutSuccessHandler((request, response, authentication) -> {
-                redisTokenStoreService.removeAllTokensByAuthenticationUser(authentication);
-                response.setStatus(HttpStatus.OK.value());
-                response.getWriter().flush();
-            })
-            .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
-            .invalidateHttpSession(true)
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             .and()
-            .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .exceptionHandling()
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
             .and()
-            .exceptionHandling()
-            .authenticationEntryPoint(new Http403ForbiddenEntryPoint());
+                .authorizeRequests()
+                .antMatchers(WHITELIST).permitAll()
+                .antMatchers("/actuator/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            .and()
+                .oauth2ResourceServer()
+                .jwt();
     }
 
     private AuthenticationFailureHandler authenticationFailureHandler() {

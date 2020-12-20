@@ -1,26 +1,27 @@
 package com.microservice.user;
 
-import com.microservice.authentication.common.model.Authority;
-import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
-import com.microservice.authentication.common.service.SharedAuthenticationService;
-import com.microservice.user.model.User;
-import com.microservice.user.repository.UserRepository;
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.Ssl;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.security.interfaces.RSAPublicKey;
 
 @Slf4j
 @SpringBootApplication
@@ -30,41 +31,24 @@ public class UserServiceApplication {
         SpringApplication.run(UserServiceApplication.class, args);
     }
 
-    @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)
+    @Profile("!kubernetes")
+    @ConditionalOnMissingBean
     @Bean
-    CommandLineRunner runner(PasswordEncoder passwordEncoder, UserRepository userRepository) {
-        return args -> {
-            log.debug("Creating default users");
-            userRepository.findByEmail("admin@gmail.com")
-                    .switchIfEmpty(userRepository.save(User.builder().email("admin@gmail.com")
-                    .password(passwordEncoder.encode("password"))
-                    .authorities(permissions("ROLE_ADMIN"))
-                    .fullName("Admin dos Santos")
-                    .build()))
-                    .subscribe(u -> log.debug("Created Admin User: {}", u));
-
-            userRepository.findByEmail("anonymous@gmail.com")
-                    .switchIfEmpty(userRepository.save(User.builder().email("anonymous@gmail.com")
-                    .password(passwordEncoder.encode("test"))
-                    .authorities(permissions("ROLE_PERSON_READ"))
-                    .fullName("Anonymous Noname")
-                    .build()))
-                    .subscribe(u -> log.debug("Created Anonymous User: {}", u));
-
-            userRepository.findByEmail("master@gmail.com")
-                    .switchIfEmpty(userRepository.save(User.builder().email("master@gmail.com")
-                    .password(passwordEncoder.encode("password123"))
-                    .authorities(permissions("ROLE_PERSON_CREATE", "ROLE_PERSON_READ", "ROLE_PERSON_SAVE"))
-                    .fullName("Master of something")
-                    .build()))
-                    .subscribe(u -> log.debug("Created Master User: {}", u));
-        };
+    RSAPublicKey keyPair(AuthenticationProperties properties) {
+        ResourceServerProperties.Jwt jwt = properties.getJwt();
+        String password = jwt.getKeyStorePassword();
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password.toCharArray());
+        return (RSAPublicKey) keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias()).getPublic();
     }
 
-    private List<Authority> permissions(String ... permissions) {
-        return Stream.of(permissions)
-                .map(Authority::new)
-                .collect(Collectors.toList());
+    @Profile("kubernetes")
+    @ConditionalOnMissingBean
+    @Bean
+    RSAPublicKey keyPairSsl(@Value("${server.ssl.key-store}") Resource keystore, ServerProperties serverProperties) {
+        Ssl ssl = serverProperties.getSsl();
+        return (RSAPublicKey) new KeyStoreKeyFactory(keystore, ssl.getKeyStorePassword().toCharArray())
+                .getKeyPair(ssl.getKeyAlias())
+                .getPublic();
     }
 
     @Bean
@@ -81,11 +65,5 @@ public class UserServiceApplication {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    ReactivePreAuthenticatedAuthenticationManager customReactiveAuthenticationManager(
-        SharedAuthenticationService sharedAuthenticationService) {
-        return new ReactivePreAuthenticatedAuthenticationManager(sharedAuthenticationService);
     }
 }

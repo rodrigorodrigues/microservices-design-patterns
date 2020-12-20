@@ -23,7 +23,7 @@
         <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
         <docker.image.name>${project.artifactId}</docker.image.name>
         <docker.image.from>openjdk:8-jre-alpine</docker.image.from>
-        <jib-maven-plugin.version>2.5.2</jib-maven-plugin.version>
+        <jib-maven-plugin.version>2.7.0</jib-maven-plugin.version>
         <code-coverage>0.8</code-coverage>
     </properties>
 
@@ -69,6 +69,13 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

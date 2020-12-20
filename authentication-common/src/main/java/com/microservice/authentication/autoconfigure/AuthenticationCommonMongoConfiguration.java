@@ -1,13 +1,13 @@
 package com.microservice.authentication.autoconfigure;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.common.service.SharedAuthenticationService;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableMongoAuditing
@@ -19,7 +19,7 @@ public class AuthenticationCommonMongoConfiguration {
     }
 
     @Bean
-    SharedAuthenticationService sharedAuthenticationService(AuthenticationCommonRepository authenticationCommonRepository) {
+    UserDetailsService sharedAuthenticationService(AuthenticationCommonRepository authenticationCommonRepository) {
         return new SharedAuthenticationServiceImpl(authenticationCommonRepository);
     }
 }

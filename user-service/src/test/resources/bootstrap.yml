@@ -10,6 +10,11 @@ spring:
       enabled: false
     kubernetes:
       enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:${wiremock.server.port}/.well-known/jwks.json
 security:
   oauth2:
     resource:

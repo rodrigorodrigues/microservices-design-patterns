@@ -31,6 +31,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         if (response.isCommitted()) {
             return;
         }
+        log.info("CustomAuthenticationSuccessHandler:onAuthenticationSuccess:authentication: {}", authentication);
         DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
         Map attributes = oidcUser.getAttributes();
         OAuth2Request oAuth2Request = new OAuth2Request(attributes, authentication.getName(), authentication.getAuthorities(),

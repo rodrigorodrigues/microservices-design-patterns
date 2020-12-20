@@ -1,36 +1,28 @@
 package com.microservice.user.config;
 
-import com.microservice.authentication.common.service.ReactivePreAuthenticatedAuthenticationManager;
-import com.microservice.authentication.common.jwt.JwtAuthenticationConverter;
-import com.microservice.web.common.util.HandleResponseError;
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+
+import java.security.interfaces.RSAPublicKey;
 
 /**
  * Spring Security Configuration
  */
+@Slf4j
 @Configuration
-@AllArgsConstructor
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
-public class SpringSecurityConfiguration {
-    private final TokenStore tokenStore;
-
-    private final HandleResponseError handleResponseError;
-
-    private final ReactivePreAuthenticatedAuthenticationManager authenticationManager;
-
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private static final String[] WHITELIST = {
         // -- swagger ui
         "/v2/api-docs",
@@ -45,42 +37,46 @@ public class SpringSecurityConfiguration {
         "/**/*.html",
         "/favicon.ico",
         // other public endpoints of your API may be appended to this array
-        "/actuator/**"
+        "/actuator/info",
+        "/actuator/health",
+        "/actuator/prometheus",
+        "/error"
     };
 
     @Bean
-    public SecurityWebFilterChain configure(ServerHttpSecurity http) {
-        return http
-            .csrf()
+    @ConditionalOnMissingBean
+    public JwtDecoder jwtDecoder(RSAPublicKey publicKey) {
+        return NimbusJwtDecoder.withPublicKey(publicKey).build();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .csrf()
                 .disable()
                 .headers()
                 .frameOptions().disable()
-                .cache().disable()
-            .and()
+                .cacheControl().disable()
+                .and()
                 .formLogin().disable()
                 .httpBasic().disable()
                 .logout().disable()
-                .authorizeExchange()
-                .pathMatchers(WHITELIST).permitAll()
-                .anyExchange().authenticated()
-            .and()
-                .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-                .exceptionHandling()
-                .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
-            .and()
-                .build();
+                .authorizeRequests()
+                .antMatchers(WHITELIST).permitAll()
+                .antMatchers("/actuator/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+                .and()
+                .oauth2ResourceServer()
+                .jwt()
+                .jwtAuthenticationConverter(jwtAuthenticationConverter());
     }
 
-    private AuthenticationWebFilter authenticationWebFilter() {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
-        authenticationWebFilter.setServerAuthenticationConverter(new JwtAuthenticationConverter(tokenStore));
-        NegatedServerWebExchangeMatcher negateWhiteList = new NegatedServerWebExchangeMatcher(ServerWebExchangeMatchers.pathMatchers(WHITELIST));
-        authenticationWebFilter.setRequiresAuthenticationMatcher(negateWhiteList);
-        authenticationWebFilter.setAuthenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true));
-        authenticationWebFilter.setAuthenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain().filter(webFilterExchange.getExchange())
-                .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication)));
-        return authenticationWebFilter;
+    private JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
+        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+        return jwtAuthenticationConverter;
     }
-
-
 }

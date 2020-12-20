@@ -12,14 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import java.util.Arrays;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,55 +43,44 @@ public class PersonServiceImplTest {
     @Test
     public void whenCallSaveShouldSavePerson() {
         Person person = new Person();
-        when(personRepository.save(any())).thenReturn(Mono.just(person));
+        when(personRepository.save(any())).thenReturn(person);
 
         PersonDto personDto = new PersonDto();
-        StepVerifier.create(personService.save(personDto))
-                .expectNextCount(1)
-                .verifyComplete();
+        assertThat(personService.save(personDto)).isNotNull();
     }
 
     @Test
     public void whenCallFindByIdShouldFindPerson() {
-        Mono<Person> person = Mono.just(new Person());
-        when(personRepository.findById(anyString())).thenReturn(person);
+        when(personRepository.findById(anyString())).thenReturn(Optional.of(new Person()));
 
-        StepVerifier.create(personService.findById(anyString()))
-                .expectNextCount(1)
-                .verifyComplete();
+        assertThat(personService.findById("test")).isNotNull();
     }
 
     @Test
     public void whenCallFindAllShouldReturnListOfPersons() {
-        when(personRepository.findAll(any(Predicate.class))).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person(), new Person())));
+        when(personRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl<>(Arrays.asList(new Person(), new Person(), new Person())));
 
-        Flux<PersonDto> people = personService.findAll(PageRequest.of(0, 10), QPerson.person.id.isNotNull());
+        Page<PersonDto> people = personService.findAll(PageRequest.of(0, 10), QPerson.person.id.isNotNull());
 
-        StepVerifier.create(people)
-            .expectNextCount(3)
-            .verifyComplete();
+        assertThat(people.getTotalElements()).isEqualTo(3);
     }
 
     @Test
     public void whenCallFindAllByNameStartingWithShouldReturnListOfPersons() {
-        when(personRepository.findAllByFullNameIgnoreCaseStartingWith(anyString())).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person())));
+        when(personRepository.findAllByFullNameIgnoreCaseStartingWith(anyString(), any(Pageable.class))).thenReturn(new PageImpl(Arrays.asList(new Person(), new Person())));
 
-        Flux<PersonDto> people = personService.findAllByNameStartingWith("test", PageRequest.of(0, 10));
+        Page<PersonDto> people = personService.findAllByNameStartingWith("test", PageRequest.of(0, 10));
 
-        StepVerifier.create(people)
-            .expectNextCount(2)
-            .verifyComplete();
+        assertThat(people.getTotalElements()).isEqualTo(2);
     }
 
     @Test
     public void whenCallFindByChildrenExistsShouldReturnListOfPersons() {
-        when(personRepository.findByChildrenExists(anyBoolean())).thenReturn(Flux.fromIterable(Arrays.asList(new Person(), new Person())));
+        when(personRepository.findByChildrenExists(anyBoolean(), any(Pageable.class))).thenReturn(new PageImpl(Arrays.asList(new Person(), new Person())));
 
-        Flux<PersonDto> people = personService.findByChildrenExists(any(Pageable.class));
+        Page<PersonDto> people = personService.findByChildrenExists(Pageable.unpaged());
 
-        StepVerifier.create(people)
-            .expectNextCount(2)
-            .verifyComplete();
+        assertThat(people.getTotalElements()).isEqualTo(2);
     }
 
     @Test

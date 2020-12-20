@@ -4,33 +4,23 @@ import com.microservice.user.dto.UserDto;
 import com.microservice.user.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.data.domain.Pageable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    default Mono<UserDto> entityToDto(Mono<User> users) {
-        return users.map(u -> {
-            u.setPassword(null);
-            return map(u);
-        });
+    default Page<UserDto> entityToDto(Page<User> users, long count) {
+        return PageableExecutionUtils.getPage(entityToDto(users.getContent()), users.getPageable(), () -> count);
     }
 
-    default Flux<UserDto> entityToDto(Flux<User> users, Pageable pageable) {
-        return users.buffer(pageable.getPageSize(), (pageable.getPageNumber() + 1))
-                .elementAt(pageable.getPageNumber(), new ArrayList<>())
-                .flatMapMany(Flux::fromIterable)
-                .map(u -> {
-                    u.setPassword(null);
-                    return map(u);
-                });
-    }
+    List<UserDto> entityToDto(List<User> users);
 
     User dtoToEntity(UserDto userDto);
 
     @Mapping(source = "enabled", target = "activated", defaultValue = "true")
-    UserDto map(User user);
+    UserDto entityToDto(User user);
 }

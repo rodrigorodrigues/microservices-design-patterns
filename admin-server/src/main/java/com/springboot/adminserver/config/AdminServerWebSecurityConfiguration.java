@@ -1,6 +1,5 @@
 package com.springboot.adminserver.config;
 
-import com.microservice.authentication.common.service.SharedAuthenticationService;
 import de.codecentric.boot.admin.server.config.AdminServerProperties;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
@@ -9,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 @Configuration
@@ -24,14 +22,7 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
         "/favicon.ico"
     };
 
-    private final SharedAuthenticationService sharedAuthenticationService;
-
     private final AdminServerProperties adminServerProperties;
-
-    @Override
-    protected UserDetailsService userDetailsService() {
-        return sharedAuthenticationService;
-    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

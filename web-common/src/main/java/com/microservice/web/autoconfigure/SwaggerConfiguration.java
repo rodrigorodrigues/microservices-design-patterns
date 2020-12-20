@@ -1,6 +1,6 @@
 package com.microservice.web.autoconfigure;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
@@ -24,13 +24,12 @@ import java.util.List;
  */
 @ConditionalOnProperty(prefix = "configuration", name = "swagger", havingValue = "true", matchIfMissing = true)
 @Configuration
-public class Swagger2Configuration {
+@AllArgsConstructor
+public class SwaggerConfiguration {
 
-    @Autowired
-    private BuildProperties build;
+    private final BuildProperties build;
 
-    @Autowired
-    private GitProperties git;
+    private final GitProperties git;
 
     @Bean
     public Docket api() {

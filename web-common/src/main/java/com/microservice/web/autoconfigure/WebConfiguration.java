@@ -1,22 +1,21 @@
 package com.microservice.web.autoconfigure;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsWebFilter;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.reactive.config.EnableWebFlux;
-import org.springframework.web.reactive.config.ResourceHandlerRegistry;
-import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Slf4j
 @Configuration
-@EnableWebFlux
-public class WebConfiguration implements WebFluxConfigurer {
+@EnableWebMvc
+public class WebConfiguration implements WebMvcConfigurer {
     @Autowired
     private Environment environment;
 
@@ -44,22 +43,21 @@ public class WebConfiguration implements WebFluxConfigurer {
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
+    @Primary
     @Bean
-    CorsWebFilter corsWebFilter() {
-        log.debug("active profiles: {}", environment.getActiveProfiles());
+    CorsFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowCredentials(true);
-        if (environment.acceptsProfiles(Profiles.of("prod"))) {
+        if (environment.acceptsProfiles(Profiles.of("kubernetes"))) {
             corsConfig.addAllowedOrigin("https://spendingbetter.com");
         } else {
             corsConfig.addAllowedOrigin("*");
         }
-        corsConfig.addAllowedHeader("*");
-        corsConfig.addAllowedMethod("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
 
-        return new CorsWebFilter(source);
+        return new CorsFilter(source);
     }
+
 }

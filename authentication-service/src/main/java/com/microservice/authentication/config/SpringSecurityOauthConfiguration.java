@@ -20,7 +20,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
-@Order(303)
+@Order(302)
 public class SpringSecurityOauthConfiguration extends WebSecurityConfigurerAdapter {
 
     private final CustomOidcUserService customOidcUserService;
@@ -31,7 +31,10 @@ public class SpringSecurityOauthConfiguration extends WebSecurityConfigurerAdapt
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http.requestMatchers()
+            .antMatchers("/oauth2/**", "/logout", "/login/**")
+            .and()
+            .authorizeRequests()
             .anyRequest().authenticated()
             .and().logout()
                 .logoutSuccessUrl("/logout")
@@ -40,9 +43,9 @@ public class SpringSecurityOauthConfiguration extends WebSecurityConfigurerAdapt
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout", HttpMethod.GET.name()))
                 .invalidateHttpSession(true)
             .and().oauth2Login()
-            .successHandler(customAuthenticationSuccessHandler)
-            .userInfoEndpoint()
-            .oidcUserService(customOidcUserService);
+                .successHandler(customAuthenticationSuccessHandler)
+                .userInfoEndpoint()
+                .oidcUserService(customOidcUserService);
     }
 
 }

@@ -1,41 +1,51 @@
 package com.microservice.kotlin.config
 
-import com.microservice.kotlin.model.Task
+import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.repository.TaskRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.CommandLineRunner
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.web.ServerProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
 import org.springframework.core.env.Profiles
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
 import org.springframework.data.mongodb.config.EnableMongoAuditing
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
+import org.springframework.security.rsa.crypto.KeyStoreKeyFactory
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
+import java.security.interfaces.RSAPublicKey
 
 @Configuration
 @EnableMongoAuditing
 @EnableMongoRepositories(basePackageClasses = [TaskRepository::class])
 class ServiceConfiguration(@Autowired val environment: Environment) {
-
-    @ConditionalOnProperty(prefix = "configuration", name = ["initialLoad"], havingValue = "true", matchIfMissing = true)
+    @Profile("!kubernetes")
+    @ConditionalOnMissingBean
     @Bean
-    fun loadInitialData(taskRepository: TaskRepository) : CommandLineRunner {
-        return CommandLineRunner {
-            if (taskRepository.count() == 0L) {
-                val listOf = arrayListOf(
-                    Task(name =  "Learn new technologies"),
-                    Task(name =  "Travel around the world"),
-                    Task(name =  "Fix Laptop")
-                )
-                taskRepository.saveAll(listOf)
-            }
-        }
+    fun keyPair(properties: AuthenticationProperties): RSAPublicKey? {
+        val jwt = properties.jwt
+        val password = jwt.keyStorePassword
+        val keyStoreKeyFactory = KeyStoreKeyFactory(FileSystemResource(jwt.keyStore.replaceFirst("file:".toRegex(), "")), password.toCharArray())
+        return keyStoreKeyFactory.getKeyPair(jwt.keyAlias).public as RSAPublicKey
+    }
+
+    @Profile("kubernetes")
+    @ConditionalOnMissingBean
+    @Bean
+    fun keyPairSsl(@Value("\${server.ssl.key-store}") keystore: Resource?, serverProperties: ServerProperties): RSAPublicKey? {
+        val ssl = serverProperties.ssl
+        return KeyStoreKeyFactory(keystore, ssl.keyStorePassword.toCharArray())
+            .getKeyPair(ssl.keyAlias)
+            .public as RSAPublicKey
     }
 
     @Bean
@@ -44,10 +54,6 @@ class ServiceConfiguration(@Autowired val environment: Environment) {
     @Primary
     @Bean
     fun validator(): LocalValidatorFactoryBean = LocalValidatorFactoryBean()
-
-    @Primary
-    @Bean
-    fun customDefaultErrorAttributes(): CustomDefaultErrorAttributes = CustomDefaultErrorAttributes()
 
     @Bean
     fun corsWebFilter(): CorsFilter {

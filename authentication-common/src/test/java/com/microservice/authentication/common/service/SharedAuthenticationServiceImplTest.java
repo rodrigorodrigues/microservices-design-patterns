@@ -11,8 +11,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -45,13 +43,4 @@ class SharedAuthenticationServiceImplTest {
         Assertions.assertThrows(UsernameNotFoundException.class, () -> sharedAuthenticationService.loadUserByUsername("test"), "Authentication(test) not found!");
     }
 
-    @Test
-    void testFindByUsername() {
-        Mono<UserDetails> userDetails = sharedAuthenticationService.findByUsername(anyString());
-
-        StepVerifier.create(userDetails)
-            .expectNextCount(1L)
-            .verifyComplete();
-
-    }
 }

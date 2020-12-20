@@ -35,15 +35,11 @@ import static java.util.stream.Collectors.joining;
 @Configuration
 public class AuthenticationCommonConfiguration {
 
-    private final ResourceServerProperties resource;
-
     private final List<JwtAccessTokenConverterConfigurer> configurers;
 
     private final AuthenticationProperties authenticationProperties;
 
-    public AuthenticationCommonConfiguration(ResourceServerProperties resource,
-                                             ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers, AuthenticationProperties authenticationProperties) {
-        this.resource = resource;
+    public AuthenticationCommonConfiguration(ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers, AuthenticationProperties authenticationProperties) {
         this.configurers = configurers.getIfAvailable();
         this.authenticationProperties = authenticationProperties;
     }
@@ -102,7 +98,7 @@ public class AuthenticationCommonConfiguration {
                 return super.enhance(accessToken, authentication);
             }
         };
-        ResourceServerProperties.Jwt jwt = this.resource.getJwt();
+        ResourceServerProperties.Jwt jwt = this.authenticationProperties.getJwt();
         String keyValue = jwt.getKeyValue();
         if (StringUtils.isNotBlank(keyValue)) {
             if (!keyValue.startsWith("-----BEGIN")) {
@@ -110,7 +106,7 @@ public class AuthenticationCommonConfiguration {
             }
             converter.setVerifierKey(keyValue);
         } else if (jwt.getKeyStore() != null) {
-            Resource keyStore = new FileSystemResource(jwt.getKeyStore());
+            Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
             char[] keyStorePassword = jwt.getKeyStorePassword().toCharArray();
             KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
 

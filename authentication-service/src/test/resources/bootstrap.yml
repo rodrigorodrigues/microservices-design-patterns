@@ -1,22 +1,25 @@
 spring:
-  main:
-    allow-bean-definition-overriding: true
-  application:
-    name: authentication-service
-  cloud:
-    discovery:
-      enabled: false
-    consul:
-        enabled: false
-    kubernetes:
-        enabled: false
-security:
-    oauth2:
-        resource:
-            jwt:
-                key-value: dGVzdC1zcHJpbmctYm9vdC1hcHBsaWNhdGlvbi13aXRoLXJlYWN0LXNpbmdsZS1wYWdlLWFwcGxpY2F0aW9uCg==
+    main:
+        allow-bean-definition-overriding: true
+    application:
+        name: authentication-service
+    cloud:
+        discovery:
+            enabled: false
+        consul:
+            enabled: false
+        kubernetes:
+            enabled: false
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: test
+                        client-secret: test
+            resourceserver:
+                jwt:
+                    jwk-set-uri: http://localhost:${wiremock.server.port}/.well-known/jwks.json
 opentracing:
     jaeger:
         enabled: false
-oauth:
-    enabled: false

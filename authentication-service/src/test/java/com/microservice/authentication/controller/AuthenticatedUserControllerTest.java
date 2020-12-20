@@ -4,38 +4,35 @@ import com.microservice.authentication.common.repository.AuthenticationCommonRep
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
+import java.util.Collections;
+import java.util.HashSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthenticatedUserControllerTest {
-
-    @Mock
-    DefaultTokenServices defaultTokenServices;
 
     @Mock
     AuthenticationCommonRepository authenticationCommonRepository;
@@ -52,77 +49,44 @@ class AuthenticatedUserControllerTest {
 
     @Test
     void testAuthenticatedUser() {
-        when(defaultTokenServices.createAccessToken(any())).thenReturn(new OAuth2AccessToken() {
-            @Override
-            public Map<String, Object> getAdditionalInformation() {
-                return null;
-            }
-
-            @Override
-            public Set<String> getScope() {
-                return null;
-            }
-
-            @Override
-            public OAuth2RefreshToken getRefreshToken() {
-                return null;
-            }
-
-            @Override
-            public String getTokenType() {
-                return "Bearer";
-            }
-
-            @Override
-            public boolean isExpired() {
-                return false;
-            }
-
-            @Override
-            public Date getExpiration() {
-                return null;
-            }
-
-            @Override
-            public int getExpiresIn() {
-                return 0;
-            }
-
-            @Override
-            public String getValue() {
-                return "Mock JWT";
-            }
-        });
+        OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+        when(accessToken.getTokenType()).thenReturn("Bearer");
+        when(accessToken.getValue()).thenReturn("Mock JWT");
+        when(redisTokenStoreService.generateToken(any(Authentication.class), any(OAuth2Authentication.class))).thenReturn(accessToken);
 
         ResponseEntity<JwtTokenDto> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(new UsernamePasswordAuthenticationToken("user", "password"), new MockHttpServletRequest());
 
         assertThat(jwtTokenDtoResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(jwtTokenDtoResponseEntity.getHeaders()).containsOnlyKeys(HttpHeaders.CONTENT_TYPE, HttpHeaders.AUTHORIZATION);
+        assertThat(jwtTokenDtoResponseEntity.getHeaders()).containsKeys(HttpHeaders.CONTENT_TYPE, HttpHeaders.AUTHORIZATION);
         assertThat(jwtTokenDtoResponseEntity.getBody()).isNotNull();
         assertThat(jwtTokenDtoResponseEntity.getBody().getIdToken()).isEqualTo("Bearer Mock JWT");
+
+        verifyNoInteractions(authenticationCommonRepository);
     }
 
     @Test
     void testAuthenticatedUserWithOauth2() {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("user", "password");
+        OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+        when(accessToken.getTokenType()).thenReturn("Bearer");
+        when(accessToken.getValue()).thenReturn("Mock JWT");
+        when(redisTokenStoreService.generateToken(any(Authentication.class), any(OAuth2Authentication.class))).thenReturn(accessToken);
+        com.microservice.authentication.common.model.Authentication authentication = new com.microservice.authentication.common.model.Authentication();
+        authentication.setScopes(new HashSet<>());
+        when(authenticationCommonRepository.findByEmail(anyString())).thenReturn(authentication);
 
-        OAuth2Request oAuth2RequestRequest= new OAuth2Request(null, "client", null, true, null,
-            null, null, null, null);
-
-        OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2RequestRequest, authentication);
+        OAuth2AuthenticationToken oAuth2AuthenticationToken = mock(OAuth2AuthenticationToken.class);
+        OidcIdToken oidcIdToken = OidcIdToken.withTokenValue("Test").claim("sub", "name").build();
+        DefaultOidcUser oidcUser = new DefaultOidcUser(Collections.singletonList(new SimpleGrantedAuthority("ADMIN")), oidcIdToken);
+        when(oAuth2AuthenticationToken.getPrincipal()).thenReturn(oidcUser);
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setAttribute(OAuth2AuthenticationDetails.ACCESS_TOKEN_TYPE, "bearer");
-        request.setAttribute(OAuth2AuthenticationDetails.ACCESS_TOKEN_VALUE, "Mock JWT");
-        OAuth2AuthenticationDetails accessToken = new OAuth2AuthenticationDetails(request);
-        oAuth2Authentication.setDetails(accessToken);
 
-        ResponseEntity<JwtTokenDto> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(oAuth2Authentication, request);
+        ResponseEntity<JwtTokenDto> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(oAuth2AuthenticationToken, request);
 
         assertThat(jwtTokenDtoResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(jwtTokenDtoResponseEntity.getHeaders()).containsOnlyKeys(HttpHeaders.CONTENT_TYPE, HttpHeaders.AUTHORIZATION);
+        assertThat(jwtTokenDtoResponseEntity.getHeaders()).containsKeys(HttpHeaders.CONTENT_TYPE, HttpHeaders.AUTHORIZATION);
         assertThat(jwtTokenDtoResponseEntity.getBody()).isNotNull();
-        assertThat(jwtTokenDtoResponseEntity.getBody().getIdToken()).isEqualTo("bearer Mock JWT");
+        assertThat(jwtTokenDtoResponseEntity.getBody().getIdToken()).isEqualTo("Bearer Mock JWT");
 
-        verifyZeroInteractions(defaultTokenServices);
+        verify(authenticationCommonRepository).findByEmail(any());
     }
 }

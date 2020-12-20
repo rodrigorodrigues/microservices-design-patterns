@@ -1,33 +1,46 @@
 package com.microservice.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.web.common.util.constants.DefaultUsers;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
+import net.minidev.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,30 +49,39 @@ import redis.embedded.RedisServer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPublicKey;
 import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {SharedAuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class, AuthenticationServiceApplication.class},
+@SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
         "spring.redis.port=6370"})
-@AutoConfigureWebTestClient
-@Import(SharedAuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class)
+@ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
+    classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class, AuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class})
 @AutoConfigureMockMvc
-@Disabled
-public class SharedAuthenticationServiceApplicationIntegrationTest {
+@AutoConfigureWireMock(port = 0)
+public class AuthenticationServiceApplicationIntegrationTest {
 
     @Autowired
     ApplicationContext context;
@@ -72,6 +94,11 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
 
     @Autowired @Qualifier("redisTemplate")
     RedisOperations redisOperations;
+
+    @Autowired
+    KeyPair keyPair;
+
+    AtomicBoolean runAtOnce = new AtomicBoolean(true);
 
     @Configuration
     public static class EmbeddedRedisTestConfiguration {
@@ -114,22 +141,6 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
                 .build());
             log.debug(String.format("Created Master Authentication: %s", authentication));
         }
-/*
-        @Bean
-        EurekaClient eurekaClient() {
-            EurekaClient eurekaClient = mock(EurekaClient.class);
-            Applications applications = mock(Applications.class);
-            Application application = mock(Application.class);
-            when(application.getInstances()).thenReturn(Arrays.asList(InstanceInfo.Builder
-                .newBuilder()
-                .setIPAddr("127.0.0.1")
-                .setPort(8080)
-                .setAppName("mock-service")
-                .build()));
-            when(applications.getRegisteredApplications()).thenReturn(Arrays.asList(application));
-            when(eurekaClient.getApplications()).thenReturn(applications);
-            return eurekaClient;
-        }*/
 
         private List<Authority> permissions(String ... permissions) {
             return Stream.of(permissions)
@@ -138,32 +149,50 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         }
     }
 
-    @Test
-    @DisplayName("Test - When Calling POST - /oauth/token should return token and response 200 - OK")
-    public void shouldReturnTokenWhenCallingApi() throws Exception {
-        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("client_id", "client");
-        formData.add("client_secret", "secret");
-        formData.add("username", "master@gmail.com");
-        formData.add("password", "password123");
-        formData.add("grant_type", "password");
-        formData.add("scope", "read");
-        OAuth2AccessToken token = objectMapper.readValue(mockMvc.perform(post("/oauth/token")
-            .params(formData))
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.access_token", is(notNullValue())))
-            .andExpect(jsonPath("$.token_type", is(notNullValue())))
-            .andReturn()
-            .getResponse()
-            .getContentAsString(), OAuth2AccessToken.class);
+    static class GenerateKeyPairInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
 
-        assertThat(token).isNotNull();
-        assertThat(token.getValue()).isNotEmpty();
+        @SneakyThrows
+        @Override
+        public void initialize(GenericApplicationContext applicationContext) {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(2048);
+            KeyPair kp = kpg.generateKeyPair();
+            RSAPublicKey pub = (RSAPublicKey) kp.getPublic();
+            Key pvt = kp.getPrivate();
 
-        TokenStore tokenStore = context.getBean(TokenStore.class);
-        OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(token.getValue());
-        assertThat(oAuth2AccessToken.getExpiration()).isAfterOrEqualsTo(Date.from(ZonedDateTime.now().plusMinutes(30).toInstant()));
+            Base64.Encoder encoder = Base64.getEncoder();
+
+            Path privateKeyFile = Files.createTempFile("privateKeyFile", ".key");
+            Path publicKeyFile = Files.createTempFile("publicKeyFile", ".cert");
+
+            Files.write(privateKeyFile,
+                Arrays.asList("-----BEGIN PRIVATE KEY-----", encoder
+                    .encodeToString(pvt.getEncoded()), "-----END PRIVATE KEY-----"));
+            log.info("Loaded private key: {}", privateKeyFile);
+
+            Files.write(publicKeyFile,
+                Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
+                    .encodeToString(pub.getEncoded()), "-----END PRIVATE KEY-----"));
+            log.info("Loaded public key: {}", publicKeyFile);
+            applicationContext.registerBean(RSAPublicKey.class, () -> pub);
+
+            applicationContext.registerBean(KeyPair.class, () -> kp);
+        }
+    }
+
+    @BeforeEach
+    public void setup() {
+        if (runAtOnce.getAndSet(false)) {
+            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+                .keyUse(KeyUse.SIGNATURE)
+                .algorithm(JWSAlgorithm.RS256)
+                .keyID("test");
+            JWKSet jwkSet = new JWKSet(builder.build());
+
+            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
+            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
+                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
+        }
     }
 
     @Test
@@ -172,23 +201,10 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
-        MockHttpServletResponse response = mockMvc.perform(post("/login")
+        mockMvc.perform(post("/login")
             .params(formData)
             .with(csrf()))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(cookie().value("SESSIONID", is(notNullValue())))
-            .andReturn()
-            .getResponse();
-
-        assertThat(response.getCookies()).isNotNull();
-
-        mockMvc.perform(get("/api/authenticatedUser")
-            .with(csrf())
-            .cookie(response.getCookies()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.id_token", is(notNullValue())));
+            .andExpect(status().is3xxRedirection());
 /*
 
         Set keys = redisOperations.keys("*");
@@ -198,7 +214,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling GET - /api/login should display page and response 200 - OK")
+    @DisplayName("Test - When Calling GET - /login should display page and response 200 - OK")
     public void shouldDisplayLoginPage() throws Exception {
         mockMvc.perform(get("/login"))
             .andExpect(status().isOk())
@@ -243,6 +259,7 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(get("/api/authenticatedUser")
             .with(csrf())
             .cookie(response.getCookies()))
+            .andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
@@ -275,30 +292,11 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
 
 
     @Test
-    @DisplayName("Test - When Calling GET - /oauth/authenticatedUser without jwt should return 401 - Unauthorized")
+    @DisplayName("Test - When Calling GET - /api/authenticatedUser without jwt should return 401 - Unauthorized")
     public void shouldReturnUnauthorizedWhenCallingApiWithoutAuthorizationHeader() throws Exception {
         mockMvc.perform(get("/api/authenticatedUser")
             .with(csrf()))
             .andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    @DisplayName("Test - When Calling POST - /oauth/token with default system user should return 401 - Unauthorized")
-    public void shouldReturnUnauthorizedWhenCallingApiWithDefaultSystemUser() throws Exception {
-        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("client_id", "client");
-        formData.add("client_secret", "secret");
-        formData.add("username", DefaultUsers.SYSTEM_DEFAULT.getValue());
-        formData.add("password", "noPassword");
-        formData.add("grant_type", "password");
-        formData.add("scope", "read");
-
-        mockMvc.perform(post("/oauth/token")
-            .params(formData))
-            .andExpect(status().is4xxClientError())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.error_description", containsString("User is disabled")));
     }
 
     @Test
@@ -315,5 +313,31 @@ public class SharedAuthenticationServiceApplicationIntegrationTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
             .andExpect(jsonPath("$.message", containsString("User is disabled")));
+    }
+
+    @Test
+    @DisplayName("Test - When Calling GET - / with jwt token should return 200 - Ok")
+    public void shouldReturnOkWithToken() throws Exception {
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+            .subject("admin")
+            .expirationTime(Date.from(ZonedDateTime.now().plusMinutes(1).toInstant()))
+            .issueTime(new Date())
+            .notBeforeTime(new Date())
+            .claim("authorities", Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")))
+            .jwtID(UUID.randomUUID().toString())
+            .issuer("jwt")
+            .build();
+        JWSSigner signer = new RSASSASigner(keyPair.getPrivate());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("kid", "test");
+        jsonObject.put("alg", JWSAlgorithm.RS256.getName());
+        jsonObject.put("typ", "JWT");
+        SignedJWT signedJWT = new SignedJWT(JWSHeader.parse(jsonObject), jwtClaimsSet);
+        signedJWT.sign(signer);
+        String authorizationHeader = "Bearer " + signedJWT.serialize();
+
+        mockMvc.perform(get("/")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+            .andExpect(status().is2xxSuccessful());
     }
 }

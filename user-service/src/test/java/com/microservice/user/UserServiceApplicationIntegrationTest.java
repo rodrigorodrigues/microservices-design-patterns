@@ -2,74 +2,183 @@ package com.microservice.user;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.microservice.authentication.common.model.Authority;
 import com.microservice.user.dto.UserDto;
+import com.microservice.user.model.User;
+import com.microservice.user.repository.UserRepository;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import lombok.SneakyThrows;
+import net.minidev.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.web.reactive.function.BodyInserters.fromValue;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
         properties = {"configuration.swagger=false"})
-@AutoConfigureWebTestClient
-class UserServiceApplicationIntegrationTest {
+@ContextConfiguration(initializers = UserServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class, classes = UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
+@AutoConfigureMockMvc
+@AutoConfigureWireMock(port = 0)
+public class UserServiceApplicationIntegrationTest {
     @Autowired
-    WebTestClient client;
+    MockMvc client;
 
     @Autowired
     ObjectMapper objectMapper;
 
     @Autowired
-    DefaultTokenServices defaultTokenServices;
+    KeyPair keyPair;
+
+    AtomicBoolean runAtOnce = new AtomicBoolean(true);
+
+    @TestConfiguration
+    static class PopulateDbConfiguration {
+        @Bean
+        CommandLineRunner runner(PasswordEncoder passwordEncoder, UserRepository userRepository) {
+            return args -> {
+                userRepository.saveAll(Arrays.asList(User.builder().email("admin@gmail.com")
+                        .password(passwordEncoder.encode("password"))
+                        .authorities(permissions("ROLE_ADMIN"))
+                        .fullName("Admin dos Santos")
+                        .build(), User.builder().email("anonymous@gmail.com")
+                        .password(passwordEncoder.encode("test"))
+                        .authorities(permissions("ROLE_PERSON_READ"))
+                        .fullName("Anonymous Noname")
+                        .build(), User.builder().email("master@gmail.com")
+                        .password(passwordEncoder.encode("password123"))
+                        .authorities(permissions("ROLE_PERSON_CREATE", "ROLE_PERSON_READ", "ROLE_PERSON_SAVE"))
+                        .fullName("Master of something")
+                        .build()));
+            };
+        }
+
+        private List<Authority> permissions(String ... permissions) {
+            return Stream.of(permissions)
+                    .map(Authority::new)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public static class GenerateKeyPairInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+
+        @SneakyThrows
+        @Override
+        public void initialize(GenericApplicationContext applicationContext) {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(2048);
+            KeyPair kp = kpg.generateKeyPair();
+            RSAPublicKey pub = (RSAPublicKey) kp.getPublic();
+            Key pvt = kp.getPrivate();
+
+            Base64.Encoder encoder = Base64.getEncoder();
+
+            Path privateKeyFile = Files.createTempFile("privateKeyFile", ".key");
+            Path publicKeyFile = Files.createTempFile("publicKeyFile", ".cert");
+
+            Files.write(privateKeyFile,
+                    Arrays.asList("-----BEGIN PRIVATE KEY-----", encoder
+                            .encodeToString(pvt.getEncoded()), "-----END PRIVATE KEY-----"));
+
+            Files.write(publicKeyFile,
+                    Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
+                            .encodeToString(pub.getEncoded()), "-----END PRIVATE KEY-----"));
+
+            applicationContext.registerBean(RSAPublicKey.class, () -> pub);
+            applicationContext.registerBean(KeyPair.class, () -> kp);
+        }
+    }
+
+    @BeforeEach
+    public void setup() {
+        if (runAtOnce.getAndSet(false)) {
+            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+                    .keyUse(KeyUse.SIGNATURE)
+                    .algorithm(JWSAlgorithm.RS256)
+                    .keyID("test");
+            JWKSet jwkSet = new JWKSet(builder.build());
+
+            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
+            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
+                    .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
+        }
+    }
 
     @Test
     @DisplayName("Test - When Calling GET - /api/users should return list of users and response 200 - OK")
-    public void shouldReturnListOfUsersWhenCallApi() {
+    public void shouldReturnListOfUsersWhenCallApi() throws Exception {
         String authorizationHeader = authorizationHeader(Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        client.get().uri("/api/users")
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
-                .exchange()
-                .expectStatus().isOk();
+        client.perform(get("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+                .andExpect(status().isOk());
 
-        client.get().uri("/api/users?search=fullName:An")
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBodyList(UserDto.class).hasSize(2);
+        client.perform(get("/api/users?fullName=An")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", equalTo(2)))
+                .andExpect(jsonPath("$.content[*].id", hasSize(2)));
 
-        client.get().uri("/api/users?search=FULLNAME:Ano")
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBodyList(UserDto.class).hasSize(1);
+        client.perform(get("/api/users?fullName=Ano")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", equalTo(1)))
+                .andExpect(jsonPath("$.content[*].id", hasSize(1)));
 
-        client.get().uri("/api/users?search=fullname:Something else")
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody().isEmpty();
-
+        client.perform(get("/api/users?fullName=Something else")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements", equalTo(0)))
+                .andExpect(jsonPath("$.content", empty()));
     }
 
     @Test
@@ -78,18 +187,16 @@ class UserServiceApplicationIntegrationTest {
         String authorizationHeader = authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
         UserDto userDto = createUserDto();
 
-        client.post().uri("/api/users")
+        client.perform(MockMvcRequestBuilders.post("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromValue(convertToJson(userDto)))
-                .exchange()
-                .expectStatus().isCreated()
-                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
-                .expectBody()
-                .jsonPath("$.id").isNotEmpty()
-                .jsonPath("$.createdByUser").isEqualTo("admin@gmail.com")
-                .jsonPath("$.activated").isEqualTo(true);
+                .content(convertToJson(userDto)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(header().string(HttpHeaders.LOCATION, containsString("/api/users/")))
+                .andExpect(jsonPath("$.[*].id", notNullValue()))
+                .andExpect(jsonPath("$.createdByUser", equalTo("admin@gmail.com")))
+                .andExpect(jsonPath("$.activated", equalTo(true)));
     }
 
     @Test
@@ -100,65 +207,71 @@ class UserServiceApplicationIntegrationTest {
         UserDto userDto = createUserDto();
         userDto.setEmail("new@gmail.com");
 
-        String id = client.post().uri("/api/users")
+        UserDto userDtoResponse = objectMapper.readValue(client.perform(MockMvcRequestBuilders.post("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(fromValue(convertToJson(userDto)))
-                .exchange()
-                .expectStatus().isCreated()
-                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .expectHeader().value(HttpHeaders.LOCATION, containsString("/api/users/"))
-                .expectBody(UserDto.class)
-                .returnResult()
-                .getResponseBody()
-                .getId();
+                .content(convertToJson(userDto)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(header().string(HttpHeaders.LOCATION, containsString("/api/users/")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString(), UserDto.class);
 
+        assertThat(userDtoResponse).isNotNull();
+        String id = userDtoResponse.getId();
         assertThat(id).isNotEmpty();
 
         userDto.setFullName("New Name");
         userDto.setPassword(null);
         userDto.setConfirmPassword(null);
 
-        client.put().uri("/api/users/{id}", id)
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(fromValue(convertToJson(userDto)))
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .expectHeader().doesNotExist(HttpHeaders.LOCATION)
-                .expectBody()
-                .jsonPath("$.id").isEqualTo(id)
-                .jsonPath("$.fullName").isEqualTo("New Name");
+        client.perform(MockMvcRequestBuilders.put("/api/users/{id}", id)
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(convertToJson(userDto)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(header().doesNotExist(HttpHeaders.LOCATION))
+            .andExpect(jsonPath("$.id", equalTo(id)))
+            .andExpect(jsonPath("$.fullName", equalTo("New Name")));
     }
 
     @Test
     @DisplayName("Test - When Calling GET - /api/users/permissions should return list of permissions and response 200 - OK")
-    public void shouldReturnListOfPermissions() {
+    public void shouldReturnListOfPermissions() throws Exception {
         String authorizationHeader = authorizationHeader(Arrays.asList(new SimpleGrantedAuthority("SOME_ROLE")));
 
-        client.get().uri("/api/users/permissions")
-                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .expectBody()
-                .jsonPath("$..type")
-                .value(containsInAnyOrder("Admin Permission", "Person Permissions",
+        client.perform(get("/api/users/permissions")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$..type", containsInAnyOrder("Admin Permission", "Person Permissions",
                         "Product Permissions", "Ingredient Permissions",
                         "Category Permissions", "Recipe Permissions",
-                        "Task Permissions"));
+                        "Task Permissions")));
     }
 
-    private String authorizationHeader(List<SimpleGrantedAuthority> permissions) {
+    private String authorizationHeader(List<SimpleGrantedAuthority> permissions) throws ParseException, JOSEException {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("admin@gmail.com", null, permissions);
 
-        OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
-                true, Collections.singleton("read"), null, null, null, null);
-        OAuth2AccessToken enhance = defaultTokenServices.createAccessToken(new OAuth2Authentication(oAuth2Request, authentication));
-
-
-        return enhance.getTokenType() + " " + enhance.getValue();
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                .subject(authentication.getName())
+                .expirationTime(Date.from(ZonedDateTime.now().plusMinutes(1).toInstant()))
+                .issueTime(new Date())
+                .notBeforeTime(new Date())
+                .claim("authorities", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                .jwtID(UUID.randomUUID().toString())
+                .issuer("jwt")
+                .build();
+        JWSSigner signer = new RSASSASigner(keyPair.getPrivate());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("kid", "test");
+        jsonObject.put("alg", JWSAlgorithm.RS256.getName());
+        jsonObject.put("typ", "JWT");
+        SignedJWT signedJWT = new SignedJWT(JWSHeader.parse(jsonObject), jwtClaimsSet);
+        signedJWT.sign(signer);
+        return "Bearer " + signedJWT.serialize();
     }
 
     private String convertToJson(Object object) throws JsonProcessingException {

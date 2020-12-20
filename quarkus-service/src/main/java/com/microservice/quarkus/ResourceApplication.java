@@ -22,7 +22,7 @@ import javax.ws.rs.core.Application;
 				version = "0.0.1",
 				contact = @Contact(
 						name = "Rodrigo Santos",
-						url = "https://github.com/rodrigorodrigues/quarkus-rest-api-reactive-mongodb",
+						url = "https://github.com/rodrigorodrigues/microservices-design-patterns",
 						email = "techsupport@example.com"),
 				license = @License(
 						name = "Apache 2.0",

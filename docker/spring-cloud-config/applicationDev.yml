@@ -3,15 +3,15 @@ spring:
   sleuth:
     sampler:
       probability: 1
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/.well-known/jwks.json
 
-security:
-  oauth2:
-    client:
-      accessTokenUri: ${ACCESS_TOKEN_URI:http://localhost:9999/oauth/token}
-      userAuthorizationUri: ${AUTHORIZATION_URL:http://localhost:9999/oauth/authorize}
-      clientId: ${OAUTH_CLIENT_ID:client}
-      clientSecret: ${OAUTH_CLIENT_SECRET:secret}
-    resource:
+com:
+  microservice:
+    authentication:
       jwt:
         keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
       user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}

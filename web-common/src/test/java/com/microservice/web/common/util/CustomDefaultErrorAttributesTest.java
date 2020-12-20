@@ -1,5 +1,6 @@
-package com.microservice.authentication.web.util;
+package com.microservice.web.common.util;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -13,8 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @ExtendWith(MockitoExtension.class)
 class CustomDefaultErrorAttributesTest {
 
@@ -27,17 +26,17 @@ class CustomDefaultErrorAttributesTest {
         request.setAttribute(name, new RuntimeException("Connection refused!"));
         Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
 
-        assertThat(errorAttributes.get("status")).isEqualTo(503);
-        assertThat(errorAttributes.get("timestamp")).isNotNull();
-        assertThat(errorAttributes.get("error")).isNotNull();
-        assertThat(errorAttributes.get("message").toString()).contains("Connection refused!");
+        Assertions.assertThat(errorAttributes.get("status")).isEqualTo(503);
+        Assertions.assertThat(errorAttributes.get("timestamp")).isNotNull();
+        Assertions.assertThat(errorAttributes.get("error")).isNotNull();
+        Assertions.assertThat(errorAttributes.get("message").toString()).contains("Connection refused!");
 
         request.setAttribute(name, new BadCredentialsException("user is locked!"));
         errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
-        assertThat(errorAttributes.get("status")).isEqualTo(401);
+        Assertions.assertThat(errorAttributes.get("status")).isEqualTo(401);
 
         request.setAttribute(name, new ResponseStatusException(HttpStatus.NOT_FOUND));
         errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
-        assertThat(errorAttributes.get("status")).isEqualTo(404);
+        Assertions.assertThat(errorAttributes.get("status")).isEqualTo(404);
     }
 }

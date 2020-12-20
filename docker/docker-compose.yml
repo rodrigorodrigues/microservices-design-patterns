@@ -302,6 +302,8 @@ services:
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - CONFIGURATION_AUTHORIZE_URLS=http://gateway:8080/login;http://service-discovery:8761/login;http://monitoring:9000/login;http://grafana:3003/login
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
     depends_on:
       - service-discovery
       - mongodb-datasource

@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
-import { EventSourcePolyfill } from 'event-source-polyfill';
 import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import { confirmDialog } from '../common/ConfirmDialog';
@@ -13,8 +12,9 @@ import classnames from 'classnames';
 import Iframe from 'react-iframe';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
+import { get } from "../services/ApiService";
+import Pagination from "react-js-pagination";
 
-const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
 
 class PersonList extends Component {
@@ -31,8 +31,16 @@ class PersonList extends Component {
       activeTab: '1',
       isAuthenticated: props.isAuthenticated,
       user: props.user,
-      expanded: false
+      expanded: false,
+      activePage: 1,
+      totalPages: null,
+      itemsCountPerPage: null,
+      totalItemsCount: null,
+      pageSize: 10
     };
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handlePageChange = this.handlePageChange.bind(this);
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
   }
@@ -47,7 +55,18 @@ class PersonList extends Component {
     }
   }
 
-  componentDidMount() {
+  handleChange(event) {
+    const target = event.target;
+    const value = target.value;
+    this.setState({search: value});
+  }
+
+  async handleSubmit(event) {
+    event.preventDefault();
+    await this.findAllPeople();
+  }
+
+  async componentDidMount() {
     toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
@@ -59,37 +78,44 @@ class PersonList extends Component {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
-        const eventSource = new EventSourcePolyfill(`${gatewayUrl}/api/people`, {
-          headers: {
-            'Authorization': jwt
-          }
-        });
-
-        eventSource.addEventListener("open", result => {
-          console.log('EventSource open: ', result);
-          this.setState({ isLoading: false, displaySwagger: true });
-        });
-
-        eventSource.addEventListener("message", result => {
-          const data = JSON.parse(result.data);
-          this.state.persons.push(data);
-          this.setState({ persons: this.state.persons });
-        });
-
-        eventSource.addEventListener("error", err => {
-          console.log('EventSource error: ', err);
-          eventSource.close();
-          this.setState({ isLoading: false });
-          if (err.status === 401) {
-            this.setState({ displayAlert: true });
-          } else {
-            if (this.state.persons.length === 0) {
-              this.setState({ displayError: errorMessage(JSON.stringify(err)) });
-            }
-          }
-        });
+        await this.findAllPeople();
       }
     }
+  }
+
+  async findAllPeople() {
+    try {
+      const { pageSize, activePage, search, jwt } = this.state;
+      let url = `people?${search ? search : ''}${activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
+      console.log("URL: {}", url);
+      let data = await get(url, true, false, jwt);
+      if (data) {
+        if (Array.isArray(data.content)) {
+          this.setState({ 
+            isLoading: false, 
+            persons: data.content, 
+            displaySwagger: true, 
+            totalPages: data.totalPages, 
+            itemsCountPerPage: data.size, 
+            totalItemsCount: data.totalElements
+          });
+          this.props.history.push(`/${url}`);
+        } else {
+          if (data.status === 401) {
+            this.setState({ displayAlert: true });
+          }
+          this.setState({ isLoading: false, displayError: errorMessage(data) });
+        }
+      }
+    } catch (error) {
+      this.setState({ displayError: errorMessage(error) });
+    }
+  }
+
+  async handlePageChange(pageNumber) {
+    console.log(`active page is ${pageNumber}`);
+    this.setState({activePage: pageNumber})
+    await this.findAllTasks();
   }
 
   async remove(person) {
@@ -117,11 +143,11 @@ class PersonList extends Component {
   render() {
     const { persons, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
 
-    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE');
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE' || item === 'SCOPE_openid');
 
-    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_SAVE');
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_SAVE' || item === 'SCOPE_openid');
 
-    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_DELETE');
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_DELETE' || item === 'SCOPE_openid');
 
     const personList = persons.map(person => {
       const address = `${person.address.address || ''} ${person.address.city || ''} ${person.address.stateOrProvince || ''}`;
@@ -145,6 +171,7 @@ class PersonList extends Component {
     });
 
     const displayContent = () => {
+      const { activePage, itemsCountPerPage, totalItemsCount } = this.state;
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
           401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -172,6 +199,30 @@ class PersonList extends Component {
               <div className="float-right">
                 <Button color="success" tag={Link} to="/people/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
               </div>
+              <Form onSubmit={this.handleSubmit} inline>
+                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+                  <Label for="search" className="mr-sm-2">Search</Label>
+                  <Input 
+                    type="text" 
+                    name="search" 
+                    id="search" 
+                    onChange={this.handleChange} 
+                    placeholder="name=something" />
+                </FormGroup>
+                <Button>Search</Button>
+              </Form>
+              <div className="d-flex justify-content-center">
+              <Pagination
+                  hideNavigation
+                  activePage={activePage}
+                  itemsCountPerPage={itemsCountPerPage}
+                  totalItemsCount={totalItemsCount}
+                  pageRangeDisplayed={10}
+                  itemClass='page-item'
+                  linkClass='btn btn-light'
+                  onChange={this.handlePageChange}
+                  />
+              </div>
               <Table striped responsive>
                 <thead>
                   <tr>
@@ -191,6 +242,18 @@ class PersonList extends Component {
                   {personList}
                 </tbody>
               </Table>
+              <div className="d-flex justify-content-center">
+              <Pagination
+                  hideNavigation
+                  activePage={activePage}
+                  itemsCountPerPage={itemsCountPerPage}
+                  totalItemsCount={totalItemsCount}
+                  pageRangeDisplayed={10}
+                  itemClass='page-item'
+                  linkClass='btn btn-light'
+                  onChange={this.handlePageChange}
+                  />
+              </div>
             </TabPane>
             <TabPane tabId="2">
               {displaySwagger ?

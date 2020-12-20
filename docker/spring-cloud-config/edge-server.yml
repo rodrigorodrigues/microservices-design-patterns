@@ -74,7 +74,12 @@ zuul:
             stripPrefix: true
             sensitiveHeaders:
         authenticated-oauth-service:
-            path: /oauth/**
+            path: /oauth2/**
+            serviceId: authentication-service
+            stripPrefix: false
+            sensitiveHeaders:
+        authenticated-jwks-service:
+            path: /.well-known/jwks.json
             serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:
