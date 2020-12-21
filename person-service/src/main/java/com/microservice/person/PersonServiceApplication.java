@@ -32,7 +32,7 @@ public class PersonServiceApplication {
 		SpringApplication.run(PersonServiceApplication.class, args);
 	}
 
-    @Profile("!kubernetes & !test")
+    @Profile("kubernetes & !test")
     @ConditionalOnMissingBean
     @Bean
     RSAPublicKey keyPair(AuthenticationProperties properties) {

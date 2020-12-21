@@ -58,7 +58,7 @@ public class AuthenticationServiceApplication {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
 
-	@Profile("!kubernetes & !test")
+	@Profile("kubernetes & !test")
 	@ConditionalOnMissingBean
 	@Bean
     KeyPair keyPair(AuthenticationProperties properties) {

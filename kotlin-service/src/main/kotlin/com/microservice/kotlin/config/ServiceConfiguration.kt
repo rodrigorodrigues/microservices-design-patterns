@@ -29,7 +29,7 @@ import java.util.*
 @EnableMongoAuditing
 @EnableMongoRepositories(basePackageClasses = [TaskRepository::class])
 class ServiceConfiguration(@Autowired val environment: Environment) {
-    @Profile("!kubernetes & !test")
+    @Profile("kubernetes & !test")
     @ConditionalOnMissingBean
     @Bean
     fun keyPair(properties: AuthenticationProperties): RSAPublicKey? {
