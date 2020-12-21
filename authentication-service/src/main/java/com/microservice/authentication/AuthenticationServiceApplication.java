@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.KeyPair;
+import java.util.Base64;
 import java.util.UUID;
 
 @Slf4j
@@ -57,22 +58,30 @@ public class AuthenticationServiceApplication {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
 
-	@Profile("!kubernetes")
+	@Profile("!kubernetes & !test")
 	@ConditionalOnMissingBean
 	@Bean
     KeyPair keyPair(AuthenticationProperties properties) {
         ResourceServerProperties.Jwt jwt = properties.getJwt();
-        String password = jwt.getKeyStorePassword();
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password.toCharArray());
+        char[] password = getSslPassword(jwt.getKeyStorePassword());
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
         return keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias());
     }
 
-    @Profile("kubernetes")
+    @Profile("kubernetes__")
     @ConditionalOnMissingBean
     @Bean
     KeyPair keyPairSsl(@Value("${server.ssl.key-store}") Resource keystore, ServerProperties serverProperties) {
         Ssl ssl = serverProperties.getSsl();
-        return new KeyStoreKeyFactory(keystore, ssl.getKeyStorePassword().toCharArray()).getKeyPair(ssl.getKeyAlias());
+        return new KeyStoreKeyFactory(keystore, getSslPassword(ssl.getKeyStorePassword())).getKeyPair(ssl.getKeyAlias());
+    }
+
+    private char[] getSslPassword(String password) {
+        try {
+            return new String(Base64.getDecoder().decode(password)).toCharArray();
+        } catch (Exception e) {
+            return password.toCharArray();
+        }
     }
 
     @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)

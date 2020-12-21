@@ -12,7 +12,7 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
-import Pagination from "react-js-pagination";
+import PaginationComponent from "../common/Pagination";
 
 const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
 
@@ -66,9 +66,6 @@ class TaskList extends Component {
   }
 
   async componentDidMount() {
-    if (this.props.match.params.page !== undefined) {
-      this.setState({activePage: this.props.match.params.page});
-    }
     toast.dismiss('Error');
     let jwt = this.state.jwt;
     let permissions = this.state.authorities;
@@ -85,10 +82,10 @@ class TaskList extends Component {
     }
   }
 
-  async findAllTasks() {
+  async findAllTasks(pageNumber) {
     try {
       const { pageSize, activePage, search, jwt } = this.state;
-      let url = `tasks?${search ? search : ''}${activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
+      let url = `tasks?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
       console.log("URL: {}", url);
       let data = await get(url, true, false, jwt);
       if (data) {
@@ -115,9 +112,8 @@ class TaskList extends Component {
   }
 
   async handlePageChange(pageNumber) {
-    console.log(`active page is ${pageNumber}`);
-    this.setState({activePage: pageNumber})
-    await this.findAllTasks();
+    this.setState({activePage: pageNumber});
+    await this.findAllTasks(pageNumber);
   }
 
   async remove(task) {
@@ -169,7 +165,6 @@ class TaskList extends Component {
     });
 
     const displayContent = () => {
-      const { activePage, itemsCountPerPage, totalItemsCount } = this.state;
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
         401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -209,18 +204,7 @@ class TaskList extends Component {
             </FormGroup>
             <Button>Search</Button>
           </Form>
-          <div className="d-flex justify-content-center">
-          <Pagination
-              hideNavigation
-              activePage={activePage}
-              itemsCountPerPage={itemsCountPerPage}
-              totalItemsCount={totalItemsCount}
-              pageRangeDisplayed={10}
-              itemClass='page-item'
-              linkClass='btn btn-light'
-              onChange={this.handlePageChange}
-              />
-          </div>
+          <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
           <Table striped responsive>
             <thead>
               <tr>
@@ -237,18 +221,7 @@ class TaskList extends Component {
               {taskList}
             </tbody>
           </Table>
-          <div className="d-flex justify-content-center">
-          <Pagination
-              hideNavigation
-              activePage={activePage}
-              itemsCountPerPage={itemsCountPerPage}
-              totalItemsCount={totalItemsCount}
-              pageRangeDisplayed={10}
-              itemClass='page-item'
-              linkClass='btn btn-light'
-              onChange={this.handlePageChange}
-              />
-            </div>
+          <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
         </TabPane>
         <TabPane tabId="2">
           {/*this.state.activeTab === 2 ? <h3>Tab 2 Contents</h3> : null*/}

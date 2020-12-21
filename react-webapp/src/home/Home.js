@@ -113,8 +113,8 @@ class Home extends Component {
     return (
       <div
       style={{
-          marginLeft: marginLeft(expanded),
-          padding: '15px 20px 0 20px'
+          marginLeft: (isAuthenticated ? marginLeft(expanded) : 0),
+          padding: (isAuthenticated ? '15px 20px 0 20px' : '')
       }}
       >
         <AppNavbar/>

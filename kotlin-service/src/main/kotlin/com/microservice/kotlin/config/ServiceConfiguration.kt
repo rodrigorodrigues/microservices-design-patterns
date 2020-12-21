@@ -23,22 +23,23 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
 import java.security.interfaces.RSAPublicKey
+import java.util.*
 
 @Configuration
 @EnableMongoAuditing
 @EnableMongoRepositories(basePackageClasses = [TaskRepository::class])
 class ServiceConfiguration(@Autowired val environment: Environment) {
-    @Profile("!kubernetes")
+    @Profile("!kubernetes & !test")
     @ConditionalOnMissingBean
     @Bean
     fun keyPair(properties: AuthenticationProperties): RSAPublicKey? {
         val jwt = properties.jwt
-        val password = jwt.keyStorePassword
-        val keyStoreKeyFactory = KeyStoreKeyFactory(FileSystemResource(jwt.keyStore.replaceFirst("file:".toRegex(), "")), password.toCharArray())
+        val password = getSslPassword(jwt.keyStorePassword)
+        val keyStoreKeyFactory = KeyStoreKeyFactory(FileSystemResource(jwt.keyStore.replaceFirst("file:".toRegex(), "")), password)
         return keyStoreKeyFactory.getKeyPair(jwt.keyAlias).public as RSAPublicKey
     }
 
-    @Profile("kubernetes")
+    @Profile("kubernetes__")
     @ConditionalOnMissingBean
     @Bean
     fun keyPairSsl(@Value("\${server.ssl.key-store}") keystore: Resource?, serverProperties: ServerProperties): RSAPublicKey? {
@@ -46,6 +47,14 @@ class ServiceConfiguration(@Autowired val environment: Environment) {
         return KeyStoreKeyFactory(keystore, ssl.keyStorePassword.toCharArray())
             .getKeyPair(ssl.keyAlias)
             .public as RSAPublicKey
+    }
+
+    private fun getSslPassword(password: String): CharArray? {
+        return try {
+            String(Base64.getDecoder().decode(password)).toCharArray()
+        } catch (e: Exception) {
+            password.toCharArray()
+        }
     }
 
     @Bean

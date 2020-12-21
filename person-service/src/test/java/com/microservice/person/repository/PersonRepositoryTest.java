@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
+@ActiveProfiles("test")
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;

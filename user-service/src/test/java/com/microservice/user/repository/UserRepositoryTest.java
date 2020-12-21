@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
@@ -18,20 +19,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
-@Import({ObjectMapper.class, UserRepositoryTest.MockServiceConfiguration.class})
+@Import(ObjectMapper.class)
 class UserRepositoryTest {
-
-    @TestConfiguration
-    static class MockServiceConfiguration {
-/*
-        @Bean
-        SharedAuthenticationService sharedAuthenticationService() {
-            return mock(SharedAuthenticationService.class);
-        }
-*/
-    }
 
     @Autowired
     UserRepository userRepository;

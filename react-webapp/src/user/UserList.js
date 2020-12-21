@@ -11,7 +11,7 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { get } from "../services/ApiService";
-import Pagination from "react-js-pagination";
+import PaginationComponent from "../common/Pagination";
 
 const userSwaggerUrl = process.env.REACT_APP_USER_SWAGGER_URL;
 
@@ -74,10 +74,10 @@ class UserList extends Component {
     }
   }
 
-  async findAllUsers() {
+  async findAllUsers(pageNumber) {
     try {
       const { pageSize, activePage, search, jwt } = this.state;
-      let url = `users?${search ? search : ''}${activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
+      let url = `users?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
       console.log("URL: {}", url);
       let data = await get(url, true, false, jwt);
       if (data) {
@@ -106,7 +106,7 @@ class UserList extends Component {
   async handlePageChange(pageNumber) {
     console.log(`active page is ${pageNumber}`);
     this.setState({activePage: pageNumber})
-    await this.findAllTasks();
+    await this.findAllTasks(pageNumber);
   }
 
   async remove(user) {
@@ -154,7 +154,6 @@ class UserList extends Component {
     });
 
     const displayContent = () => {
-      const { activePage, itemsCountPerPage, totalItemsCount } = this.state;
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
         401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -190,22 +189,11 @@ class UserList extends Component {
                     name="search" 
                     id="search" 
                     onChange={this.handleChange} 
-                    placeholder="name=something" />
+                    placeholder="fullName=something" />
                 </FormGroup>
                 <Button>Search</Button>
             </Form>
-            <div className="d-flex justify-content-center">
-              <Pagination
-                  hideNavigation
-                  activePage={activePage}
-                  itemsCountPerPage={itemsCountPerPage}
-                  totalItemsCount={totalItemsCount}
-                  pageRangeDisplayed={10}
-                  itemClass='page-item'
-                  linkClass='btn btn-light'
-                  onChange={this.handlePageChange}
-                  />
-            </div>
+            <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
             <Table striped responsive>
               <thead>
               <tr>
@@ -224,18 +212,7 @@ class UserList extends Component {
               {userList}
               </tbody>
             </Table>
-            <div className="d-flex justify-content-center">
-              <Pagination
-                  hideNavigation
-                  activePage={activePage}
-                  itemsCountPerPage={itemsCountPerPage}
-                  totalItemsCount={totalItemsCount}
-                  pageRangeDisplayed={10}
-                  itemClass='page-item'
-                  linkClass='btn btn-light'
-                  onChange={this.handlePageChange}
-                  />
-            </div>
+            <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?

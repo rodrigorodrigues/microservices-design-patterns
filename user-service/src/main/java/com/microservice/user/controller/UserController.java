@@ -52,7 +52,7 @@ public class UserController {
         if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"))) {
             return ResponseEntity.ok(userService.findAll(pageRequest, predicate));
         } else {
-            return ResponseEntity.ok(userService.findAllByCreatedByUser(authentication.getName(), pageRequest));
+            return ResponseEntity.ok(userService.findAllByCreatedByUser(authentication.getName(), pageRequest, predicate));
         }
     }
 

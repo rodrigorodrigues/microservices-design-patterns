@@ -76,8 +76,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserDto> findAllByCreatedByUser(String createdByUser, Pageable pageable) {
-        return userMapper.entityToDto(userRepository.findAllByCreatedByUser(createdByUser, pageable), userRepository.count());
+    public Page<UserDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate) {
+        return userMapper.entityToDto(userRepository.findAllByCreatedByUser(createdByUser, pageable, predicate), userRepository.count());
     }
 
     @Override

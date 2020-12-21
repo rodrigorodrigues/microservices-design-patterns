@@ -2,6 +2,7 @@ package com.microservice.user.repository;
 
 import com.microservice.user.model.QUser;
 import com.microservice.user.model.User;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface UserRepository extends PagingAndSortingRepository<User, String>, QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {
     User findByEmail(String email);
 
-    Page<User> findAllByCreatedByUser(String createdByUser, Pageable pageable);
+    Page<User> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate);
 
     @Override
     default void customize(QuerydslBindings bindings, QUser root) {

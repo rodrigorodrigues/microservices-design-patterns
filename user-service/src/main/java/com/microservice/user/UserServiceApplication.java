@@ -22,6 +22,7 @@ import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 
 @Slf4j
 @SpringBootApplication
@@ -31,17 +32,17 @@ public class UserServiceApplication {
         SpringApplication.run(UserServiceApplication.class, args);
     }
 
-    @Profile("!kubernetes")
+    @Profile("!kubernetes & !test")
     @ConditionalOnMissingBean
     @Bean
     RSAPublicKey keyPair(AuthenticationProperties properties) {
         ResourceServerProperties.Jwt jwt = properties.getJwt();
-        String password = jwt.getKeyStorePassword();
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password.toCharArray());
+        char[] password = getSslPassword(jwt.getKeyStorePassword());
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
         return (RSAPublicKey) keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias()).getPublic();
     }
 
-    @Profile("kubernetes")
+    @Profile("kubernetes__")
     @ConditionalOnMissingBean
     @Bean
     RSAPublicKey keyPairSsl(@Value("${server.ssl.key-store}") Resource keystore, ServerProperties serverProperties) {
@@ -49,6 +50,14 @@ public class UserServiceApplication {
         return (RSAPublicKey) new KeyStoreKeyFactory(keystore, ssl.getKeyStorePassword().toCharArray())
                 .getKeyPair(ssl.getKeyAlias())
                 .getPublic();
+    }
+
+    private char[] getSslPassword(String password) {
+        try {
+            return new String(Base64.getDecoder().decode(password)).toCharArray();
+        } catch (Exception e) {
+            return password.toCharArray();
+        }
     }
 
     @Bean
