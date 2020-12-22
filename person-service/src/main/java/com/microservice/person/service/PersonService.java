@@ -26,7 +26,7 @@ public interface PersonService {
     /**
      * Return list of people.
      * @param pageable pagination request
-     * @param predicate condition predicate
+     * @param predicate condition request
      * @return list of people
      */
     Page<PersonDto> findAll(Pageable pageable, Predicate predicate);
@@ -35,24 +35,27 @@ public interface PersonService {
      * Return list of people created by specific user
      * @param createdByUser current user
      * @param pageable pagination request
+     * @param predicate condition request
      * @return list of people
      */
-    Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable);
+    Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate);
 
     /**
      * Return list of people by name starting with
      * @param name starts with
      * @param pageable pagination request
+     * @param predicate condition request
      * @return list of people
      */
-    Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable);
+    Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable, Predicate predicate);
 
     /**
      * Return list of people that have children.
      * @param pageable pagination request
+     * @param predicate condition request
      * @return list of people
      */
-    Page<PersonDto> findByChildrenExists(Pageable pageable);
+    Page<PersonDto> findByChildrenExists(Pageable pageable, Predicate predicate);
 
     /**
      * Delete a user by id.

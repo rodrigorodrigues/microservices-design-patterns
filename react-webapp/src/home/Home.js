@@ -50,18 +50,13 @@ class Home extends Component {
   }
 
   displayHomeScrollView = () => {
-    const { isAuthenticated } = this.props;
-    if (!isAuthenticated) {
-      return (<div style={styles}>
-        <Menu cards={4} />
-        <Card card="1" />
-        <Card card="2" bgcolor="#eee" />
-        <Card card="3" bgcolor="#ccc" />
-        <Card card="4" bgcolor="#ddd" />
-      </div>);
-    } else {
-      return null;
-    }
+    return (<div style={styles}>
+      <Menu cards={4} />
+      <Card card="1" />
+      <Card card="2" bgcolor="#eee" />
+      <Card card="3" bgcolor="#ccc" />
+      <Card card="4" bgcolor="#ddd" />
+    </div>);
   }
 
   displayImageUrl = () => {
@@ -120,7 +115,7 @@ class Home extends Component {
         <AppNavbar/>
         <Container fluid>
         {isAuthenticated && <HomeContent setExpanded={this.setExpanded} {...this.state} />}
-        {this.displayHomeScrollView()}
+        {!isAuthenticated && this.displayHomeScrollView()}
         {this.displayMessage()}
         {this.displayUserPermissions()}
         <FooterContent></FooterContent>

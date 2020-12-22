@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert, Form, FormGroup, Input, Label } from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
@@ -14,6 +14,7 @@ import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
 import { get } from "../services/ApiService";
 import PaginationComponent from "../common/Pagination";
+import SearchButtonComponent from "../common/Search";
 
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
 
@@ -32,7 +33,7 @@ class PersonList extends Component {
       isAuthenticated: props.isAuthenticated,
       user: props.user,
       expanded: false,
-      activePage: 1,
+      activePage: 0,
       totalPages: null,
       itemsCountPerPage: null,
       totalItemsCount: null,
@@ -194,21 +195,14 @@ class PersonList extends Component {
           </Nav>
           <TabContent activeTab={this.state.activeTab}>
             <TabPane tabId="1">
-              <div className="float-right">
+              <div className="float-right"
+                      style={{
+                        padding: '15px 20px 0 20px'
+                      }}              
+              >
                 <Button color="success" tag={Link} to="/people/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
               </div>
-              <Form onSubmit={this.handleSubmit} inline>
-                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                  <Label for="search" className="mr-sm-2">Search</Label>
-                  <Input 
-                    type="text" 
-                    name="search" 
-                    id="search" 
-                    onChange={this.handleChange} 
-                    placeholder="name=something" />
-                </FormGroup>
-                <Button>Search</Button>
-              </Form>
+              <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} placeholder="fullName=something" /> 
               <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
               <Table striped responsive>
                 <thead>

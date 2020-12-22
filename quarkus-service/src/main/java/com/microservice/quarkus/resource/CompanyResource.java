@@ -72,7 +72,7 @@ public class CompanyResource {
             description = "Monitor how many times getAllActiveCompanies method was called")
     public Multi<CompanyDto> getAllActiveCompanies(@Context SecurityContext ctx) {
         String name = ctx.getUserPrincipal().getName();
-        log.info("hello {}", name);
+        log.debug("hello {}", name);
         Multi<Company> multi = hasRoleAdmin(ctx) ? Company.findActiveCompanies() : Company
                 .findActiveCompaniesByUser(name);
         return multi.onItem().apply(c -> companyMapper.toResource(c));

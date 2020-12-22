@@ -1,7 +1,9 @@
 package com.microservice.authentication.autoconfigure;
 
 import com.microservice.authentication.common.model.Authentication;
+import com.microservice.authentication.common.service.Base64DecodeUtil;
 import io.micrometer.core.instrument.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
@@ -27,10 +29,14 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
+@Slf4j
 @EnableConfigurationProperties(AuthenticationProperties.class)
 @Configuration
 public class AuthenticationCommonConfiguration {
@@ -79,7 +85,8 @@ public class AuthenticationCommonConfiguration {
                 } else if (authentication.getPrincipal() instanceof OidcUser) {
                     DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
                     additionalInfo.put("name", oidcUser.getEmail());
-                    additionalInfo.put("sub", oidcUser.getFullName());
+                    additionalInfo.put("sub", oidcUser.getEmail());
+                    additionalInfo.put("fullName", oidcUser.getFullName());
                     additionalInfo.put("imageUrl", oidcUser.getPicture());
                 } else {
                     additionalInfo.put("sub", authentication.getName());
@@ -107,7 +114,7 @@ public class AuthenticationCommonConfiguration {
             converter.setVerifierKey(keyValue);
         } else if (jwt.getKeyStore() != null) {
             Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
-            char[] keyStorePassword = getPassword(jwt);
+            char[] keyStorePassword = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
             KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
 
             String keyAlias = jwt.getKeyAlias();
@@ -120,14 +127,6 @@ public class AuthenticationCommonConfiguration {
             }
         }
         return converter;
-    }
-
-    private char[] getPassword(ResourceServerProperties.Jwt jwt) {
-        try {
-            return new String(Base64.getDecoder().decode(jwt.getKeyStorePassword())).toCharArray();
-        } catch (Exception e) {
-            return jwt.getKeyStorePassword().toCharArray();
-        }
     }
 
 }

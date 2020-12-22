@@ -3,13 +3,13 @@ package com.microservice.authentication;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
+import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import com.microservice.authentication.service.CustomLogoutSuccessHandler;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,15 +17,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.web.server.Ssl;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -44,7 +41,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.KeyPair;
-import java.util.Base64;
 import java.util.UUID;
 
 @Slf4j
@@ -58,30 +54,14 @@ public class AuthenticationServiceApplication {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
 
-	@Profile("kubernetes & !test")
+	@Profile("kubernetes")
 	@ConditionalOnMissingBean
 	@Bean
     KeyPair keyPair(AuthenticationProperties properties) {
         ResourceServerProperties.Jwt jwt = properties.getJwt();
-        char[] password = getSslPassword(jwt.getKeyStorePassword());
+        char[] password = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
         return keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias());
-    }
-
-    @Profile("kubernetes__")
-    @ConditionalOnMissingBean
-    @Bean
-    KeyPair keyPairSsl(@Value("${server.ssl.key-store}") Resource keystore, ServerProperties serverProperties) {
-        Ssl ssl = serverProperties.getSsl();
-        return new KeyStoreKeyFactory(keystore, getSslPassword(ssl.getKeyStorePassword())).getKeyPair(ssl.getKeyAlias());
-    }
-
-    private char[] getSslPassword(String password) {
-        try {
-            return new String(Base64.getDecoder().decode(password)).toCharArray();
-        } catch (Exception e) {
-            return password.toCharArray();
-        }
     }
 
     @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)

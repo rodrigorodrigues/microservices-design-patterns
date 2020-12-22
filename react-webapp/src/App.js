@@ -95,7 +95,7 @@ class App extends Component {
 
   decodeJwt(token) {
     let jwtDecoded = jwt_decode(token);
-    let username = (jwtDecoded.name !== undefined ? jwtDecoded.name : jwtDecoded.user_name);
+    let username = (jwtDecoded.fullName !== undefined ? jwtDecoded.fullName : jwtDecoded.sub);
     this.setState({ isAuthenticated: true, user: username, jwt: token, authorities: jwtDecoded.authorities, imageUrl: jwtDecoded.imageUrl });
   }
 

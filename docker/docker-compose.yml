@@ -3,6 +3,8 @@ services:
   service-discovery:
     image: consul:latest
     container_name: service-discovery
+    environment:
+      - CONSUL_LOCAL_CONFIG={"enable_debug":true}
     ports:
       - 8500:8500
     volumes:

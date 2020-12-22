@@ -168,12 +168,12 @@ public class AuthenticationServiceApplicationIntegrationTest {
             Files.write(privateKeyFile,
                 Arrays.asList("-----BEGIN PRIVATE KEY-----", encoder
                     .encodeToString(pvt.getEncoded()), "-----END PRIVATE KEY-----"));
-            log.info("Loaded private key: {}", privateKeyFile);
+            log.debug("Loaded private key: {}", privateKeyFile);
 
             Files.write(publicKeyFile,
                 Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
                     .encodeToString(pub.getEncoded()), "-----END PRIVATE KEY-----"));
-            log.info("Loaded public key: {}", publicKeyFile);
+            log.debug("Loaded public key: {}", publicKeyFile);
             applicationContext.registerBean(RSAPublicKey.class, () -> pub);
 
             applicationContext.registerBean(KeyPair.class, () -> kp);

@@ -32,8 +32,8 @@ public class AppLifecycleBean {
 	MongoClient mongoClient;
 
 	void onStart(@Observes StartupEvent ev) {
-		log.info("Set Public Key: {}", jwtValue);
-		log.info("MongoDB settings: {}", mongoClient.getClusterDescription());
+		log.debug("Set Public Key: {}", jwtValue);
+		log.debug("MongoDB settings: {}", mongoClient.getClusterDescription());
 		File file = new File(AppLifecycleBean.class.getResource("/META-INF/resources").getFile(), "publicKey.pem");
 		try {
 			Files.write(file.toPath(), Collections.singletonList(jwtValue), StandardCharsets.UTF_8);
@@ -44,7 +44,7 @@ public class AppLifecycleBean {
 		if (loadMockedData) {
 			Company.count()
 					.subscribe().with(i -> {
-						log.info("count: {}", i);
+						log.debug("count: {}", i);
 						if (i == 0) {
 							Company company = new Company();
 							company.name = "Facebook";

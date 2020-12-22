@@ -47,12 +47,12 @@ public class PersonController {
                                                    @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
                                                    @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
                                                    @QuerydslPredicate(root = Person.class, bindings = PersonRepository.class) Predicate predicate) {
-        log.info("predicate: {}", predicate);
+        log.debug("predicate: {}", predicate);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
         if (hasRoleAdmin(authentication)) {
             return ResponseEntity.ok(personService.findAll(pageRequest, predicate));
         } else {
-            return ResponseEntity.ok(personService.findAllByCreatedByUser(authentication.getName(), pageRequest));
+            return ResponseEntity.ok(personService.findAllByCreatedByUser(authentication.getName(), pageRequest, predicate));
         }
     }
 

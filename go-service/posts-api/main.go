@@ -94,7 +94,7 @@ func processKubernetes() echo.MiddlewareFunc {
 		if err = yaml.Unmarshal([]byte(configMap.String()), yamlMap); err != nil {
 			panic(err)
 		}
-		log.Info(fmt.Sprintf("yaml confiMap = %v", yamlMap))
+		log.debug(fmt.Sprintf("yaml confiMap = %v", yamlMap))
 		key := yamlMap["security"].(map[interface{}]interface{})["oauth2"].(map[interface{}]interface{})["resource"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
 		if key == nil {
 			panic("Not found jwt")

@@ -39,7 +39,7 @@ class TaskEdit extends Component {
     let permissions = this.state.authorities;
     if (jwt && permissions) {
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE')) {
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
@@ -93,7 +93,7 @@ class TaskEdit extends Component {
           }
         })
         .catch((error) => {
-          console.log(error);
+          this.setState({ displayError: errorMessage(error)});
         });
   }
 

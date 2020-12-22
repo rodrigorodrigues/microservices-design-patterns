@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import Pagination from "react-js-pagination";
-const queryString = require('query-string');
 
 class PaginationComponent extends Component {
     constructor(props) {
@@ -12,18 +11,6 @@ class PaginationComponent extends Component {
       totalItemsCount: props.totalItemsCount,
       pageSize: props.pageSize
     };
-  }
-
-  componentDidMount() {
-    console.log("Location: "+this.props.location);
-    if (this.props.location !== undefined) {
-        const parsed = queryString.parse(this.props.location.search);
-        if (parsed !== undefined) {  
-            if (parsed.page !== undefined) {
-            this.setState({activePage: parsed.page});
-            }
-        }
-    }
   }
 
   handlePaginationChange = (pageNumber) => {

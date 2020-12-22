@@ -47,7 +47,7 @@ public class UserController {
                                  @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
                                  @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
                                  @QuerydslPredicate(root = User.class, bindings = UserRepository.class) Predicate predicate) {
-        log.info("predicate: {}", predicate);
+        log.debug("predicate: {}", predicate);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
         if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"))) {
             return ResponseEntity.ok(userService.findAll(pageRequest, predicate));

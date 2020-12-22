@@ -70,7 +70,7 @@ public class PersonRepositoryTest {
     @Test
     @DisplayName("Test - Find All People that name starts with 'a' ignore case")
     public void findAllByNameStartingWithShouldReturnPersonsThatNameStartsWithA() {
-        Page<Person> people = personRepository.findAllByFullNameIgnoreCaseStartingWith("a", Pageable.unpaged());
+        Page<Person> people = personRepository.findAllByFullNameIgnoreCaseStartingWith("a", Pageable.unpaged(), QPerson.person.id.isNotNull());
 
         assertThat(people.getTotalElements()).isEqualTo(2);
         assertThat(Stream.of(people.getContent().toArray(new Person[] {})).map(Person::getFullName))
@@ -80,7 +80,7 @@ public class PersonRepositoryTest {
     @Test
     @DisplayName("Test - Find All People that have kids.")
     public void findByChildrenExistsShouldReturnPersonsThatHasChild() {
-        Page<Person> people = personRepository.findByChildrenExists(true, Pageable.unpaged());
+        Page<Person> people = personRepository.findByChildrenExists(true, Pageable.unpaged(), QPerson.person.id.isNotNull());
 
         assertThat(people.getTotalElements()).isEqualTo(1);
         assertThat(people.getContent().get(0).getFullName()).isEqualTo("Rodrigo");

@@ -67,18 +67,18 @@ public class PersonServiceImplTest {
 
     @Test
     public void whenCallFindAllByNameStartingWithShouldReturnListOfPersons() {
-        when(personRepository.findAllByFullNameIgnoreCaseStartingWith(anyString(), any(Pageable.class))).thenReturn(new PageImpl(Arrays.asList(new Person(), new Person())));
+        when(personRepository.findAllByFullNameIgnoreCaseStartingWith(anyString(), any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Arrays.asList(new Person(), new Person())));
 
-        Page<PersonDto> people = personService.findAllByNameStartingWith("test", PageRequest.of(0, 10));
+        Page<PersonDto> people = personService.findAllByNameStartingWith("test", PageRequest.of(0, 10), QPerson.person.id.isNotNull());
 
         assertThat(people.getTotalElements()).isEqualTo(2);
     }
 
     @Test
     public void whenCallFindByChildrenExistsShouldReturnListOfPersons() {
-        when(personRepository.findByChildrenExists(anyBoolean(), any(Pageable.class))).thenReturn(new PageImpl(Arrays.asList(new Person(), new Person())));
+        when(personRepository.findByChildrenExists(anyBoolean(), any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Arrays.asList(new Person(), new Person())));
 
-        Page<PersonDto> people = personService.findByChildrenExists(Pageable.unpaged());
+        Page<PersonDto> people = personService.findByChildrenExists(Pageable.unpaged(), QPerson.person.id.isNotNull());
 
         assertThat(people.getTotalElements()).isEqualTo(2);
     }

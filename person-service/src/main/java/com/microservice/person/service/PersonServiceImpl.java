@@ -35,18 +35,18 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    public Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable) {
-        return personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser, pageable), personRepository.count());
+    public Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate) {
+        return personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser, pageable, predicate), personRepository.count(predicate));
     }
 
     @Override
-    public Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable) {
-        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable), personRepository.count());
+    public Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable, Predicate predicate) {
+        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable, predicate), personRepository.count(predicate));
     }
 
     @Override
-    public Page<PersonDto> findByChildrenExists(Pageable pageable) {
-        return personMapper.entityToDto(personRepository.findByChildrenExists(true, pageable), personRepository.count());
+    public Page<PersonDto> findByChildrenExists(Pageable pageable, Predicate predicate) {
+        return personMapper.entityToDto(personRepository.findByChildrenExists(true, pageable, predicate), personRepository.count(predicate));
     }
 
     @Override

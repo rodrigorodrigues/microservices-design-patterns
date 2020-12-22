@@ -2,6 +2,7 @@ package com.microservice.person.repository;
 
 import com.microservice.person.model.Person;
 import com.microservice.person.model.QPerson;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.domain.Page;
@@ -15,11 +16,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PersonRepository extends PagingAndSortingRepository<Person, String>, QuerydslPredicateExecutor<Person>, QuerydslBinderCustomizer<QPerson> {
-    Page<Person> findAllByFullNameIgnoreCaseStartingWith(String name, Pageable pageable);
+    Page<Person> findAllByFullNameIgnoreCaseStartingWith(String name, Pageable pageable, Predicate predicate);
 
-    Page<Person> findByChildrenExists(boolean exists, Pageable pageable);
+    Page<Person> findByChildrenExists(boolean exists, Pageable pageable, Predicate predicate);
 
-    Page<Person> findAllByCreatedByUser(String createdByUser, Pageable pageable);
+    Page<Person> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate);
 
     @Override
     default void customize(QuerydslBindings bindings, QPerson root) {

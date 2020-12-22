@@ -8,7 +8,9 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
-
+            discovery:
+                health-check-headers:
+                    test: test
 
 #zuul:
 #    prefix: /api

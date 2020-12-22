@@ -51,7 +51,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
                 @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) sortIdx: List<String>,
                 @QuerydslPredicate(root = Task::class, bindings = TaskRepository::class) predicate: Predicate,
                 @ApiIgnore @AuthenticationPrincipal authentication: Authentication): ResponseEntity<Page<Task>> {
-        log.info("Predicate: {}", predicate)
+        log.debug("Predicate: {}", predicate)
         val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), *sortIdx.toTypedArray()))
         return if (authentication.hasAdminAuthority()) {
             ResponseEntity.ok(repository.findAll(predicate, pageRequest))

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert, Form, FormGroup, Input, Label } from 'reactstrap';
+import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { Link, withRouter } from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
@@ -13,6 +13,8 @@ import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
 import PaginationComponent from "../common/Pagination";
+import SearchButtonComponent from "../common/Search";
+const queryString = require('query-string');
 
 const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
 
@@ -31,7 +33,7 @@ class TaskList extends Component {
       expanded: false,
       isAuthenticated: props.isAuthenticated,
       search: null,
-      activePage: 1,
+      activePage: 0,
       totalPages: null,
       itemsCountPerPage: null,
       totalItemsCount: null,
@@ -71,7 +73,14 @@ class TaskList extends Component {
     let permissions = this.state.authorities;
     if (jwt && permissions) {
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
+      if (window.location.search !== "") {
+        const parsed = queryString.parse(window.location.search);
+        if (parsed.page !== undefined) {
+          this.setState({activePage: parsed.page});
+        }
+    }
+
+    if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
       || item === 'ROLE_TASK_READ' || item === 'ROLE_TASK_CREATE' 
       || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
@@ -189,21 +198,14 @@ class TaskList extends Component {
       </Nav>
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="1">
-          <div className="float-right">
+          <div className="float-right"
+                style={{
+                  padding: '15px 20px 0 20px'
+                }}
+          >
             <Button color="success" tag={Link} to="/tasks/new" disabled={!hasCreateAccess || displayAlert}>Add Task</Button>
           </div>
-          <Form onSubmit={this.handleSubmit} inline>
-            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-              <Label for="search" className="mr-sm-2">Search</Label>
-              <Input 
-                type="text" 
-                name="search" 
-                id="search" 
-                onChange={this.handleChange} 
-                placeholder="name=something" />
-            </FormGroup>
-            <Button>Search</Button>
-          </Form>
+          <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} />
           <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
           <Table striped responsive>
             <thead>

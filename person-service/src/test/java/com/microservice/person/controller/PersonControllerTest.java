@@ -135,7 +135,7 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling GET - /api/people with different user should return empty list and response 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "test")
     public void whenCallFindAllShouldReturnEmptyList() throws Exception {
-        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class))).thenReturn(new PageImpl(Collections.EMPTY_LIST));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Collections.EMPTY_LIST));
 
         client.perform(MockMvcRequestBuilders.get("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
@@ -168,7 +168,7 @@ public class PersonControllerTest {
         PersonDto person = new PersonDto();
         person.setId("100");
         person.setCreatedByUser("me");
-        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class))).thenReturn(new PageImpl(Collections.singletonList(person)));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Collections.singletonList(person)));
 
         client.perform(MockMvcRequestBuilders.get("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
