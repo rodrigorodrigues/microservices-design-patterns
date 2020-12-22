@@ -21,6 +21,7 @@
         <kotlin.version>1.4.21</kotlin.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.compiler.languageVersion>1.4</kotlin.compiler.languageVersion>
+        <code-coverage>0.6</code-coverage>
     </properties>
 
     <dependencies>

@@ -7,6 +7,14 @@
         <groupId>com.springboot</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <code-coverage>0.1</code-coverage> <!-- TODO Fix later -->
+    </properties>
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>authentication-common</artifactId>
