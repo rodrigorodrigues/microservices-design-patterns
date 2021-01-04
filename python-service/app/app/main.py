@@ -1,12 +1,14 @@
 import datetime
 import logging.config
 import os
-import sys
 
+import sys
 from autologging import traced, logged
 from core.api_setup import initialize_api
 from core.consul_setup import initialize_consul_client, initialize_dispatcher
+from core.kubernetes_setup import initialize_kubernetes_client
 from core.database_setup import initialize_db
+from core.ocr_core import ocr_core
 from flask import Flask, request, Response
 from flask import jsonify, make_response
 from flask_jwt_extended import JWTManager, get_jwt_identity
@@ -16,9 +18,11 @@ from jaeger_client import Config
 from jwt_custom_decorator import admin_required
 from model.models import Product
 from werkzeug.serving import run_simple
-
+from werkzeug.datastructures import FileStorage
 
 app = Flask(__name__)
+if not os.getenv('ENV_FILE_LOCATION'):
+    os.environ["ENV_FILE_LOCATION"] = ".env"
 app.config.from_envvar('ENV_FILE_LOCATION')
 app.debug = app.config['DEBUG']
 
@@ -42,17 +46,26 @@ logging.basicConfig(
     stream=sys.stdout
 )
 
-initialize_consul_client(app)
+if str(app.config['SPRING_PROFILES_ACTIVE']).__contains__('kubernetes'):
+    initialize_kubernetes_client(app)
+else:
+    initialize_consul_client(app)
+
 initialize_db(app)
 api = initialize_api(app)
 
 ns = api.namespace('api/products', description='Product operations')
+nsReceipt = api.namespace('api/receipts', description='Receipt operations')
 
 productModel = api.model('Product', {
     'name': fields.String(required=True, description='Name'),
     'quantity': fields.Integer(required=True, description='Quantity'),
     'category': fields.String(required=True, description='Category Name'),
 })
+
+upload_parser = api.parser()
+upload_parser.add_argument('file', location='files',
+                           type=FileStorage, required=True)
 
 # Create configuration object with enabled logging and sampling of all requests.
 config = Config(config={'sampler': {'type': 'const', 'param': 1},
@@ -66,14 +79,55 @@ jaeger_tracer = config.initialize_tracer()
 tracing = FlaskTracing(tracer=jaeger_tracer, app=app)
 
 
+createPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_CREATE'])
+
+
+ALLOWED_EXTENSIONS = app.config['ALLOWED_EXTENSIONS']
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@traced(log)
+@logged(log)
+@nsReceipt.route('')
+class ReceiptsApi(Resource):
+
+    @createPermissions
+    @ns.expect(upload_parser)
+    @tracing.trace()
+    def post(self):
+        args = upload_parser.parse_args()
+        file = args['file']
+        # if user does not select file, browser also
+        # submit a empty part without filename
+        if file.filename == '':
+            return make_response(jsonify(msg='No file selected'), 400)
+
+        if not allowed_file(file.filename):
+            return make_response(jsonify(msg='file is invalid:\nValid extensions are: '+''.join(ALLOWED_EXTENSIONS)), 400)
+
+        upload_folder = app.config['UPLOAD_FOLDER']
+
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+        file.save(os.path.join(upload_folder, file.filename))
+
+        # call the OCR function on it
+        extracted_text = ocr_core(upload_folder + file.filename)
+
+        return make_response(jsonify(msg=extracted_text), 200)
+
+
 @traced(log)
 @logged(log)
 @ns.route('')
 class ProductsApi(Resource):
     findAllPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_READ', 'ROLE_PRODUCTS_CREATE',
                                                             'ROLE_PRODUCTS_SAVE', 'ROLE_PRODUCTS_DELETE'])
-
-    createPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_CREATE'])
 
     """Return list of products"""
 

@@ -10,3 +10,6 @@ autologging
 Flask-Opentracing
 pyyaml
 jaeger-client
+pytesseract
+iso4217parse
+kubernetes

@@ -1,4 +1,3 @@
-import base64
 import logging.config
 
 import yaml
@@ -22,6 +21,8 @@ def initialize_consul_client(app):
 
     profile = app.config['SPRING_PROFILES_ACTIVE']
 
+    hostname = app.config['HOSTNAME']
+
     # Consul
     # This extension should be the first one if enabled:
     consul = Consul(app=app)
@@ -33,14 +34,14 @@ def initialize_consul_client(app):
         interval='30s',
         tags=[app_name],
         port=server_port,
-        httpcheck="http://localhost:" + str(server_port) + "/actuator/health"
+        httpcheck=hostname + ":" + str(server_port) + "/actuator/health"
     )
 
     if profile != 'prod':
         jwt_secret = ""
         for data in yaml.load_all(app.config[''], Loader=yaml.BaseLoader):
             try:
-                jwt_secret = data['security']['oauth2']['resource']['jwt']['keyValue']
+                jwt_secret = data['com']['microservice']['authentication']['jwt']['keyValue']
                 break
             except Exception:
                 log.warning("Not found jwt_secret")
@@ -48,8 +49,7 @@ def initialize_consul_client(app):
         if jwt_secret == "":
             raise Exception("jwt_secret not found")
         log.debug('Jwt Secret: %s', jwt_secret)
-        app.config['JWT_SECRET_KEY'] = base64.b64decode(jwt_secret)
-        app.config['SECRET_KEY'] = app.config['JWT_SECRET_KEY']
+        app.config['JWT_SECRET_KEY'] = jwt_secret
 
     else:
         app.config['JWT_PUBLIC_KEY'] = open(app.config['JWT_PUBLIC_KEY'], "r").read()

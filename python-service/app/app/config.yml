@@ -1,0 +1,77 @@
+# Define the tesseract language
+#
+language: eng
+
+# Where the receipts are stored
+# Receipts should be simple text files
+receipts_path: "data/txt"
+
+# Market names roughly ordered by likelihood.
+# Can contain market locations for fuzzy parsing
+markets:
+  Tesco:
+    - Tesco
+    - tesco
+  Delhaize:
+    - Delhaize
+    - delhaize
+  Penny:
+    - penny
+    - p e n n y
+    - m a r k t gmbh
+  REWE:
+    - rewe
+  Real:
+    - real
+  Netto:
+    - netto-online
+  Kaiser's:
+    - kaiser
+    - kaiserswerther straße 270
+  Aldi:
+    - aldi
+    - friedrichstr 128—133
+  Lidl:
+    - lidl
+  Edeka:
+    - edeka
+  Drogerie:
+    - drogerie
+  Kodi:
+    - kodi
+  Getraenke:
+    - Getraenke Tempel
+  Tanken:
+    - shell
+    - esso station
+    - aral
+    - total tankstelle
+    - RK Tankstellen
+  Migros:
+    - genossenschaft migros
+
+# Sum keys roughly ordered by likelyhood.
+sum_keys:
+  - summe
+  - gesamtbetrag
+  - gesamt
+  - total
+  - sum
+  - zwischensumme
+  - bar
+  - te betalen
+
+ignore_keys:
+  - rockgeld
+  - rusckgeld
+  - pfand
+  - rückgeld
+  - mwst
+  - leergut
+
+sum_format: '\d+(\.\s?|,\s?|[^a-zA-Z\d])\d{2}'
+
+item_format: '(...+)\s(-|)(\d,\d\d)\s'
+
+# Matches dates like 19.08.15 and 19.08.2015
+date_format: '(?P<date>(\d{2,4}(\.\s?|[^a-zA-Z\d])\d{2}(\.\s?|[^a-zA-Z\d])(19|20)?\d\d)\s+)'
