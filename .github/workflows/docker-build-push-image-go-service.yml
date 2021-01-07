@@ -42,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./go-service
-          file: ./Dockerfile
+          file: ./go-service/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: fielcapao/microservices-design-patterns-go-service:latest
