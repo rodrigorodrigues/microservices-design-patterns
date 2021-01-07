@@ -37,21 +37,38 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build the Docker image with Maven
-      - name: Build
-        run: |
-          sed -i 's/node:10.15.3-slim/balenalib\/raspberry-pi-debian-node/g' ./react-webapp/Dockerfile
-          sed -i 's/nginx:1.13.12-alpine/arm64v8\/nginx/g' ./react-webapp/Dockerfile
-          sed -i 's/"nginx"/"nginx-debug"/g' ./react-webapp/Dockerfile
-          docker build -t fielcapao/microservices-design-patterns-react-webapp-service:latest \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          --build-arg PORT="3003" ./react-webapp
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./react-webapp
+          file: ./react-webapp/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
+          build-args: |
+            GITHUB_SHA=$GITHUB_SHA
+            GITHUB_REF=$GITHUB_REF
+            PORT=3003
 
-      # Push the Docker image
-      - name: Push
-        run: |
-          docker push fielcapao/microservices-design-patterns-react-webapp-service
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+#      # Build the Docker image with Maven
+#      - name: Build
+#        run: |
+#          sed -i 's/node:10.15.3-slim/balenalib\/raspberry-pi-debian-node/g' ./react-webapp/Dockerfile
+#          sed -i 's/nginx:1.13.12-alpine/arm64v8\/nginx/g' ./react-webapp/Dockerfile
+#          sed -i 's/"nginx"/"nginx-debug"/g' ./react-webapp/Dockerfile
+#          docker build -t fielcapao/microservices-design-patterns-react-webapp-service:latest \
+#          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+#          --build-arg GITHUB_REF="$GITHUB_REF" \
+#          --build-arg PORT="3003" ./react-webapp
+
+#      # Push the Docker image
+#      - name: Push
+#        run: |
+#          docker push fielcapao/microservices-design-patterns-react-webapp-service
 
       # Push the Docker image
 #      - name: Build and push

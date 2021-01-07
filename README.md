@@ -5,9 +5,15 @@
 
 The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Services are built in `Java + Spring Boot 2 + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
+Most of the services are in `Java + Spring Boot 2 + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
 
 The web application is using `React`.
+
+Docker images are built in mupltiple platforms(`linux/amd64,linux/arm64`).
+
+Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter.com and create a user.
+
+<img src="https://github.com/rodrigorodrigues/microservices-design-patterns/tree/master/docs/raspberrypi_cluster.jpeg" alt="Raspberry Pi" width="200" height="200">
 
 Feel free to create a new microservice using a different language(`Ruby?, C#?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
@@ -273,11 +279,11 @@ Used [travis-ci](https://travis-ci.org) for building `pull requests` only.
 
 ### Github Actions CI/CD
 
-Using `GitHub Actions` for deploying services into `Google Cloud/GKE`.
+Using `GitHub Actions` for deploying services for multiple platforms(`linux/amd64,linux/arm64`).
 
-More details of look at [.github/workflows/gke-deploy-*](.github/workflows) for each microservice.
+More details look at [.github/workflows/docker-build-push-*](.github/workflows).
 
-Configuration for Kubernetes was moved to [.github/workflows/kubernetes](.github/workflows/kubernetes).
+Configuration(`Deployment/Services`) for Kubernetes look at [.github/workflows/kubernetes](.github/workflows/kubernetes).
 
 
 ### Swagger UI
@@ -363,3 +369,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Go Tutorial](https://tour.golang.org/list)
 
 [Go Consul](http://varunksaini.com/consul-service-discovery-golang/)
+
+[Raspberry Pi Cluster](https://ubuntu.com/tutorials/how-to-kubernetes-cluster-on-raspberry-pi#1-overview)

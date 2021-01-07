@@ -41,5 +41,5 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
 EXPOSE $PORT
 
-ENV JAVA_CMD="nginx"
-CMD ["nginx"]
+ENV JAVA_CMD="nginx-debug"
+CMD ["nginx-debug"]
