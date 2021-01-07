@@ -34,22 +34,22 @@ else
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_NODE_IMAGE=true
     elif [[ "$BUILD_AUTHENTICATION_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "authentication-service" ]]; then
-      mvn -B -f ./authentication-service/pom.xml jib:dockerBuild
+      mvn -B -f ./authentication-service/pom.xml docker:build
       IMAGES_TO_BUILD+="authentication-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_AUTHENTICATION_SERVICE_IMAGE=true
     elif [[ "$BUILD_USER_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "user-service" ]]; then
-      mvn -B -f ./user-service/pom.xml jib:dockerBuild
+      mvn -B -f ./user-service/pom.xml docker:build
       IMAGES_TO_BUILD+="user-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_USER_SERVICE_IMAGE=true
     elif [[ "$BUILD_PERSON_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "person-service" ]]; then
-      mvn -B -f ./person-service/pom.xml jib:dockerBuild
+      mvn -B -f ./person-service/pom.xml docker:build
       IMAGES_TO_BUILD+="person-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_PERSON_SERVICE_IMAGE=true
     elif [[ "$BUILD_KOTLIN_SERVICE_IMAGE" == "false" ]] && [[ "$i" == "kotlin-service" ]]; then
-      mvn -B -f ./kotlin-service/pom.xml jib:dockerBuild
+      mvn -B -f ./kotlin-service/pom.xml docker:build
       IMAGES_TO_BUILD+="kotlin-service;"
       BUILD_NEW_DOCKER_IMAGE=true
       BUILD_KOTLIN_SERVICE_IMAGE=true

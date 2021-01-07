@@ -4,7 +4,6 @@ import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
-import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import com.microservice.authentication.service.CustomLogoutSuccessHandler;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
@@ -16,10 +15,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
@@ -47,9 +44,8 @@ import java.security.KeyPair;
 import java.util.UUID;
 
 @Slf4j
-@SpringBootApplication()
+@SpringBootApplication
 @EnableDiscoveryClient
-@Import(ActuatorResourceServerConfiguration.class)
 @EnableRedisHttpSession
 public class AuthenticationServiceApplication {
 
@@ -61,7 +57,7 @@ public class AuthenticationServiceApplication {
 	@ConditionalOnMissingBean
 	@Bean
     KeyPair keyPair(AuthenticationProperties properties) {
-        ResourceServerProperties.Jwt jwt = properties.getJwt();
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
         char[] password = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
         return keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias());

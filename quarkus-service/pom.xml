@@ -17,7 +17,6 @@
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
     <quarkus.platform.version>1.4.2.Final</quarkus.platform.version>
     <surefire-plugin.version>2.22.1</surefire-plugin.version>
-    <jib-maven-plugin.version>2.5.2</jib-maven-plugin.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -116,9 +115,9 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>${jib-maven-plugin.version}</version>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.34.1</version>
         <configuration>
           <skip>true</skip>
         </configuration>

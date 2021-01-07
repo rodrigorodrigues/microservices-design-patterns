@@ -39,7 +39,7 @@ jobs:
       - name: Build
         run: |
           sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openjdk:8/g' pom.xml
-          mvn clean install -pl kotlin-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis jib:dockerBuild
+          mvn clean install -q -pl kotlin-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
           docker tag kotlin-service:latest fielcapao/microservices-design-patterns-kotlin-service
       # Login to Dockerhub
       - name: Login to DockerHub

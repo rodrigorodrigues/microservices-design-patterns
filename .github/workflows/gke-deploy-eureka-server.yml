@@ -47,7 +47,7 @@ jobs:
     # Build the Docker image with Maven
     - name: Build
       run: |
-        mvn clean install -pl eureka-server -am -B -Dspring.profiles.active=travis jib:dockerBuild
+        mvn clean install -pl eureka-server -am -B -Dspring.profiles.active=travis docker:build
         docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
 
     # Push the Docker image to Google Container Registry

@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -19,7 +18,12 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
         "/**/*.js",
         "/**/*.css",
         "/**/*.html",
-        "/favicon.ico"
+        "/favicon.ico",
+        // other public endpoints of your API may be appended to this array
+        "/actuator/info",
+        "/actuator/health",
+        "/actuator/prometheus",
+        "/error"
     };
 
     private final AdminServerProperties adminServerProperties;
@@ -27,12 +31,10 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         String adminContextPath = adminServerProperties.getContextPath();
-        SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
-        successHandler.setTargetUrlParameter("redirect_uri");
-        successHandler.setDefaultTargetUrl(adminContextPath + "/");
 
         http.csrf().disable()
             .authorizeRequests()
+            .antMatchers(WHITELIST).permitAll()
             .antMatchers(adminContextPath + "/assets/**").permitAll()
             .antMatchers(adminContextPath + "/login").permitAll()
             .antMatchers(adminContextPath + "/logout").permitAll()
@@ -41,11 +43,8 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
             .and()
             .formLogin()
                 .loginPage(adminContextPath + "/login")
-            .successHandler(successHandler)
             .and()
-            .logout()
-            .deleteCookies("SESSIONID")
-            .invalidateHttpSession(true);
+            .logout();
     }
 
     @Override

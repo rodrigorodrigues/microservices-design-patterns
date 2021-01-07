@@ -106,7 +106,7 @@ public class AuthenticationCommonConfiguration {
                 return defaultOAuth2AccessToken;
             }
         };
-        ResourceServerProperties.Jwt jwt = this.authenticationProperties.getJwt();
+        AuthenticationProperties.Jwt jwt = this.authenticationProperties.getJwt();
         String keyValue = jwt.getKeyValue();
         if (StringUtils.isNotBlank(keyValue)) {
             if (!keyValue.startsWith("-----BEGIN")) {

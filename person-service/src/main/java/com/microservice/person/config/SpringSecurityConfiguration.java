@@ -6,7 +6,6 @@ import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -97,7 +96,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     RSAPublicKey keyPair(AuthenticationProperties properties) {
-        ResourceServerProperties.Jwt jwt = properties.getJwt();
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
         char[] password = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
         return (RSAPublicKey) keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias()).getPublic();

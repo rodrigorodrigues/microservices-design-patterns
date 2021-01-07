@@ -1,6 +1,5 @@
 package com.springboot.edgeserver;
 
-import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,7 +7,6 @@ import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -25,7 +23,6 @@ import ru.reliabletech.zuul.swagger.EnableZuulSpringfoxSwagger;
 @SpringBootApplication
 @EnableZuulProxy
 @EnableDiscoveryClient
-@Import(ActuatorResourceServerConfiguration.class)
 @EnableZuulSpringfoxSwagger
 @EnableRedisHttpSession
 public class EdgeServerApplication {

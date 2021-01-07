@@ -39,7 +39,7 @@ jobs:
       - name: Build
         run: |
           sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openjdk:8/g' pom.xml
-          mvn clean install -q -pl person-service -am -B -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis jib:dockerBuild
+          mvn clean install -q -pl person-service -am -B -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
           docker tag person-service:latest fielcapao/microservices-design-patterns-person-service
       # Login to Dockerhub
       - name: Login to DockerHub
