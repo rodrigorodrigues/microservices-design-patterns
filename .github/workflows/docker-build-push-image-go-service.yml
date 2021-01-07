@@ -48,7 +48,7 @@ jobs:
           tags: fielcapao/microservices-design-patterns-go-service:latest
           build-args: |
             ENV=production
-            PORT="3006"
+            PORT=3006
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

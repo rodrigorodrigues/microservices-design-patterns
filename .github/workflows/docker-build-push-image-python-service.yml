@@ -47,7 +47,7 @@ jobs:
           push: true
           tags: fielcapao/microservices-design-patterns-python-service:latest
           build-args: |
-            PORT="3005"
+            PORT=3005
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
