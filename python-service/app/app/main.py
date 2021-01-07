@@ -7,7 +7,7 @@ from autologging import traced, logged
 from core.api_setup import initialize_api
 from core.consul_setup import initialize_consul_client, initialize_dispatcher
 from core.kubernetes_setup import initialize_kubernetes_client
-from core.database_setup import initialize_db
+from model.database_setup import initialize_db
 from core.ocr_core import ocr_core
 from flask import Flask, request, Response
 from flask import jsonify, make_response
@@ -79,7 +79,7 @@ jaeger_tracer = config.initialize_tracer()
 tracing = FlaskTracing(tracer=jaeger_tracer, app=app)
 
 
-createPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_CREATE'])
+createPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_CREATE', 'SCOPE_openid'])
 
 
 ALLOWED_EXTENSIONS = app.config['ALLOWED_EXTENSIONS']
@@ -127,7 +127,7 @@ class ReceiptsApi(Resource):
 @ns.route('')
 class ProductsApi(Resource):
     findAllPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_READ', 'ROLE_PRODUCTS_CREATE',
-                                                            'ROLE_PRODUCTS_SAVE', 'ROLE_PRODUCTS_DELETE'])
+                                                            'ROLE_PRODUCTS_SAVE', 'ROLE_PRODUCTS_DELETE', 'SCOPE_openid'])
 
     """Return list of products"""
 
@@ -169,10 +169,13 @@ class ProductsApi(Resource):
 @ns.route('/<string:id>')
 class ProductApi(Resource):
     findByIdPermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_READ'
-                                                                           'ROLE_PRODUCTS_SAVE'])
-    savePermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_SAVE'])
+                                                                           'ROLE_PRODUCTS_SAVE', 'SCOPE_openid'])
 
-    deletePermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_DELETE'])
+
+    savePermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_SAVE', 'SCOPE_openid'])
+
+
+    deletePermissions = lambda f: admin_required(f, roles=['ROLE_ADMIN', 'ROLE_PRODUCTS_DELETE', 'SCOPE_openid'])
 
     """Update product"""
 

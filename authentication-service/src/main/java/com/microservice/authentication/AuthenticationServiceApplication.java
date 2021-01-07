@@ -30,6 +30,9 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
@@ -54,7 +57,7 @@ public class AuthenticationServiceApplication {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
 
-	@Profile("kubernetes")
+	@Profile("prod")
 	@ConditionalOnMissingBean
 	@Bean
     KeyPair keyPair(AuthenticationProperties properties) {
@@ -114,9 +117,16 @@ public class AuthenticationServiceApplication {
         return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
     }
 
+    @Primary
     @Bean
-    RedisTokenStore redisTokenStore(RedisConnectionFactory redisConnectionFactory) {
-        return new RedisTokenStore(redisConnectionFactory);
+    RedisTokenStore redisTokenStore(RedisConnectionFactory redisConnectionFactory,
+                                    JwtAccessTokenConverter jwtAccessTokenConverter) {
+        RedisTokenStore redisTokenStore = new RedisTokenStore(redisConnectionFactory);
+        TokenApprovalStore tokenApprovalStore = new TokenApprovalStore();
+        tokenApprovalStore.setTokenStore(redisTokenStore);
+        JwtTokenStore jwtTokenStore = new JwtTokenStore(jwtAccessTokenConverter);
+        jwtTokenStore.setApprovalStore(tokenApprovalStore);
+        return redisTokenStore;
     }
 
     @Bean

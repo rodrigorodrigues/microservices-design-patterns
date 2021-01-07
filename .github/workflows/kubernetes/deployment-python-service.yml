@@ -15,11 +15,14 @@ spec:
   selector:
     app: python-service
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: python-service
 spec:
+  selector:
+    matchLabels:
+      app: python-service
   replicas: 1
   template:
     metadata:
@@ -29,14 +32,14 @@ spec:
     spec:
       containers:
         - name: python-service
-          image: eu.gcr.io/spring-boot-gke-243520/python-service:latest
+          image: fielcapao/microservices-design-patterns-python-service:latest
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "30m"
-            limits:
               memory: "256Mi"
-              cpu: "30m"
+#              cpu: "30m"
+            limits:
+              memory: "512Mi"
+#              cpu: "30m"
           volumeMounts:
             - name: spendingbetter-pub-key
               mountPath: "/etc/ssl_certs_pub"
@@ -45,15 +48,13 @@ spec:
             - name: SERVER_PORT
               value: "3005"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: kubernetes,prod
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/docker
             - name: EUREKA_SERVER
               value: http://eureka-server-peer:8761/eureka/
-            - name: SPRING_CLOUD_CONFIG_URI
-              value: http://config-server:8888
-            - name: MONGODB_URI
-              value: mongodb://mongodb-datasource/docker
+            - name: UPLOAD_FOLDER
+              value: /tmp
             - name: JWT_PUBLIC_KEY
               value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: ENV_FILE_LOCATION

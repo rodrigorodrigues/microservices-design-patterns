@@ -44,7 +44,6 @@ jobs:
           docker build -t fielcapao/microservices-design-patterns-go-service:latest \
           --build-arg ENV=production \
           --build-arg PORT="3006" ./go-service
-          
 
       # Push the Docker image
       - name: Push

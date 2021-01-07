@@ -1,3 +1,9 @@
+spring:
+    servlet:
+        multipart:
+            max-request-size: 50MB
+            max-file-size: 50MB
+
 zuul:
     ignoredServices: '*'
     ignored-headers: Access-Control-Allow-Credentials, Access-Control-Allow-Origin
@@ -49,6 +55,11 @@ zuul:
             serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:
+        authenticated-refresh-token-service:
+            path: /api/refreshToken
+            serviceId: authentication-service
+            stripPrefix: false
+            sensitiveHeaders:
         task-service:
             path: /api/tasks/**
             serviceId: kotlin-service
@@ -61,6 +72,12 @@ zuul:
             swaggerUri: api-documentation
             stripPrefix: false
             sensitiveHeaders:
+        receipt-service:
+            path: /api/receipts/**
+            serviceId: python-service
+            swaggerUri: api-documentation
+            stripPrefix: false
+            sensitiveHeaders:
         swagger-tasks-service:
             path: /swagger/kotlin-service/**
             serviceId: kotlin-service
@@ -69,12 +86,17 @@ zuul:
             sensitiveHeaders:
         swagger-product-service:
             path: /swagger/python-service/**
-            serviceId: kotlin-service
+            serviceId: python-service
             swaggerUri: api-documentation
             stripPrefix: true
             sensitiveHeaders:
         authenticated-oauth-service:
             path: /oauth2/**
+            serviceId: authentication-service
+            stripPrefix: false
+            sensitiveHeaders:
+        authenticated-login-oauth-service:
+            path: /login/oauth2/**
             serviceId: authentication-service
             stripPrefix: false
             sensitiveHeaders:

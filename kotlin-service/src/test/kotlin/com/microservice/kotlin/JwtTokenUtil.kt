@@ -1,18 +1,18 @@
 package com.microservice.kotlin
 
+import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSSigner
-import com.nimbusds.jose.crypto.RSASSASigner
+import com.nimbusds.jose.crypto.MACSigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import net.minidev.json.JSONObject
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import java.security.KeyPair
 import java.time.ZonedDateTime
 import java.util.*
 
-class JwtTokenUtil(val keyPair: KeyPair) {
+class JwtTokenUtil(private val authenticationProperties: AuthenticationProperties) {
     fun createToken(usernamePasswordAuthenticationToken: UsernamePasswordAuthenticationToken): String {
         val jwtClaimsSet = JWTClaimsSet.Builder()
             .subject(usernamePasswordAuthenticationToken.name)
@@ -23,10 +23,10 @@ class JwtTokenUtil(val keyPair: KeyPair) {
             .jwtID(UUID.randomUUID().toString())
             .issuer("jwt")
             .build()
-        val signer: JWSSigner = RSASSASigner(keyPair.private)
+        val signer: JWSSigner = MACSigner(authenticationProperties.jwt.keyValue)
         val jsonObject = JSONObject()
         jsonObject["kid"] = "test"
-        jsonObject["alg"] = JWSAlgorithm.RS256.name
+        jsonObject["alg"] = JWSAlgorithm.HS256.name
         jsonObject["typ"] = "JWT"
         val signedJWT = SignedJWT(JWSHeader.parse(jsonObject), jwtClaimsSet)
         signedJWT.sign(signer)

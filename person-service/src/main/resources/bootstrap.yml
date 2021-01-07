@@ -8,3 +8,10 @@ spring:
                 format: yaml
     main:
         allow-bean-definition-overriding: true
+    security:
+        oauth2:
+            resourceserver:
+                opaquetoken:
+                    client-secret: "test"
+                    client-id: "test"
+                    introspection-uri:

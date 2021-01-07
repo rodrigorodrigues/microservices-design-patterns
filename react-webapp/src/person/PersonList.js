@@ -31,6 +31,8 @@ class PersonList extends Component {
       displaySwagger: false,
       activeTab: '1',
       isAuthenticated: props.isAuthenticated,
+      expiresIn: props.expiresIn,
+      refreshToken: props.refreshToken,
       user: props.user,
       expanded: false,
       activePage: 0,
@@ -48,6 +50,10 @@ class PersonList extends Component {
 
   setExpanded = (expanded) => {
     this.setState({expanded: expanded});
+  }
+
+  setPageSize = (pageSize) => {
+    this.setState({pageSize: pageSize});
   }
 
   toggle(tab) {
@@ -86,14 +92,15 @@ class PersonList extends Component {
 
   async findAllPeople(pageNumber) {
     try {
-      const { pageSize, activePage, search, jwt } = this.state;
+      const { pageSize, activePage, search, jwt, expiresIn } = this.state;
       let url = `people?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
-      console.log("URL: {}", url);
+      console.log(`URL: ${url}\texpires_in: ${expiresIn}`);
       let data = await get(url, true, false, jwt);
+      console.log("data: "+data);
+      this.setState({ isLoading: false });
       if (data) {
         if (Array.isArray(data.content)) {
           this.setState({ 
-            isLoading: false, 
             persons: data.content, 
             displaySwagger: true, 
             totalPages: data.totalPages, 
@@ -104,8 +111,9 @@ class PersonList extends Component {
         } else {
           if (data.status === 401) {
             this.setState({ displayAlert: true });
+            this.props.onRemoveAuthentication();
           }
-          this.setState({ isLoading: false, displayError: errorMessage(data) });
+          this.setState({ displayError: errorMessage(data) });
         }
       }
     } catch (error) {
@@ -115,7 +123,7 @@ class PersonList extends Component {
 
   async handlePageChange(pageNumber) {
     this.setState({activePage: pageNumber})
-    await this.findAllTasks(pageNumber);
+    await this.findAllPeople(pageNumber);
   }
 
   async remove(person) {
@@ -142,6 +150,7 @@ class PersonList extends Component {
 
   render() {
     const { persons, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
+    console.log("render:isLoading: "+isLoading);
 
     const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE' || item === 'SCOPE_openid');
 
@@ -171,6 +180,18 @@ class PersonList extends Component {
     });
 
     const displayContent = () => {
+      const suggestions = [
+        {
+          title: 'name',
+          languages: [
+            {
+              name: 'C',
+              year: 1972
+            }
+          ]
+        }
+      ];
+  
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
           401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -202,8 +223,8 @@ class PersonList extends Component {
               >
                 <Button color="success" tag={Link} to="/people/new" disabled={!hasCreateAccess || displayAlert}>Add Person</Button>
               </div>
-              <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} placeholder="fullName=something" /> 
-              <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
+              <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} suggestions={suggestions} />
+              <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
               <Table striped responsive>
                 <thead>
                   <tr>
@@ -223,7 +244,7 @@ class PersonList extends Component {
                   {personList}
                 </tbody>
               </Table>
-              <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
+              <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
             </TabPane>
             <TabPane tabId="2">
               {displaySwagger ?

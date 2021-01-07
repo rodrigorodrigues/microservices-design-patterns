@@ -50,6 +50,10 @@ class TaskList extends Component {
     this.setState({expanded: expanded});
   }
 
+  setPageSize = (pageSize) => {
+    this.setState({pageSize: pageSize});
+  }
+
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({ activeTab: tab });
@@ -94,7 +98,7 @@ class TaskList extends Component {
   async findAllTasks(pageNumber) {
     try {
       const { pageSize, activePage, search, jwt } = this.state;
-      let url = `tasks?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
+      let url = `tasks?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&size='+pageSize: ''}`;
       console.log("URL: {}", url);
       let data = await get(url, true, false, jwt);
       if (data) {
@@ -149,6 +153,90 @@ class TaskList extends Component {
 
   render() {
     const { tasks, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
+
+    const suggestions = [
+      {
+        title: 'name',
+        languages: [
+          {
+            name: 'C',
+            year: 1972
+          }
+        ]
+      },
+      {
+        title: 'createdByUser',
+        languages: [
+          {
+            name: 'C++',
+            year: 1983
+          },
+          {
+            name: 'Perl',
+            year: 1987
+          }
+        ]
+      },
+      {
+        title: 'createdDate',
+        languages: [
+          {
+            name: 'Haskell',
+            year: 1990
+          },
+          {
+            name: 'Python',
+            year: 1991
+          },
+          {
+            name: 'Java',
+            year: 1995
+          },
+          {
+            name: 'Javascript',
+            year: 1995
+          },
+          {
+            name: 'PHP',
+            year: 1995
+          },
+          {
+            name: 'Ruby',
+            year: 1995
+          }
+        ]
+      },
+      {
+        title: 'id',
+        languages: [
+          {
+            name: 'C#',
+            year: 2000
+          },
+          {
+            name: 'Scala',
+            year: 2003
+          },
+          {
+            name: 'Clojure',
+            year: 2007
+          },
+          {
+            name: 'Go',
+            year: 2009
+          }
+        ]
+      },
+      {
+        title: '2010s',
+        languages: [
+          {
+            name: 'Elm',
+            year: 2012
+          }
+        ]
+      }
+    ];
 
     const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'SCOPE_openid');
 
@@ -205,8 +293,8 @@ class TaskList extends Component {
           >
             <Button color="success" tag={Link} to="/tasks/new" disabled={!hasCreateAccess || displayAlert}>Add Task</Button>
           </div>
-          <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} />
-          <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
+          <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} suggestions={suggestions} />
+          <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
           <Table striped responsive>
             <thead>
               <tr>
@@ -223,7 +311,7 @@ class TaskList extends Component {
               {taskList}
             </tbody>
           </Table>
-          <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
+          <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
         </TabPane>
         <TabPane tabId="2">
           {/*this.state.activeTab === 2 ? <h3>Tab 2 Contents</h3> : null*/}

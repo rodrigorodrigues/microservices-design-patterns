@@ -17,15 +17,18 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URI;
+import java.util.Collection;
 
 /**
  * Rest API for persons.
@@ -64,10 +67,10 @@ public class PersonController {
         PersonDto personServiceById = personService.findById(id);
         if (personServiceById == null) {
             throw responseNotFound();
-        } else if (hasRoleAdmin(authentication) || personServiceById.getCreatedByUser().equals(authentication.getName())) {
+        } else if (hasRoleAdmin(authentication) || authentication.getName().equals(personServiceById.getCreatedByUser())) {
             return ResponseEntity.ok(personServiceById);
         } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("User(%s) does not have access to this resource", authentication.getName()));
+            throw new AccessDeniedException(String.format("User(%s) does not have access to this resource", authentication.getName()));
         }
     }
 
@@ -104,12 +107,13 @@ public class PersonController {
         } else if (hasRoleAdmin(authentication) || personServiceById.getCreatedByUser().equals(authentication.getName())) {
             personService.deleteById(id);
         } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("User(%s) does not have access to delete this resource", authentication.getName()));
+            throw new AccessDeniedException(String.format("User(%s) does not have access to delete this resource", authentication.getName()));
         }
     }
 
     private boolean hasRoleAdmin(Authentication authentication) {
-        return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"));
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        return !CollectionUtils.isEmpty(authorities) && authorities.stream().map(GrantedAuthority::getAuthority).anyMatch(a -> a.equals("ROLE_ADMIN"));
     }
 
     private ResponseStatusException responseNotFound() {

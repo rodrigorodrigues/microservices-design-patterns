@@ -51,7 +51,7 @@ class RecipeList extends Component {
 
       if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_RECIPE_READ' 
       || item === 'ROLE_RECIPE_READ' || item === 'ROLE_RECIPE_CREATE' 
-      || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')) {
+      || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {

@@ -13,3 +13,4 @@ jaeger-client
 pytesseract
 iso4217parse
 kubernetes
+opencv-contrib-python

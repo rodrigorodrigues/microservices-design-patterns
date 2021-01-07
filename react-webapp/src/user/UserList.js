@@ -48,6 +48,10 @@ class UserList extends Component {
     this.setState({expanded: expanded});
   }
 
+  setPageSize = (pageSize) => {
+    this.setState({pageSize: pageSize});
+  }
+
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({ activeTab: tab });
@@ -112,7 +116,7 @@ class UserList extends Component {
   async handlePageChange(pageNumber) {
     console.log(`active page is ${pageNumber}`);
     this.setState({activePage: pageNumber})
-    await this.findAllTasks(pageNumber);
+    await this.findAllUsers(pageNumber);
   }
 
   async remove(user) {
@@ -160,6 +164,18 @@ class UserList extends Component {
     });
 
     const displayContent = () => {
+      const suggestions = [
+        {
+          title: 'name',
+          languages: [
+            {
+              name: 'C',
+              year: 1972
+            }
+          ]
+        }
+      ];
+
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
         401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -191,8 +207,8 @@ class UserList extends Component {
             >
               <Button color="success" tag={Link} to="/users/new" disabled={displayAlert}>Add User</Button>
             </div>
-            <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} placeholder="fullName=something" /> 
-            <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
+            <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} suggestions={suggestions} />
+            <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
             <Table striped responsive>
               <thead>
               <tr>
@@ -211,7 +227,7 @@ class UserList extends Component {
               {userList}
               </tbody>
             </Table>
-            <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} />
+            <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
           </TabPane>
           <TabPane tabId="2">
             {displaySwagger ?

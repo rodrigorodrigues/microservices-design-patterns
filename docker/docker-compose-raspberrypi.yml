@@ -21,15 +21,5 @@ services:
         aliases:
           - redisdb
 
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: jaeger
-    ports:
-      - "6831:6831/udp"
-      - "16686:16686"
-    networks:
-      net:
-        aliases:
-          - jaeger
 networks:
   net:

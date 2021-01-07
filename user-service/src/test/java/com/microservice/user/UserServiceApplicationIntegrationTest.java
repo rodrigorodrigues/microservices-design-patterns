@@ -2,7 +2,7 @@ package com.microservice.user;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.model.User;
@@ -11,15 +11,10 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import lombok.SneakyThrows;
 import net.minidev.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,10 +23,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,33 +35,23 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserServiceApplication.class,
         properties = {"configuration.swagger=false"})
-@ContextConfiguration(initializers = UserServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class, classes = UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
+@ContextConfiguration(classes = UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
 public class UserServiceApplicationIntegrationTest {
     @Autowired
     MockMvc client;
@@ -78,9 +60,7 @@ public class UserServiceApplicationIntegrationTest {
     ObjectMapper objectMapper;
 
     @Autowired
-    KeyPair keyPair;
-
-    AtomicBoolean runAtOnce = new AtomicBoolean(true);
+    AuthenticationProperties authenticationProperties;
 
     @TestConfiguration
     static class PopulateDbConfiguration {
@@ -107,50 +87,6 @@ public class UserServiceApplicationIntegrationTest {
             return Stream.of(permissions)
                     .map(Authority::new)
                     .collect(Collectors.toList());
-        }
-    }
-
-    public static class GenerateKeyPairInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
-
-        @SneakyThrows
-        @Override
-        public void initialize(GenericApplicationContext applicationContext) {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(2048);
-            KeyPair kp = kpg.generateKeyPair();
-            RSAPublicKey pub = (RSAPublicKey) kp.getPublic();
-            Key pvt = kp.getPrivate();
-
-            Base64.Encoder encoder = Base64.getEncoder();
-
-            Path privateKeyFile = Files.createTempFile("privateKeyFile", ".key");
-            Path publicKeyFile = Files.createTempFile("publicKeyFile", ".cert");
-
-            Files.write(privateKeyFile,
-                    Arrays.asList("-----BEGIN PRIVATE KEY-----", encoder
-                            .encodeToString(pvt.getEncoded()), "-----END PRIVATE KEY-----"));
-
-            Files.write(publicKeyFile,
-                    Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
-                            .encodeToString(pub.getEncoded()), "-----END PRIVATE KEY-----"));
-
-            applicationContext.registerBean(RSAPublicKey.class, () -> pub);
-            applicationContext.registerBean(KeyPair.class, () -> kp);
-        }
-    }
-
-    @BeforeEach
-    public void setup() {
-        if (runAtOnce.getAndSet(false)) {
-            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                    .keyUse(KeyUse.SIGNATURE)
-                    .algorithm(JWSAlgorithm.RS256)
-                    .keyID("test");
-            JWKSet jwkSet = new JWKSet(builder.build());
-
-            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
-            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
-                    .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
         }
     }
 
@@ -264,10 +200,10 @@ public class UserServiceApplicationIntegrationTest {
                 .jwtID(UUID.randomUUID().toString())
                 .issuer("jwt")
                 .build();
-        JWSSigner signer = new RSASSASigner(keyPair.getPrivate());
+        JWSSigner signer = new MACSigner(authenticationProperties.getJwt().getKeyValue());
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("kid", "test");
-        jsonObject.put("alg", JWSAlgorithm.RS256.getName());
+        jsonObject.put("alg", JWSAlgorithm.HS256.getName());
         jsonObject.put("typ", "JWT");
         SignedJWT signedJWT = new SignedJWT(JWSHeader.parse(jsonObject), jwtClaimsSet);
         signedJWT.sign(signer);

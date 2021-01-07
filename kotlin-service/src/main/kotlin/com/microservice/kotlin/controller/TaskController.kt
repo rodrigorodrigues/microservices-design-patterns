@@ -14,6 +14,7 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -38,7 +39,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
             if (authentication.hasAdminAuthority() || it.wasCreatedBy(authentication.name)) {
                 it
             } else {
-                throw ResponseStatusException(HttpStatus.FORBIDDEN, "User(${authentication.name}) does not have access to this resource")
+                throw AccessDeniedException("User(${authentication.name}) does not have access to this resource")
             }
         }
         .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
@@ -92,7 +93,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
             if (authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN")) || it.createdByUser == authentication.name) {
                 repository.deleteById(id)
             } else {
-                throw ResponseStatusException(HttpStatus.FORBIDDEN, "User(${authentication.name}) does not have access to this resource")
+                throw AccessDeniedException("User(${authentication.name}) does not have access to delete this resource")
             }
         }
 

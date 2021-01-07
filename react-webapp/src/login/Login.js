@@ -58,7 +58,7 @@ class Login extends Component {
       const redirectToPreviousPage = window.localStorage.getItem('redirectToPreviousPage');
       console.log("redirectToPreviousPage: ", redirectToPreviousPage);
       const data = await postWithHeaders('authenticate', loginSubmit, {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')});
-      if (data.id_token) {
+      if (data.access_token) {
         setAuthentication(data);
         if (redirectToPreviousPage !== null) {
           window.localStorage.removeItem('redirectToPreviousPage');

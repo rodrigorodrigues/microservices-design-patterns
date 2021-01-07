@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/ericchiang/k8s"
-	corev1 "github.com/ericchiang/k8s/apis/core/v1"
 	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/consul/api"
 	"github.com/labstack/echo-contrib/jaegertracing"
@@ -18,6 +16,9 @@ import (
 	"go-service/posts-api/util"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	restK8s "k8s.io/client-go/rest"
 	"net/http"
 	"strings"
 )
@@ -74,27 +75,28 @@ func processKubernetes() echo.MiddlewareFunc {
 	if strings.Contains(profile, "prod") {
 		return processJwt(nil)
 	} else {
-
-		client, err := k8s.NewInClusterClient()
+		// creates the in-cluster config
+		config, err := restK8s.InClusterConfig()
 		if err != nil {
-			panic(err)
+			panic(err.Error())
 		}
 
-		var nodes corev1.NodeList
-		ctx := context.Background()
-		if err := client.List(ctx, "", &nodes); err != nil {
-			panic(err)
+		// creates the client
+		client, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			panic(err.Error())
 		}
 
-		var configMap corev1.ConfigMap
-		if err := client.Get(ctx, "default", "go-service", &configMap); err != nil {
-			panic(err)
+		get, err := client.CoreV1().ConfigMaps("default").Get(context.TODO(), "go-service", metav1.GetOptions{})
+		if err != nil {
+			panic(err.Error())
 		}
+
 		yamlMap := make(map[interface{}]interface{})
-		if err = yaml.Unmarshal([]byte(configMap.String()), yamlMap); err != nil {
+		if err = yaml.Unmarshal([]byte(get.String()), yamlMap); err != nil {
 			panic(err)
 		}
-		log.debug(fmt.Sprintf("yaml confiMap = %v", yamlMap))
+		log.Debug(fmt.Sprintf("yaml confiMap = %v", yamlMap))
 		key := yamlMap["security"].(map[interface{}]interface{})["oauth2"].(map[interface{}]interface{})["resource"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
 		if key == nil {
 			panic("Not found jwt")
@@ -125,7 +127,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 	middlewareObj := middleware.JWT([]byte("secret"))
 	profile := util.GetEnv("SPRING_PROFILES_ACTIVE")
 	if strings.Contains(profile, "prod") {
-		bytes, err := ioutil.ReadFile(util.GetEnv("PUBLIC_KEY_PATH"))
+		bytes, err := ioutil.ReadFile(util.GetEnv("JWT_PUBLIC_KEY"))
 		if err != nil {
 			panic(err)
 		}
@@ -150,7 +152,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 			panic(err)
 		}
 		
-		key := yamlMap["security"].(map[interface{}]interface{})["oauth2"].(map[interface{}]interface{})["resource"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
+		key := yamlMap["com"].(map[interface{}]interface{})["microservice"].(map[interface{}]interface{})["authentication"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
 		if key == nil {
 			panic("Not found jwt")
 		}

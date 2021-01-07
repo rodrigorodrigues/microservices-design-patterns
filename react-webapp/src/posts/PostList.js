@@ -53,7 +53,7 @@ class PostList extends Component {
 
       if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_READ' 
       || item === 'ROLE_POST_READ' || item === 'ROLE_POST_CREATE' 
-      || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE')) {
+      || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
@@ -101,11 +101,11 @@ class PostList extends Component {
   render() {
     const { posts, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
 
-    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_CREATE');
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_CREATE' || item === 'SCOPE_openid');
 
-    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_SAVE');
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_SAVE' || item === 'SCOPE_openid');
 
-    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_DELETE');
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_DELETE' || item === 'SCOPE_openid');
 
     const postList = posts.map(post => {
       return <tr key={post.id}>

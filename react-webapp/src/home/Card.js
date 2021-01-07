@@ -20,16 +20,12 @@ const Card = ({ card, bgcolor = "" }) => {
       <h1>
         <br />
         Card #{card}
-        {card === '4' && <div style={{
-          marginLeft: '50pc',
-          padding: '15px 20px 0 20px'
-      }}>
+        {card === '4' && 
         <FormGroup verticalAlign="center" className="col-md-3 mb-3">
             <Button color="primary" block type="button" onClick={() => window.location.href=`${googleOauthUrl}`}>
               <i className="fa fa-fw fa-google" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} /> Google login
             </Button>
-        </FormGroup>
-            </div>}
+        </FormGroup>}
       </h1>
     </div>
   );

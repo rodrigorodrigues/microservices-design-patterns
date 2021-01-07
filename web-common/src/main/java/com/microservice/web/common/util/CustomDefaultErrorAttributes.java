@@ -6,6 +6,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.context.request.WebRequest;
@@ -46,6 +47,8 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
             httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (ex instanceof ConstraintViolationException) {
             httpStatus = HttpStatus.BAD_REQUEST;
+        } else if (ex instanceof AccessDeniedException) {
+            httpStatus = HttpStatus.FORBIDDEN;
         }
         return httpStatus;
     }

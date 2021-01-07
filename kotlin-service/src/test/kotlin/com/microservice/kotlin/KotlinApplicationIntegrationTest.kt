@@ -1,54 +1,41 @@
 package com.microservice.kotlin
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.jayway.jsonpath.JsonPath.read
+import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.jwk.JWKSet
-import com.nimbusds.jose.jwk.KeyUse
-import com.nimbusds.jose.jwk.RSAKey
-import lombok.SneakyThrows
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.annotation.Bean
-import org.springframework.context.support.GenericApplicationContext
-import org.springframework.http.*
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.nio.file.Files
-import java.security.Key
-import java.security.KeyPair
-import java.security.KeyPairGenerator
-import java.security.interfaces.RSAPublicKey
-import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Supplier
+import java.nio.charset.StandardCharsets
+import javax.crypto.spec.SecretKeySpec
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(initializers = [KotlinApplicationIntegrationTest.GenerateKeyPairInitializer::class], classes = [KotlinApplicationIntegrationTest.PopulateDbConfiguration::class])
-@AutoConfigureMockMvc @AutoConfigureWireMock(port = 0)
+@ContextConfiguration(classes = [KotlinApplicationIntegrationTest.PopulateDbConfiguration::class])
 class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
-                                       @Autowired val keyPair: KeyPair) {
+                                       @Autowired val authenticationProperties: AuthenticationProperties,
+                                       @Autowired val taskRepository: TaskRepository) {
 
-    var runAtOnce = AtomicBoolean(true)
-
-    var jwtTokenUtil = JwtTokenUtil(keyPair)
+    var jwtTokenUtil = JwtTokenUtil(authenticationProperties)
 
     @TestConfiguration
     class PopulateDbConfiguration {
@@ -66,41 +53,11 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
                 }
             }
         }
-    }
 
-    class GenerateKeyPairInitializer : ApplicationContextInitializer<GenericApplicationContext> {
-        @SneakyThrows
-        override fun initialize(applicationContext: GenericApplicationContext) {
-            val kpg = KeyPairGenerator.getInstance("RSA")
-            kpg.initialize(2048)
-            val kp = kpg.generateKeyPair()
-            val pub = kp.public as RSAPublicKey
-            val pvt: Key = kp.private
-            val encoder = Base64.getEncoder()
-            val privateKeyFile = Files.createTempFile("privateKeyFile", ".key")
-            val publicKeyFile = Files.createTempFile("publicKeyFile", ".cert")
-            Files.write(privateKeyFile,
-                Arrays.asList("-----BEGIN PRIVATE KEY-----", encoder
-                    .encodeToString(pvt.encoded), "-----END PRIVATE KEY-----"))
-            Files.write(publicKeyFile,
-                Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
-                    .encodeToString(pub.encoded), "-----END PRIVATE KEY-----"))
-            applicationContext.registerBean(RSAPublicKey::class.java, Supplier { pub })
-            applicationContext.registerBean(KeyPair::class.java, Supplier { kp })
-        }
-    }
-
-    @BeforeEach
-    fun setup() {
-        if (runAtOnce.getAndSet(false)) {
-            val builder = RSAKey.Builder(keyPair!!.public as RSAPublicKey)
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID("test")
-            val jwkSet = JWKSet(builder.build())
-            val jsonPublicKey = jwkSet.toJSONObject().toJSONString()
-            WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/.well-known/jwks.json"))
-                .willReturn(WireMock.aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)))
+        @Bean
+        fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder? {
+            val secretKeySpec = SecretKeySpec(properties.jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
         }
     }
 
@@ -178,10 +135,24 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     @DisplayName("When Calling GET - /api/tasks with different role should response 403 - Forbidden")
     fun shouldResponseForbiddenWhenRoleIsNotAppropriatedToListOfTask() {
         val headers = HttpHeaders()
-        val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("TASK_DELETE")))
+        val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_PERSON_DELETE")))
         headers.add(HttpHeaders.AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
         val responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
     }
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/tasks/{id} without valid authorization should response 403 - Forbidden")
+    fun shouldResponseForbiddenWhenCallGetApiWithoutRightPermission() {
+        val id = taskRepository.findAll().iterator().next().id
+        val headers = HttpHeaders()
+        val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_TASK_READ")))
+        headers.add(HttpHeaders.AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
+        val responseEntity = restTemplate.exchange("/api/tasks/{id}", HttpMethod.GET, HttpEntity(null, headers), String::class.java, id)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        assertThat(read<String>(responseEntity.body, "$.message")).contains("User(user) does not have access to this resource")
+    }
+
 }

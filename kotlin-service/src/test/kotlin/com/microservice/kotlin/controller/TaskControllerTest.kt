@@ -1,17 +1,12 @@
 package com.microservice.kotlin.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration
-import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration
+import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.JwtTokenUtil
-import com.microservice.kotlin.KotlinApplicationIntegrationTest
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.jwk.JWKSet
-import com.nimbusds.jose.jwk.KeyUse
-import com.nimbusds.jose.jwk.RSAKey
+import com.microservice.web.autoconfigure.WebCommonAutoConfiguration
 import com.querydsl.core.types.Predicate
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.BeforeEach
@@ -24,64 +19,52 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.context.support.GenericApplicationContext
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.support.PageableExecutionUtils
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
-import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.test.context.ContextConfiguration
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import java.security.KeyPair
-import java.security.interfaces.RSAPublicKey
+import java.nio.charset.StandardCharsets
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Supplier
+import javax.crypto.spec.SecretKeySpec
 
 @WebMvcTest(properties = ["configuration.initialLoad=false", "configuration.mongo=false"], controllers = [TaskController::class], excludeAutoConfiguration = [MongoAutoConfiguration::class])
-@ContextConfiguration(initializers = [KotlinApplicationIntegrationTest.GenerateKeyPairInitializer::class, TaskControllerTest.JwtDecoderInitializer::class])
-@AutoConfigureWireMock(port = 0)
-@Import(AuthenticationCommonConfiguration::class, ActuatorResourceServerConfiguration::class)
+@Import(AuthenticationCommonConfiguration::class, WebCommonAutoConfiguration::class)
 @EnableConfigurationProperties(ResourceServerProperties::class)
 internal class TaskControllerTest(@Autowired val client: MockMvc,
                                   @Autowired val objectMapper: ObjectMapper,
-                                  @Autowired val keyPair: KeyPair) {
+                                  @Autowired val authenticationProperties: AuthenticationProperties) {
     @MockBean lateinit var taskRepository: TaskRepository
 
-    var runAtOnce = AtomicBoolean(true)
+    var jwtTokenUtil = JwtTokenUtil(authenticationProperties)
 
-    var jwtTokenUtil = JwtTokenUtil(keyPair)
+    @TestConfiguration
+    internal class MockConfiguration {
+        @Bean
+        fun taskRepository(): TaskRepository {
+            return mock(TaskRepository::class.java)
+        }
 
-    internal class JwtDecoderInitializer : ApplicationContextInitializer<GenericApplicationContext> {
-        override fun initialize(applicationContext: GenericApplicationContext) {
-            applicationContext.registerBean(TaskRepository::class.java, Supplier { mock(TaskRepository::class.java) })
+        @Bean
+        fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder? {
+            val secretKeySpec = SecretKeySpec(properties.jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
         }
     }
 
     @BeforeEach
     fun setup() {
-        if (runAtOnce.getAndSet(false)) {
-            val builder = RSAKey.Builder(keyPair!!.public as RSAPublicKey)
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID("test")
-            val jwkSet = JWKSet(builder.build())
-            val jsonPublicKey = jwkSet.toJSONObject().toJSONString()
-            WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/.well-known/jwks.json"))
-                .willReturn(WireMock.aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)))
-        }
-
         `when`(taskRepository.findAll(any(Predicate::class.java), any(Pageable::class.java))).thenReturn(PageableExecutionUtils.getPage(listOf(
             Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "admin"),
             Task(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "anonymous")

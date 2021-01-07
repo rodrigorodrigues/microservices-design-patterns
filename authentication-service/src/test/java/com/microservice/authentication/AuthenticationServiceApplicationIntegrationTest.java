@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.dto.JwtTokenDto;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -38,8 +37,9 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -72,6 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
+@ActiveProfiles("prod")
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
@@ -235,7 +236,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
-        formData.add("rememberMe", "false");
 
         MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
             .params(formData)
@@ -243,7 +243,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.id_token", is(notNullValue())))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())))
             .andExpect(cookie().value("SESSIONID", is(notNullValue())))
             .andReturn();
 
@@ -251,10 +251,10 @@ public class AuthenticationServiceApplicationIntegrationTest {
         String responseBody = response
             .getContentAsString();
 
-        JwtTokenDto auth = objectMapper.readValue(responseBody, JwtTokenDto.class);
+        OAuth2AccessToken accessToken = objectMapper.readValue(responseBody, OAuth2AccessToken.class);
 
-        assertThat(auth).isNotNull();
-        assertThat(auth.getIdToken()).isNotEmpty();
+        assertThat(accessToken).isNotNull();
+        assertThat(accessToken.getValue()).isNotEmpty();
 
         mockMvc.perform(get("/api/authenticatedUser")
             .with(csrf())
@@ -263,7 +263,20 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.id_token", is(notNullValue())));
+            .andExpect(jsonPath("$.access_token", is(notNullValue())));
+
+        formData = new LinkedMultiValueMap<>();
+        formData.add("refresh_token", accessToken.getRefreshToken().getValue());
+
+        mockMvc.perform(post("/api/refreshToken")
+            .with(csrf())
+            .cookie(response.getCookies())
+            .params(formData))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())));
 
 /*
         String sessionId = "spring:session:index:org.springframework.session.FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME:master@gmail.com";
@@ -323,7 +336,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .expirationTime(Date.from(ZonedDateTime.now().plusMinutes(1).toInstant()))
             .issueTime(new Date())
             .notBeforeTime(new Date())
-            .claim("authorities", Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")))
+            .claim("authorities", Collections.singletonList("ROLE_ADMIN"))
             .jwtID(UUID.randomUUID().toString())
             .issuer("jwt")
             .build();

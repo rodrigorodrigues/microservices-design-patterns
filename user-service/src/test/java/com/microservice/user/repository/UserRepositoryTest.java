@@ -10,16 +10,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-@ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
 @Import(ObjectMapper.class)
@@ -27,6 +28,15 @@ class UserRepositoryTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @TestConfiguration
+    static class MockConfiguration {
+
+        @Bean
+        public JwtDecoder jwtDecoder() {
+            return mock(JwtDecoder.class);
+        }
+    }
 
     @BeforeEach
     public void setup() {

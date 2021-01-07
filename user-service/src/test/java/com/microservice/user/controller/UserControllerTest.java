@@ -2,20 +2,13 @@ package com.microservice.user.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration;
-import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
-import com.microservice.user.UserServiceApplicationIntegrationTest;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.repository.UserRepository;
 import com.microservice.user.service.UserService;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.microservice.web.autoconfigure.WebCommonAutoConfiguration;
 import com.querydsl.core.types.Predicate;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,42 +17,33 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.security.KeyPair;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -67,9 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "configuration.initialLoad=false",
         "configuration.mongo=false"},
         controllers = UserController.class, excludeAutoConfiguration = MongoAutoConfiguration.class)
-@ContextConfiguration(initializers = {UserServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class, UserControllerTest.JwtDecoderInitializer.class})
-@AutoConfigureWireMock(port = 0)
-@Import({AuthenticationCommonConfiguration.class, ActuatorResourceServerConfiguration.class})
+@Import({AuthenticationCommonConfiguration.class, WebCommonAutoConfiguration.class})
 @EnableConfigurationProperties(ResourceServerProperties.class)
 public class UserControllerTest {
 
@@ -88,32 +70,19 @@ public class UserControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    KeyPair keyPair;
+    @TestConfiguration
+    static class MockConfiguration {
 
-    AtomicBoolean runAtOnce = new AtomicBoolean(true);
-
-    static class JwtDecoderInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
-
-        @Override
-        public void initialize(GenericApplicationContext applicationContext) {
-            applicationContext.registerBean(UserRepository.class, () -> mock(UserRepository.class));
+        @Bean
+        public UserRepository personRepository() {
+            return mock(UserRepository.class);
         }
-    }
 
-    @BeforeEach
-    public void setup() {
-        if (runAtOnce.getAndSet(false)) {
-            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                    .keyUse(KeyUse.SIGNATURE)
-                    .algorithm(JWSAlgorithm.RS256)
-                    .keyID("test");
-            JWKSet jwkSet = new JWKSet(builder.build());
-
-            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
-            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
-                    .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
+        @Bean
+        public JwtDecoder jwtDecoder() {
+            return mock(JwtDecoder.class);
         }
+
     }
 
     @Test

@@ -39,26 +39,6 @@ def ocr_core(filename):
     """
     This function will handle the core OCR processing of images.
     """
-    # prepare_folders()
-    #
-    # dir_path = os.getcwd()
-    # config = read_config(config=dir_path + "/config.yml")
-    # data = process_receipt(config, filename)
-    # if not str(filename).endswith(".pdf"):
-    #     pdf = pytesseract.image_to_pdf_or_hocr(filename, extension='pdf')
-    #     filename = filename[:-3] + 'pdf'
-    #     f = open(filename, 'w+b')
-    #     f.write(pdf)
-    #     f.close()
-    # parser = TesseractParser(debug=True, iterations=3)
-    # data = parser.parse_pdf(filename, save_crop=True)
-    # log.debug('Data: %s', data.lines)
-
-    # We'll use Pillow's Image class to open the image and pytesseract to detect the string in the image
-    # Then we will print the text in the image
-    # data = pytesseract.image_to_string(Image.open(filename))
-    # current_linenum = 0
-    # current_line = ''
     img = _convert_image_to_bytes(filename)
 
     data = pytesseract.image_to_string(img)

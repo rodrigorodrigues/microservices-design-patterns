@@ -2,7 +2,7 @@ package com.microservice.person;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
@@ -16,13 +16,9 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.*;
@@ -32,27 +28,22 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import javax.crypto.spec.SecretKeySpec;
+import javax.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPublicKey;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.Month;
@@ -61,13 +52,11 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
@@ -75,9 +64,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
             "logging.level.com.microservice=debug"})
-@ContextConfiguration(initializers = PersonServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class, classes = PersonServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
+@ContextConfiguration(classes = PersonServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
 public class PersonServiceApplicationIntegrationTest {
 
 	@Autowired
@@ -99,7 +87,7 @@ public class PersonServiceApplicationIntegrationTest {
     SpringSecurityAuditorAware springSecurityAuditorAware;
 
     @Autowired
-    KeyPair keyPair;
+    AuthenticationProperties authenticationProperties;
 
 	Person person;
 
@@ -125,36 +113,11 @@ public class PersonServiceApplicationIntegrationTest {
                 }
             };
         }
-    }
 
-    public static class GenerateKeyPairInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
-
-        @SneakyThrows
-        @Override
-        public void initialize(GenericApplicationContext applicationContext) {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(2048);
-            KeyPair kp = kpg.generateKeyPair();
-            RSAPublicKey pub = (RSAPublicKey) kp.getPublic();
-            Key pvt = kp.getPrivate();
-
-            Base64.Encoder encoder = Base64.getEncoder();
-
-            Path privateKeyFile = Files.createTempFile("privateKeyFile", ".key");
-            Path publicKeyFile = Files.createTempFile("publicKeyFile", ".cert");
-
-            Files.write(privateKeyFile,
-                Arrays.asList("-----BEGIN PRIVATE KEY-----", encoder
-                    .encodeToString(pvt.getEncoded()), "-----END PRIVATE KEY-----"));
-            log.debug("Loaded private key: {}", privateKeyFile);
-
-            Files.write(publicKeyFile,
-                Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
-                    .encodeToString(pub.getEncoded()), "-----END PRIVATE KEY-----"));
-            log.debug("Loaded public key: {}", publicKeyFile);
-
-            applicationContext.registerBean(RSAPublicKey.class, () -> pub);
-            applicationContext.registerBean(KeyPair.class, () -> kp);
+        @Bean
+        JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(properties.getJwt().getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
         }
     }
 
@@ -169,16 +132,6 @@ public class PersonServiceApplicationIntegrationTest {
     @BeforeEach
     public void setup() {
         if (runAtOnce.getAndSet(false)) {
-            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID("test");
-            JWKSet jwkSet = new JWKSet(builder.build());
-
-            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
-            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
-                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
-
             users.entrySet().stream()
                 .map(e -> Authentication.builder().email(e.getKey())
                     .password(passwordEncoder.encode("password123"))
@@ -208,12 +161,12 @@ public class PersonServiceApplicationIntegrationTest {
 	    personRepository.save(person);
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 
-		client.perform(MockMvcRequestBuilders.get("/api/people")
+		client.perform(get("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader))
 				.andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[*].id", hasSize(1)));
 
-        client.perform(MockMvcRequestBuilders.get("/api/people")
+        client.perform(get("/api/people")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].createdByUser", equalTo("master@gmail.com")))
@@ -225,7 +178,7 @@ public class PersonServiceApplicationIntegrationTest {
     public void shouldReturnListOfAllPeopleWhenCallApi() throws Exception {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
-        client.perform(MockMvcRequestBuilders.get("/api/people")
+        client.perform(get("/api/people")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements", equalTo(3)))
@@ -237,7 +190,7 @@ public class PersonServiceApplicationIntegrationTest {
     public void shouldReturnListOfAllPeopleAndPagingWhenCallApi() throws Exception {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
-        client.perform(MockMvcRequestBuilders.get("/api/people?size=2")
+        client.perform(get("/api/people?size=2")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[*].id", hasSize(2)));
@@ -248,17 +201,17 @@ public class PersonServiceApplicationIntegrationTest {
     public void shouldReturnListOfAllPeopleWithQueryDslCallApi() throws Exception {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
-        client.perform(MockMvcRequestBuilders.get("/api/people?address.address=street")
+        client.perform(get("/api/people?address.address=street")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[*].id", hasSize(3)));
 
-        client.perform(MockMvcRequestBuilders.get("/api/people?address.address=123")
+        client.perform(get("/api/people?address.address=123")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[*].id", hasSize(1)));
 
-        client.perform(MockMvcRequestBuilders.get("/api/people?address.address=something else")
+        client.perform(get("/api/people?address.address=something else")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content", is(empty())));
@@ -270,7 +223,7 @@ public class PersonServiceApplicationIntegrationTest {
 		String authorizationHeader = authorizationHeader("master@gmail.com");
 		PersonDto person = createPerson();
 
-		String response = client.perform(MockMvcRequestBuilders.post("/api/people")
+		String response = client.perform(post("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(convertToJson(person)))
@@ -300,7 +253,6 @@ public class PersonServiceApplicationIntegrationTest {
         }
     }
 
-    @Disabled
     @Test
     @DisplayName("Test - When Calling POST - /api/people without mandatory field should response 400 - Bad Request")
 	public void shouldResponseBadRequestWhenCallApiWithoutValidRequest() throws Exception {
@@ -309,12 +261,15 @@ public class PersonServiceApplicationIntegrationTest {
 		PersonDto person = createPerson();
 		person.setFullName("");
 
-		client.perform(MockMvcRequestBuilders.post("/api/people")
+		Exception exception = Assertions.assertThrows(Exception.class, () -> client.perform(post("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(convertToJson(person)))
 				.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", containsString("fullName: size must be between 5 and 200")));
+                .andExpect(jsonPath("$.message", containsString("fullName: size must be between 5 and 200"))));
+
+		assertThat(exception.getCause()).isInstanceOf(ConstraintViolationException.class);
+		assertThat(exception.getLocalizedMessage()).contains("fullName: size must be between 5 and 200", "fullName: must not be empty");
 	}
 
 	@Test
@@ -324,12 +279,24 @@ public class PersonServiceApplicationIntegrationTest {
 
 		PersonDto person = createPerson();
 
-		client.perform(MockMvcRequestBuilders.post("/api/people")
+		client.perform(post("/api/people")
 				.header(HttpHeaders.AUTHORIZATION, authorizationHeader)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(convertToJson(person)))
 				.andExpect(status().isForbidden());
 	}
+
+    @Test
+    @DisplayName("Test - When Calling GET - /api/people/{id} without valid authorization should response 403 - Forbidden")
+    public void shouldResponseForbiddenWhenCallGetApiWithoutRightPermission() throws Exception {
+        String authorizationHeader = authorizationHeader("anonymous@gmail.com");
+        String id = personRepository.findAll().iterator().next().getId();
+
+        client.perform(get("/api/people/{id}", id)
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message", containsString("User(anonymous@gmail.com) does not have access to this resource")));
+    }
 
 	private String authorizationHeader(String user) throws ParseException, JOSEException {
         if (users.containsKey(user)) {
@@ -342,10 +309,10 @@ public class PersonServiceApplicationIntegrationTest {
                 .jwtID(UUID.randomUUID().toString())
                 .issuer("jwt")
                 .build();
-            JWSSigner signer = new RSASSASigner(keyPair.getPrivate());
+            JWSSigner signer = new MACSigner(authenticationProperties.getJwt().getKeyValue());
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("kid", "test");
-            jsonObject.put("alg", JWSAlgorithm.RS256.getName());
+            jsonObject.put("alg", JWSAlgorithm.HS256.getName());
             jsonObject.put("typ", "JWT");
             SignedJWT signedJWT = new SignedJWT(JWSHeader.parse(jsonObject), jwtClaimsSet);
             signedJWT.sign(signer);

@@ -29,10 +29,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 
@@ -66,12 +63,12 @@ public class AuthenticationCommonConfiguration {
     @Bean
     @ConditionalOnMissingBean(TokenStore.class)
     public TokenStore jwtTokenStore() {
-        return new JwtTokenStore(jwtTokenEnhancer());
+        return new JwtTokenStore(jwtAccessTokenConverter());
     }
 
     @Primary
     @Bean
-    public JwtAccessTokenConverter jwtTokenEnhancer() {
+    public JwtAccessTokenConverter jwtAccessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter() {
             @Override
             public OAuth2AccessToken enhance(
@@ -101,8 +98,12 @@ public class AuthenticationCommonConfiguration {
                 additionalInfo.put("nbf", currentTime);
                 additionalInfo.put("iss", authenticationProperties.getIssuer());
                 additionalInfo.put("aud", authenticationProperties.getAud());
-                ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
-                return super.enhance(accessToken, authentication);
+                additionalInfo.put("jti", UUID.randomUUID().toString());
+
+                DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(accessToken);
+                defaultOAuth2AccessToken.setAdditionalInformation(additionalInfo);
+                defaultOAuth2AccessToken.setValue(encode(defaultOAuth2AccessToken, authentication));
+                return defaultOAuth2AccessToken;
             }
         };
         ResourceServerProperties.Jwt jwt = this.authenticationProperties.getJwt();

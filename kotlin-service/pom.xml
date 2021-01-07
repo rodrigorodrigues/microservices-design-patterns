@@ -140,12 +140,6 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -157,7 +151,7 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <configuration>
                     <args>
-                        <arg>-Xjvm-default=all</arg>
+                        <arg>-Xjvm-default=enable</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>

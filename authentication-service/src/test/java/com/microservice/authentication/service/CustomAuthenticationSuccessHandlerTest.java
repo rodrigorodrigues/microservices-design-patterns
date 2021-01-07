@@ -44,7 +44,7 @@ class CustomAuthenticationSuccessHandlerTest {
         OAuth2AccessToken auth2AccessToken = mock(OAuth2AccessToken.class);
         when(auth2AccessToken.getTokenType()).thenReturn("Bearer");
         when(auth2AccessToken.getValue()).thenReturn("Mock JWT");
-        when(redisTokenStoreService.generateToken(any(Authentication.class), any(OAuth2Authentication.class))).thenReturn(auth2AccessToken);
+        when(redisTokenStoreService.generateToken(any(OAuth2Authentication.class))).thenReturn(auth2AccessToken);
 
         CustomAuthenticationSuccessHandler handler = new CustomAuthenticationSuccessHandler(authenticationCommonRepository, redisTokenStoreService);
 

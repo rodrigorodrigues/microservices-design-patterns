@@ -38,7 +38,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             true, authenticationCommonRepository.findByEmail(oidcUser.getEmail()).getScopes(), null, null, null, null);
         OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
 
-        OAuth2AccessToken token = redisTokenStoreService.generateToken(authentication, oAuth2Authentication);
+        OAuth2AccessToken token = redisTokenStoreService.generateToken(oAuth2Authentication);
         response.addHeader(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
 
         super.onAuthenticationSuccess(request, response, authentication);

@@ -1,4 +1,4 @@
-from core.database_setup import db
+from .database_setup import db
 import datetime
 
 

@@ -2,63 +2,47 @@ package com.microservice.person.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration;
-import com.microservice.authentication.resourceserver.config.ActuatorResourceServerConfiguration;
-import com.microservice.person.PersonServiceApplicationIntegrationTest;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.repository.PersonRepository;
 import com.microservice.person.service.PersonService;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.microservice.web.autoconfigure.WebCommonAutoConfiguration;
 import com.querydsl.core.types.Predicate;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.security.KeyPair;
-import java.security.interfaces.RSAPublicKey;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -66,9 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "configuration.initialLoad=false",
         "configuration.mongo=false"},
 controllers = PersonController.class, excludeAutoConfiguration = MongoAutoConfiguration.class)
-@ContextConfiguration(initializers = {PersonServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class, PersonControllerTest.JwtDecoderInitializer.class})
-@AutoConfigureWireMock(port = 0)
-@Import({AuthenticationCommonConfiguration.class, ActuatorResourceServerConfiguration.class})
+@Import({AuthenticationCommonConfiguration.class, WebCommonAutoConfiguration.class})
 public class PersonControllerTest {
 
     @Autowired
@@ -86,32 +68,19 @@ public class PersonControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired
-    KeyPair keyPair;
+    @TestConfiguration
+    static class MockConfiguration {
 
-    AtomicBoolean runAtOnce = new AtomicBoolean(true);
-
-    static class JwtDecoderInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
-
-        @Override
-        public void initialize(GenericApplicationContext applicationContext) {
-            applicationContext.registerBean(PersonRepository.class, () -> mock(PersonRepository.class));
+        @Bean
+        public PersonRepository personRepository() {
+            return mock(PersonRepository.class);
         }
-    }
 
-    @BeforeEach
-    public void setup() {
-        if (runAtOnce.getAndSet(false)) {
-            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID("test");
-            JWKSet jwkSet = new JWKSet(builder.build());
-
-            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
-            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
-                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
+        @Bean
+        public JwtDecoder jwtDecoder() {
+            return mock(JwtDecoder.class);
         }
+
     }
 
     @Test
@@ -204,8 +173,8 @@ public class PersonControllerTest {
 
         client.perform(MockMvcRequestBuilders.get("/api/people/{id}", 100)
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
-            .andExpect(status().isForbidden());
-//            .andExpect(jsonPath("$.message", containsString("User(test) does not have access to this resource")));
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message", containsString("User(test) does not have access to this resource")));
     }
 
     @Test
@@ -224,10 +193,9 @@ public class PersonControllerTest {
                 .andExpect(jsonPath("$.id", is(personDto.getId())));
     }
 
-    @Disabled
     @Test
     @DisplayName("Test - When Calling PUT - /api/people/{id} with valid authorization the response should be a person - 200 - OK")
-    @WithMockUser(roles = "PERSON_SAVE", username = "something")
+    @WithMockUser(roles = "PERSON_SAVE", username = "me")
     public void whenCallUpdateShouldUpdatePerson() throws Exception {
         PersonDto personDto = createPersonDto();
         personDto.setId(UUID.randomUUID().toString());
@@ -245,10 +213,9 @@ public class PersonControllerTest {
                 .andExpect(jsonPath("$.fullName", is(personDto.getFullName())));
     }
 
-    @Disabled
     @Test
     @DisplayName("Test - When Calling PUT - /api/people/{id} with invalid id the response should be 404 - Not Found")
-    @WithMockUser(roles = "PERSON_READ", username = "something")
+    @WithMockUser(roles = "PERSON_SAVE", username = "me")
     public void whenCallUpdateShouldResponseNotFound() throws Exception {
         PersonDto personDto = createPersonDto();
         personDto.setId("999");
@@ -287,8 +254,8 @@ public class PersonControllerTest {
 
         client.perform(delete("/api/people/{id}", person.getId())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
-            .andExpect(status().isForbidden());
-//            .andExpect(jsonPath("$.message", containsString("User(test) does not have access to delete this resource")));
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message", containsString("User(test) does not have access to delete this resource")));
     }
 
     @Test
@@ -312,6 +279,7 @@ public class PersonControllerTest {
         return PersonDto.builder()
                 .id(UUID.randomUUID().toString())
                 .dateOfBirth(LocalDate.now())
+                .createdByUser("me")
                 .fullName("Admin")
                 .build();
     }

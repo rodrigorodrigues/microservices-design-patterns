@@ -52,7 +52,7 @@ class ProductList extends Component {
 
       if (!permissions.some(item => item === 'ROLE_ADMIN' 
       || item === 'ROLE_PRODUCT_READ' || item === 'ROLE_PRODUCT_CREATE' 
-      || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE')) {
+      || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
@@ -95,7 +95,13 @@ class ProductList extends Component {
   }
 
   render() {
-    const { products, isLoading, displayError, displayAlert, displaySwagger, expanded } = this.state;
+    const { products, isLoading, displayError, displayAlert, displaySwagger, expanded, authorities } = this.state;
+
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_CREATE' || item === 'SCOPE_openid');
+
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_SAVE' || item === 'SCOPE_openid');
+
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_DELETE' || item === 'SCOPE_openid');
 
     const productList = products.map(product => {
       return <tr key={product._id.$oid}>
@@ -105,8 +111,8 @@ class ProductList extends Component {
         <td style={{whiteSpace: 'nowrap'}}>{product.category}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/products/" + product._id.$oid}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({'id': product._id.$oid, 'name': product.name})}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/products/" + product._id.$oid} disabled={!hasSaveAccess}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': product._id.$oid, 'name': product.name})} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -138,7 +144,7 @@ class ProductList extends Component {
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId="1">
             <div className="float-right">
-              <Button color="success" tag={Link} to="/products/new">Add Product</Button>
+              <Button color="success" tag={Link} to="/products/new" disabled={!hasCreateAccess || displayAlert}>Add Product</Button>
             </div>
 
             <Table striped responsive>

@@ -23,7 +23,7 @@ scrape_configs:
         metrics_path: '/actuator/prometheus'
 
         consul_sd_configs:
-        - server:   'http://service-discovery:8761'
+        - server:   'http://service-discovery:8500'
 
         relabel_configs:
         - source_labels: ['__meta_consul_service']

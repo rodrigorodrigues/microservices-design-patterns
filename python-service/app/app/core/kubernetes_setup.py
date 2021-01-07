@@ -8,20 +8,19 @@ log = logging.getLogger(__name__)
 
 
 def initialize_kubernetes_client(app):
-    config.load_kube_config()
+    config.load_incluster_config()
     v1 = client.CoreV1Api()
-    field_selector = "app=python-service"
-    config_map = v1.list_namespaced_config_map(namespace='default', pretty=True, field_selector=field_selector)
+    config_map = v1.read_namespaced_config_map(name="python-service", namespace='default', pretty=True)
     log.debug('config_map: %s', config_map)
     profile = app.config['SPRING_PROFILES_ACTIVE']
-    if profile != 'prod':
+    if not str(profile).__contains__('prod'):
         jwt_secret = ""
-        for data in yaml.load_all(config_map, Loader=yaml.BaseLoader):
-            try:
+        try:
+            for data in yaml.load_all(config_map, Loader=yaml.BaseLoader):
                 jwt_secret = data['com']['microservice']['authentication']['jwt']['keyValue']
                 break
-            except Exception:
-                log.warning("Not found jwt_secret")
+        except Exception:
+            log.warning("Not found jwt_secret")
 
         if jwt_secret == "":
             raise Exception("jwt_secret not found")

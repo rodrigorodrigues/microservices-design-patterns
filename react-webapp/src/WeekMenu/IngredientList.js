@@ -52,7 +52,7 @@ class IngredientList extends Component {
 
       if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_INGREDIENT_READ' 
       || item === 'ROLE_INGREDIENT_READ' || item === 'ROLE_INGREDIENT_CREATE' 
-      || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE')) {
+      || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
