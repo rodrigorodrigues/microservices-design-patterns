@@ -36,16 +36,25 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      -
+        name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./go-service
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: fielcapao/microservices-design-patterns-go-service:latest
 
-      # Build the Docker image with Maven
-      - name: Build
-        run: |
-          sed -i 's/golang:1.15.2-alpine3.12/balenalib\/raspberry-pi-alpine-golang/g' ./go-service/Dockerfile
-          docker build -t fielcapao/microservices-design-patterns-go-service:latest \
-          --build-arg ENV=production \
-          --build-arg PORT="3006" ./go-service
-
-      # Push the Docker image
-      - name: Push
-        run: |
-          docker push fielcapao/microservices-design-patterns-go-service
+#      # Build the Docker image with Maven
+#      - name: Build
+#        run: |
+#          sed -i 's/golang:1.15.2-alpine3.12/balenalib\/raspberry-pi-alpine-golang/g' ./go-service/Dockerfile
+#          docker build -t fielcapao/microservices-design-patterns-go-service:latest \
+#          --build-arg ENV=production \
+#          --build-arg PORT="3006" ./go-service
+#
+#      # Push the Docker image
+#      - name: Push
+#        run: |
+#          docker push fielcapao/microservices-design-patterns-go-service
