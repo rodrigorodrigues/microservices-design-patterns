@@ -13,7 +13,7 @@ Docker images are built in mupltiple platforms(`linux/amd64,linux/arm64`).
 
 Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter.com and create a user.
 
-<img src="https://github.com/rodrigorodrigues/microservices-design-patterns/tree/master/docs/raspberrypi_cluster.jpeg" alt="Raspberry Pi" width="200" height="200">
+![Raspberry Pi Cluster](docs/raspberrypi_cluster.jpeg "Raspberry Pi Cluster")
 
 Feel free to create a new microservice using a different language(`Ruby?, C#?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
