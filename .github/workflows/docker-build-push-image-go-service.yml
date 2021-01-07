@@ -22,7 +22,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -37,8 +37,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      -
-        name: Build and push
+      - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
@@ -48,8 +47,7 @@ jobs:
           push: true
           tags: fielcapao/microservices-design-patterns-go-service:latest
 
-      -
-        name: Image digest
+      - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
 #      # Build the Docker image with Maven
 #      - name: Build
