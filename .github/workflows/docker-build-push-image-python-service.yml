@@ -21,7 +21,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -36,14 +37,28 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./python-service
+          file: ./python-service/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: fielcapao/microservices-design-patterns-python-service:latest
+          build-args: |
+            PORT="3005"
 
-      # Build the Docker image
-      - name: Build
-        run: |
-          docker build -t fielcapao/microservices-design-patterns-python-service:latest \
-          --build-arg PORT="3005" ./python-service
-          
-      # Push the Docker image
-      - name: Push
-        run: |
-          docker push fielcapao/microservices-design-patterns-python-service
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+#      # Build the Docker image
+#      - name: Build
+#        run: |
+#          docker build -t fielcapao/microservices-design-patterns-python-service:latest \
+#          --build-arg PORT="3005" ./python-service
+#
+#      # Push the Docker image
+#      - name: Push
+#        run: |
+#          docker push fielcapao/microservices-design-patterns-python-service
