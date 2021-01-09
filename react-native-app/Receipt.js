@@ -1,28 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import { useShareableState } from './ShareableState';
 
 // import all the components we are going to use
-import { SafeAreaView, Text, StyleSheet, View, FlatList } from 'react-native';
+import { SafeAreaView, Text, StyleSheet, View, FlatList, Linking } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 
 const Receipt = () => {
   const [search, setSearch] = useState('');
   const [filteredDataSource, setFilteredDataSource] = useState([]);
   const [masterDataSource, setMasterDataSource] = useState([]);
+  const [ redirect, setRedirect ] = useState(false);
+  const { getJwt, isLogged } = useShareableState();
 
   useEffect(() => {
-    fetch('http://localhost/api/tasks', {
+    if (!isLogged()) {
+      Linking.openURL('/');
+    } else {
+      fetch(`${process.env.API_GATEWAY_URL}/api/tasks`, {
+        credentials: 'include',
         headers: {
-            'Application'
+          'Content-Type': 'application/json',
+          'Authorization': getJwt()
         }
-    })
+      })
       .then((response) => response.json())
       .then((responseJson) => {
-        setFilteredDataSource(responseJson);
-        setMasterDataSource(responseJson);
+        setFilteredDataSource(responseJson.content);
+        setMasterDataSource(responseJson.content);
       })
       .catch((error) => {
         console.error(error);
       });
+    }
   }, []);
 
   const searchFilterFunction = (text) => {
@@ -32,8 +41,8 @@ const Receipt = () => {
       // Filter the masterDataSource
       // Update FilteredDataSource
       const newData = masterDataSource.filter(function (item) {
-        const itemData = item.title
-          ? item.title.toUpperCase()
+        const itemData = item.name
+          ? item.name.toUpperCase() + item.id
           : ''.toUpperCase();
         const textData = text.toUpperCase();
         return itemData.indexOf(textData) > -1;
@@ -54,7 +63,7 @@ const Receipt = () => {
       <Text style={styles.itemStyle} onPress={() => getItem(item)}>
         {item.id}
         {'.'}
-        {item.title.toUpperCase()}
+        {item.name.toUpperCase()}
       </Text>
     );
   };
@@ -74,7 +83,8 @@ const Receipt = () => {
 
   const getItem = (item) => {
     // Function for click on an item
-    alert('Id : ' + item.id + ' Title : ' + item.title);
+    console.log(`Item: ${item}`);
+    alert('Id : ' + item.id + ' Title : ' + item.name);
   };
 
   return (

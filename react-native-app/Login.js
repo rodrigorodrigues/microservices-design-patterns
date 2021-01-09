@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,28 +8,31 @@ import {
   TextInput,
   Button,
   TouchableOpacity,
+  Linking
 } from "react-native";
 import { showMessage } from "react-native-flash-message";
 import { useShareableState } from './ShareableState';
+import Cookies from 'js-cookie';
  
 export default function Login() {
   const [ email, setEmail ] = useState("");
   const [ password, setPassword ] = useState("");
-  const [ headers, setHeaders ] = useState([]);
-  const { setJwt, setAutenticated } = useShareableState();
+  const { setJwtToken, isLogged } = useShareableState();
+
+  useEffect(() => {
+    if (isLogged()) {
+      Linking.openURL('/');
+    }
+  }, []);
 
   const onLogin = () => {
-      fetch(`${process.env.API_GATEWAY_URL}/api/authenticatedUser`)
-        .then((response) => setHeaders(response.headers))
-        .catch((error) => {
-          console.log("Something went wrong: ", error);
-        });
-
       const body = "username=" + encodeURIComponent(email) + '&password=' + encodeURIComponent(password);
-      fetch(`${process.env.API_GATEWAY_URL}/api/authenticatedUser`, {
+      fetch(`${process.env.API_GATEWAY_URL}/api/authenticate`, {
+            credentials: 'include',
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')
             },
             body: body
         })
@@ -44,8 +47,9 @@ export default function Login() {
                     icon: "auto"
                 });
             } else {
-                setJwt(responseJson);
-                setAutenticated(true);
+                setJwtToken(responseJson);
+                console.log("isLogged: ", isLogged());
+                Linking.openURL('/');
             }
         })
         .catch((error) => {
@@ -57,40 +61,38 @@ export default function Login() {
         icon: "auto"
     });
   }
- 
-  return (
-    <View style={styles.container}>
-      <Image style={styles.image} source={require("./assets/logo.png")} />
- 
-      <StatusBar style="auto" />
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Email."
-          placeholderTextColor="#003f5c"
-          onChangeText={(email) => setEmail(email)}
-        />
-      </View>
- 
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.TextInput}
-          placeholder="Password."
-          placeholderTextColor="#003f5c"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
-      </View>
- 
-      <TouchableOpacity>
-        <Text style={styles.forgot_button}>Forgot Password?</Text>
-      </TouchableOpacity>
- 
-      <TouchableOpacity style={styles.loginBtn} onPress={() => onLogin()}>
-        <Text style={styles.loginText}>LOGIN</Text>
-      </TouchableOpacity>
+
+  return (<View style={styles.container}>
+    <Image style={styles.image} source={require("./assets/logo.png")} />
+
+    <StatusBar style="auto" />
+    <View style={styles.inputView}>
+      <TextInput
+        style={styles.TextInput}
+        placeholder="Email."
+        placeholderTextColor="#003f5c"
+        onChangeText={(email) => setEmail(email)}
+      />
     </View>
-  );
+
+    <View style={styles.inputView}>
+      <TextInput
+        style={styles.TextInput}
+        placeholder="Password."
+        placeholderTextColor="#003f5c"
+        secureTextEntry={true}
+        onChangeText={(password) => setPassword(password)}
+      />
+    </View>
+
+    <TouchableOpacity>
+      <Text style={styles.forgot_button}>Forgot Password?</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity style={styles.loginBtn} onPress={() => onLogin()}>
+      <Text style={styles.loginText}>LOGIN</Text>
+    </TouchableOpacity>
+  </View>);
 }
  
 const styles = StyleSheet.create({

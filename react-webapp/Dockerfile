@@ -1,4 +1,4 @@
-FROM node:10.15.3-slim as builder
+FROM node:12-buster-slim as builder
 ARG PORT
 
 # Create app directory
@@ -15,8 +15,8 @@ COPY package*.json ./
 
 RUN apt-get update && apt-get install npm nodejs -y && apt-get install netcat-openbsd -y
 
-RUN npm install --silent
-RUN npm install react-scripts -g --silent
+RUN npm install
+RUN npm install react-scripts -g
 
 # Bundle app source
 COPY . .
@@ -24,7 +24,7 @@ COPY . .
 RUN npm run build
 
 ### STAGE 2: Production Environment ###
-FROM nginx:1.13.12-alpine
+FROM nginx:stable-alpine
 ARG PORT
 
 ENV PORT=$PORT

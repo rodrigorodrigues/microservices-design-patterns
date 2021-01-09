@@ -7,7 +7,9 @@ The idea for this project is to show a case for applying `Microservice Architect
 
 Most of the services are in `Java + Spring Boot 2 + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
 
-The web application is using `React`.
+The web application is using `React` 
+
+Android App using `React Native` working in progress.
 
 Docker images are built in mupltiple platforms(`linux/amd64,linux/arm64`).
 
@@ -147,14 +149,14 @@ sudo npm start
 
 ### Accessing React App
 
-To access [React Web App](http://localhost:3001).
+To access [React Web App](http://localhost:3000).
 
 ![React1](docs/react1.png)
 ![React2](docs/react2.png)
 
 ### Default Users
 
-Following the list of default users:
+~~Following the list of default users:~~
 
 ```
 admin@gmail.com/password - ROLE_ADMIN
@@ -163,10 +165,11 @@ master@gmail.com/password123 - ROLE_PERSON_CREATE, ROLE_PERSON_READ, ROLE_PERSON
 
 anonymous@gmail.com/test - ROLE_PERSON_READ
 ```
+PS: Moved default users for Integration Tests only.
 
 ### Kubernetes - Google Cloud Platform
 
-The code is deployed at `Google Cloud Platform`, ~~to access it go through `https://spendingbetter.com`~~.
+The code in `Raspberry Pi Cluster using microk8s`.
 
 Following useful commands for kubernetes
 
