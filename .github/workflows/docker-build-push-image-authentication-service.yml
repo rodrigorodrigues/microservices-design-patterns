@@ -54,7 +54,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build the Docker image with Maven
-      - name: Generate Dockerfile
+      - name: Build Service
         run: |
            mvn clean install -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 
@@ -63,7 +63,7 @@ jobs:
 #          mvn clean install -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 #          docker tag authentication-service:latest fielcapao/microservices-design-patterns-authentication-service
 
-      - name: Build and push
+      - name: Push Image(amd64/arm64)
         id: docker_build
         uses: docker/build-push-action@v2
         with:
@@ -78,10 +78,9 @@ jobs:
 
 # Setup gcloud CLI
       - name: Setup Google Cloud
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
-          version: '270.0.0'
-          service_account_email: $GKE_EMAIL
+          project_id: $GKE_PROJECT
           service_account_key: $GKE_KEY
 
 # Configure docker to use the gcloud command-line tool as a credential helper
