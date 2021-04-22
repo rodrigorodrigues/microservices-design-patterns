@@ -87,7 +87,8 @@ jobs:
 # Configure docker to use the gcloud command-line tool as a credential helper
       - name: Set up docker to authenticate
         run: |
-          gcloud auth configure-docker
+          gcloud --quiet auth configure-docker
+          gcloud info
 
 # Release Tag to Google Cloud
       - name: Publish image to Google Cloud
