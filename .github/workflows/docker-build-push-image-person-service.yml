@@ -8,6 +8,16 @@ on:
   push:
     branches: [ master ]
 
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  GKE_KEY: ${{ secrets.GKE_KEY }}
+  IMAGE: person-service
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -44,11 +54,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build the Docker image with Maven
-      - name: Generate Dockerfile
+      - name: Build Service
         run: |
           mvn clean install -q -pl person-service -am -B -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 
-      - name: Build and push
+      - name: Push Image(amd64/arm64)
         id: docker_build
         uses: docker/build-push-action@v2
         with:
@@ -60,3 +70,22 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+
+# Setup gcloud CLI
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GKE_PROJECT }}
+          service_account_key: ${{ secrets.GKE_KEY }}
+          export_default_credentials: true
+
+# Configure docker to use the gcloud command-line tool as a credential helper
+      - name: Set up docker to authenticate
+        run: |
+          gcloud --quiet auth configure-docker
+          gcloud info
+# Release Tag to Google Cloud
+      - name: Publish image to Google Cloud
+        run: |
+          docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+          docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
