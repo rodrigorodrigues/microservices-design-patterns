@@ -86,5 +86,5 @@ jobs:
 # Release Tag to Google Cloud
       - name: Publish image to Google Cloud
         run: |
-          docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+          docker tag fielcapao/microservices-design-patterns-go-service:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
           docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
