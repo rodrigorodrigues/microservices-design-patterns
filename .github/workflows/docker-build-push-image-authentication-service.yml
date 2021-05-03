@@ -77,22 +77,22 @@ jobs:
         run: echo ${{ steps.docker_build.outputs.digest }}
 
 # Setup gcloud CLI
-      - name: Setup Google Cloud
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          project_id: ${{ secrets.GKE_PROJECT }}
-          service_account_key: ${{ secrets.GKE_KEY }}
-          export_default_credentials: true
-
-# Configure docker to use the gcloud command-line tool as a credential helper
-      - name: Set up docker to authenticate
-        run: |
-          gcloud --quiet auth configure-docker
-          gcloud info
-
-# Release Tag to Google Cloud
-      - name: Publish image to Google Cloud
-        run: |
-          docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
-          docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
-
+#      - name: Setup Google Cloud
+#        uses: google-github-actions/setup-gcloud@master
+#        with:
+#          project_id: ${{ secrets.GKE_PROJECT }}
+#          service_account_key: ${{ secrets.GKE_KEY }}
+#          export_default_credentials: true
+#
+## Configure docker to use the gcloud command-line tool as a credential helper
+#      - name: Set up docker to authenticate
+#        run: |
+#          gcloud --quiet auth configure-docker
+#          gcloud info
+#
+## Release Tag to Google Cloud
+#      - name: Publish image to Google Cloud
+#        run: |
+#          docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+#          docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+#
