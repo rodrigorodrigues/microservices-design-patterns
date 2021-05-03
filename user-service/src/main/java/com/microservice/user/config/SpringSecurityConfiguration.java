@@ -1,11 +1,21 @@
 package com.microservice.user.config;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
+
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -24,14 +34,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.web.context.request.ServletWebRequest;
-
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Map;
 
 /**
  * Spring Security Configuration

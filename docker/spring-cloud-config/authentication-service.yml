@@ -6,3 +6,14 @@ spring:
           google:
             client-id: ${CLIENT_ID}
             client-secret: ${CLIENT_SECRET}
+
+  sleuth:
+    sampler:
+      probability: 1
+
+com:
+  microservice:
+    authentication:
+      jwt:
+        keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+      user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}

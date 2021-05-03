@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: person-service
-          image: fielcapao/microservices-design-patterns-person-service:latest
+          image: fielcapao/microservices-design-patterns-person-service:latest #eu.gcr.io/api-project-646370370811/person-service:b3f4981bef4970e146539962f15514bfd1afff7f
           resources:
             requests:
               memory: "256Mi"

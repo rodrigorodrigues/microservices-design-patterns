@@ -330,7 +330,7 @@ services:
           - authentication-api
 
   mongodb-datasource:
-    image: mongo:3.4.10
+    image: mongo
     command: mongod --port 27017
     container_name: mongodb-datasource
     ports:

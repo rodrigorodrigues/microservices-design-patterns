@@ -206,7 +206,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .params(formData)
             .with(csrf()))
             .andExpect(status().is3xxRedirection());
-/*
+/*  ,
 
         Set keys = redisOperations.keys("*");
         assertThat(keys).isNotNull();

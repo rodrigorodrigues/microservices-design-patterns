@@ -190,7 +190,7 @@ helm install --name nginx-ingress stable/nginx-ingress --set rbac.create=true --
 helm list
 
 #create tls
-kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com.chained.crt --key /etc/sslmate/www.spendingbetter.com.key
+0kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com.chained.crt --key /etc/sslmate/www.spendingbetter.com.key
 
 #create generic certs
 kubectl create secret generic spendingbetter-p12 --from-file=/etc/sslmate/www.spendingbetter.com.p12
@@ -222,7 +222,8 @@ Deployment
 cd kubernetes
 
 #create docker image
-docker tag eureka-server:latest eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+
+
 docker tag docker_react-webapp:latest eu.gcr.io/spring-boot-gke-243520/react-webapp:6.0
 
 #push docker image

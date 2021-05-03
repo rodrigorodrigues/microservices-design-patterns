@@ -1,5 +1,8 @@
 package com.microservice.authentication;
 
+import java.security.KeyPair;
+import java.util.UUID;
+
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
@@ -9,13 +12,13 @@ import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -40,12 +43,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.security.KeyPair;
-import java.util.UUID;
-
 @Slf4j
 @SpringBootApplication
-@EnableDiscoveryClient
 @EnableRedisHttpSession
 public class AuthenticationServiceApplication {
 

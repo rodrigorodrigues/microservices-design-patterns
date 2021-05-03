@@ -1,29 +1,32 @@
 package com.microservice.person;
 
+import java.time.ZoneId;
+import java.util.stream.IntStream;
+
 import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
 import com.microservice.person.dto.PersonDto;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.ZoneId;
-import java.util.stream.IntStream;
-
 @Slf4j
 @SpringBootApplication
-@EnableDiscoveryClient
 public class PersonServiceApplication {
     Faker faker = new Faker();
 

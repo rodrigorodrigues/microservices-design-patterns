@@ -45,7 +45,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: kubernetes
             - name: MONGODB_URI
-              value: mongodb://mongo:27017
+              value: mongodb://mongodb:27017
           ports:
             - containerPort: 3006
           livenessProbe:
