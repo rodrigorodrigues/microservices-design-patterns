@@ -61,9 +61,9 @@ spec:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: debug
             - name: CLIENT_ID
-              value: "646370370811-lh2drkd14outujo23q01jdgj5k7u38gp.apps.googleusercontent.com"
+              value: ${CLIENT_ID}
             - name: CLIENT_SECRET
-              value: "zllbqfwctOHmVw5XGInTnrvX"
+              value: ${CLIENT_SECRET}
           ports:
             - containerPort: 9999
           livenessProbe:
