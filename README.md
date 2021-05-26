@@ -97,10 +97,10 @@ On `root folder` first need to generate the docker images.
 mvn clean install 
 
 # to build the docker images
-mvn package -DskipTests -Pnative -pl authentication-service
-mvn package -DskipTests -Pnative -pl person-service
-mvn package -DskipTests -Pnative -pl user-service
-mvn package -DskipTests -Pnative -pl kotlin-service
+mvn package -Pnative -pl authentication-service
+mvn package -Pnative -pl person-service
+mvn package -Pnative -pl user-service
+mvn package -Pnative -pl kotlin-service
 ```
 PS: It does not work with Mac M1 Apple Silicon([Issue](https://github.com/tendermint/starport/issues/1110))
 
