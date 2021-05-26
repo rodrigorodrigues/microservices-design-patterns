@@ -1,6 +1,7 @@
 package com.microservice.authentication;
 
 import java.security.KeyPair;
+import java.util.Properties;
 import java.util.UUID;
 
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
@@ -19,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -27,7 +29,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
@@ -107,6 +108,7 @@ public class AuthenticationServiceApplication {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
 
+	@ConditionalOnMissingBean
     @Bean
     RedisConnectionFactory lettuceConnectionFactory(RedisProperties redisProperties) {
         return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
@@ -128,6 +130,12 @@ public class AuthenticationServiceApplication {
     CustomLogoutSuccessHandler customLogoutSuccessHandler(RedisTokenStoreService redisTokenStoreService) {
         return new CustomLogoutSuccessHandler(redisTokenStoreService);
     }
+
+    @ConditionalOnMissingBean
+    @Bean
+    GitProperties gitProperties() {
+        return new GitProperties(new Properties());
+    }
 }
 
 @Slf4j
@@ -135,7 +143,7 @@ public class AuthenticationServiceApplication {
 class HomeController {
     @GetMapping("/")
     @ResponseBody
-    public String user(@AuthenticationPrincipal org.springframework.security.core.Authentication authentication) {
+    public String user(org.springframework.security.core.Authentication authentication) {
         return ToStringBuilder.reflectionToString(authentication);
     }
 }

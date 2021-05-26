@@ -1,18 +1,27 @@
 package com.microservice.authentication.config;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
+import java.util.Map;
+
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang.StringUtils;
+
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -28,18 +37,14 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.request.ServletWebRequest;
-
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Spring Security Configuration for form
@@ -87,7 +92,8 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.requestMatchers()
+        http
+            .requestMatchers()
             .antMatchers("/api/**", "/", "/error", "/actuator/**")
             .and()
                 .formLogin()
@@ -121,19 +127,21 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
                 .accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)
                 .jwt(jwtConfigurer -> {
-                    Environment environment = getApplicationContext().getEnvironment();
-                    JwtDecoder jwtDecoder = environment.acceptsProfiles(Profiles.of("prod")) ? jwtDecoderProd() : jwtDecoder(properties);
+                    JwtDecoder jwtDecoder = getApplicationContext().getBean(JwtDecoder.class);
                     jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter());
                 });
     }
 
-    JwtDecoder jwtDecoderProd() {
-        return getApplicationContext().getBean(JwtDecoder.class);
-    }
-
-    JwtDecoder jwtDecoder(AuthenticationProperties properties) {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(properties.getJwt().getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+    @Bean
+    public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
+        if (jwt != null && jwt.getKeyValue() != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else {
+            RSAPublicKey publicKey = getApplicationContext().getBean(RSAPublicKey.class);
+            return NimbusJwtDecoder.withPublicKey(publicKey).build();
+        }
     }
 
     private void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {

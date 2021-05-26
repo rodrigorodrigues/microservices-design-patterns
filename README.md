@@ -93,9 +93,16 @@ The easiest way to run all microservices is using `docker-compose`, run the foll
 On `root folder` first need to generate the docker images.
 
 ```bash
-# at once for building the docker images
-mvn clean install docker:build
+# at once to compile code
+mvn clean install 
+
+# to build the docker images
+mvn package -DskipTests -Pnative -pl authentication-service
+mvn package -DskipTests -Pnative -pl person-service
+mvn package -DskipTests -Pnative -pl user-service
+mvn package -DskipTests -Pnative -pl kotlin-service
 ```
+PS: It does not work with Mac M1 Apple Silicon([Issue](https://github.com/tendermint/starport/issues/1110))
 
 On `docker folder` run all microservices
 

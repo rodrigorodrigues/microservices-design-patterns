@@ -20,6 +20,14 @@ spring:
             resourceserver:
                 jwt:
                     jwk-set-uri: http://localhost:${wiremock.server.port}/.well-known/jwks.json
+    data:
+        redis:
+            repositories:
+                enabled: false
 opentracing:
     jaeger:
         enabled: false
+management:
+    health:
+        redis:
+            enabled: false

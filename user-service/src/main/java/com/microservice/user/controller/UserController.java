@@ -1,5 +1,7 @@
 package com.microservice.user.controller;
 
+import java.net.URI;
+
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.model.User;
 import com.microservice.user.repository.UserRepository;
@@ -10,6 +12,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,12 +24,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import springfox.documentation.annotations.ApiIgnore;
-
-import java.net.URI;
 
 /**
  * Rest API for users.
@@ -41,7 +49,7 @@ public class UserController {
 
     @ApiOperation(value = "Api for return list of users")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<UserDto>> findAll(@ApiIgnore @AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<Page<UserDto>> findAll(@ApiIgnore Authentication authentication,
                                  @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
                                  @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
                                  @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,

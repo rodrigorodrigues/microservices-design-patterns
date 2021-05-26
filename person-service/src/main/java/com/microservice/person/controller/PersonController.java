@@ -1,5 +1,8 @@
 package com.microservice.person.controller;
 
+import java.net.URI;
+import java.util.Collection;
+
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
@@ -10,6 +13,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,14 +26,17 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import springfox.documentation.annotations.ApiIgnore;
-
-import java.net.URI;
-import java.util.Collection;
 
 /**
  * Rest API for persons.
@@ -44,7 +52,7 @@ public class PersonController {
     @ApiOperation(value = "Api for return list of persons")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
-    public ResponseEntity<Page<PersonDto>> findAll(@AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<Page<PersonDto>> findAll(@ApiIgnore Authentication authentication,
                                                    @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
                                                    @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
                                                    @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
@@ -63,7 +71,7 @@ public class PersonController {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE') or hasAuthority('SCOPE_openid')")
     public ResponseEntity<PersonDto> findById(@ApiParam(required = true) @PathVariable String id,
-                                    @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
+                                    @ApiIgnore Authentication authentication) {
         PersonDto personServiceById = personService.findById(id);
         if (personServiceById == null) {
             throw responseNotFound();
@@ -100,7 +108,7 @@ public class PersonController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE') or hasAuthority('SCOPE_openid')")
     public void delete(@PathVariable @ApiParam(required = true) String id,
-                             @ApiIgnore @AuthenticationPrincipal Authentication authentication) {
+                             @ApiIgnore Authentication authentication) {
         PersonDto personServiceById = personService.findById(id);
         if (personServiceById == null) {
             throw responseNotFound();

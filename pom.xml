@@ -18,7 +18,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
         <spring-cloud.version>2020.0.2</spring-cloud.version>
         <docker.image.name>${project.artifactId}</docker.image.name>
@@ -178,6 +178,14 @@
 					<plugin>
 						<groupId>org.springframework.boot</groupId>
 						<artifactId>spring-boot-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>build-info</goal>
+									<goal>build-image</goal>
+								</goals>
+							</execution>
+						</executions>
 						<configuration>
 							<image>
 								<builder>paketobuildpacks/builder:tiny</builder>

@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -34,7 +33,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     @GetMapping("/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_READ', 'TASK_SAVE') or hasAuthority('SCOPE_openid')")
     fun findById(@PathVariable id: String,
-                 @ApiIgnore @AuthenticationPrincipal authentication: Authentication): Task = repository.findById(id)
+                 @ApiIgnore authentication: Authentication): Task = repository.findById(id)
         .map {
             if (authentication.hasAdminAuthority() || it.wasCreatedBy(authentication.name)) {
                 it
@@ -51,7 +50,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
                 @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) sortDirection: String,
                 @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) sortIdx: List<String>,
                 @QuerydslPredicate(root = Task::class, bindings = TaskRepository::class) predicate: Predicate,
-                @ApiIgnore @AuthenticationPrincipal authentication: Authentication): ResponseEntity<Page<Task>> {
+                @ApiIgnore authentication: Authentication): ResponseEntity<Page<Task>> {
         log.debug("Predicate: {}", predicate)
         val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), *sortIdx.toTypedArray()))
         return if (authentication.hasAdminAuthority()) {
@@ -64,7 +63,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_CREATE') or hasAuthority('SCOPE_openid')")
     fun create(@RequestBody @Valid @ApiParam(required = true) task: Task,
-               @ApiIgnore @AuthenticationPrincipal authentication: Authentication): ResponseEntity<Task> {
+               @ApiIgnore authentication: Authentication): ResponseEntity<Task> {
         if (StringUtils.isNotBlank(task.id)) {
             return update(task, task.id!!)
         }
@@ -88,7 +87,7 @@ class TaskController(@Autowired val repository: TaskRepository) {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TASK_DELETE') or hasAuthority('SCOPE_openid')")
     fun delete(@PathVariable @ApiParam(required = true) id: String,
-               @ApiIgnore @AuthenticationPrincipal authentication: Authentication) = repository.findById(id)
+               @ApiIgnore authentication: Authentication) = repository.findById(id)
         .map {
             if (authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN")) || it.createdByUser == authentication.name) {
                 repository.deleteById(id)

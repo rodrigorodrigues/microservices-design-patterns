@@ -11,16 +11,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
-import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,7 +29,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.web.context.request.ServletWebRequest;
 
 /**
@@ -91,26 +87,21 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)
                 .jwt(jwtConfigurer -> {
-                    Environment environment = getApplicationContext().getEnvironment();
-                    JwtDecoder jwtDecoder = environment.acceptsProfiles(Profiles.of("prod")) ? jwtDecoderProd(keyPair(properties)) : jwtDecoder(properties);
+                    JwtDecoder jwtDecoder = getApplicationContext().getBean(JwtDecoder.class);
                     jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter());
                 });
     }
 
-    RSAPublicKey keyPair(AuthenticationProperties properties) {
+    @Bean
+    public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
         AuthenticationProperties.Jwt jwt = properties.getJwt();
-        char[] password = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
-        return (RSAPublicKey) keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias()).getPublic();
-    }
-
-    JwtDecoder jwtDecoderProd(RSAPublicKey publicKey) {
-        return NimbusJwtDecoder.withPublicKey(publicKey).build();
-    }
-
-    JwtDecoder jwtDecoder(AuthenticationProperties properties) {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(properties.getJwt().getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        if (jwt != null && jwt.getKeyValue() != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else {
+            RSAPublicKey publicKey = getApplicationContext().getBean(RSAPublicKey.class);
+            return NimbusJwtDecoder.withPublicKey(publicKey).build();
+        }
     }
 
     private void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {
