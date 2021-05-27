@@ -37,6 +37,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Replace FROM Dockerfile
+      - name: Replace FROM Dockerfile
+        run: |
+          sed -i 's/tiangolo\/uwsgi-nginx-flask:python3.8/crawforc3\/raspberrypi-uwsgi-nginx-flask/g' ./python-service/Dockerfile
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2

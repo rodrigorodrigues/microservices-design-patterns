@@ -8,6 +8,16 @@ on:
   push:
     branches: [ master ]
 
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  GKE_KEY: ${{ secrets.GKE_KEY }}
+  IMAGE: go-service
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -60,7 +70,21 @@ jobs:
 #          --build-arg ENV=production \
 #          --build-arg PORT="3006" ./go-service
 #
-#      # Push the Docker image
-#      - name: Push
+# Setup gcloud CLI
+#      - name: Setup Google Cloud
+#        uses: google-github-actions/setup-gcloud@master
+#        with:
+#          project_id: ${{ secrets.GKE_PROJECT }}
+#          service_account_key: ${{ secrets.GKE_KEY }}
+#          export_default_credentials: true
+#
+## Configure docker to use the gcloud command-line tool as a credential helper
+#      - name: Set up docker to authenticate
 #        run: |
-#          docker push fielcapao/microservices-design-patterns-go-service
+#          gcloud --quiet auth configure-docker
+#          gcloud info
+## Release Tag to Google Cloud
+#      - name: Publish image to Google Cloud
+#        run: |
+#          docker tag fielcapao/microservices-design-patterns-go-service:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+#          docker push eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
