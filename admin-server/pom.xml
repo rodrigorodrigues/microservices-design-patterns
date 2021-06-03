@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot-admin.version>2.2.3</spring-boot-admin.version>
+        <spring-boot-admin.version>2.3.1</spring-boot-admin.version>
     </properties>
 
     <dependencies>
@@ -38,13 +38,17 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-config</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
-            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+            <version>1.1.9.RELEASE</version>
         </dependency>
 
         <dependency>
@@ -115,33 +119,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>consul</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-consul-config</artifactId>
-                </dependency>
-
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-consul-discovery</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>kubernetes</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 </project>
