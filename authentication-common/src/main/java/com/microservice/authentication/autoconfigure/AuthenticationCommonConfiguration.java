@@ -1,13 +1,22 @@
 package com.microservice.authentication.autoconfigure;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import com.microservice.authentication.common.model.Authentication;
+import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
+import com.microservice.authentication.common.service.CustomWebAuthenticationDetailsSource;
+import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +24,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -29,13 +41,13 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
-
 import static java.util.stream.Collectors.joining;
 
 @Slf4j
-@EnableConfigurationProperties(AuthenticationProperties.class)
 @Configuration
+@EnableConfigurationProperties(AuthenticationProperties.class)
+@EnableMongoAuditing
+@EnableMongoRepositories(basePackageClasses = AuthenticationCommonRepository.class)
 public class AuthenticationCommonConfiguration {
 
     private final List<JwtAccessTokenConverterConfigurer> configurers;
@@ -62,8 +74,8 @@ public class AuthenticationCommonConfiguration {
     @Primary
     @Bean
     @ConditionalOnMissingBean(TokenStore.class)
-    public TokenStore jwtTokenStore() {
-        return new JwtTokenStore(jwtAccessTokenConverter());
+    public TokenStore jwtTokenStore(JwtAccessTokenConverter jwtAccessTokenConverter) {
+        return new JwtTokenStore(jwtAccessTokenConverter);
     }
 
     @Primary
@@ -130,4 +142,13 @@ public class AuthenticationCommonConfiguration {
         return converter;
     }
 
+    @Bean
+    CustomWebAuthenticationDetailsSource customWebAuthenticationDetailsSource() {
+        return new CustomWebAuthenticationDetailsSource();
+    }
+
+    @Bean
+    UserDetailsService sharedAuthenticationService(AuthenticationCommonRepository authenticationCommonRepository) {
+        return new SharedAuthenticationServiceImpl(authenticationCommonRepository);
+    }
 }

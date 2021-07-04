@@ -307,16 +307,15 @@ services:
       - SERVER_PORT=9999
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - DEBUG=true
+#      - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
-      - CONFIGURATION_AUTHORIZE_URLS=http://gateway:8080/login/login;http://monitoring:9000/login;http://grafana:3003/login
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
       - service-discovery
       - mongodb-datasource

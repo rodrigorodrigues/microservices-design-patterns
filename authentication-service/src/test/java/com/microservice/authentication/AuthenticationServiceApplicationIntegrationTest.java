@@ -20,10 +20,12 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
+import com.microservice.authentication.common.model.UserType;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -91,6 +93,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
+        "logging.level.org.springframework.security=debug",
         "spring.redis.port=6379"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class, AuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class})
@@ -159,6 +162,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
                 .authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
                 .fullName("Master of something")
                 .enabled(true)
+                .userType(UserType.NONE)
                 .build());
             log.debug(String.format("Created Master Authentication: %s", authentication));
         }
@@ -203,7 +207,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
     }
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws JsonProcessingException {
         if (runAtOnce.getAndSet(false)) {
             RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
                 .keyUse(KeyUse.SIGNATURE)
@@ -211,7 +215,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
                 .keyID("test");
             JWKSet jwkSet = new JWKSet(builder.build());
 
-            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
+            String jsonPublicKey = objectMapper.writeValueAsString(jwkSet.toJSONObject());
             stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
                 .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
         }
@@ -263,8 +267,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .andReturn();
 
         MockHttpServletResponse response = mvcResult.getResponse();
-        String responseBody = response
-            .getContentAsString();
+        String responseBody = response.getContentAsString();
 
         OAuth2AccessToken accessToken = objectMapper.readValue(responseBody, OAuth2AccessToken.class);
 

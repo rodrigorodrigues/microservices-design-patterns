@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
+import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
+import com.microservice.authentication.common.service.CustomAuthenticationProvider;
+import com.microservice.authentication.common.service.CustomWebAuthenticationDetailsSource;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import lombok.AllArgsConstructor;
@@ -21,15 +24,20 @@ import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -60,7 +68,11 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private final RedisTokenStoreService redisTokenStoreService;
 
-    private final AuthenticationProperties properties;
+    private final CustomWebAuthenticationDetailsSource authenticationDetailsSource;
+
+    private final UserDetailsService userDetailsService;
+
+    private final AuthenticationCommonRepository userRepository;
 
     private static final String[] WHITELIST = {
         // -- swagger ui
@@ -97,6 +109,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             .antMatchers("/api/**", "/", "/error", "/actuator/**")
             .and()
                 .formLogin()
+                .authenticationDetailsSource(authenticationDetailsSource)
                 .loginProcessingUrl("/api/authenticate").permitAll()
                 .successHandler(successHandler())
                 .failureHandler(authenticationFailureHandler())
@@ -142,6 +155,20 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             RSAPublicKey publicKey = getApplicationContext().getBean(RSAPublicKey.class);
             return NimbusJwtDecoder.withPublicKey(publicKey).build();
         }
+    }
+
+    @Primary
+    @Bean
+    public DaoAuthenticationProvider authProvider() {
+        CustomAuthenticationProvider authProvider = new CustomAuthenticationProvider(userRepository);
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(encoder());
+        return authProvider;
+    }
+
+    @Bean
+    public PasswordEncoder encoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     private void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {

@@ -6,8 +6,6 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
-            discovery:
-                instance-id: ${spring.application.name}:${random.value}
     main:
         allow-bean-definition-overriding: true
     config:
