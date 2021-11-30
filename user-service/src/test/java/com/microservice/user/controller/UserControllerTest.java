@@ -1,8 +1,11 @@
 package com.microservice.user.controller;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration;
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.repository.UserRepository;
@@ -12,8 +15,8 @@ import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,32 +30,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
-import java.util.UUID;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(properties = {
-        "configuration.initialLoad=false",
-        "configuration.mongo=false"},
-        controllers = UserController.class, excludeAutoConfiguration = MongoAutoConfiguration.class)
-@Import({AuthenticationCommonConfiguration.class, WebCommonAutoConfiguration.class})
-@EnableConfigurationProperties(ResourceServerProperties.class)
+@WebMvcTest(properties = "configuration.initialLoad=false",
+        controllers = UserController.class)
+@Import(WebCommonAutoConfiguration.class)
+@EnableConfigurationProperties({ResourceServerProperties.class, AuthenticationProperties.class})
 public class UserControllerTest {
 
     @Autowired
@@ -77,12 +80,6 @@ public class UserControllerTest {
         public UserRepository personRepository() {
             return mock(UserRepository.class);
         }
-
-        @Bean
-        public JwtDecoder jwtDecoder() {
-            return mock(JwtDecoder.class);
-        }
-
     }
 
     @Test

@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: fielcapao/microservices-design-patterns-authentication-service:latest
+          image: fielcapao/microservices-design-patterns-authentication-service:latest #eu.gcr.io/api-project-646370370811/authentication-service #eu.gcr.io/api-project-646370370811/authentication-service:7f79c29fbc58052bb7d86bceeb7722b0185c66c4
           #          imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -47,7 +47,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: dev
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongo:27017
+              value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
@@ -60,6 +60,10 @@ spec:
               value: "default"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: debug
+            - name: CLIENT_ID
+              value: ${CLIENT_ID}
+            - name: CLIENT_SECRET
+              value: ${CLIENT_SECRET}
           ports:
             - containerPort: 9999
           livenessProbe:

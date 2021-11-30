@@ -1,5 +1,12 @@
 package com.microservice.quarkus;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
 import com.microservice.quarkus.dto.CompanyDto;
 import com.microservice.quarkus.model.Company;
 import io.quarkus.runtime.StartupEvent;
@@ -21,12 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -128,7 +129,7 @@ public class CompanyResourceTest {
         String json = client.get("/api/companies")
                 .basicAuthentication("test", "test")
                 .send()
-                .onItem().apply(res -> {
+                .onItem().transform(res -> {
                     String body = StringUtils.trimToEmpty(res.bodyAsString());
                     if (StringUtils.isBlank(body)) {
                         return null;
@@ -147,7 +148,7 @@ public class CompanyResourceTest {
         JsonPath json = client.get("/api/companies")
                 .basicAuthentication("admin", "admin")
                 .send()
-                .onItem().apply(res -> {
+                .onItem().transform(res -> {
                     String list = Stream.of(res.bodyAsString().split("data: "))
                             .map(String::trim)
                             .filter(StringUtils::isNotBlank)

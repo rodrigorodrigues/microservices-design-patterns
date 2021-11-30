@@ -1,0 +1,28 @@
+apiVersion: skaffold/v2beta10
+kind: Config
+build:
+    artifacts:
+        - image: authentication-service
+            #      custom:
+            #        buildCommand: ./mvnw spring-boot:build-image -P devtools -D spring-boot.build-image.imageName=$IMAGE && docker push $IMAGE
+          buildpacks:
+              builder: paketobuildpacks/builder:base
+              env:
+                  - BP_MAVEN_BUILD_ARGUMENTS=-P devtools package -pl authentication-service
+              dependencies:
+                  paths:
+                      - pom.xml
+                      - src/main/resources
+                      - target/classes
+          sync:
+              manual:
+                  - src: "src/main/resources/**/*"
+                    dest: /workspace/BOOT-INF/classes
+                    strip: src/main/resources/
+                  - src: "target/classes/**/*"
+                    dest: /workspace/BOOT-INF/classes
+                    strip: target/classes/
+deploy:
+    kustomize:
+        paths:
+            - "src/k8s/"

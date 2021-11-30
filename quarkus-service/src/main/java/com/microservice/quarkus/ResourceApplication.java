@@ -21,9 +21,7 @@ import javax.ws.rs.core.Application;
 				title="API - Company Service",
 				version = "0.0.1",
 				contact = @Contact(
-						name = "Rodrigo Santos",
-						url = "https://github.com/rodrigorodrigues/microservices-design-patterns",
-						email = "techsupport@example.com"),
+						url = "https://github.com/rodrigorodrigues/microservices-design-patterns"),
 				license = @License(
 						name = "Apache 2.0",
 						url = "http://www.apache.org/licenses/LICENSE-2.0.html")),

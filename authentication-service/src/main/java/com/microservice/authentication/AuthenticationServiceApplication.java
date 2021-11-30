@@ -1,5 +1,9 @@
 package com.microservice.authentication;
 
+import java.security.KeyPair;
+import java.util.Properties;
+import java.util.UUID;
+
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
@@ -7,15 +11,16 @@ import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.service.CustomLogoutSuccessHandler;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.builder.ToStringBuilder;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -24,8 +29,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -40,12 +43,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.security.KeyPair;
-import java.util.UUID;
-
 @Slf4j
 @SpringBootApplication
-@EnableDiscoveryClient
 @EnableRedisHttpSession
 public class AuthenticationServiceApplication {
 
@@ -102,12 +101,7 @@ public class AuthenticationServiceApplication {
 		return new LocalValidatorFactoryBean();
 	}
 
-	@Primary
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-	}
-
+	@ConditionalOnMissingBean
     @Bean
     RedisConnectionFactory lettuceConnectionFactory(RedisProperties redisProperties) {
         return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
@@ -129,14 +123,24 @@ public class AuthenticationServiceApplication {
     CustomLogoutSuccessHandler customLogoutSuccessHandler(RedisTokenStoreService redisTokenStoreService) {
         return new CustomLogoutSuccessHandler(redisTokenStoreService);
     }
+
+    @ConditionalOnMissingBean
+    @Bean
+    GitProperties gitProperties() {
+        return new GitProperties(new Properties());
+    }
 }
 
 @Slf4j
 @Controller
+@AllArgsConstructor
 class HomeController {
+    private final AuthenticationCommonRepository authenticationCommonRepository;
+
     @GetMapping("/")
     @ResponseBody
-    public String user(@AuthenticationPrincipal org.springframework.security.core.Authentication authentication) {
-        return ToStringBuilder.reflectionToString(authentication);
+    public Authentication user(org.springframework.security.core.Authentication authentication) {
+        log.debug("Logged user: {}", authentication);
+        return authenticationCommonRepository.findById(authentication.getName());
     }
 }

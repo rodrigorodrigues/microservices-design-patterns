@@ -1,7 +1,6 @@
 package com.microservice.kotlin.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.JwtTokenUtil
 import com.microservice.kotlin.model.Task
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -39,9 +37,9 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
 
-@WebMvcTest(properties = ["configuration.initialLoad=false", "configuration.mongo=false"], controllers = [TaskController::class], excludeAutoConfiguration = [MongoAutoConfiguration::class])
-@Import(AuthenticationCommonConfiguration::class, WebCommonAutoConfiguration::class)
-@EnableConfigurationProperties(ResourceServerProperties::class)
+@WebMvcTest(properties = ["configuration.mongo=false"], controllers = [TaskController::class])
+@Import(WebCommonAutoConfiguration::class)
+@EnableConfigurationProperties(value = [ResourceServerProperties::class, AuthenticationProperties::class])
 internal class TaskControllerTest(@Autowired val client: MockMvc,
                                   @Autowired val objectMapper: ObjectMapper,
                                   @Autowired val authenticationProperties: AuthenticationProperties) {
@@ -68,7 +66,8 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         `when`(taskRepository.findAll(any(Predicate::class.java), any(Pageable::class.java))).thenReturn(PageableExecutionUtils.getPage(listOf(
             Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "admin"),
             Task(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "anonymous")
-        ), Pageable.unpaged(), { 2 }))
+        ), Pageable.unpaged()
+        ) { 2 })
     }
 
     @Test

@@ -8,9 +8,20 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
-            discovery:
-                health-check-headers:
-                    test: test
+    config:
+        import: consul:${consul_url:localhost:8500}
+management:
+    endpoints:
+        web:
+            exposure:
+                include: '*'
+            cors:
+                allowed-origins: '*'
+                allow-credentials: false
+opentracing:
+    spring:
+        web:
+            skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
 
 #zuul:
 #    prefix: /api

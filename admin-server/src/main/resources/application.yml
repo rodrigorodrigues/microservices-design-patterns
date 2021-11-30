@@ -12,3 +12,6 @@ spring:
                     spring-boot: true
     main:
         allow-bean-definition-overriding: true
+    config:
+        import: consul:${consul_url:localhost:8500}
+

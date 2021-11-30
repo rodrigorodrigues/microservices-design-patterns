@@ -8,3 +8,4 @@ public interface AuthenticationCommonRepository extends Repository<Authenticatio
     Authentication findById(String id);
     Authentication save(Authentication authentication);
 }
+

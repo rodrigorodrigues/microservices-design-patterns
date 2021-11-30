@@ -99,6 +99,7 @@ class ReceiptsApi(Resource):
     @ns.expect(upload_parser)
     @tracing.trace()
     def post(self):
+        max()
         args = upload_parser.parse_args()
         file = args['file']
         # if user does not select file, browser also

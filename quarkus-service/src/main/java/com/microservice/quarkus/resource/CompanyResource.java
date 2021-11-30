@@ -75,7 +75,7 @@ public class CompanyResource {
         log.debug("hello {}", name);
         Multi<Company> multi = hasRoleAdmin(ctx) ? Company.findActiveCompanies() : Company
                 .findActiveCompaniesByUser(name);
-        return multi.onItem().apply(c -> companyMapper.toResource(c));
+        return multi.onItem().transform(c -> companyMapper.toResource(c));
     }
 
     @GET

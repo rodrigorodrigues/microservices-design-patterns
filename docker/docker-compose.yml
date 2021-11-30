@@ -35,13 +35,14 @@ services:
     environment:
       - SPRING_REDIS_HOST=redisdb
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=8080
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      #- DEBUG=true
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
+      - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+      #- LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
     depends_on:
       - service-discovery
@@ -49,7 +50,7 @@ services:
       - 8080:8080
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh service-discovery:8500
+#    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
         aliases:
@@ -61,17 +62,18 @@ services:
     environment:
       - SPRING_REDIS_HOST=redisdb
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
-      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=false
+      - CONSUL_URL=service-discovery:8500
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SERVER_PORT=9000
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_DATA_MONGODB_HOST=mongodb-datasource
       - SPRING_DATA_MONGODB_DATABASE=docker
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - OAUTH_CLIENT_ID=actuator
       - OAUTH_CLIENT_SECRET=actuator_password
       - CONTEXTPATH=/monitoring
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
+      - SPRING_CLOUD_KUBERNETES_LOADBALANCER_ENABLED=false
     depends_on:
       - service-discovery
     ports:
@@ -114,7 +116,7 @@ services:
       - CONFIG_SERVER=http://localhost:8888
       - SERVER_PORT=3002
       - MONGODB_URI=mongodb://mongodb-datasource:27017/docker
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - EUREKA_PORT=8761
       #            - DEBUG=*
       #            - NODE_DEBUG=request
@@ -168,7 +170,7 @@ services:
       dockerfile: Dockerfile
     container_name: post-api
     environment:
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - MONGODB_URI=mongodb://mongodb-datasource
       - MONGODB_DATABASE=docker
       - SERVER_PORT=3006
@@ -191,13 +193,14 @@ services:
     container_name: person-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=8082
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
     depends_on:
       - service-discovery
@@ -208,7 +211,7 @@ services:
       - 8082:8082
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh service-discovery:8500
+#    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
         aliases:
@@ -219,12 +222,13 @@ services:
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9092
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       #- DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
     depends_on:
@@ -236,7 +240,7 @@ services:
       - 9092:9092
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh service-discovery:8500
+#    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
         aliases:
@@ -247,7 +251,7 @@ services:
     container_name: company-api
     environment:
       - SPRING_PROFILES_ACTIVE=quarkus
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - QUARKUS_HTTP_PORT=9093
       - MONGODB_URI=mongodb://mongodb-datasource:27017
       - MONGODB_DATABASE=docker
@@ -270,11 +274,12 @@ services:
     container_name: user-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=8083
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       #- DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
@@ -286,31 +291,32 @@ services:
       - 8083:8083
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh authentication-api:9999
+#    command: sh ./docker-entrypoint.sh authentication-api:9999
     networks:
       net:
         aliases:
           - user-api
 
   authentication-api:
-    image: authentication-service
+    image: authentication-service #fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+#      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
-      - DEBUG=true
+      - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
+#      - DEBUG=true
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
-      - CONFIGURATION_AUTHORIZE_URLS=http://gateway:8080/login/login;http://monitoring:9000/login;http://grafana:3003/login
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -323,14 +329,14 @@ services:
       - 9999:9999
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-    command: sh ./docker-entrypoint.sh service-discovery:8500
+#    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
         aliases:
           - authentication-api
 
   mongodb-datasource:
-    image: mongo:3.4.10
+    image: mongo
     command: mongod --port 27017
     container_name: mongodb-datasource
     ports:

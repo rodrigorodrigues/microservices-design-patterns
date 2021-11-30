@@ -93,9 +93,16 @@ The easiest way to run all microservices is using `docker-compose`, run the foll
 On `root folder` first need to generate the docker images.
 
 ```bash
-# at once for building the docker images
-mvn clean install docker:build
+# at once to compile code
+mvn clean install 
+
+# to build the docker images on Linux
+mvn clean package -Pnative
+
+# to build the docker images on Mac M1 Apple Silicon
+mvn clean package docker:build
 ```
+PS: `Spring Native` does not support yet Mac M1 Apple Silicon([Issue](https://github.com/tendermint/starport/issues/1110))
 
 On `docker folder` run all microservices
 
@@ -222,7 +229,8 @@ Deployment
 cd kubernetes
 
 #create docker image
-docker tag eureka-server:latest eu.gcr.io/spring-boot-gke-243520/eureka-server:4.0
+
+
 docker tag docker_react-webapp:latest eu.gcr.io/spring-boot-gke-243520/react-webapp:6.0
 
 #push docker image

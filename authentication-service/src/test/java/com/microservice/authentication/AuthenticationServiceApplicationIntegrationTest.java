@@ -1,7 +1,25 @@
 package com.microservice.authentication;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPublicKey;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
@@ -10,78 +28,63 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import redis.embedded.RedisServer;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
-import redis.embedded.RedisServer;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPublicKey;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
-@ActiveProfiles("prod")
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
-        "spring.redis.port=6370"})
+        "spring.redis.port=6379"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class, AuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class})
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
 public class AuthenticationServiceApplicationIntegrationTest {
 
     @Autowired
@@ -93,16 +96,11 @@ public class AuthenticationServiceApplicationIntegrationTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Autowired @Qualifier("redisTemplate")
-    RedisOperations redisOperations;
-
     @Autowired
     KeyPair keyPair;
 
-    AtomicBoolean runAtOnce = new AtomicBoolean(true);
-
-    @Configuration
-    public static class EmbeddedRedisTestConfiguration {
+    @TestConfiguration
+    static class EmbeddedRedisTestConfiguration {
 
         private RedisServer redisServer;
 
@@ -111,21 +109,30 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
         @PostConstruct
         public void startRedis() {
-            this.redisServer = RedisServer.builder()
-                .port(redisPort)
-                .setting("maxmemory 128M") //maxheap 128M
-                .build();
-            log.debug("RedisServer: {}\tredisPort: {}", redisServer, redisPort);
-            this.redisServer.start();
+            if (!StringUtils.containsIgnoreCase(System.getProperty("os.name"), "mac") && (this.redisServer == null || !this.redisServer.isActive())) {
+                try {
+                    this.redisServer = RedisServer.builder()
+                        .port(redisPort)
+                        .setting("maxmemory 128M") //maxheap 128M
+                        .build();
+                    log.debug("RedisServer: {}\tredisPort: {}", redisServer, redisPort);
+                    this.redisServer.start();
+                }
+                catch (Throwable e) {
+                    log.error("Cannot start redis", e);
+                }
+            }
         }
 
         @PreDestroy
         public void stopRedis() {
-            this.redisServer.stop();
+            if (this.redisServer != null && this.redisServer.isActive()) {
+                this.redisServer.stop();
+            }
         }
     }
 
-    @Configuration
+    @TestConfiguration
     @AllArgsConstructor
     static class UserMockConfiguration {
         private final AuthenticationCommonRepository authenticationRepository;
@@ -178,21 +185,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             applicationContext.registerBean(RSAPublicKey.class, () -> pub);
 
             applicationContext.registerBean(KeyPair.class, () -> kp);
-        }
-    }
-
-    @BeforeEach
-    public void setup() {
-        if (runAtOnce.getAndSet(false)) {
-            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID("test");
-            JWKSet jwkSet = new JWKSet(builder.build());
-
-            String jsonPublicKey = jwkSet.toJSONObject().toJSONString();
-            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
-                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
+            applicationContext.registerBean(ClientRegistrationRepository.class, () -> mock(ClientRegistrationRepository.class));
         }
     }
 
@@ -206,12 +199,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .params(formData)
             .with(csrf()))
             .andExpect(status().is3xxRedirection());
-/*
-
-        Set keys = redisOperations.keys("*");
-        assertThat(keys).isNotNull();
-        assertThat(keys.size()).isGreaterThan(0);
-*/
     }
 
     @Test
@@ -220,11 +207,13 @@ public class AuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(get("/login"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+
     }
 
     @Test
     @DisplayName("Test - When Calling GET - /api/logout should response 200 - OK")
     public void shouldWorkLogoutUrl() throws Exception {
+
         mockMvc.perform(get("/api/logout"))
 //            .andDo(print())
             .andExpect(status().isOk());
@@ -248,8 +237,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .andReturn();
 
         MockHttpServletResponse response = mvcResult.getResponse();
-        String responseBody = response
-            .getContentAsString();
+        String responseBody = response.getContentAsString();
 
         OAuth2AccessToken accessToken = objectMapper.readValue(responseBody, OAuth2AccessToken.class);
 
@@ -278,14 +266,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
             .andExpect(jsonPath("$.access_token", is(notNullValue())));
 
-/*
-        String sessionId = "spring:session:index:org.springframework.session.FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME:master@gmail.com";
-        Set keys = redisOperations.keys(sessionId);
-        log.debug("Keys:before logout: {}", keys);
-        assertThat(keys).isNotNull();
-        assertThat(keys.size()).isEqualTo(1);
-*/
-
         mockMvc.perform(get("/api/logout")
             .cookie(response.getCookies()))
             .andExpect(status().isOk())
@@ -295,14 +275,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .with(csrf())
             .cookie(response.getCookies()))
             .andExpect(status().is4xxClientError());
-
-/*
-        keys = redisOperations.keys(sessionId);
-        log.debug("Keys after logout: {}", keys);
-        assertThat(keys).isNullOrEmpty();
-*/
     }
-
 
     @Test
     @DisplayName("Test - When Calling GET - /api/authenticatedUser without jwt should return 401 - Unauthorized")

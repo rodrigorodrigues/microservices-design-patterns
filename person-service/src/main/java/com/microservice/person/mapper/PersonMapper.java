@@ -4,7 +4,7 @@ import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
