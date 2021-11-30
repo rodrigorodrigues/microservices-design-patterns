@@ -10,6 +10,9 @@ spring:
         allow-bean-definition-overriding: true
     config:
         import: consul:${consul_url:localhost:8500}
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
 management:
     endpoints:
         web:

@@ -18,7 +18,7 @@ class SpringSecurityAuditorAware : AuditorAware<String> {
      * Return current logged user or default.
      * @return current user
      */
-    override fun getCurrentAuditor(): Optional<String?>? {
+    override fun getCurrentAuditor(): Optional<String> {
         return Optional.ofNullable(SecurityContextHolder.getContext().authentication)
             .map { a: Authentication ->
                 if (a is OAuth2AuthenticationToken) {

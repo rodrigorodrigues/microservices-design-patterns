@@ -19,11 +19,14 @@ spring:
                         client-secret: test
             resourceserver:
                 jwt:
-                    jwk-set-uri: http://localhost:${wiremock.server.port}/.well-known/jwks.json
+                    jwk-set-uri: http://localhost:${server.port}/.well-known/jwks.json
     data:
         redis:
             repositories:
                 enabled: false
+    mongodb:
+        embedded:
+            version: latest
 opentracing:
     jaeger:
         enabled: false

@@ -22,7 +22,8 @@ public class MongoTestResource implements QuarkusTestResourceLifecycleManager {
 	@Override
 	public Map<String, String> start() {
 		try {
-			Version.Main version = Version.Main.V4_0;
+			System.setProperty("os.arch", "i686_64");
+			Version.Main version = Version.Main.DEVELOPMENT;
 			IMongodConfig config = new MongodConfigBuilder()
 					.version(version)
 					.net(new Net())
@@ -31,11 +32,12 @@ public class MongoTestResource implements QuarkusTestResourceLifecycleManager {
 			MongodProcess mongodProcess = MONGO.start();
 			int port = mongodProcess.getConfig().net().getPort();
 			LOGGER.infof("Started Embedded Mongo %s on port %s", version, port);
-			System.setProperty("EMBEDDED_MONGO_PORT", String.valueOf(port));
+
+			return Collections.singletonMap("test.quarkus.mongodb.connection-string", String.format("mongodb://localhost:%s", port));
 		} catch (IOException e) {
+			LOGGER.error("Could not start embedded mongodb", e);
 			throw new RuntimeException(e);
 		}
-		return Collections.emptyMap();
 	}
 
 	@Override

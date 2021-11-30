@@ -11,8 +11,8 @@ import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.service.CustomLogoutSuccessHandler;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -133,10 +133,14 @@ public class AuthenticationServiceApplication {
 
 @Slf4j
 @Controller
+@AllArgsConstructor
 class HomeController {
+    private final AuthenticationCommonRepository authenticationCommonRepository;
+
     @GetMapping("/")
     @ResponseBody
-    public String user(org.springframework.security.core.Authentication authentication) {
-        return ToStringBuilder.reflectionToString(authentication);
+    public Authentication user(org.springframework.security.core.Authentication authentication) {
+        log.debug("Logged user: {}", authentication);
+        return authenticationCommonRepository.findById(authentication.getName());
     }
 }

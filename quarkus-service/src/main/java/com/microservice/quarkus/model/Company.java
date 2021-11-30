@@ -1,11 +1,12 @@
 package com.microservice.quarkus.model;
 
-import io.quarkus.mongodb.panache.MongoEntity;
-import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
-import io.smallrye.mutiny.Multi;
+import java.time.Instant;
 
 import javax.validation.constraints.NotBlank;
-import java.time.Instant;
+
+import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
+import io.smallrye.mutiny.Multi;
 
 @MongoEntity(collection = "company")
 public class Company extends ReactivePanacheMongoEntity {

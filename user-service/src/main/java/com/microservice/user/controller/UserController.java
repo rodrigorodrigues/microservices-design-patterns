@@ -7,12 +7,11 @@ import com.microservice.user.model.User;
 import com.microservice.user.repository.UserRepository;
 import com.microservice.user.service.UserService;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import springfox.documentation.annotations.ApiIgnore;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,16 +39,16 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Slf4j
 @RestController
-@Api(value = "users", description = "Methods for managing users")
+@Tag(name = "users", description = "Methods for managing users")
 @RequestMapping("/api/users")
 @AllArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     private final UserService userService;
 
-    @ApiOperation(value = "Api for return list of users")
+    @Operation(description = "Api for return list of users")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<UserDto>> findAll(@ApiIgnore Authentication authentication,
+    public ResponseEntity<Page<UserDto>> findAll(@Parameter(hidden = true) Authentication authentication,
                                  @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
                                  @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
                                  @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
@@ -64,23 +63,23 @@ public class UserController {
         }
     }
 
-    @ApiOperation(value = "Api for return a user by id")
+    @Operation(description = "Api for return a user by id")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDto> findById(@ApiParam(required = true) @PathVariable String id) {
+    public ResponseEntity<UserDto> findById(@Parameter(required = true) @PathVariable String id) {
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @ApiOperation(value = "Api for creating a user")
+    @Operation(description = "Api for creating a user")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDto> create(@RequestBody @ApiParam(required = true) UserDto user) {
+    public ResponseEntity<UserDto> create(@RequestBody @Parameter(required = true) UserDto user) {
         UserDto save = userService.save(user);
         return ResponseEntity.created(URI.create(String.format("/api/users/%s", save.getId()))).body(save);
     }
 
-    @ApiOperation(value = "Api for updating a user")
+    @Operation(description = "Api for updating a user")
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDto> update(@RequestBody @ApiParam(required = true) UserDto user,
-                                @PathVariable @ApiParam(required = true) String id) {
+    public ResponseEntity<UserDto> update(@RequestBody @Parameter(required = true) UserDto user,
+                                @PathVariable @Parameter(required = true) String id) {
         user.setId(id);
         UserDto userServiceById = userService.findById(id);
         if (userServiceById == null) {
@@ -90,9 +89,9 @@ public class UserController {
         }
     }
 
-    @ApiOperation(value = "Api for deleting a user")
+    @Operation(description = "Api for deleting a user")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable @ApiParam(required = true) String id) {
+    public void delete(@PathVariable @Parameter(required = true) String id) {
         UserDto userServiceById = userService.findById(id);
         if (userServiceById == null) {
             throw responseNotFound();

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservice.authentication.autoconfigure.AuthenticationCommonConfiguration;
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.repository.UserRepository;
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -53,12 +52,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(properties = {
-        "configuration.initialLoad=false",
-        "configuration.mongo=false"},
-        controllers = UserController.class, excludeAutoConfiguration = MongoAutoConfiguration.class)
-@Import({AuthenticationCommonConfiguration.class, WebCommonAutoConfiguration.class, UserControllerTest.MockConfiguration.class})
-@EnableConfigurationProperties(ResourceServerProperties.class)
+@WebMvcTest(properties = "configuration.initialLoad=false",
+        controllers = UserController.class)
+@Import(WebCommonAutoConfiguration.class)
+@EnableConfigurationProperties({ResourceServerProperties.class, AuthenticationProperties.class})
 public class UserControllerTest {
 
     @Autowired

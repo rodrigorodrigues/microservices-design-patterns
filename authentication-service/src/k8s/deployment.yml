@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentication-service
+  annotations:
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
+  labels:
+    app: authentication-service
+    spring-boot: "true"
+spec:
+  ports:
+    - name: https-port
+      port: 8443
+    - name: http-port
+      port: 9999
+  selector:
+    app: authentication-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication-service
+spec:
+  selector:
+    matchLabels:
+      app: authentication-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: authentication-service
+        version: v1
+    spec:
+      containers:
+        - name: authentication-service
+          image: uthentication-service
+          #          imagePullPolicy: IfNotPresent
+          #resources:
+          #  requests:
+          #    memory: "256Mi"
+              #cpu: "1000m"
+              #  limits:
+              #    memory: "512Mi"
+              #cpu: "1000m"
+          volumeMounts:
+            - name: spendingbetter-jks
+              mountPath: "/etc/ssl_certs"
+              readOnly: true
+          env:
+            - name: JAVA_OPTS
+              value: -Xms256m -Xmx512m
+            - name: SERVER_PORT
+              value: "9999"
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: SPRING_DATA_MONGODB_HOST
+              value: mongo
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: docker
+            - name: SPRING_DATA_MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secrets
+                  key: MONGODB_USER
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secrets
+                  key: MONGODB_PASSWORD
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_REDIS_HOST
+              value: redis
+            - name: SPRING_CLOUD_CONSUL_ENABLED
+              value: "false"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+              value: "default"
+            - name: OPENTRACING_JAEGER_ENABLED
+              value: "false"
+            #- name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+            #  value: "*"
+              #- name: SERVER_SSL_KEY_STORE
+              #value: file:/etc/ssl_certs/www.spendingbetter.com.jks
+              #- name: SERVER_SSL_KEY_STORE_PASSWORD
+              #value: Cert202!
+              #- name: SERVER_SSL_KEY_PASSWORD
+              #value: Cert202!
+              #- name: SERVER_SSL_KEY_STORE_PASSWORD
+              #valueFrom:
+              #  secretKeyRef:
+              #    name: secrets
+              #    key: KEYSTORE_PASSWORD
+              #- name: SERVER_SSL_KEY_PASSWORD
+              #valueFrom:
+              #  secretKeyRef:
+              #    name: secrets
+              #    key: KEYSTORE_PASSWORD
+              #- name: SERVER_SSL_KEY_ALIAS
+              #value: spendingbetter
+
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs/www.spendingbetter.com.jks
+            - name: KEYSTORE_PASSWORD
+              value: Cert202!
+              #valueFrom:
+              #  secretKeyRef:
+              #    name: secrets
+              #    key: KEYSTORE_PASSWORD
+            - name: KEYSTORE_ALIAS
+              value: spendingbetter
+            - name: LOGGING_LEVEL_COM_MICROSERVICE
+              value: debug
+            - name: JAVA_TOOL_OPTIONS
+              value: -Dspring.devtools.restart.enabled=true
+              #- name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_DATA
+              #value: debug
+              # - name: LOGGING_LEVEL_COM_MONGODB
+              #value: debug
+          ports:
+            - containerPort: 9999
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /actuator/health
+              port: 9999
+            initialDelaySeconds: 150
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 10
+      volumes:
+        - name: spendingbetter-jks
+          secret:
+            secretName: spendingbetter-jks
+

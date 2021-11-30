@@ -10,10 +10,12 @@ spring:
       enabled: false
     kubernetes:
       enabled: false
+  mongodb:
+    embedded:
+      version: latest
 opentracing:
   jaeger:
     enabled: false
-
 com:
   microservice:
     authentication:

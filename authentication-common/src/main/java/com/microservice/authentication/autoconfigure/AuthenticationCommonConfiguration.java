@@ -9,7 +9,6 @@ import java.util.UUID;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
-import com.microservice.authentication.common.service.CustomWebAuthenticationDetailsSource;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -140,11 +139,6 @@ public class AuthenticationCommonConfiguration {
             }
         }
         return converter;
-    }
-
-    @Bean
-    CustomWebAuthenticationDetailsSource customWebAuthenticationDetailsSource() {
-        return new CustomWebAuthenticationDetailsSource();
     }
 
     @Bean

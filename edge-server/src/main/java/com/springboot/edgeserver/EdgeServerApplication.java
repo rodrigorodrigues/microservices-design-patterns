@@ -1,7 +1,5 @@
 package com.springboot.edgeserver;
 
-import java.util.Arrays;
-
 import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;

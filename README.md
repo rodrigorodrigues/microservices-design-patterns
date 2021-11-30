@@ -197,7 +197,7 @@ helm install --name nginx-ingress stable/nginx-ingress --set rbac.create=true --
 helm list
 
 #create tls
-0kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com.chained.crt --key /etc/sslmate/www.spendingbetter.com.key
+kubectl create secret tls ingress-tls --cert /etc/sslmate/www.spendingbetter.com.chained.crt --key /etc/sslmate/www.spendingbetter.com.key
 
 #create generic certs
 kubectl create secret generic spendingbetter-p12 --from-file=/etc/sslmate/www.spendingbetter.com.p12

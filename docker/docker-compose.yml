@@ -42,7 +42,7 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
+      #- LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
     depends_on:
       - service-discovery
@@ -65,7 +65,7 @@ services:
       - CONSUL_URL=service-discovery:8500
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SERVER_PORT=9000
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_DATA_MONGODB_HOST=mongodb-datasource
       - SPRING_DATA_MONGODB_DATABASE=docker
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - OAUTH_CLIENT_ID=actuator
@@ -298,15 +298,16 @@ services:
           - user-api
 
   authentication-api:
-    image: authentication-service
+    image: authentication-service #fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+#      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
 #      - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug

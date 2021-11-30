@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.jboss.aerogear.security.otp.api.Base32;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -42,8 +41,6 @@ public class Authentication implements UserDetails {
     private List<Authority> authorities;
 
     private Set<String> scopes;
-
-    private String secret = Base32.random();
 
     @Override
     public Collection<Authority> getAuthorities() {

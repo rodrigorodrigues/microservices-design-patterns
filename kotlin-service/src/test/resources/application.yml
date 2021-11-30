@@ -1,16 +1,18 @@
 spring:
-  application:
-    name: kotlin-service
-  cloud:
-    discovery:
-      enabled: false
-    consul:
-        enabled: false
-    kubernetes:
-        enabled: false
-  main:
-      allow-bean-definition-overriding: true
-
+    application:
+        name: kotlin-service
+    cloud:
+        discovery:
+            enabled: false
+        consul:
+            enabled: false
+        kubernetes:
+            enabled: false
+    main:
+        allow-bean-definition-overriding: true
+    mongodb:
+        embedded:
+            version:
 opentracing:
     jaeger:
         enabled: false

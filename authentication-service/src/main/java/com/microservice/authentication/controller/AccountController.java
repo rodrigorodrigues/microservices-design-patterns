@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.MediaType;
@@ -32,14 +31,9 @@ public class AccountController {
         return userDto;
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class UserDto {
-        private final String login;
-        private final String langKey = "en";
-        private final String fullName;
-        private final String email;
-        private final boolean activated = true;
-        private final Set<String> authorities;
+    public static record UserDto(String login, String langKey, String fullName, String email, boolean activated, Set<String> authorities) {
+        public UserDto(String login, String fullName, String email, Set<String> authorities) {
+            this(login, "en", fullName, email, true, authorities);
+        }
     }
 }

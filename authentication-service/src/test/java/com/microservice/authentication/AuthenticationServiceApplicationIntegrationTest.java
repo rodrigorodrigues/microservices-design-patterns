@@ -13,28 +13,21 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
-import com.microservice.authentication.common.model.UserType;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.AllArgsConstructor;
@@ -42,7 +35,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +45,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.support.GenericApplicationContext;
@@ -69,9 +60,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -93,12 +81,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
-        "logging.level.org.springframework.security=debug",
         "spring.redis.port=6379"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class, AuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class})
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
 public class AuthenticationServiceApplicationIntegrationTest {
 
     @Autowired
@@ -112,8 +98,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
     @Autowired
     KeyPair keyPair;
-
-    AtomicBoolean runAtOnce = new AtomicBoolean(true);
 
     @TestConfiguration
     static class EmbeddedRedisTestConfiguration {
@@ -162,7 +146,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
                 .authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
                 .fullName("Master of something")
                 .enabled(true)
-                .userType(UserType.NONE)
                 .build());
             log.debug(String.format("Created Master Authentication: %s", authentication));
         }
@@ -206,21 +189,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
         }
     }
 
-    @BeforeEach
-    public void setup() throws JsonProcessingException {
-        if (runAtOnce.getAndSet(false)) {
-            RSAKey.Builder builder = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID("test");
-            JWKSet jwkSet = new JWKSet(builder.build());
-
-            String jsonPublicKey = objectMapper.writeValueAsString(jwkSet.toJSONObject());
-            stubFor(WireMock.get(urlPathEqualTo("/.well-known/jwks.json"))
-                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).withBody(jsonPublicKey)));
-        }
-    }
-
     @Test
     @DisplayName("Test - When Calling POST - /login should be authenticated and response 200 - OK")
     public void shouldUserBeAuthenticatedWhenCallingApi() throws Exception {
@@ -239,11 +207,13 @@ public class AuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(get("/login"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+
     }
 
     @Test
     @DisplayName("Test - When Calling GET - /api/logout should response 200 - OK")
     public void shouldWorkLogoutUrl() throws Exception {
+
         mockMvc.perform(get("/api/logout"))
 //            .andDo(print())
             .andExpect(status().isOk());

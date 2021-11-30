@@ -1,16 +1,18 @@
 spring:
-  application:
-    name: person-service
-  cloud:
-    discovery:
-      enabled: false
-    consul:
-        enabled: false
-    kubernetes:
-        enabled: false
-  main:
-      allow-bean-definition-overriding: true
-
+    application:
+        name: person-service
+    cloud:
+        discovery:
+            enabled: false
+        consul:
+            enabled: false
+        kubernetes:
+            enabled: false
+    main:
+        allow-bean-definition-overriding: true
+    mongodb:
+        embedded:
+            version: latest
 opentracing:
     jaeger:
         enabled: false

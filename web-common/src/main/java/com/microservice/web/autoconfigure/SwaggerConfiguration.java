@@ -1,23 +1,18 @@
 package com.microservice.web.autoconfigure;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.ExternalDocumentation;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.AllArgsConstructor;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.*;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spi.service.contexts.SecurityContext;
-import springfox.documentation.spring.web.plugins.Docket;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Swagger Configuration
@@ -30,6 +25,23 @@ public class SwaggerConfiguration {
     private final BuildProperties build;
 
     private final GitProperties git;
+
+    @Bean
+    public OpenAPI springShopOpenAPI() {
+        String version = String.format("%s-%s-%s", build.getVersion(), git.getShortCommitId(), git.getBranch());
+        SecurityScheme securitySchemesItem = new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
+                .bearerFormat("JWT");
+        return new OpenAPI()
+                .info(new Info().title("Authentication REST API")
+                        .description("Spring shop sample application")
+                        .version(version)
+                        .license(new License().name("Apache 2.0").url("https://www.apache.org/licenses/LICENSE-2.0.html")))
+                .externalDocs(new ExternalDocumentation()
+                        .description("SpringShop Wiki Documentation")
+                        .url("https://github.com/rodrigorodrigues/microservices-design-patterns"))
+                .components(new Components().addSecuritySchemes("bearer-key", securitySchemesItem));
+    }
+/*
 
     @Bean
     public Docket api() {
@@ -67,5 +79,6 @@ public class SwaggerConfiguration {
     private ApiKey apiKey() {
         return new ApiKey("Bearer", "Authorization", "header");
     }
+*/
 
 }
