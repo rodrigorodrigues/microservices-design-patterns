@@ -298,14 +298,14 @@ services:
           - user-api
 
   authentication-api:
-    image: fielcapao/microservices-design-patterns-authentication-service
+    image: authentication-service #fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
-#      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
 #      - DEBUG=true

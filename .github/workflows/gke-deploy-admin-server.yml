@@ -38,11 +38,11 @@ jobs:
         # via gcloud command-line tool.
         gcloud auth configure-docker
 
-    # Set up JDK 1.8
+    # Set up JDK
     - name: JDK
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
+        java-version: 17
 
     # Build the Docker image with Maven
     - name: Build

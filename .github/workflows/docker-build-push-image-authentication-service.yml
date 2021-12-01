@@ -34,7 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Set up JDK 1.8
+      # Set up JDK
       - name: JDK
         uses: actions/setup-java@v1
         with:
