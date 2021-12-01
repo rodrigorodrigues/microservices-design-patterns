@@ -63,6 +63,7 @@ jobs:
 #          mvn clean install -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 #          docker tag authentication-service:latest fielcapao/microservices-design-patterns-authentication-service
 
+     # Push Image for multi arch
       - name: Push Image(amd64/arm64)
         id: docker_build
         uses: docker/build-push-action@v2
