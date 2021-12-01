@@ -46,7 +46,7 @@ jobs:
       # Build the Docker image with Maven
       - name: Generate Dockerfile
         run: |
-          mvn clean install -q -pl user-service -am -B -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
+          mvn clean install -q -pl user-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 
       - name: Build and push
         id: docker_build

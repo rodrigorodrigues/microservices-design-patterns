@@ -298,7 +298,7 @@ services:
           - user-api
 
   authentication-api:
-    image: authentication-service #fielcapao/microservices-design-patterns-authentication-service
+    image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=dev

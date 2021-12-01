@@ -83,7 +83,7 @@
                         <image>
                             <name>${docker.image.name}</name>
                             <build>
-                                <from>${docker.image.from}</from>
+                                <from>${docker.image.from.fabric8}</from>
                                 <tags>
                                     <tag>latest</tag>
                                     <tag>${project.version}</tag>
