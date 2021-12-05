@@ -41,7 +41,7 @@
         <module>admin-server</module>
         <module>authentication-common</module>
         <module>kotlin-service</module>
-<!--        <module>quarkus-service</module>-->
+        <module>quarkus-service</module>
     </modules>
 
     <dependencyManagement>
