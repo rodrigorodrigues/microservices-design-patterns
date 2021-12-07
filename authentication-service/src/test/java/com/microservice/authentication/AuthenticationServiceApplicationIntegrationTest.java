@@ -182,7 +182,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
                 Arrays.asList("-----BEGIN PUBLIC KEY-----", encoder
                     .encodeToString(pub.getEncoded()), "-----END PRIVATE KEY-----"));
             log.debug("Loaded public key: {}", publicKeyFile);
-            applicationContext.registerBean(RSAPublicKey.class, () -> pub);
 
             applicationContext.registerBean(KeyPair.class, () -> kp);
             applicationContext.registerBean(ClientRegistrationRepository.class, () -> mock(ClientRegistrationRepository.class));
