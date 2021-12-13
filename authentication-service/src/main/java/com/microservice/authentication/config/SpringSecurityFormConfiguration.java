@@ -2,7 +2,6 @@ package com.microservice.authentication.config;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
 import java.util.Map;
@@ -146,8 +145,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
             SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
         } else {
-            KeyPair keyPair = getApplicationContext().getBean(KeyPair.class);
-            RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+            RSAPublicKey publicKey = getApplicationContext().getBean(RSAPublicKey.class);
             return NimbusJwtDecoder.withPublicKey(publicKey).build();
         }
     }

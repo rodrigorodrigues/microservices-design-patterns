@@ -1,13 +1,12 @@
 package com.microservice.authentication;
 
-import java.security.KeyPair;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
+import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.service.CustomLogoutSuccessHandler;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
@@ -23,8 +22,6 @@ import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -34,7 +31,6 @@ import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
-import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -51,16 +47,6 @@ public class AuthenticationServiceApplication {
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
-
-	@Profile("prod")
-	@ConditionalOnMissingBean
-	@Bean
-    KeyPair keyPair(AuthenticationProperties properties) {
-        AuthenticationProperties.Jwt jwt = properties.getJwt();
-        char[] password = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", "")), password);
-        return keyStoreKeyFactory.getKeyPair(jwt.getKeyAlias());
-    }
 
     @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)
     @Bean
@@ -79,6 +65,19 @@ public class AuthenticationServiceApplication {
                 log.debug("Creating default authentication: {}", authentication);
                 authentication = mongoTemplate.save(authentication, "users_login");
                 log.debug("Created Default Authentication: {}", authentication);
+            }
+            if (authenticationCommonRepository.findByEmail("admin@gmail.com") == null) {
+                Authentication authentication = Authentication.builder()
+                    .email("admin@gmail.com")
+                    .password(passwordEncoder.encode("P@ssword2020!"))
+                    .fullName("Admin")
+                    .enabled(true)
+                    .id(UUID.randomUUID().toString())
+                    .authorities(Collections.singletonList(new Authority("ROLE_ADMIN")))
+                    .build();
+                log.debug("Creating admin authentication: {}", authentication);
+                authentication = mongoTemplate.save(authentication, "users_login");
+                log.debug("Created admin Authentication: {}", authentication);
             }
         };
     }

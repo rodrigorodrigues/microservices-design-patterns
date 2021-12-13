@@ -32,8 +32,8 @@ spec:
     spec:
       containers:
         - name: authentication-service
-          image: fielcapao/microservices-design-patterns-authentication-service:latest #eu.gcr.io/api-project-646370370811/authentication-service #eu.gcr.io/api-project-646370370811/authentication-service:7f79c29fbc58052bb7d86bceeb7722b0185c66c4
-          #          imagePullPolicy: IfNotPresent
+          image: authentication-service #fielcapao/microservices-design-patterns-authentication-service:latest #eu.gcr.io/api-project-646370370811/authentication-service #eu.gcr.io/api-project-646370370811/authentication-service:7f79c29fbc58052bb7d86bceeb7722b0185c66c4
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "256Mi"
@@ -45,7 +45,7 @@ spec:
             - name: SERVER_PORT
               value: "9999"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -58,12 +58,22 @@ spec:
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
-              value: debug
-            - name: CLIENT_ID
-              value: ${CLIENT_ID}
-            - name: CLIENT_SECRET
-              value: ${CLIENT_SECRET}
+            - name: LOGGING_LEVEL_ROOT
+              value: trace
+#            - name: CLIENT_ID
+#              value: ${CLIENT_ID}
+#            - name: CLIENT_SECRET
+#              value: ${CLIENT_SECRET}
+            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
+              value: "false"
+            - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
+              value: "true"
+            - name: KEYSTORE_PASSWORD
+              value: Cert202!
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs/www.spendingbetter.com.jks
+            - name: KEYSTORE_ALIAS
+              value: spendingbetter
           ports:
             - containerPort: 9999
           livenessProbe:

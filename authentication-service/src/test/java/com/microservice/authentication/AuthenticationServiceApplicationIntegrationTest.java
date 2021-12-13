@@ -308,7 +308,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
             .expirationTime(Date.from(ZonedDateTime.now().plusMinutes(1).toInstant()))
             .issueTime(new Date())
             .notBeforeTime(new Date())
-            .claim("authorities", Collections.singletonList("ROLE_ADMIN"))
+            .claim("authorities", Collections.singletonList("ADMIN"))
             .jwtID(UUID.randomUUID().toString())
             .issuer("jwt")
             .build();

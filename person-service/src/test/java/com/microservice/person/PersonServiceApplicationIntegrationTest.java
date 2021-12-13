@@ -127,11 +127,11 @@ public class PersonServiceApplicationIntegrationTest {
     }
 
     {
-        users.put("admin@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        users.put("anonymous@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_PERSON_READ")));
-        users.put("master@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ROLE_PERSON_CREATE"),
-            new SimpleGrantedAuthority("ROLE_PERSON_READ"),
-            new SimpleGrantedAuthority("ROLE_PERSON_SAVE")));
+        users.put("admin@gmail.com", Arrays.asList(new SimpleGrantedAuthority("ADMIN")));
+        users.put("anonymous@gmail.com", Arrays.asList(new SimpleGrantedAuthority("PERSON_READ")));
+        users.put("master@gmail.com", Arrays.asList(new SimpleGrantedAuthority("PERSON_CREATE"),
+            new SimpleGrantedAuthority("PERSON_READ"),
+            new SimpleGrantedAuthority("ERSON_SAVE")));
     }
 
     @BeforeEach

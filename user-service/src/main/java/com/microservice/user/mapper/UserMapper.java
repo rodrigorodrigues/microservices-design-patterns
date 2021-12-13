@@ -1,15 +1,14 @@
 package com.microservice.user.mapper;
 
+import java.util.List;
+
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.repository.support.PageableExecutionUtils;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.support.PageableExecutionUtils;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -22,5 +21,6 @@ public interface UserMapper {
     User dtoToEntity(UserDto userDto);
 
     @Mapping(source = "enabled", target = "activated", defaultValue = "true")
+    @Mapping(source = "password", target = "password", ignore = true)
     UserDto entityToDto(User user);
 }

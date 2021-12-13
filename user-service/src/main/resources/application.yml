@@ -1,15 +1,8 @@
 spring:
     application:
         name: user-service
-    cloud:
-        consul:
-            config:
-                fail-fast: ${FAIL_FAST:true}
-                format: yaml
     main:
         allow-bean-definition-overriding: true
-    config:
-        import: consul:${consul_url:localhost:8500}
 management:
     endpoints:
         web:
@@ -22,3 +15,17 @@ opentracing:
     spring:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
+
+---
+spring:
+    config:
+        activate:
+            on-profile: consul
+        import: consul:${consul_url:localhost:8500}
+    cloud:
+        consul:
+            config:
+                fail-fast: ${FAIL_FAST:true}
+                format: yaml
+    autoconfigure:
+        exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration

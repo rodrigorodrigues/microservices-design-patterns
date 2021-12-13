@@ -49,7 +49,7 @@ public class AuthenticationZuulFilter extends ZuulFilter {
             log.debug("User is not authenticated: {}", authentication.getName());
             context.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
             context.setResponseBody(String.format("To access(%s) user must be authenticated!", request.getRequestURI()));
-        } else if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch("ROLE_ADMIN"::equals)) {
+        } else if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch("ADMIN"::equals)) {
             log.debug("User has admin role: {}", authentication.getAuthorities());
             context.addZuulRequestHeader("X-WEBAUTH-USER", "admin");
         } else {

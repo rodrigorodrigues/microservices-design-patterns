@@ -1,5 +1,7 @@
 package com.microservice.authentication.autoconfigure;
 
+import java.security.KeyPair;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -125,12 +128,8 @@ public class AuthenticationCommonConfiguration {
             }
             converter.setVerifierKey(keyValue);
         } else if (jwt.getKeyStore() != null) {
-            Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
-            char[] keyStorePassword = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
-            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
-
-            String keyAlias = jwt.getKeyAlias();
-            converter.setKeyPair(keyStoreKeyFactory.getKeyPair(keyAlias, keyStorePassword));
+            KeyPair keyPair = getKeyPair(authenticationProperties);
+            converter.setKeyPair(keyPair);
         }
         if (!CollectionUtils.isEmpty(this.configurers)) {
             AnnotationAwareOrderComparator.sort(this.configurers);
@@ -139,6 +138,25 @@ public class AuthenticationCommonConfiguration {
             }
         }
         return converter;
+    }
+
+    @Profile("prod")
+    @Bean
+    KeyPair getKeyPair(AuthenticationProperties authenticationProperties) {
+        AuthenticationProperties.Jwt jwt = authenticationProperties.getJwt();
+        Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
+        char[] keyStorePassword = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
+
+        String keyAlias = jwt.getKeyAlias();
+        return keyStoreKeyFactory.getKeyPair(keyAlias, keyStorePassword);
+    }
+
+
+    @Profile("prod")
+    @Bean
+    RSAPublicKey publicKey(KeyPair keyPair) {
+        return (RSAPublicKey) keyPair.getPublic();
     }
 
     @Bean
