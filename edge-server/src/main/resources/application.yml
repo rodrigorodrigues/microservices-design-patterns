@@ -10,6 +10,7 @@ spring:
                 format: yaml
     config:
         import: consul:${consul_url:localhost:8500}
+
 management:
     endpoints:
         web:
@@ -22,7 +23,6 @@ opentracing:
     spring:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
-
 #zuul:
 #    prefix: /api
 #    sensitiveHeaders:

@@ -1,5 +1,7 @@
 package com.microservice.authentication.common.service;
 
+import java.util.Optional;
+
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import org.junit.jupiter.api.Assertions;
@@ -26,7 +28,7 @@ class SharedAuthenticationServiceImplTest {
     @BeforeEach
     public void setup() {
         sharedAuthenticationService = new SharedAuthenticationServiceImpl(authenticationCommonRepository);
-        Mockito.when(authenticationCommonRepository.findByEmail(anyString())).thenReturn(new Authentication());
+        Mockito.when(authenticationCommonRepository.findByEmail(anyString())).thenReturn(Optional.of(new Authentication()));
     }
 
     @Test
@@ -38,7 +40,7 @@ class SharedAuthenticationServiceImplTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        Mockito.when(authenticationCommonRepository.findByEmail(anyString())).thenReturn(null);
+        Mockito.when(authenticationCommonRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
         Assertions.assertThrows(UsernameNotFoundException.class, () -> sharedAuthenticationService.loadUserByUsername("test"), "Authentication(test) not found!");
     }

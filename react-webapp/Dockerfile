@@ -19,6 +19,7 @@ RUN npm install
 RUN npm install react-scripts -g
 
 # Bundle app source
+
 COPY . .
 
 RUN npm run build

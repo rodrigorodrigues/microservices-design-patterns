@@ -1,19 +1,21 @@
 package com.microservice.authentication.service;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.model.UserType;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,16 +34,19 @@ public class CustomOidcUserService extends OidcUserService {
 
     private void updateUser(Map<String, Object> attributes, OidcUserRequest userRequest) {
         String email = (String) attributes.get("email");
-        Authentication user = authenticationCommonRepository.findByEmail(email);
-        if(user == null) {
-            user = new Authentication();
+        Optional<Authentication> user = authenticationCommonRepository.findByEmail(email);
+        Authentication authentication = null;
+        if(user.isEmpty()) {
+            authentication = new Authentication();
+        } else {
+            authentication = user.get();
         }
-        user.setEmail(email);
-        user.setScopes(userRequest.getAccessToken().getScopes());
-        user.setAuthorities(userRequest.getAccessToken().getScopes().stream().map(Authority::new).collect(Collectors.toList()));
-        user.setImageUrl((String)attributes.get("picture"));
-        user.setFullName((String)attributes.get("name"));
-        user.setUserType(UserType.GOOGLE);
-        authenticationCommonRepository.save(user);
+        authentication.setEmail(email);
+        authentication.setScopes(userRequest.getAccessToken().getScopes());
+        authentication.setAuthorities(userRequest.getAccessToken().getScopes().stream().map(Authority::new).collect(Collectors.toList()));
+        authentication.setImageUrl((String)attributes.get("picture"));
+        authentication.setFullName((String)attributes.get("name"));
+        authentication.setUserType(UserType.GOOGLE);
+        authenticationCommonRepository.save(authentication);
     }
 }

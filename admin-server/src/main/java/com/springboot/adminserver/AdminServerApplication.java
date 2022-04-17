@@ -2,6 +2,8 @@ package com.springboot.adminserver;
 
 import de.codecentric.boot.admin.server.config.EnableAdminServer;
 
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +22,12 @@ import org.springframework.web.filter.CorsFilter;
 public class AdminServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(AdminServerApplication.class, args);
+    }
+
+    @Bean
+    static BeanFactoryPostProcessor removeErrorSecurityFilter() {
+        return (beanFactory) ->
+            ((DefaultListableBeanFactory)beanFactory).removeBeanDefinition("errorPageSecurityInterceptor");
     }
 
     @Bean

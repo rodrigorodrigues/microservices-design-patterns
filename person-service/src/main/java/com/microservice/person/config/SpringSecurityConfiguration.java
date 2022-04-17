@@ -46,7 +46,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final String[] WHITELIST = {
         // -- swagger ui
-        "/v2/api-docs",
+        "/v*/api-docs/**",
         "/swagger-resources",
         "/swagger-resources/**",
         "/configuration/ui",

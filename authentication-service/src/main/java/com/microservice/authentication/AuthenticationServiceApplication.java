@@ -1,6 +1,7 @@
 package com.microservice.authentication;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -13,6 +14,8 @@ import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,6 +29,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -38,15 +42,29 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @SpringBootApplication
 @EnableRedisHttpSession
-public class AuthenticationServiceApplication {
+public class AuthenticationServiceApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addRedirectViewController("/swagger/swagger-ui.html", "/swagger-ui.html");
+    }
+
+    @Bean
+    static BeanFactoryPostProcessor removeErrorSecurityFilter() {
+        return (beanFactory) ->
+            ((DefaultListableBeanFactory)beanFactory).removeBeanDefinition("errorPageSecurityInterceptor");
+    }
 
     @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)
     @Bean
@@ -54,7 +72,7 @@ public class AuthenticationServiceApplication {
                              PasswordEncoder passwordEncoder,
                              MongoTemplate mongoTemplate) {
         return args -> {
-            if (authenticationCommonRepository.findByEmail(DefaultUsers.SYSTEM_DEFAULT.getValue()) == null) {
+            if (authenticationCommonRepository.findByEmail(DefaultUsers.SYSTEM_DEFAULT.getValue()).isEmpty()) {
                 Authentication authentication = Authentication.builder()
                     .email(DefaultUsers.SYSTEM_DEFAULT.getValue())
                     .password(passwordEncoder.encode("noPassword"))
@@ -66,7 +84,7 @@ public class AuthenticationServiceApplication {
                 authentication = mongoTemplate.save(authentication, "users_login");
                 log.debug("Created Default Authentication: {}", authentication);
             }
-            if (authenticationCommonRepository.findByEmail("admin@gmail.com") == null) {
+            if (authenticationCommonRepository.findByEmail("admin@gmail.com").isEmpty()) {
                 Authentication authentication = Authentication.builder()
                     .email("admin@gmail.com")
                     .password(passwordEncoder.encode("P@ssword2020!"))
@@ -140,6 +158,8 @@ class HomeController {
     @ResponseBody
     public Authentication user(org.springframework.security.core.Authentication authentication) {
         log.debug("Logged user: {}", authentication);
-        return authenticationCommonRepository.findById(authentication.getName());
+        Optional<Authentication> findById = authenticationCommonRepository.findById(authentication.getName());
+        return findById.orElseGet(() -> authenticationCommonRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found user: " + authentication.getName())));
     }
 }

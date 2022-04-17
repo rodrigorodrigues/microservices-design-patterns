@@ -1,51 +1,105 @@
 package com.springboot.edgeserver.config;
 
+import java.util.Collections;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.springboot.edgeserver.util.HandleResponseError;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
+/**
+ * Spring Security Configuration
+ */
 @Configuration
-@EnableWebSecurity
-public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAdapter implements BeanClassLoaderAware {
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
+public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware {
+    private final HandleResponseError handleResponseError;
+
+    private final DefaultTokenServices defaultTokenServices;
+
+    private final RedisTokenStore redisTokenStore;
 
     private static final String[] WHITELIST = {
-        "/api/**",
-        "/oauth2/**",
-        "/.well-known/jwks.json",
-        "/swagger/**",
-        "/**/*.js",
-        "/**/*.css",
-        "/**/*.html",
-        "/favicon.ico",
-        "/actuator/**",
-        "/error"
+            // -- swagger ui
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/*.js",
+            "/*.css",
+            "/*.html",
+            "/favicon.ico",
+            // other public endpoints of your API may be appended to this array
+            "/actuator/info",
+            "/actuator/health",
+            "/actuator/prometheus",
+            "/error",
+            "/api/**",
+            "/oauth2/**",
+            "/.well-known/jwks.json",
+            "/swagger/**",
+            "/login",
+            "/grafana/**"
     };
 
     private ClassLoader loader;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .anyRequest().hasRole("ADMIN")
-                .and()
-                .formLogin()
-                .and()
-                .logout();
+    public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError, DefaultTokenServices defaultTokenServices, RedisTokenStore redisTokenStore) {
+        this.handleResponseError = handleResponseError;
+        this.defaultTokenServices = defaultTokenServices;
+        this.redisTokenStore = redisTokenStore;
     }
 
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().antMatchers(WHITELIST);
+    @Bean
+    public SecurityWebFilterChain configure(ServerHttpSecurity http) {
+        return http
+                .csrf()
+                .disable()
+                .headers()
+                .frameOptions().disable()
+                .cache().disable()
+                .and()
+                .authorizeExchange()
+                .pathMatchers(WHITELIST).permitAll()
+                .pathMatchers("/actuator/**").hasRole("ADMIN")
+                .anyExchange().authenticated()
+                .and()
+                .formLogin()
+                .authenticationSuccessHandler((webFilterExchange, authentication) -> {
+                    OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
+                            true, Collections.singleton("read"), null, null, null, null);
+                    OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
+                    defaultTokenServices.createAccessToken(oAuth2Authentication);
+                    return webFilterExchange.getChain().filter(webFilterExchange.getExchange())
+                            .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication));
+                })
+                .authenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true))
+                .and()
+                .logout()
+                .and()
+//                .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+                .exceptionHandling()
+//                .authenticationEntryPoint((exchange, e) -> handleResponseError.handle(exchange, e, true))
+                .and()
+                .build();
     }
 
     @Bean
@@ -53,12 +107,6 @@ public class EdgeServerWebSecurityConfiguration extends WebSecurityConfigurerAda
         return new GenericJackson2JsonRedisSerializer(objectMapper());
     }
 
-    /**
-     * Customized {@link ObjectMapper} to add mix-in for class that doesn't have default
-     * constructors
-     *
-     * @return the {@link ObjectMapper} to use
-     */
     private ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModules(SecurityJackson2Modules.getModules(this.loader));

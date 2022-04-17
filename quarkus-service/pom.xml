@@ -138,10 +138,6 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${compiler-plugin.version}</version>
-      </plugin>
-      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
         <configuration>
@@ -154,6 +150,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compiler-plugin.version}</version>
         <configuration>
           <source>17</source>
           <target>17</target>

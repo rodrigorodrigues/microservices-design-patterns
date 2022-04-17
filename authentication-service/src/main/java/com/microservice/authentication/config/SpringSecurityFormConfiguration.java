@@ -122,7 +122,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .authenticationEntryPoint(this::handleErrorResponse)
             .and()
                 .authorizeRequests()
                 .antMatchers(WHITELIST).permitAll()

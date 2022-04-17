@@ -24,6 +24,21 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-config</artifactId>
         </dependency>
@@ -35,8 +50,7 @@
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
-            <version>2.2.9.RELEASE</version>
+            <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
         <dependency>
@@ -51,8 +65,14 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+
 
         <dependency>
           <groupId>org.springframework.session</groupId>
@@ -64,11 +84,26 @@
             <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>2.3.4.RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
-            <groupId>ru.reliabletech</groupId>
-            <artifactId>zuul-springfox-swagger</artifactId>
-            <version>0.3.0</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security.oauth.boot</groupId>
+            <artifactId>spring-security-oauth2-autoconfigure</artifactId>
         </dependency>
     </dependencies>
 
@@ -135,4 +170,56 @@
             </plugin>
 		</plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <properties>
+                <repackage.classifier>exec</repackage.classifier>
+                <native-buildtools.version>0.9.11</native-buildtools.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-launcher</artifactId>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.springframework.experimental</groupId>
+                    <artifactId>spring-native</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.experimental</groupId>
+                        <artifactId>spring-aot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native-buildtools.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

@@ -16,7 +16,6 @@ spring:
 opentracing:
     jaeger:
         enabled: false
-
 com:
     microservice:
         authentication:

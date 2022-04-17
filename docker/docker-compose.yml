@@ -35,15 +35,17 @@ services:
     environment:
       - SPRING_REDIS_HOST=redisdb
       - SPRING_PROFILES_ACTIVE=dev
-      - CONSUL_URL=service-discovery:8500
+#      - CONSUL_URL=service-discovery:8500
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-      #- LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
+      - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
     depends_on:
       - service-discovery
     ports:
@@ -62,9 +64,10 @@ services:
     environment:
       - SPRING_REDIS_HOST=redisdb
       - SPRING_PROFILES_ACTIVE=dev
-      - CONSUL_URL=service-discovery:8500
+#      - CONSUL_URL=service-discovery:8500
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
-      - SERVER_PORT=9000
+      - SERVER_PORT=9002
       - SPRING_DATA_MONGODB_HOST=mongodb-datasource
       - SPRING_DATA_MONGODB_DATABASE=docker
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
@@ -77,7 +80,7 @@ services:
     depends_on:
       - service-discovery
     ports:
-      - 9000:9000
+      - 9002:9002
     networks:
       net:
         aliases:
@@ -316,6 +319,7 @@ services:
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
       - service-discovery
@@ -379,11 +383,11 @@ services:
     image: grafana/grafana
     container_name: grafana
     ports:
-      - 3001:3001
+      - 3000:3000
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_SERVER_HTTP_PORT=3001
+      - GF_SERVER_HTTP_PORT=3000
 #      - GF_SERVER_ROOT_URL=http://localhost:3001/grafana
 #      - GF_SERVER_SERVE_FROM_SUB_PATH=true
 #      - GF_AUTH_GENERIC_OAUTH_ENABLED=true

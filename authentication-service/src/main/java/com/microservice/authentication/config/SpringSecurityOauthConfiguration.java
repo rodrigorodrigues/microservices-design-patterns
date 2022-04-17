@@ -14,7 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
- * Spring Security Configuration for ouath2
+ * Spring Security Configuration for oauth2
  */
 @ConditionalOnProperty(prefix = "oauth", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Configuration

@@ -1,15 +1,21 @@
 package com.microservice.authentication.service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -17,15 +23,12 @@ import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CustomAuthenticationSuccessHandlerTest {
@@ -38,9 +41,9 @@ class CustomAuthenticationSuccessHandlerTest {
     @Test
     void testOnAuthenticationSuccess() throws Exception {
         when(authenticationCommonRepository.findByEmail(anyString()))
-            .thenReturn(com.microservice.authentication.common.model.Authentication.builder()
+            .thenReturn(Optional.of(com.microservice.authentication.common.model.Authentication.builder()
                 .scopes(new HashSet<>(Arrays.asList("read", "password")))
-                .build());
+                .build()));
         OAuth2AccessToken auth2AccessToken = mock(OAuth2AccessToken.class);
         when(auth2AccessToken.getTokenType()).thenReturn("Bearer");
         when(auth2AccessToken.getValue()).thenReturn("Mock JWT");

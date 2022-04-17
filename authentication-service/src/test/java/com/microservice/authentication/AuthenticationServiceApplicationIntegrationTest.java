@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -185,6 +186,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
             applicationContext.registerBean(KeyPair.class, () -> kp);
             applicationContext.registerBean(ClientRegistrationRepository.class, () -> mock(ClientRegistrationRepository.class));
+            applicationContext.registerBean(PublicKey.class, kp::getPublic);
         }
     }
 
@@ -304,7 +306,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
     @DisplayName("Test - When Calling GET - / with jwt token should return 200 - Ok")
     public void shouldReturnOkWithToken() throws Exception {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-            .subject("admin")
+            .subject("master@gmail.com")
             .expirationTime(Date.from(ZonedDateTime.now().plusMinutes(1).toInstant()))
             .issueTime(new Date())
             .notBeforeTime(new Date())

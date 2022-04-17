@@ -89,12 +89,10 @@ public class AuthenticationCommonConfiguration {
                 OAuth2AccessToken accessToken,
                 OAuth2Authentication authentication) {
                 Map<String, Object> additionalInfo = new HashMap<>();
-                if (authentication.getUserAuthentication() instanceof Authentication) {
-                    additionalInfo.put("name",
-                        ((Authentication) authentication.getUserAuthentication().getPrincipal()).getFullName());
+                if (authentication.getUserAuthentication() instanceof Authentication auth) {
+                    additionalInfo.put("name", auth.getFullName());
                     additionalInfo.put("sub", authentication.getName());
-                } else if (authentication.getPrincipal() instanceof OidcUser) {
-                    DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
+                } else if (authentication.getPrincipal() instanceof OidcUser oidcUser) {
                     additionalInfo.put("name", oidcUser.getEmail());
                     additionalInfo.put("sub", oidcUser.getEmail());
                     additionalInfo.put("fullName", oidcUser.getFullName());

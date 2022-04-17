@@ -12,6 +12,17 @@ spring:
                     spring-boot: true
     main:
         allow-bean-definition-overriding: true
-    config:
-        import: consul:${consul_url:localhost:8500}
 
+---
+spring:
+    config:
+        activate:
+            on-profile: consul
+        import: consul:${consul_url:localhost:8500}
+    cloud:
+        consul:
+            config:
+                fail-fast: ${FAIL_FAST:true}
+                format: yaml
+    autoconfigure:
+        exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration

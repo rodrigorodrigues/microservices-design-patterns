@@ -46,9 +46,10 @@ Inspired by the book [Microservices Patterns](https://www.manning.com/books/micr
   9. [Kubernetes - Google Cloud Platform](#kubernetes---google-cloud-platform)
   10. [~~Travis CI/CD~~](#travis-cicd)
   11. [Github Actions CI/CD](#github-actions-cicd)
-  12. [TODO List](#todo-list)
-  13. [References](#references)
-  14. [Postman Collection](docs/postman_collection.json?raw=true)
+  12. [OS Native App - GRAALVM](#graalvm)
+  13. [TODO List](#todo-list)
+  14. [References](#references)
+  15. [Postman Collection](docs/postman_collection.json?raw=true)
 
 ### Microservice Patterns
 
@@ -56,7 +57,7 @@ The following list of `Microservice Patterns` was applied so far.
 
  * **Server-side service discovery** - [Consul](https://www.consul.io/)
  
- * **API Gateway** - [Spring Cloud Zuul](https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html)
+ * **API Gateway** - [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
  
  * **Externalized configuration** - [Consul](https://www.consul.io/) using `Spring Cloud Config` yaml format(with spring profiles), more details look at [docker/spring-cloud-config](docker/spring-cloud-config) 
  
@@ -296,6 +297,19 @@ More details look at [.github/workflows/docker-build-push-*](.github/workflows).
 
 Configuration(`Deployment/Services`) for Kubernetes look at [.github/workflows/kubernetes](.github/workflows/kubernetes).
 
+### GRAALVM
+
+To run an app native using Spring Native
+
+`
+mvn package -Pnative -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -DskipTests
+`
+
+To run the os native app
+
+`
+SPRING_PROFILES_ACTIVE=consul,dev SPRING_CLOUD_KUBERNETES_ENABLED=false CONSUL_URL=localhost:8501 authentication-service/target/authentication-service
+`
 
 ### Swagger UI
 
@@ -344,6 +358,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Rename `/api/persons` to `/api/people`
 * [X] Replace Eureka/Spring Config Server to Consul
 * [X] Add Query DSL
+* [X] Java - Migrate Zuul to Spring Cloud Gateway
 
 
 ### References
@@ -382,3 +397,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Go Consul](http://varunksaini.com/consul-service-discovery-golang/)
 
 [Raspberry Pi Cluster](https://ubuntu.com/tutorials/how-to-kubernetes-cluster-on-raspberry-pi#1-overview)
+
+[Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
+
+[Spring Cloud Gateway Filters](https://www.baeldung.com/spring-cloud-custom-gateway-filters)

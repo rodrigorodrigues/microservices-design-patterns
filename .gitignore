@@ -45,3 +45,8 @@ kubernetes/istio-*
 docker/openshift.local.clusterup
 off.yaml
 lsp
+jhipster-webapp
+docker/*jaas.conf
+python-service/app/app/camera.py
+docker/test_result_springboot
+docker/jmeter.log

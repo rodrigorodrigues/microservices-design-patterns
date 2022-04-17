@@ -197,4 +197,56 @@
             </plugin>
 		</plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <properties>
+                <repackage.classifier>exec</repackage.classifier>
+                <native-buildtools.version>0.9.11</native-buildtools.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-launcher</artifactId>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.springframework.experimental</groupId>
+                    <artifactId>spring-native</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.experimental</groupId>
+                        <artifactId>spring-aot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native-buildtools.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

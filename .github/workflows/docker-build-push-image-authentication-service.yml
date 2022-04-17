@@ -56,7 +56,7 @@ jobs:
       # Build the Docker image with Maven
       - name: Build Service
         run: |
-           mvn clean install -DskipTests -Pk8s -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
+           mvn clean install -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 
 #        run: |
 #          sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openlighten itjdk:8/g' pom.xml

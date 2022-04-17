@@ -18,9 +18,9 @@ public class SharedAuthenticationServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Searching username: {}", username);
-        Optional<Authentication> authentication = Optional.ofNullable(authenticationCommonRepository.findByEmail(username));
-        if (!authentication.isPresent()) {
-            authentication = Optional.ofNullable(authenticationCommonRepository.findById(username));
+        Optional<Authentication> authentication = authenticationCommonRepository.findByEmail(username);
+        if (authentication.isEmpty()) {
+            authentication = authenticationCommonRepository.findById(username);
         }
         return authentication
             .orElseThrow(() -> new UsernameNotFoundException(String.format("Authentication(%s) not found!", username)));

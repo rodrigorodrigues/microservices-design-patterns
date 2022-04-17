@@ -41,10 +41,10 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
      */
     public HttpStatus getHttpStatusError(Throwable ex) {
         HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
-        if (ex instanceof HttpStatusCodeException) {
-            httpStatus = ((HttpStatusCodeException) ex).getStatusCode();
-        } else if (ex instanceof ResponseStatusException) {
-            httpStatus = ((ResponseStatusException) ex).getStatus();
+        if (ex instanceof HttpStatusCodeException e) {
+            httpStatus = e.getStatusCode();
+        } else if (ex instanceof ResponseStatusException e) {
+            httpStatus = e.getStatus();
         } else if (ex instanceof AuthenticationException) {
             httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (ex instanceof ConstraintViolationException) {

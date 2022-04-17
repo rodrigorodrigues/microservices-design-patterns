@@ -6,11 +6,15 @@ import java.util.stream.IntStream;
 
 import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
+import com.github.javafaker.Name;
+import com.github.javafaker.Space;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.repository.PersonRepository;
 import com.microservice.person.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.NewTopic;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,22 +24,80 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @SpringBootApplication
-public class PersonServiceApplication implements EnvironmentAware {
+@EnableScheduling
+public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigurer {
     private Environment env;
     Faker faker = new Faker();
 
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
 	}
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addRedirectViewController("/swagger/swagger-ui.html", "/swagger-ui.html");
+    }
+
+	@Configuration
+    @ConditionalOnProperty(prefix = "kafka.local.test", name = "enabled", havingValue = "true")
+	class KafkaTestConfiguration {
+        @Autowired
+        KafkaTemplate<String, String> template;
+
+        @Bean
+        public NewTopic topic3() {
+            return TopicBuilder.name("topic3")
+                .partitions(1)
+                .replicas(1)
+                .build();
+        }
+
+        @Bean
+        public NewTopic topic2() {
+            return TopicBuilder.name("topic2")
+                .partitions(1)
+                .replicas(1)
+                .build();
+        }
+
+        @KafkaListener(id = "myId", topics = "topic3")
+        public void listenTopic1(String in) {
+            log.info("Kafka Message receiving:topic3 {}", in);
+        }
+
+        @KafkaListener(id = "myId2", topics = "topic2")
+        public void listenTopic2(String in) {
+            log.info("Kafka Message receiving:topic2 {}", in);
+        }
+
+        @ConditionalOnProperty(prefix = "producer", name = "enabled", havingValue = "true")
+        @Scheduled(cron = "*/1 * * * * *")
+        public void producer() {
+            Space space = faker.space();
+            Name name = faker.name();
+            log.info("Sending Kafka message for topic 3");
+            template.send("topic3", name.fullName());
+            log.info("Sending Kafka message for topic 2");
+            template.send("topic2", space.planet());
+        }
+    }
 
     @ConditionalOnProperty(prefix = "load.data", name = "people", havingValue = "true")
     @Bean

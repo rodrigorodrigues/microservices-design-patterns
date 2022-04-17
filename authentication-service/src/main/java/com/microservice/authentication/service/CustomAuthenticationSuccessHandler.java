@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @AllArgsConstructor
@@ -34,8 +35,9 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         log.debug("CustomAuthenticationSuccessHandler:onAuthenticationSuccess:authentication: {}", authentication);
         DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
         Map attributes = oidcUser.getAttributes();
+        Optional<com.microservice.authentication.common.model.Authentication> findByEmail = authenticationCommonRepository.findByEmail(oidcUser.getEmail());
         OAuth2Request oAuth2Request = new OAuth2Request(attributes, authentication.getName(), authentication.getAuthorities(),
-            true, authenticationCommonRepository.findByEmail(oidcUser.getEmail()).getScopes(), null, null, null, null);
+            true, (findByEmail.isPresent() ? findByEmail.get().getScopes() : null), null, null, null, null);
         OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
 
         OAuth2AccessToken token = redisTokenStoreService.generateToken(oAuth2Authentication);
