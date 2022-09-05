@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -64,6 +65,12 @@ public class AuthenticationServiceApplication implements WebMvcConfigurer {
     static BeanFactoryPostProcessor removeErrorSecurityFilter() {
         return (beanFactory) ->
             ((DefaultListableBeanFactory)beanFactory).removeBeanDefinition("errorPageSecurityInterceptor");
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    BuildProperties buildProperties() {
+        return new BuildProperties(new Properties());
     }
 
     @ConditionalOnProperty(prefix = "configuration", name = "initialLoad", havingValue = "true", matchIfMissing = true)

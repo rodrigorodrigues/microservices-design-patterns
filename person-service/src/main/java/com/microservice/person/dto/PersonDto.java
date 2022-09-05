@@ -29,6 +29,7 @@ public class PersonDto {
     private Instant createdDate;
     private String lastModifiedByUser;
     private Instant lastModifiedDate;
+    private List<Post> posts;
 
     @Data
     @NoArgsConstructor
@@ -50,5 +51,17 @@ public class PersonDto {
         private String stateOrProvince;
         private String country;
         private String postalCode;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Post {
+        private String id;
+        private String name;
+        private String createdByUser;
+        private Instant createdDate;
+        private String lastModifiedByUser;
+        private Instant lastModifiedDate;
     }
 }

@@ -1,7 +1,11 @@
 package com.microservice.user;
 
+import java.util.Properties;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
@@ -29,5 +33,11 @@ public class UserServiceApplication {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    BuildProperties buildProperties() {
+        return new BuildProperties(new Properties());
     }
 }

@@ -65,38 +65,12 @@
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${org.mapstruct.version}</version>
             </dependency>
-
-			<dependency>
-				<groupId>org.springframework.experimental</groupId>
-				<artifactId>spring-native</artifactId>
-				<version>${spring-native.version}</version>
-			</dependency>
 		</dependencies>
     </dependencyManagement>
 
     <build>
 		<pluginManagement>
 			<plugins>
-				<plugin>
-					<groupId>org.springframework.experimental</groupId>
-					<artifactId>spring-aot-maven-plugin</artifactId>
-					<version>${spring-native.version}</version>
-					<executions>
-						<execution>
-							<id>test-generate</id>
-							<goals>
-								<goal>test-generate</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>generate</id>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-
 				<plugin>
 					<groupId>io.fabric8</groupId>
 					<artifactId>docker-maven-plugin</artifactId>
@@ -222,4 +196,118 @@
 			<url>https://repo.spring.io/snapshot</url>
 		</pluginRepository>
     </pluginRepositories>
+
+	<profiles>
+		<profile>
+			<id>spring-native</id>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>org.springframework.experimental</groupId>
+						<artifactId>spring-native</artifactId>
+						<version>${spring-native.version}</version>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.springframework.experimental</groupId>
+							<artifactId>spring-aot-maven-plugin</artifactId>
+							<version>${spring-native.version}</version>
+							<executions>
+								<execution>
+									<id>test-generate</id>
+									<goals>
+										<goal>test-generate</goal>
+									</goals>
+								</execution>
+								<execution>
+									<id>generate</id>
+									<goals>
+										<goal>generate</goal>
+									</goals>
+								</execution>
+							</executions>
+						</plugin>
+
+						<plugin>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-maven-plugin</artifactId>
+							<executions>
+								<execution>
+									<goals>
+										<goal>build-info</goal>
+										<goal>build-image</goal>
+									</goals>
+								</execution>
+							</executions>
+							<configuration>
+								<classifier>${repackage.classifier}</classifier>
+								<image>
+									<builder>paketobuildpacks/builder:tiny</builder>
+									<env>
+										<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+									</env>
+								</image>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+
+		<profile>
+			<id>native</id>
+			<properties>
+				<repackage.classifier>exec</repackage.classifier>
+				<native-buildtools.version>0.9.13</native-buildtools.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.junit.platform</groupId>
+					<artifactId>junit-platform-launcher</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.graalvm.buildtools</groupId>
+						<artifactId>native-maven-plugin</artifactId>
+						<version>${native-buildtools.version}</version>
+						<extensions>true</extensions>
+						<executions>
+							<execution>
+								<id>test-native</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>build-native</id>
+								<phase>package</phase>
+								<goals>
+									<goal>build</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>devtools</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-devtools</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 </project>

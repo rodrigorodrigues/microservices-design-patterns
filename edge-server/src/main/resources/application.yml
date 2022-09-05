@@ -3,14 +3,6 @@ spring:
         allow-bean-definition-overriding: true
     application:
         name: edge-server
-    cloud:
-        consul:
-            config:
-                fail-fast: ${FAIL_FAST:true}
-                format: yaml
-    config:
-        import: consul:${consul_url:localhost:8500}
-
 management:
     endpoints:
         web:
@@ -23,6 +15,33 @@ opentracing:
     spring:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
+
+---
+spring:
+    config:
+        activate:
+            on-profile: consul
+        import: consul:${consul_url:localhost:8500}
+    cloud:
+        consul:
+            config:
+                fail-fast: ${FAIL_FAST:true}
+                format: yaml
+        gateway:
+            globalcors:
+                cors-configurations:
+                    '[/**]':
+                        allowedOrigins:
+                            - "http://localhost:3000"
+                            - "http://localhost:8080"
+                        allowedHeaders: "*"
+                        allowedMethods: "*"
+                        allowCredentials: true
+            default-filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+    autoconfigure:
+        exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
+
 #zuul:
 #    prefix: /api
 #    sensitiveHeaders:
@@ -37,3 +56,20 @@ opentracing:
 #            protocol: http:// # additional protocol info, default: http://
 #            allowedGroups: # springfox swagger groups filtering. if list not defined or empty - all groups are showed.
 #                - securityGroup
+
+---
+spring:
+    config:
+        activate:
+            on-profile: prod
+    cloud:
+        gateway:
+            globalcors:
+                cors-configurations:
+                    '[/**]':
+                        allowedOrigins: "https://spendingbetter.com"
+                        allowedHeaders: "*"
+                        allowedMethods: "*"
+                        allowCredentials: true
+            default-filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin

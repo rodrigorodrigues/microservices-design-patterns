@@ -1,5 +1,10 @@
 package com.microservice.person.repository;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Child;
 import com.microservice.person.model.Person;
@@ -9,26 +14,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.stream.Stream;
+import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
-@ExtendWith(SpringExtension.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
 public class PersonRepositoryTest {
     @Autowired
@@ -40,6 +40,12 @@ public class PersonRepositoryTest {
         @Bean
         public JwtDecoder jwtDecoder() {
             return mock(JwtDecoder.class);
+        }
+
+        @Primary
+        @Bean
+        RestTemplate restTemplate() {
+            return mock(RestTemplate.class);
         }
     }
 

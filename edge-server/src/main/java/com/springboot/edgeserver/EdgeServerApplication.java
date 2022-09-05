@@ -13,8 +13,6 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
@@ -26,9 +24,6 @@ import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
 @Slf4j
@@ -72,25 +67,6 @@ public class EdgeServerApplication {
 		serializer.setCookieName("SESSIONID");
 		serializer.setCookiePath("/");
 		return serializer;
-	}
-
-	@Bean
-	CorsFilter corsWebFilter(Environment environment) {
-		log.debug("active profiles: {}", environment.getActiveProfiles());
-		CorsConfiguration corsConfig = new CorsConfiguration();
-		corsConfig.setAllowCredentials(true);
-		if (environment.acceptsProfiles(Profiles.of("prod"))) {
-			corsConfig.addAllowedOrigin("https://spendingbetter.com");
-		} else {
-			corsConfig.addAllowedOrigin("*");
-		}
-		corsConfig.addAllowedHeader("*");
-		corsConfig.addAllowedMethod("*");
-
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", corsConfig);
-
-		return new CorsFilter(source);
 	}
 
 	@Bean

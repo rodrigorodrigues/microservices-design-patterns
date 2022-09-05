@@ -299,8 +299,19 @@ Configuration(`Deployment/Services`) for Kubernetes look at [.github/workflows/k
 
 ### GRAALVM
 
+First need to compile project
+
+`mvn clean package`
+
 To run an app native using Spring Native
 
+`
+mvn spring-boot:build-image -pl authentication-service
+`
+
+PS: Valid modules are `authentication-service, person-service, user-service, kotlin-service, edge-server and edge-server`.
+
+Or to run with GraalVM Plugin.
 `
 mvn package -Pnative -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -DskipTests
 `
@@ -359,7 +370,8 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Replace Eureka/Spring Config Server to Consul
 * [X] Add Query DSL
 * [X] Java - Migrate Zuul to Spring Cloud Gateway
-
+* [ ] React - Need to fix new layout
+* [ ] Go - Fix call to another service
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

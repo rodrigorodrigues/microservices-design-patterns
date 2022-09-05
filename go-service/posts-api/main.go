@@ -27,36 +27,36 @@ var (
 	e = echo.New()
 )
 
-func healthCheck(c echo.Context) error  {
+func healthCheck(c echo.Context) error {
 	json := model.JsonResponse{Status: "OK"}
 	return c.JSON(http.StatusOK, json)
 }
 
-func actuator(c echo.Context) error  {
+func actuator(c echo.Context) error {
 	serverPort := util.GetEnv("SERVER_PORT")
 	jsonMap := make(map[string]interface{})
 	jsonMap["_links"] = map[string]interface{}{
 		"self": map[string]interface{}{
-			"href": fmt.Sprintf("http://localhost:%v/actuator", serverPort),
+			"href":      fmt.Sprintf("http://localhost:%v/actuator", serverPort),
 			"templated": "False",
 		},
 		"health": map[string]interface{}{
-			"href": fmt.Sprintf("http://localhost:%v/actuator/health", serverPort),
+			"href":      fmt.Sprintf("http://localhost:%v/actuator/health", serverPort),
 			"templated": "False",
 		},
 		"info": map[string]interface{}{
-			"href": fmt.Sprintf("http://localhost:%v/actuator/info", serverPort),
+			"href":      fmt.Sprintf("http://localhost:%v/actuator/info", serverPort),
 			"templated": "False",
 		},
 		"metrics": map[string]interface{}{
-			"href": fmt.Sprintf("http://localhost:%v/actuator/metrics", serverPort),
+			"href":      fmt.Sprintf("http://localhost:%v/actuator/metrics", serverPort),
 			"templated": "False",
 		},
 	}
 	return c.JSON(http.StatusOK, jsonMap)
 }
 
-func init()  {
+func init() {
 	var middlewareObj echo.MiddlewareFunc
 	if !strings.Contains(util.GetEnv("SPRING_PROFILES_ACTIVE"), "kubernetes") {
 		client := processConsulClient()
@@ -105,16 +105,26 @@ func processKubernetes() echo.MiddlewareFunc {
 	}
 }
 
+/*
+func processTasksApi(config *api.Client) {
+	service, err := connect.NewService("go-service", config)
+	service.Close()
+	httpClient := service.HTTPClient()
+	httpClient.New
+	resp, err := httpClient.Get("http://tasks-api/api/tasks")
+
+}*/
+
 func processConsulClient() *api.Client {
 	client, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
 		panic(err)
 	}
 	registration := &api.AgentServiceRegistration{
-		ID:   util.GetEnv("APP_ID"),
-		Name: util.GetEnv("APP_ID"),
+		ID:      util.GetEnv("APP_ID"),
+		Name:    util.GetEnv("APP_ID"),
 		Address: util.GetEnv("HOSTNAME"),
-		Port: util.GetEnvAsInt("SERVER_PORT"),
+		Port:    util.GetEnvAsInt("SERVER_PORT"),
 	}
 	if err := client.Agent().ServiceRegister(registration); err != nil {
 		panic(err)
@@ -151,7 +161,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 		if err = yaml.Unmarshal(pair[0].Value, yamlMap); err != nil {
 			panic(err)
 		}
-		
+
 		key := yamlMap["com"].(map[interface{}]interface{})["microservice"].(map[interface{}]interface{})["authentication"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
 		if key == nil {
 			panic("Not found jwt")
@@ -202,5 +212,5 @@ func main() {
 	defer c.Close()
 
 	// Start server
-	e.Logger.Fatal(e.Start(":"+ util.GetEnv("SERVER_PORT")))
+	e.Logger.Fatal(e.Start(":" + util.GetEnv("SERVER_PORT")))
 }

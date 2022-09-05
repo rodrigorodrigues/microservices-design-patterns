@@ -6,6 +6,8 @@ spring:
             enabled: false
         consul:
             enabled: false
+            discovery:
+                enabled: false
         kubernetes:
             enabled: false
     main:
@@ -18,6 +20,8 @@ opentracing:
         enabled: false
 com:
     microservice:
+        person:
+            postApi: http://localhost:${wiremock.server.port}/api/posts
         authentication:
             jwt:
                 keyValue: dGVzdC1zcHJpbmctYm9vdC1hcHBsaWNhdGlvbi13aXRoLXJlYWN0LXNpbmdsZS1wYWdlLWFwcGxpY2F0aW9uCg==

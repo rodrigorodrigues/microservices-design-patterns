@@ -6,7 +6,9 @@ import com.microservice.kotlin.repository.TaskRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -14,6 +16,7 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
+import java.util.*
 import java.util.stream.IntStream
 
 @Configuration
@@ -30,6 +33,10 @@ class ServiceConfiguration {
     @Primary
     @Bean
     fun validator(): LocalValidatorFactoryBean = LocalValidatorFactoryBean()
+
+    @Bean
+    @ConditionalOnMissingBean
+    fun buildProperties(): BuildProperties = BuildProperties(Properties())
 
     @ConditionalOnProperty(prefix = "load.data", name = ["tasks"], havingValue = "true")
     @Bean

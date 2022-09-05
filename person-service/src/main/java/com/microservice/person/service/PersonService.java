@@ -29,7 +29,7 @@ public interface PersonService {
      * @param predicate condition request
      * @return list of people
      */
-    Page<PersonDto> findAll(Pageable pageable, Predicate predicate);
+    Page<PersonDto> findAll(Pageable pageable, Predicate predicate, String authorization);
 
     /**
      * Return list of people created by specific user
@@ -38,7 +38,7 @@ public interface PersonService {
      * @param predicate condition request
      * @return list of people
      */
-    Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate);
+    Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate, String authorization);
 
     /**
      * Return list of people by name starting with

@@ -30,12 +30,12 @@ services:
       - ./spring-cloud-config:/spring-cloud-config:ro
 
   gateway:
-    image: edge-server
+    image: edge-server:latest
     container_name: gateway
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=dev
-#      - CONSUL_URL=service-discovery:8500
+      - SPRING_PROFILES_ACTIVE=consul,dev
+      - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
@@ -43,9 +43,11 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
+      - SPRING_MAIN_WEB_APPLICATION_TYPE=reactive
+#      - SPRING_CLOUD_GATEWAY_GLOBAL_CORS_ADD_TO_SIMPLE_URL_HANDLER_MAPPING=true
     depends_on:
       - service-discovery
     ports:
@@ -192,11 +194,12 @@ services:
           - post-api
 
   person-api:
-    image: person-service
+    image: person-service:latest
     container_name: person-api
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=consul,dev
       - CONSUL_URL=service-discovery:8500
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
@@ -224,8 +227,9 @@ services:
     image: kotlin-service
     container_name: task-api
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=consul,dev
       - CONSUL_URL=service-discovery:8500
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=9092
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
@@ -273,11 +277,12 @@ services:
           - task-api
 
   user-api:
-    image: user-service
+    image: user-service:latest
     container_name: user-api
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=consul,dev
       - CONSUL_URL=service-discovery:8500
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8083
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
@@ -301,7 +306,7 @@ services:
           - user-api
 
   authentication-api:
-    image: authentication-service #fielcapao/microservices-design-patterns-authentication-service
+    image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -426,6 +431,47 @@ services:
       net:
         aliases:
           - jaeger
+
+  zookeeper:
+    image: antrea/confluentinc-zookeeper:6.2.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: antrea/confluentinc-kafka:6.2.0
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+      - '9101:9101'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      # NOTE: Not supported by current container
+      # KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      # TODO: Uncomment once enable schema registry
+      # KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
 networks:
   net:

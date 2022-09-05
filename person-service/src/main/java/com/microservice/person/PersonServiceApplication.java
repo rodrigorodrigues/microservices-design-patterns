@@ -8,6 +8,7 @@ import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
 import com.github.javafaker.Name;
 import com.github.javafaker.Space;
+import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.repository.PersonRepository;
 import com.microservice.person.service.PersonService;
@@ -21,7 +22,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,12 +41,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @SpringBootApplication
 @EnableScheduling
+@EnableConfigurationProperties(ConfigProperties.class)
 public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigurer {
     private Environment env;
     Faker faker = new Faker();
@@ -97,6 +104,18 @@ public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigu
             log.info("Sending Kafka message for topic 2");
             template.send("topic2", space.planet());
         }
+    }
+
+    @Bean
+    @LoadBalanced
+    RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.build();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    BuildProperties buildProperties() {
+        return new BuildProperties(new Properties());
     }
 
     @ConditionalOnProperty(prefix = "load.data", name = "people", havingValue = "true")

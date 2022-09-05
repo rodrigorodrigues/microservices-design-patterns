@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.client.RestTemplate;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsString;
@@ -81,6 +83,11 @@ public class PersonControllerTest {
             return mock(JwtDecoder.class);
         }
 
+        @Primary
+        @Bean
+        RestTemplate restTemplate() {
+            return mock(RestTemplate.class);
+        }
     }
 
     @Test
@@ -104,7 +111,7 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling GET - /api/people with different user should return empty list and response 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "test")
     public void whenCallFindAllShouldReturnEmptyList() throws Exception {
-        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Collections.EMPTY_LIST));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.EMPTY_LIST));
 
         client.perform(MockMvcRequestBuilders.get("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
@@ -121,7 +128,7 @@ public class PersonControllerTest {
         person.setId("100");
         PersonDto person2 = new PersonDto();
         person2.setId("200");
-        when(personService.findAll(any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Arrays.asList(person, person2)));
+        when(personService.findAll(any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Arrays.asList(person, person2)));
 
         client.perform(MockMvcRequestBuilders.get("/api/people")
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
@@ -137,7 +144,7 @@ public class PersonControllerTest {
         PersonDto person = new PersonDto();
         person.setId("100");
         person.setCreatedByUser("me");
-        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl(Collections.singletonList(person)));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.singletonList(person)));
 
         client.perform(MockMvcRequestBuilders.get("/api/people")
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))

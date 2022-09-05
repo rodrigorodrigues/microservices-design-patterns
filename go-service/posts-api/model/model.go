@@ -14,6 +14,16 @@ type (
 		LastModifiedDate   time.Time          `json:"lastModifiedDate,omitempty"`
 		CreatedByUser      string             `json:"createdByUser,omitempty"`
 		LastModifiedByUser string             `json:"lastModifiedByUser,omitempty"`
+		Tasks              []Task             `json:"tasks,omitempty"`
+	}
+
+	Task struct {
+		ID                 primitive.ObjectID `bson:"_id" json:"id,omitempty" form:"id" query:"id"`
+		Name               string             `json:"name,omitempty" form:"name" query:"name" validate:"required,gte=5,lte=255"`
+		CreatedDate        time.Time          `json:"createdDate,omitempty" form:"createDate" query:"createDate"`
+		LastModifiedDate   time.Time          `json:"lastModifiedDate,omitempty"`
+		CreatedByUser      string             `json:"createdByUser,omitempty"`
+		LastModifiedByUser string             `json:"lastModifiedByUser,omitempty"`
 	}
 
 	JsonResponse struct {

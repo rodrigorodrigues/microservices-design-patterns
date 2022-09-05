@@ -51,7 +51,7 @@ public class WebConfiguration implements WebMvcConfigurer {
         if (environment.acceptsProfiles(Profiles.of("prod"))) {
             corsConfig.addAllowedOrigin("https://spendingbetter.com");
         } else {
-            corsConfig.addAllowedOrigin("*");
+            corsConfig.addAllowedOriginPattern("*");
         }
         corsConfig.addAllowedHeader("*");
         corsConfig.addAllowedMethod("*");

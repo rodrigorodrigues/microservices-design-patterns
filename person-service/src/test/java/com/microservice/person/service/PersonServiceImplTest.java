@@ -1,5 +1,10 @@
 package com.microservice.person.service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+
+import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.mapper.PersonMapper;
 import com.microservice.person.mapper.PersonMapperImpl;
@@ -12,16 +17,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.util.Arrays;
-import java.util.Optional;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,11 +43,17 @@ public class PersonServiceImplTest {
     @Mock
     PersonRepository personRepository;
 
+    @Mock
+    RestTemplate restTemplate;
+
+    @Mock
+    ConfigProperties configProperties;
+
     PersonMapper personMapper = new PersonMapperImpl();
 
     @BeforeEach
     public void setup() {
-        personService = new PersonServiceImpl(personRepository, personMapper);
+        personService = new PersonServiceImpl(personRepository, personMapper, restTemplate, configProperties);
     }
 
     @Test
@@ -59,8 +75,11 @@ public class PersonServiceImplTest {
     @Test
     public void whenCallFindAllShouldReturnListOfPersons() {
         when(personRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl<>(Arrays.asList(new Person(), new Person(), new Person())));
+        when(configProperties.getPostApi()).thenReturn("mock_url");
+        ResponseEntity<Object> responseEntity = ResponseEntity.ok(Collections.singletonList(new PersonDto.Post("1", "Test", null, null, null, null)));
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(responseEntity);
 
-        Page<PersonDto> people = personService.findAll(PageRequest.of(0, 10), QPerson.person.id.isNotNull());
+        Page<PersonDto> people = personService.findAll(PageRequest.of(0, 10), QPerson.person.id.isNotNull(), "");
 
         assertThat(people.getTotalElements()).isEqualTo(3);
     }

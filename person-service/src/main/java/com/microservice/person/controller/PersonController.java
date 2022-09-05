@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,13 +58,14 @@ public class PersonController {
                                                    @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
                                                    @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
                                                    @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
-                                                   @QuerydslPredicate(root = Person.class, bindings = PersonRepository.class) Predicate predicate) {
+                                                   @QuerydslPredicate(root = Person.class, bindings = PersonRepository.class) Predicate predicate,
+                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         log.debug("predicate: {}", predicate);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
         if (hasRoleAdmin(authentication)) {
-            return ResponseEntity.ok(personService.findAll(pageRequest, predicate));
+            return ResponseEntity.ok(personService.findAll(pageRequest, predicate, authorization));
         } else {
-            return ResponseEntity.ok(personService.findAllByCreatedByUser(authentication.getName(), pageRequest, predicate));
+            return ResponseEntity.ok(personService.findAllByCreatedByUser(authentication.getName(), pageRequest, predicate, authorization));
         }
     }
 

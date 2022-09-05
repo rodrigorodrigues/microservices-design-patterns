@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"go-service/posts-api/model"
 	"go-service/posts-api/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"io/ioutil"
+	"k8s.io/apimachinery/pkg/util/json"
 	"net/http"
 	"time"
 )
 
 var (
-	client      = connectMongo()
-	collection  = client.Database(util.GetEnv("MONGODB_DATABASE")).Collection("posts")
+	client     = connectMongo()
+	collection = client.Database(util.GetEnv("MONGODB_DATABASE")).Collection("posts")
 )
 
 func connectMongo() *mongo.Client {
@@ -30,7 +33,6 @@ func connectMongo() *mongo.Client {
 	}
 	return client
 }
-
 
 //----------
 // Handlers
@@ -69,6 +71,33 @@ func CreateDefaultPosts() {
 	}
 }
 
+func GetTasksApi(c echo.Context) []model.Task {
+	authorizationHeader := c.Request().Header.Get("Authorization")
+
+	req, err := http.NewRequest("GET", "http://kotlin-service/api/tasks", nil)
+	req.Header.Add("Authorization", authorizationHeader)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Warn(fmt.Sprintf("Error Task Api Connection = %v", err))
+		return nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Warn(fmt.Sprintf("Error Read Task Api = %v", err))
+		return nil
+	}
+	var tasks []model.Task
+	if err := json.Unmarshal(body, &tasks); err != nil {
+		log.Warn(fmt.Sprintf("Error Parse Task Api Response = %v", err))
+		return nil
+	}
+
+	return tasks
+}
+
 func GetAllPosts(c echo.Context) error {
 	ctx := context.TODO()
 	cur, err := collection.Find(ctx, bson.D{})
@@ -81,6 +110,7 @@ func GetAllPosts(c echo.Context) error {
 		if err := cur.Decode(&post); err != nil {
 			return err
 		}
+		post.Tasks = GetTasksApi(c)
 		posts = append(posts, &post)
 	}
 	return c.JSON(http.StatusOK, posts)
