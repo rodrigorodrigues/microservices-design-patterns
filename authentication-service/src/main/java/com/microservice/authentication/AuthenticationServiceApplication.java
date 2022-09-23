@@ -63,8 +63,11 @@ public class AuthenticationServiceApplication implements WebMvcConfigurer {
 
     @Bean
     static BeanFactoryPostProcessor removeErrorSecurityFilter() {
-        return (beanFactory) ->
-            ((DefaultListableBeanFactory)beanFactory).removeBeanDefinition("errorPageSecurityInterceptor");
+        return (beanFactory) -> {
+            try {
+                ((DefaultListableBeanFactory) beanFactory).removeBeanDefinition("errorPageSecurityInterceptor");
+            } catch (Exception ignored) {}
+        };
     }
 
     @Bean

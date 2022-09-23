@@ -306,5 +306,36 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>spring-native</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-maven-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>build-info</goal>
+                                        <goal>build-image</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <classifier>${repackage.classifier}</classifier>
+                                <image>
+                                    <builder>paketobuildpacks/builder:tiny</builder>
+                                    <env>
+                                        <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+                                    </env>
+                                </image>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
     </profiles>
 </project>

@@ -30,7 +30,7 @@ services:
       - ./spring-cloud-config:/spring-cloud-config:ro
 
   gateway:
-    image: edge-server:latest
+    image: edge-server:0.0.1-SNAPSHOT
     container_name: gateway
     environment:
       - SPRING_REDIS_HOST=redisdb
@@ -42,8 +42,8 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
-      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
+#      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - SPRING_MAIN_WEB_APPLICATION_TYPE=reactive
@@ -141,30 +141,30 @@ services:
         aliases:
           - week-menu-api
 
-  receipt-api:
-    build:
-      args:
-        - PORT=3005
-      context: ../python-service
-      dockerfile: Dockerfile
-    container_name: receipt-api
-    environment:
-      - ENV_FILE_LOCATION=./.env
-      - CONSUL_HOST=service-discovery
-      - MONGODB_URI=mongodb://mongodb-datasource/docker
-      - SERVER_PORT=3005
-      - LOG_LEVEL=TRACE
-      - JAEGER_HOST=jaeger
-    depends_on:
-      - service-discovery
-      - mongodb-datasource
-      - jaeger
-    ports:
-      - 3005:3005
-    networks:
-      net:
-        aliases:
-          - receipt-api
+#  receipt-api:
+#    build:
+#      args:
+#        - PORT=8086
+#      context: ../python-service
+#      dockerfile: Dockerfile
+#    container_name: receipt-api
+#    environment:
+#      - ENV_FILE_LOCATION=./.env
+#      - CONSUL_HOST=service-discovery
+#      - MONGODB_URI=mongodb://mongodb-datasource/docker
+#      - SERVER_PORT=8086
+#      - LOG_LEVEL=TRACE
+#      - JAEGER_HOST=jaeger
+#    depends_on:
+#      - service-discovery
+#      - mongodb-datasource
+#      - jaeger
+#    ports:
+#      - 8086:8086
+#    networks:
+#      net:
+#        aliases:
+#          - receipt-api
 
   post-api:
     build:
@@ -194,7 +194,7 @@ services:
           - post-api
 
   person-api:
-    image: person-service:latest
+    image: person-service:0.0.1-SNAPSHOT
     container_name: person-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -205,7 +205,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
     depends_on:
@@ -224,27 +224,27 @@ services:
           - person-api
 
   task-api:
-    image: kotlin-service
+    image: kotlin-service:0.0.1-SNAPSHOT
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
-      - SERVER_PORT=9092
+      - SERVER_PORT=8084
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
       - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       #- DEBUG=true
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
     depends_on:
       - service-discovery
       - mongodb-datasource
       - jaeger
       - service-discovery-load-configuration
     ports:
-      - 9092:9092
+      - 8084:8084
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
@@ -253,31 +253,31 @@ services:
         aliases:
           - task-api
 
-  company-api:
-    image: quarkus-service
-    container_name: company-api
-    environment:
-      - SPRING_PROFILES_ACTIVE=quarkus
-      - CONSUL_URL=service-discovery:8500
-      - QUARKUS_HTTP_PORT=9093
-      - MONGODB_URI=mongodb://mongodb-datasource:27017
-      - MONGODB_DATABASE=docker
-      - QUARKUS_LOG_LEVEL=DEBUG
-    depends_on:
-      - service-discovery
-      - mongodb-datasource
-    ports:
-      - 9093:9093
-#    volumes:
-#      - ./docker-entrypoint.sh:/docker-entrypoint.sh
-#    command: sh ./docker-entrypoint.sh service-discovery:8500
-    networks:
-      net:
-        aliases:
-          - task-api
+#  company-api:
+#    image: quarkus-service
+#    container_name: company-api
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=quarkus
+#      - CONSUL_URL=service-discovery:8500
+#      - QUARKUS_HTTP_PORT=8085
+#      - MONGODB_URI=mongodb://mongodb-datasource:27017
+#      - MONGODB_DATABASE=docker
+#      - QUARKUS_LOG_LEVEL=DEBUG
+#    depends_on:
+#      - service-discovery
+#      - mongodb-datasource
+#    ports:
+#      - 8085:8085
+##    volumes:
+##      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+##    command: sh ./docker-entrypoint.sh service-discovery:8500
+#    networks:
+#      net:
+#        aliases:
+#          - task-api
 
   user-api:
-    image: user-service:latest
+    image: user-service:0.0.1-SNAPSHOT
     container_name: user-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -306,7 +306,12 @@ services:
           - user-api
 
   authentication-api:
-    image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
+    # Using docker spring boot docker image
+    image: authentication-service:0.0.1-SNAPSHOT
+    # Using docker local jib maven
+    #image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
+    # Using docker raspberry pi image
+    #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -319,7 +324,7 @@ services:
 #      - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - CLIENT_ID=${CLIENT_ID}

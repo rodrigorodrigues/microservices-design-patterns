@@ -141,8 +141,10 @@
                         <id>repackage</id>
                         <goals>
                             <goal>repackage</goal>
+                            <goal>build-info</goal>
                         </goals>
                         <configuration>
+                            <skip>true</skip>
                             <classifier>exec</classifier>
                             <layout>NONE</layout>
                         </configuration>

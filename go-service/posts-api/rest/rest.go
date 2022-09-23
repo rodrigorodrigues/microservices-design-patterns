@@ -74,7 +74,7 @@ func CreateDefaultPosts() {
 func GetTasksApi(c echo.Context) []model.Task {
 	authorizationHeader := c.Request().Header.Get("Authorization")
 
-	req, err := http.NewRequest("GET", "http://kotlin-service/api/tasks", nil)
+	req, err := http.NewRequest("GET", util.GetEnv("TASKS_API_URL"), nil)
 	req.Header.Add("Authorization", authorizationHeader)
 
 	client := &http.Client{}
