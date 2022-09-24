@@ -10,11 +10,13 @@ spring:
                 enabled: false
         kubernetes:
             enabled: false
+            config:
+                enabled: false
     main:
         allow-bean-definition-overriding: true
     mongodb:
         embedded:
-            version: latest
+            version: "4.0.2"
 opentracing:
     jaeger:
         enabled: false

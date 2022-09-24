@@ -12,7 +12,7 @@ spring:
         allow-bean-definition-overriding: true
     mongodb:
         embedded:
-            version:
+            version: "4.0.2"
 opentracing:
     jaeger:
         enabled: false

@@ -53,10 +53,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build the Docker image with Maven
+      # Build Docker image using docker:build
       - name: Build Service
         run: |
-          mvn clean install -DskipTests -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
+          mvn clean package -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 
       - name: Push Image(amd64/arm64)
         id: docker_build

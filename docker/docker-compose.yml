@@ -307,7 +307,7 @@ services:
 
   authentication-api:
     # Using docker spring boot docker image
-    image: authentication-service:0.0.1-SNAPSHOT
+    image: authentication-service:latest
     # Using docker local jib maven
     #image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
     # Using docker raspberry pi image

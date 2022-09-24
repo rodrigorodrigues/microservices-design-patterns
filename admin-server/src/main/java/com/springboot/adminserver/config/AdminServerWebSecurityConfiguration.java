@@ -21,7 +21,7 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
         "/favicon.ico",
         // other public endpoints of your API may be appended to this array
         "/actuator/info",
-        "/actuator/health",
+        "/actuator/health/**",
         "/actuator/prometheus",
         "/error"
     };

@@ -171,6 +171,10 @@
                     <from>
                         <image>${docker.image.from}</image>
                         <platforms>
+                            <!--<platform>
+                                <architecture>amd64</architecture>
+                                <os>linux</os>
+                            </platform>-->
                             <platform>
                                 <architecture>arm64</architecture>
                                 <os>linux</os>
@@ -195,6 +199,19 @@
                     </container>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
     </build>
 
@@ -217,6 +234,7 @@
                     <artifactId>spring-native</artifactId>
                 </dependency>
             </dependencies>
+
             <build>
                 <plugins>
                     <plugin>
@@ -252,30 +270,29 @@
         <profile>
             <id>spring-native</id>
             <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-maven-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <goals>
-                                        <goal>build-image</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                            <configuration>
-                                <classifier>${repackage.classifier}</classifier>
-                                <image>
-                                    <builder>paketobuildpacks/builder:tiny</builder>
-                                    <env>
-                                        <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
-                                    </env>
-                                </image>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>build-image</id>
+                                <goals>
+                                    <goal>build-image</goal>
+                                    <goal>build-info</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <!--<configuration>
+                            <image>
+                                <builder>paketobuildpacks/builder:tiny</builder>
+                                <env>
+                                    <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+                                </env>
+                            </image>
+                        </configuration>-->
+                    </plugin>
+                </plugins>
             </build>
         </profile>
     </profiles>
