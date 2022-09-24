@@ -44,9 +44,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build Docker image using docker:build
-      - name: Generate Dockerfile
+      - name: Build Service using docker:build
         run: |
-          mvn clean package -q -pl kotlin-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
+          mvn clean package -DskipTests -q -pl kotlin-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
 
       - name: Build and push
         id: docker_build
