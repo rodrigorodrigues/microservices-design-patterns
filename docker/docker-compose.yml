@@ -42,6 +42,7 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
 #      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
@@ -92,6 +93,7 @@ services:
     build:
       args:
         - PORT=3003
+        - NODE_ENV=development
       context: ../react-webapp
       dockerfile: Dockerfile
     container_name: react-webapp

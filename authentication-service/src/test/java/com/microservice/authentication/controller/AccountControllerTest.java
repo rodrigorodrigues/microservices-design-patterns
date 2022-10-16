@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.microservice.authentication.common.model.Authority;
-import com.microservice.authentication.service.RedisTokenStoreService;
+import com.microservice.authentication.service.RedisTokenStoreServiceImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ class AccountControllerTest {
 
     @Test
     void testIndex() {
-        RedisTokenStoreService redisTokenStoreService = mock(RedisTokenStoreService.class);
+        RedisTokenStoreServiceImpl redisTokenStoreService = mock(RedisTokenStoreServiceImpl.class);
         List<Authority> authorities = Arrays.asList(new Authority("TEST"), new Authority("DELETE_TASK"));
         OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
         Map<String, Object> map = new HashMap<>();

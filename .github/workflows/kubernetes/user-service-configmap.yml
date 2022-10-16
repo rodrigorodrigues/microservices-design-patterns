@@ -1,0 +1,34 @@
+spring:
+  profiles: dev, default
+  sleuth:
+    sampler:
+      probability: 1
+
+com:
+  microservice:
+    authentication:
+      jwt:
+        keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+      user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}
+
+---
+spring:
+  profiles: prod
+  sleuth:
+    sampler:
+      probability: 0.1
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWKS_URL:http://authentication-service:9999/.well-known/jwks.json}
+
+com:
+  microservice:
+    authentication:
+      jwt:
+        enabledPublicKey: true
+        key-store: ${KEYSTORE:}
+        key-store-password: ${KEYSTORE_PASSWORD:}
+        key-alias: ${KEYSTORE_ALIAS:}
+      user-info-uri: ${USER_INFO_URI:http://authentication-service:9999/api/authenticatedUser}

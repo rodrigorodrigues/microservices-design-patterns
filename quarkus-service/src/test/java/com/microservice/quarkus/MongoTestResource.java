@@ -7,8 +7,7 @@ import java.util.Map;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
@@ -22,9 +21,9 @@ public class MongoTestResource implements QuarkusTestResourceLifecycleManager {
 	@Override
 	public Map<String, String> start() {
 		try {
-			System.setProperty("os.arch", "i686_64");
+//			System.setProperty("os.arch", "i686_64");
 			Version.Main version = Version.Main.DEVELOPMENT;
-			IMongodConfig config = new MongodConfigBuilder()
+			MongodConfig config = MongodConfig.builder()
 					.version(version)
 					.net(new Net())
 					.build();

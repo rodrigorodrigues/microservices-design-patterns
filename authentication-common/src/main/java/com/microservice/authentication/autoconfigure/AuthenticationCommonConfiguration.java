@@ -1,7 +1,18 @@
 package com.microservice.authentication.autoconfigure;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,10 +26,15 @@ import com.microservice.authentication.common.service.SharedAuthenticationServic
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -30,9 +46,9 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -50,11 +66,13 @@ import static java.util.stream.Collectors.joining;
 @EnableConfigurationProperties(AuthenticationProperties.class)
 @EnableMongoAuditing
 @EnableMongoRepositories(basePackageClasses = AuthenticationCommonRepository.class)
-public class AuthenticationCommonConfiguration {
+public class AuthenticationCommonConfiguration implements ApplicationContextAware {
 
     private final List<JwtAccessTokenConverterConfigurer> configurers;
 
     private final AuthenticationProperties authenticationProperties;
+
+    private ApplicationContext applicationContext;
 
     public AuthenticationCommonConfiguration(ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers, AuthenticationProperties authenticationProperties) {
         this.configurers = configurers.getIfAvailable();
@@ -82,7 +100,7 @@ public class AuthenticationCommonConfiguration {
 
     @Primary
     @Bean
-    public JwtAccessTokenConverter jwtAccessTokenConverter() {
+    public JwtAccessTokenConverter jwtAccessTokenConverter() throws Exception {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter() {
             @Override
             public OAuth2AccessToken enhance(
@@ -125,9 +143,15 @@ public class AuthenticationCommonConfiguration {
                 converter.setSigningKey(keyValue);
             }
             converter.setVerifierKey(keyValue);
-        } else if (jwt.getKeyStore() != null) {
+        } else if (jwt.getKeyStore() != null && !jwt.isEnabledPublicKey()) {
             KeyPair keyPair = getKeyPair(authenticationProperties);
             converter.setKeyPair(keyPair);
+        } else {
+            RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
+            converter.setVerifier(new RsaVerifier(publicKey));
+            converter.setVerifierKey("-----BEGIN PUBLIC KEY-----\n"
+                + new String(Base64.getEncoder().encode(publicKey.getEncoded()))
+                + "\n-----END PUBLIC KEY-----");
         }
         if (!CollectionUtils.isEmpty(this.configurers)) {
             AnnotationAwareOrderComparator.sort(this.configurers);
@@ -139,26 +163,69 @@ public class AuthenticationCommonConfiguration {
     }
 
     @Profile("prod")
+    @ConditionalOnProperty(prefix = "com.microservice.authentication.jwt", name = "enabledPublicKey", havingValue = "false", matchIfMissing = true)
     @Bean
-    KeyPair getKeyPair(AuthenticationProperties authenticationProperties) {
+    KeyPair getKeyPair(AuthenticationProperties authenticationProperties) throws Exception {
         AuthenticationProperties.Jwt jwt = authenticationProperties.getJwt();
         Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
-        char[] keyStorePassword = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
+        String publicKeyStore = jwt.getPublicKeyStore();
+        if (keyStore.getFilename().endsWith(".pem") && publicKeyStore != null) {
+            String privateKeyContent = new String(Files.readAllBytes(keyStore.getFile().toPath()));
+            byte[] encodedBytes = Base64.getDecoder().decode(removeBeginEnd(privateKeyContent));
 
-        String keyAlias = jwt.getKeyAlias();
-        return keyStoreKeyFactory.getKeyPair(keyAlias, keyStorePassword);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encodedBytes);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            PrivateKey privateKey = kf.generatePrivate(keySpec);
+            PublicKey publicKey = readPublicKey(new FileSystemResource(publicKeyStore.replaceFirst("file:", "")).getFile());
+            return new KeyPair(publicKey, privateKey);
+        } else {
+            char[] keyStorePassword = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
+            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
+
+            String keyAlias = jwt.getKeyAlias();
+            return keyStoreKeyFactory.getKeyPair(keyAlias, keyStorePassword);
+        }
+    }
+
+    private PublicKey readPublicKey(File publicKeyFile) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+        byte[] encodedBytes;
+        String publicKeyContent = new String(Files.readAllBytes(publicKeyFile.toPath()));
+        encodedBytes = Base64.getDecoder().decode(removeBeginEnd(publicKeyContent));
+        X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(encodedBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePublic(pubSpec);
+    }
+
+    private String removeBeginEnd(String pem) {
+        pem = pem.replaceAll("-----BEGIN (.*)-----", "");
+        pem = pem.replaceAll("-----END (.*)----", "");
+        pem = pem.replaceAll("\r\n", "");
+        pem = pem.replaceAll("\n", "");
+        return pem.trim();
     }
 
 
     @Profile("prod")
+    @ConditionalOnMissingBean
     @Bean
     RSAPublicKey publicKey(KeyPair keyPair) {
         return (RSAPublicKey) keyPair.getPublic();
     }
 
+    @Profile("prod")
+    @ConditionalOnMissingBean(KeyPair.class)
+    @Bean
+    RSAPublicKey publicKey(@Value("${com.microservice.authentication.jwt.key-store}") RSAPublicKey key) {
+        return key;
+    }
+
     @Bean
     UserDetailsService sharedAuthenticationService(AuthenticationCommonRepository authenticationCommonRepository) {
         return new SharedAuthenticationServiceImpl(authenticationCommonRepository);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

@@ -1,0 +1,17 @@
+spring:
+  profiles: quarkus
+
+security:
+  oauth2:
+    resource:
+      jwt:
+        keyValue: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqhmjWuwMHhi4BzmAtJA3
+          hDZAq+iy6jPSkTvDfMeSOnRmdAnCdH9AXv3IzDgsLRmVtYZu23GSyLVUUgxB8enp
+          sGc90V0PUCoW/Zcq7H4TdSsgPTMmB4Vq1LRyUZm31/7IYyNj+g2px8U0aHtGlWoC
+          EdHZ1V+wr0y9pWJX4MC6Vfg7SNrlZlIXCMnzazHrvZ+5CQIosYy3leK/Gb0ANEFA
+          yZMQQnSV9qc1AJS3lmDIFFT/LkZtzCmdpHUfFDAAXOSxQfEjnbJP3j9cppIwGEdg
+          mVm3YuTw9SFxhqzYG8ggXeYrlGcplVoBIrfa+90a+cRxpYFfsfFw+N9Yonnk8sWq
+          IwIDAQAB
+          -----END PUBLIC KEY-----

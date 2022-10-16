@@ -50,3 +50,8 @@ docker/*jaas.conf
 python-service/app/app/camera.py
 docker/test_result_springboot
 docker/jmeter.log
+docker/*.pem
+docker/jmeter.log
+docker/test_result_springboot
+docker/quarkus.jwks
+docker/openshift.local.clusterup

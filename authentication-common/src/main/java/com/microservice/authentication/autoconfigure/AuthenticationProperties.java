@@ -32,6 +32,11 @@ public class AuthenticationProperties {
         private String keyStore;
 
         /**
+         * The location of the public key store.
+         */
+        private String publicKeyStore;
+
+        /**
          * The key store's password
          */
         private String keyStorePassword;
@@ -45,6 +50,8 @@ public class AuthenticationProperties {
          * The password of the key from the key store
          */
         private String keyPassword;
+
+        private boolean enabledPublicKey;
 
         public String getKeyValue() {
             return this.keyValue;
@@ -92,6 +99,22 @@ public class AuthenticationProperties {
 
         public void setKeyPassword(String keyPassword) {
             this.keyPassword = keyPassword;
+        }
+
+        void setEnabledPublicKey(boolean enabledPublicKey) {
+            this.enabledPublicKey = enabledPublicKey;
+        }
+
+        boolean isEnabledPublicKey() {
+            return enabledPublicKey;
+        }
+
+        void setPublicKeyStore(String publicKeyStore) {
+            this.publicKeyStore = publicKeyStore;
+        }
+
+        String getPublicKeyStore() {
+            return publicKeyStore;
         }
     }
 }

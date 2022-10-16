@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: admin-server
-          image: fielcapao/microservices-design-patterns-admin-service:latest
+          image: admin-server:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-admin-service:latest
           resources:
             requests:
               memory: "256Mi"
@@ -40,7 +40,7 @@ spec:
               memory: "512Mi"
           env:
             - name: JAVA_OPTS
-              value: -Xms256m -Xm512m
+              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
             - name: SERVER_PORT
               value: "9000"
             - name: SPRING_PROFILES_ACTIVE

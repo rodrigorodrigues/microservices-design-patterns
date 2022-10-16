@@ -2,14 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-service
-  annotations:
-    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
+#  annotations:
+#    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
     app: user-service
 spec:
   ports:
-    - name: https-port
-      port: 8443
+#    - name: https-port
+#      port: 8443
     - name: http-port
       port: 8083
   selector:
@@ -33,38 +33,63 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: fielcapao/microservices-design-patterns-user-service:latest
-#          imagePullPolicy: IfNotPresent
+          image: user-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-user-service:latest
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
+          volumeMounts:
+            - name: spendingbetter-pub-key
+              mountPath: "/etc/ssl_certs_pub"
+              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xms256m -Xmx512m
+              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
             - name: SERVER_PORT
               value: "8083"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
-            - name: SPRING_REDIS_HOST
-              value: redis
             - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
             - name: OPENTRACING_JAEGER_ENABLED
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
+            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
+              value: "false"
+            - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
+              value: "true"
+            - name: KEYSTORE_PASSWORD
+              value: Cert202!
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
+            - name: KEYSTORE_ALIAS
+              value: spendingbetter
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
+              value: "true"
           ports:
             - containerPort: 8083
           livenessProbe:
             httpGet:
               scheme: HTTP
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 8083
             initialDelaySeconds: 1000
             periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /actuator/health/readiness
+              port: 8083
+            initialDelaySeconds: 1000
+            periodSeconds: 5
+      volumes:
+        - name: spendingbetter-pub-key
+          secret:
+            secretName: spendingbetter-pub-key

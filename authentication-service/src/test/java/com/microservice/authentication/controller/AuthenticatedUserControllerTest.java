@@ -1,6 +1,6 @@
 package com.microservice.authentication.controller;
 
-import com.microservice.authentication.service.RedisTokenStoreService;
+import com.microservice.authentication.service.RedisTokenStoreServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 class AuthenticatedUserControllerTest {
 
     @Mock
-    RedisTokenStoreService redisTokenStoreService;
+    RedisTokenStoreServiceImpl redisTokenStoreService;
 
     AuthenticatedUserController authenticatedUserController;
 

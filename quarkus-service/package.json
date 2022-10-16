@@ -1,0 +1,8 @@
+{
+  "name": "quarkus-service",
+  "version": "1.0.0",
+  "dependencies": {
+    "faker": "^6.6.6",
+    "k6": "^0.0.0"
+  }
+}

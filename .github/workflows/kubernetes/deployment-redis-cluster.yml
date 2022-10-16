@@ -1,0 +1,209 @@
+
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# [START gke_manifests_redis_service_service_redis_cluster]
+apiVersion: v1
+kind: Service
+metadata:
+    name: redis
+spec:
+    clusterIP: None
+    ports:
+        - name: redis-port
+          port: 6379
+          protocol: TCP
+          targetPort: 6379
+    selector:
+        app: redis
+        appCluster: redis
+    sessionAffinity: None
+    type: ClusterIP
+# [END gke_manifests_redis_service_service_redis_cluster]
+---
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# [START gke_manifests_redis_configmap_configmap_redis_cluster]
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: redis
+data:
+    redis.conf:  |+
+        cluster-enabled yes
+        cluster-node-timeout 15000
+        cluster-config-file /data/nodes.conf
+        appendonly yes
+        protected-mode no
+        dir /data
+        port 6379
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: redis-probes
+data:
+    # [START gke_manifests_redis_configmap_configmap_redis_cluster_probes]
+    readiness.sh: |-
+        #!/bin/sh
+        pingResponse="$(redis-cli -h localhost ping)"
+        if [ "$?" -eq "124" ]; then
+          echo "PING timed out"
+          exit 1
+        fi
+        if [ "$pingResponse" != "PONG"]; then
+          echo "$pingResponse"
+          exit 1
+        fi
+    liveness.sh: |-
+        #!/bin/sh
+        pingResponse="$(redis-cli -h localhost ping | head -n1 | awk '{print $1;}')"
+        if [ "$?" -eq "124" ]; then
+          echo "PING timed out"
+          exit 1
+        fi
+        if [ "$pingResponse" != "PONG"] && [ "$pingResponse" != "LOADING" ] && [ "$pingResponse" != "MASTERDOWN" ]; then
+          echo "$pingResponse"
+          exit 1
+        fi
+# [END gke_manifests_redis_configmap_configmap_redis_cluster_probes]
+# [END gke_manifests_redis_configmap_configmap_redis_cluster]
+---
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# [START gke_manifests_redis_cluster_statefulset_redis]
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: redis
+spec:
+    serviceName: "redis"
+    replicas: 6
+    selector:
+        matchLabels:
+            app: redis
+    template:
+        metadata:
+            labels:
+                app: redis
+                appCluster: redis
+        spec:
+            terminationGracePeriodSeconds: 20
+            affinity:
+                podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        - weight: 100
+                          podAffinityTerm:
+                              labelSelector:
+                                  matchExpressions:
+                                      - key: app
+                                        operator: In
+                                        values:
+                                            - redis
+                              topologyKey: kubernetes.io/hostname
+            containers:
+                - name: redis
+                  image: "redis:6.2"
+                  command:
+                      - "redis-server"
+                  args:
+                      - "/conf/redis.conf"
+                      - "--protected-mode"
+                      - "no"
+                  resources:
+                      requests:
+                          cpu: "100m"
+                          memory: "100Mi"
+                  ports:
+                      - name: redis
+                        containerPort: 6379
+                        protocol: "TCP"
+                      - name: cluster
+                        containerPort: 16379
+                        protocol: "TCP"
+                    # [START gke_manifests_redis_cluster_statefulset_redis_probes]
+                  startupProbe:
+                      periodSeconds: 5
+                      timeoutSeconds: 5
+                      successThreshold: 1
+                      failureThreshold: 20
+                      tcpSocket:
+                          port: redis
+                  livenessProbe:
+                      periodSeconds: 5
+                      timeoutSeconds: 5
+                      successThreshold: 1
+                      failureThreshold: 5
+                      exec:
+                          command: ["sh", "-c", "/probes/liveness.sh"]
+                  readinessProbe:
+                      periodSeconds: 5
+                      timeoutSeconds: 1
+                      successThreshold: 1
+                      failureThreshold: 5
+                      exec:
+                          command: ["sh", "-c", "/probes/readiness.sh"]
+                    # [END gke_manifests_redis_cluster_statefulset_redis_probes]
+                  volumeMounts:
+                      - name: conf
+                        mountPath: /conf
+                        readOnly: false
+                      - name: data
+                        mountPath: /data
+                        readOnly: false
+                      - name: probes
+                        mountPath: /probes
+                        readOnly: true
+            volumes:
+                - name: conf
+                  configMap:
+                      name: redis
+                      defaultMode: 0755
+                - name: probes
+                  configMap:
+                      name: redis-probes
+                      defaultMode: 0555
+#    volumeClaimTemplates:
+#        - metadata:
+#              name: data
+#          spec:
+#              accessModes: [ "ReadWriteOnce" ]
+#              resources:
+#                  requests:
+#                      storage: 1Gi
+# [END gke_manifests_redis_cluster_statefulset_redis]

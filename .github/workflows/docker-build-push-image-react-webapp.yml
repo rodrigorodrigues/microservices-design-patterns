@@ -49,7 +49,7 @@ jobs:
           build-args: |
             GITHUB_SHA=$GITHUB_SHA
             GITHUB_REF=$GITHUB_REF
-            PORT=3003
+            PORT=3003Ï
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

@@ -34,7 +34,7 @@ public class AccountController {
         return userDto;
     }
 
-    public static record UserDto(String login, String langKey, String fullName, String email, boolean activated, Set<String> authorities) {
+    public record UserDto(String login, String langKey, String fullName, String email, boolean activated, Set<String> authorities) {
         public UserDto(String login, String fullName, String email, Set<String> authorities) {
             this(login, "en", fullName, email, true, authorities);
         }

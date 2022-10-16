@@ -7,6 +7,16 @@ spring:
     cloud:
         gateway:
             routes:
+                - id: quarkus-service
+                  uri: lb://quarkus-service
+                  predicates:
+                      - Path=/api/companies/**
+                - id: quarkus-service-swagger
+                  uri: lb://quarkus-service
+                  predicates:
+                      - Path=/swagger/quarkus-service/**
+                  filters:
+                      - RewritePath=/q/swagger-ui/(?<segment>.*), /$\{segment}
                 - id: authentication-service
                   uri: lb://authentication-service
                   predicates:

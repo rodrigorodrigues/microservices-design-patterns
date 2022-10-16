@@ -28,6 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -38,9 +40,16 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
+
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
 public class CompanyResourceTest {
+    private static final Logger log = LoggerFactory.getLogger(CompanyResourceTest.class);
+
     @Inject
     AppLifecycleBean appLifecycleBean;
 
@@ -145,6 +154,15 @@ public class CompanyResourceTest {
     @Test
     @DisplayName("Test - When Calling GET - /api/companies with admin user the response should response all companies - 200 - OK")
     public void testGetAllCompanies() {
+        given()
+                .when()
+                .auth().basic("admin", "admin")
+                .get("/api/companies")
+                .then()
+                .statusCode(200)
+                .body("@.size()", is(1),
+                    "[*].name", hasItems("Facebook", "Google", "Amazon"));
+
         JsonPath json = client.get("/api/companies")
                 .basicAuthentication("admin", "admin")
                 .send()
@@ -158,6 +176,7 @@ public class CompanyResourceTest {
                 .await().indefinitely();
 
         assertNotNull(json);
+        log.info("response: {}", json.prettyPrint());
         List<String> names = json.getList("name");
         assertThat(names.size(), is(3));
         assertThat(names, hasItems("Facebook", "Google", "Amazon"));

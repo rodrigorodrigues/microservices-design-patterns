@@ -33,19 +33,23 @@ spec:
     spec:
       containers:
         - name: kotlin-service
-          image: fielcapao/microservices-design-patterns-kotlin-service:latest
+          image: user-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-kotlin-service:latest
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
+          volumeMounts:
+              - name: spendingbetter-pub-key
+                mountPath: "/etc/ssl_certs_pub"
+                readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xms256m -Xmx512m
+              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "9092"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: prod
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongo:27017
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -56,6 +60,18 @@ spec:
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
+            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
+              value: "false"
+            - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
+              value: "true"
+            - name: KEYSTORE_PASSWORD
+              value: Cert202!
+            - name: KEYSTORE
+              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
+            - name: KEYSTORE_ALIAS
+              value: spendingbetter
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
+              value: "true"
           ports:
             - containerPort: 9092
           livenessProbe:
@@ -65,3 +81,14 @@ spec:
               port: 9092
             initialDelaySeconds: 1000
             periodSeconds: 5
+          readinessProbe:
+              httpGet:
+                  scheme: HTTP
+                  path: /actuator/health/readiness
+                  port: 9092
+              initialDelaySeconds: 1000
+              periodSeconds: 5
+      volumes:
+          - name: spendingbetter-pub-key
+            secret:
+                secretName: spendingbetter-pub-key

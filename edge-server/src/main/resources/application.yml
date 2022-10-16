@@ -73,3 +73,8 @@ spring:
                         allowCredentials: true
             default-filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            discovery:
+                locator:
+                    enabled: true
+                    url-expression: "'http://'+serviceId+':'+getPort()"
+                    lower-case-service-id: true

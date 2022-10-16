@@ -8,7 +8,6 @@ import java.util.UUID;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.service.CustomLogoutSuccessHandler;
 import com.microservice.authentication.service.RedisTokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
@@ -21,22 +20,20 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Controller;
@@ -49,7 +46,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @SpringBootApplication
-@EnableRedisHttpSession
 public class AuthenticationServiceApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
@@ -128,33 +124,45 @@ public class AuthenticationServiceApplication implements WebMvcConfigurer {
 		return new LocalValidatorFactoryBean();
 	}
 
-	@ConditionalOnMissingBean
+    @ConditionalOnMissingBean
     @Bean
-    RedisConnectionFactory lettuceConnectionFactory(RedisProperties redisProperties) {
-        return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
-    }
-
-    @Primary
-    @Bean
-    RedisTokenStore redisTokenStore(RedisConnectionFactory redisConnectionFactory,
-                                    JwtAccessTokenConverter jwtAccessTokenConverter) {
-        RedisTokenStore redisTokenStore = new RedisTokenStore(redisConnectionFactory);
-        TokenApprovalStore tokenApprovalStore = new TokenApprovalStore();
-        tokenApprovalStore.setTokenStore(redisTokenStore);
-        JwtTokenStore jwtTokenStore = new JwtTokenStore(jwtAccessTokenConverter);
-        jwtTokenStore.setApprovalStore(tokenApprovalStore);
-        return redisTokenStore;
-    }
-
-    @Bean
-    CustomLogoutSuccessHandler customLogoutSuccessHandler(RedisTokenStoreService redisTokenStoreService) {
-        return new CustomLogoutSuccessHandler(redisTokenStoreService);
+    LogoutSuccessHandler customLogoutSuccessHandler() {
+        return new SimpleUrlLogoutSuccessHandler();
     }
 
     @ConditionalOnMissingBean
     @Bean
     GitProperties gitProperties() {
         return new GitProperties(new Properties());
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    RedisTokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices) {
+        return new RedisTokenStoreService() {
+            @Override
+            public OAuth2AccessToken generateToken(OAuth2Authentication oAuth2Authentication) {
+                log.debug("Created new token for: {}", oAuth2Authentication.getName());
+                return defaultTokenServices.createAccessToken(oAuth2Authentication);
+            }
+
+            @Override
+            public void removeAllTokensByAuthenticationUser(org.springframework.security.core.Authentication authentication) {
+            }
+
+            @Override
+            public OAuth2AccessToken refreshToken(TokenRequest tokenRequest) {
+                return defaultTokenServices.refreshAccessToken(tokenRequest.getRequestParameters().get("refresh_token"), tokenRequest);
+            }
+
+            @Override
+            public OAuth2AccessToken getToken(org.springframework.security.core.Authentication authentication) {
+                OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
+                    true, Collections.singleton("read"), null, null, null, null);
+                OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
+                return generateToken(oAuth2Authentication);
+            }
+        };
     }
 }
 

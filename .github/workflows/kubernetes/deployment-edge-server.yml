@@ -1,53 +1,52 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: authentication-service
-#  annotations:
-#    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
+  name: edge-server
+  annotations:
+    cloud.google.com/app-protocols: '{"https-port":"HTTPS","http-port":"HTTP"}'
   labels:
-    app: authentication-service
+    app: edge-server
 spec:
   ports:
-#    - name: https-port
-#      port: 8443
+    - name: https-port
+      port: 8443
     - name: http-port
-      port: 9999
+      port: 8080
   selector:
-    app: authentication-service
+    app: edge-server
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: authentication-service
+  name: edge-server
 spec:
   selector:
     matchLabels:
-      app: authentication-service
+      app: edge-server
   replicas: 1
   template:
     metadata:
       labels:
-        app: authentication-service
+        app: edge-server
         version: v1
     spec:
       containers:
-        - name: authentication-service
-          image: authentication-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-authentication-service:latest #eu.gcr.io/api-project-646370370811/authentication-service #eu.gcr.io/api-project-646370370811/authentication-service:7f79c29fbc58052bb7d86bceeb7722b0185c66c4
-          imagePullPolicy: Never
+        - name: edge-server
+          image: edge-server:0.0.1-SNAPSHOT
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
           volumeMounts:
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs"
+            - name: spendingbetter-pub-key
+              mountPath: "/etc/ssl_certs_pub"
               readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
+              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
             - name: SERVER_PORT
-              value: "9999"
+              value: "8080"
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: SPRING_DATA_MONGODB_URI
@@ -62,41 +61,41 @@ spec:
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
-              value: trace
-#            - name: CLIENT_ID
-#              value: ${CLIENT_ID}
-#            - name: CLIENT_SECRET
-#              value: ${CLIENT_SECRET}
-            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
-              value: "false"
+            - name: SPRING_MAIN_WEB_APPLICATION_TYPE
+              value: "reactive"
             - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
               value: "true"
+            - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
+              value: "false"
             - name: KEYSTORE_PASSWORD
               value: Cert202!
             - name: KEYSTORE
-              value: file:/etc/ssl_certs/www.spendingbetter.com.jks
+              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: KEYSTORE_ALIAS
               value: spendingbetter
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
+              value: "true"
+#            - name: SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED
+#              value: "true"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY
               value: "trace"
           ports:
-            - containerPort: 9999
+            - containerPort: 8080
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health/liveness
-              port: 9999
+              port: 8080
             initialDelaySeconds: 1000
             periodSeconds: 5
           readinessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health/readiness
-              port: 9999
+              port: 8080
             initialDelaySeconds: 1000
-            periodSeconds: 5
       volumes:
-        - name: spendingbetter-jks
+        - name: spendingbetter-pub-key
           secret:
-            secretName: spendingbetter-jks
+            secretName: spendingbetter-pub-key
+

@@ -1,19 +1,17 @@
 package com.microservice.quarkus.dto;
 
+import javax.validation.constraints.NotBlank;
 import java.time.Instant;
 
-import javax.json.bind.annotation.JsonbDateFormat;
-import javax.validation.constraints.NotBlank;
-
 public class CompanyDto {
+	private String id;
+
 	@NotBlank
 	private String name;
 	private String createdByUser;
 	private boolean activated;
-	@JsonbDateFormat
 	private Instant createdDate;
 	private String lastModifiedByUser;
-	@JsonbDateFormat
 	private Instant lastModifiedDate;
 
 	public String getName() {
@@ -62,5 +60,13 @@ public class CompanyDto {
 
 	public void setLastModifiedDate(Instant lastModifiedDate) {
 		this.lastModifiedDate = lastModifiedDate;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getId() {
+		return id;
 	}
 }

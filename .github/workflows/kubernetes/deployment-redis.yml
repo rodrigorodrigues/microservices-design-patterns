@@ -16,15 +16,15 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:alpine
+          image: redis:alpine3.16
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "10m"
+              memory: "256Mi"
+              cpu: "50m"
             limits:
               memory: "256Mi"
-              cpu: "30m"
+              cpu: "100m"
           ports:
             - containerPort: 6379
 ---
@@ -37,6 +37,7 @@ metadata:
 spec:
   ports:
     - port: 6379
-      protocol: TCP
+      targetPort: 6379
+  clusterIP: None
   selector:
     app: redis
