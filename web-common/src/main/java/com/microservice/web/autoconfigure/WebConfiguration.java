@@ -24,9 +24,6 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addResourceHandler("/swagger-ui.html**")
                 .addResourceLocations("classpath:/META-INF/resources/");
 
-        registry.addResourceHandler("/v2/api-docs")
-                .addResourceLocations("classpath:/META-INF/v2/api-docs");
-
         registry.addResourceHandler("/swagger-resources")
                 .addResourceLocations("classpath:/META-INF/swagger-resources");
 
@@ -48,7 +45,7 @@ public class WebConfiguration implements WebMvcConfigurer {
     CorsFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowCredentials(true);
-        if (environment.acceptsProfiles(Profiles.of("prod"))) {
+        if (environment.acceptsProfiles(Profiles.of("prod")) && !environment.acceptsProfiles(Profiles.of("consul"))) {
             corsConfig.addAllowedOrigin("https://spendingbetter.com");
         } else {
             corsConfig.addAllowedOriginPattern("*");

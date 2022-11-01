@@ -15,7 +15,11 @@ opentracing:
     spring:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
-
+security:
+    oauth2:
+        resource:
+            jwk:
+                key-set-uri: https://spendingbetter.com/.well-known/jwks.json
 ---
 spring:
     config:

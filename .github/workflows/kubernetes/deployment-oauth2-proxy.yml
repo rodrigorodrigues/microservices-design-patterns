@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy
+  labels:
+    app: oauth2-proxy
+spec:
+  ports:
+    - name: http-port
+      port: 4180
+  selector:
+    app: oauth2-proxy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+spec:
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+        version: v1
+    spec:
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/pusher/oauth2_proxy:latest-arm64
+          args:
+            - -provider=google
+            - -upstream=file:///dev/null
+            - -http-address=0.0.0.0:4180
+            - -client-id=CLIENT_ID
+            - -client-secret=CLIENT_SECRET
+            - -cookie-domain=spendingbetter.com
+            - -email-domain=admin@spendingbetter.com
+            - -whitelist-domain=spendingbetter.com
+            - -cookie-refresh=1h
+            - -cookie-secret=BASE64_ENCODED_STRING(like “echo strongSecret | base64”)
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+          env:
+            - name: JAVA_OPTS
+              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+          ports:
+            - containerPort: 4180
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 1000
+            periodSeconds: 5

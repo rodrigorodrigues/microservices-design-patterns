@@ -17,6 +17,8 @@ spring:
     mongodb:
         embedded:
             version: "4.0.2"
+    profiles:
+        include: callPostApi
 opentracing:
     jaeger:
         enabled: false

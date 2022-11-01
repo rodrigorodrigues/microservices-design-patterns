@@ -78,23 +78,23 @@ jobs:
         run: echo ${{ steps.docker_build.outputs.digest }}
 
       # Build Docker image using spring-boot:build-image
-      - name: Build Service using spring-boot:build-image
-        run: |
-          mvn clean package -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Pspring-native
-
-      # Tag image
-      - name: Tag & publish to GitHub Container Registry
-        run: |
-          docker tag authentication-service:0.0.1-SNAPSHOT fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT
-#          docker push fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT
-
-      - name: Create and push manifest images
-        uses: Noelware/docker-manifest-action@master # or use whatever version.
-        with:
-          base-image: fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT
-          extra-images: fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT-arm64
-
-          push: true
+#      - name: Build Service using spring-boot:build-image
+#        run: |
+#          mvn clean package -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Pspring-native
+#
+#      # Tag image
+#      - name: Tag & publish to GitHub Container Registry
+#        run: |
+#          docker tag authentication-service:0.0.1-SNAPSHOT fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT
+##          docker push fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT
+#
+#      - name: Create and push manifest images
+#        uses: Noelware/docker-manifest-action@master # or use whatever version.
+#        with:
+#          base-image: fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT
+#          extra-images: fielcapao/microservices-design-patterns-authentication-service:0.0.1-SNAPSHOT-arm64
+#
+#          push: true
 # Setup gcloud CLI
 #      - name: Setup Google Cloud
 #        uses: google-github-actions/setup-gcloud@master

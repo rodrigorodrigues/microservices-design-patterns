@@ -55,3 +55,7 @@ docker/jmeter.log
 docker/test_result_springboot
 docker/quarkus.jwks
 docker/openshift.local.clusterup
+
+redis_auth_gateway
+redis_auth_service
+docker/jwks.json

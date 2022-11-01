@@ -1,24 +1,24 @@
-package com.microservice.web.common.util;
+package com.springboot.adminserver.config;
 
 import java.util.Map;
 
 import javax.validation.ConstraintViolationException;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
-@AllArgsConstructor
+@Component
 public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
     @Override
     public Map<String, Object> getErrorAttributes(WebRequest request, ErrorAttributeOptions options) {
@@ -30,7 +30,7 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
             errorAttributes.put("message", ExceptionUtils.getMessage(throwable));
             errorAttributes.put("error", status);
         }
-        log.debug("Default Error Attributes: {}\tPath: {}", errorAttributes, request.getContextPath());
+        log.debug("Default Error Attributes: {}", errorAttributes);
         return errorAttributes;
     }
 

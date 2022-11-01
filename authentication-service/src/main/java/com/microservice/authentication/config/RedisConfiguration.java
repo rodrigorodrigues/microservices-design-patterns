@@ -13,12 +13,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true", matchIfMissing = true)
@@ -31,10 +33,16 @@ public class RedisConfiguration {
 
     @Configuration
     @EnableRedisHttpSession
-    class HttpRedisConfiguration {
+    static class HttpRedisConfiguration {
         HttpRedisConfiguration() {
             log.info("HttpRedisConfiguration:constructor");
         }
+    }
+
+    @Primary
+    @Bean
+    RedisIndexedSessionRepository redisIndexedSessionRepository(RedisTemplate redisTemplate) {
+        return new RedisIndexedSessionRepository(redisTemplate);
     }
 
     @ConditionalOnMissingBean

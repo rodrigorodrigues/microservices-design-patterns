@@ -19,6 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -49,11 +51,14 @@ public class PersonServiceImplTest {
     @Mock
     ConfigProperties configProperties;
 
+    @Mock
+    Environment environment;
+
     PersonMapper personMapper = new PersonMapperImpl();
 
     @BeforeEach
     public void setup() {
-        personService = new PersonServiceImpl(personRepository, personMapper, restTemplate, configProperties);
+        personService = new PersonServiceImpl(personRepository, personMapper, restTemplate, configProperties, environment);
     }
 
     @Test
@@ -74,6 +79,7 @@ public class PersonServiceImplTest {
 
     @Test
     public void whenCallFindAllShouldReturnListOfPersons() {
+        when(environment.acceptsProfiles(any(Profiles.class))).thenReturn(true);
         when(personRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl<>(Arrays.asList(new Person(), new Person(), new Person())));
         when(configProperties.getPostApi()).thenReturn("mock_url");
         ResponseEntity<Object> responseEntity = ResponseEntity.ok(Collections.singletonList(new PersonDto.Post("1", "Test", null, null, null, null)));

@@ -28,7 +28,6 @@ import java.security.interfaces.RSAPublicKey
 import javax.crypto.spec.SecretKeySpec
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import kotlin.jvm.Throws
 
 @Configuration
 @EnableWebSecurity
@@ -38,7 +37,8 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
                                   @Autowired val properties: AuthenticationProperties) : WebSecurityConfigurerAdapter() {
     private val WHITELIST = arrayOf(
         // -- swagger ui
-        "/v2/api-docs", "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security", "/swagger-ui.html", "/webjars/**", "/**/*.js", "/**/*.css", "/**/*.html", "/favicon.ico",
+        // -- swagger ui
+        "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security", "/swagger-ui.html", "/webjars/**", "/**/*.js", "/**/*.css", "/**/*.html", "/favicon.ico",
         // other public endpoints of your API may be appended to this array
         "/actuator/**",
         "/error")

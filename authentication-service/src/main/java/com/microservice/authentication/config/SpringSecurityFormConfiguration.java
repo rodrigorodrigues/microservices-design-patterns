@@ -33,6 +33,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
@@ -48,6 +49,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -70,7 +72,7 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
 
     private static final String[] WHITELIST = {
         // -- swagger ui
-        "/v2/api-docs",
+        "/v3/api-docs/**",
         "/swagger-resources",
         "/swagger-resources/**",
         "/configuration/ui",
@@ -117,6 +119,11 @@ public class SpringSecurityFormConfiguration extends WebSecurityConfigurerAdapte
                 })
                 .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
                 .invalidateHttpSession(true)
+/*
+            .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+*/
             .and()
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())

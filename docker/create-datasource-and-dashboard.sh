@@ -2,10 +2,10 @@
 
 set -xeuo pipefail
 
-if ! curl -k --retry 5 --retry-connrefused --retry-delay 0 -sf http://grafana:3000/api/dashboards/name/prom; then
+if ! curl -k --retry 5 --retry-connrefused --retry-delay 0 -sf http://grafana:3000/admin/grafana/api/dashboards/name/prom; then
     curl -sf -X POST -H "Content-Type: application/json" \
-         --data-binary '{"name":"prom","type":"prometheus","url":"http://prometheus:9090","access":"proxy","isDefault":true}' \
-         http://grafana:3000/api/datasources
+         --data-binary '{"name":"prom","type":"prometheus","url":"http://prometheus:9090/admin/prometheus","access":"proxy","isDefault":true}' \
+         http://grafana:3000/admin/grafana/api/datasources
 fi
 
 dashboard_id=4701

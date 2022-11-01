@@ -47,7 +47,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Slf4j
 @SpringBootApplication
 public class AuthenticationServiceApplication implements WebMvcConfigurer {
-
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
@@ -111,6 +110,7 @@ public class AuthenticationServiceApplication implements WebMvcConfigurer {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("SESSIONID");
         serializer.setCookiePath("/");
+        serializer.setUseBase64Encoding(false);
         return serializer;
     }
 

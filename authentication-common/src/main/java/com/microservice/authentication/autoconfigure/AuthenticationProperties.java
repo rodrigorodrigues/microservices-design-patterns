@@ -1,6 +1,7 @@
 package com.microservice.authentication.autoconfigure;
 
 import lombok.Data;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
@@ -9,8 +10,10 @@ public class AuthenticationProperties {
     private String issuer = "https://spendingbetter.com";
     private String aud = "https://spendingbetter.com";
 
+    private Jwk jwk = new Jwk();
     private Jwt jwt = new Jwt();
 
+    @Data
     public class Jwt {
 
         /**
@@ -50,71 +53,14 @@ public class AuthenticationProperties {
          * The password of the key from the key store
          */
         private String keyPassword;
+    }
 
-        private boolean enabledPublicKey;
-
-        public String getKeyValue() {
-            return this.keyValue;
-        }
-
-        public void setKeyValue(String keyValue) {
-            this.keyValue = keyValue;
-        }
-
-        public void setKeyUri(String keyUri) {
-            this.keyUri = keyUri;
-        }
-
-        public String getKeyUri() {
-            return this.keyUri;
-        }
-
-        public String getKeyStore() {
-            return keyStore;
-        }
-
-        public void setKeyStore(String keyStore) {
-            this.keyStore = keyStore;
-        }
-
-        public String getKeyStorePassword() {
-            return keyStorePassword;
-        }
-
-        public void setKeyStorePassword(String keyStorePassword) {
-            this.keyStorePassword = keyStorePassword;
-        }
-
-        public String getKeyAlias() {
-            return keyAlias;
-        }
-
-        public void setKeyAlias(String keyAlias) {
-            this.keyAlias = keyAlias;
-        }
-
-        public String getKeyPassword() {
-            return keyPassword;
-        }
-
-        public void setKeyPassword(String keyPassword) {
-            this.keyPassword = keyPassword;
-        }
-
-        void setEnabledPublicKey(boolean enabledPublicKey) {
-            this.enabledPublicKey = enabledPublicKey;
-        }
-
-        boolean isEnabledPublicKey() {
-            return enabledPublicKey;
-        }
-
-        void setPublicKeyStore(String publicKeyStore) {
-            this.publicKeyStore = publicKeyStore;
-        }
-
-        String getPublicKeyStore() {
-            return publicKeyStore;
-        }
+    @Data
+    public class Jwk {
+        /**
+         * The URI to get verification keys to verify the JWT token. This can be set when
+         * the authorization server returns a set of verification keys.
+         */
+        private String keySetUri;
     }
 }

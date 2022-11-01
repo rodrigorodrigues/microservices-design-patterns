@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: edge-server
-          image: edge-server:0.0.1-SNAPSHOT
+          image: edge-server:0.0.1-SNAPSHOT #edge-server:0.0.1-SNAPSHOT
           resources:
             requests:
               memory: "256Mi"
@@ -42,19 +42,22 @@ spec:
             - name: spendingbetter-pub-key
               mountPath: "/etc/ssl_certs_pub"
               readOnly: true
+            - name: spendingbetter-jks
+              mountPath: "/etc/ssl_certs"
+              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "8080"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: auth,prod
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
+              value: mongodb://192.168.1.5:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
-              value: redis
+              value: 192.168.1.5
             - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
             - name: OPENTRACING_JAEGER_ENABLED
@@ -70,11 +73,13 @@ spec:
             - name: KEYSTORE_PASSWORD
               value: Cert202!
             - name: KEYSTORE
-              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
+              value: file:/etc/ssl_certs/www.spendingbetter.com.jks
+#            - name: KEYSTORE
+#              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: KEYSTORE_ALIAS
               value: spendingbetter
-            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
-              value: "true"
+#            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
+#              value: "true"
 #            - name: SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED
 #              value: "true"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY
@@ -98,4 +103,6 @@ spec:
         - name: spendingbetter-pub-key
           secret:
             secretName: spendingbetter-pub-key
-
+        - name: spendingbetter-jks
+          secret:
+            secretName: spendingbetter-jks

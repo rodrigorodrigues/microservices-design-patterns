@@ -3,6 +3,11 @@ spring:
         allow-bean-definition-overriding: true
     application:
         name: edge-server
+    cloud:
+        gateway:
+            filter:
+                secure-headers:
+                    disable: x-frame-options
 management:
     endpoints:
         web:
@@ -15,7 +20,6 @@ opentracing:
     spring:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
-
 ---
 spring:
     config:
@@ -33,6 +37,7 @@ spring:
                     '[/**]':
                         allowedOrigins:
                             - "http://localhost:3000"
+                            - "http://localhost:3001"
                             - "http://localhost:8080"
                         allowedHeaders: "*"
                         allowedMethods: "*"
@@ -67,7 +72,11 @@ spring:
             globalcors:
                 cors-configurations:
                     '[/**]':
-                        allowedOrigins: "https://spendingbetter.com"
+                        allowedOrigins:
+                            - "http://localhost:3000"
+                            - "http://localhost:3001"
+                            - "https://spendingbetter.com"
+#                        allowedOrigins: "https://spendingbetter.com"
                         allowedHeaders: "*"
                         allowedMethods: "*"
                         allowCredentials: true

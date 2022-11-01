@@ -1,6 +1,5 @@
 package com.microservice.person.service;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 import com.microservice.person.config.ConfigProperties;
@@ -13,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
@@ -36,17 +37,22 @@ public class PersonServiceImpl implements PersonService {
 
     private final ConfigProperties configProperties;
 
+    private final Environment environment;
+
     private final ParameterizedTypeReference<List<PersonDto.Post>> parameterizedTypeReference = new ParameterizedTypeReference<>() { };
 
     private void processPost(Page<PersonDto> page, String authorization) {
-        try {
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-            HttpEntity httpEntity = new HttpEntity(httpHeaders);
-            ResponseEntity<List<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
-            page.getContent().forEach(p -> p.setPosts(entity.getBody()));
-        } catch (Exception e) {
-            log.warn("Could not process post api", e);
+        if (environment.acceptsProfiles(Profiles.of("callPostApi"))) {
+            try {
+                HttpHeaders httpHeaders = new HttpHeaders();
+                httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
+                HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                ResponseEntity<List<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
+                page.getContent().forEach(p -> p.setPosts(entity.getBody()));
+            }
+            catch (Exception e) {
+                log.warn("Could not process post api", e);
+            }
         }
     }
 

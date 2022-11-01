@@ -50,7 +50,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
+              value: mongodb://192.168.1.5:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_CLOUD_CONSUL_ENABLED
@@ -69,8 +69,8 @@ spec:
               value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: KEYSTORE_ALIAS
               value: spendingbetter
-            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
-              value: "true"
+#            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_PUBLIC_KEYSTORE
+#              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
           ports:
             - containerPort: 8082
           livenessProbe:

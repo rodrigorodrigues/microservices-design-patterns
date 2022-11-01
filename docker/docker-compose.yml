@@ -309,7 +309,7 @@ services:
 
   authentication-api:
     # Using docker spring boot docker image
-    image: authentication-service:latest
+    image: authentication-service:0.0.1-SNAPSHOT
     # Using docker local jib maven
     #image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
     # Using docker raspberry pi image
@@ -332,6 +332,7 @@ services:
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
+      - JAVA_OPTS=-Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
       - service-discovery
@@ -375,9 +376,10 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    environment:
-      - EUREKA_SERVER=service-discovery
-      - EUREKA_PORT=8761
+    command:
+#      - '--web.external-url=http://localhost:8080/admin/prometheus/'
+      - '--web.route-prefix=/admin/prometheus'
+      - '--config.file=/etc/prometheus/prometheus.yml'
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -397,11 +399,23 @@ services:
     ports:
       - 3000:3000
     environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+#      - GF_AUTH_ANONYMOUS_ENABLED=true
+#      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_SERVER_HTTP_PORT=3000
-#      - GF_SERVER_ROOT_URL=http://localhost:3001/grafana
-#      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_DOMAIN=http://localhost:3000
+      - GF_SERVER_ROOT_URL=http://localhost:3000/admin/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_AUTH_JWT_ENABLED=true
+      - GF_AUTH_JWT_HEADER_NAME=Authorization
+      - GF_AUTH_JWT_USERNAME_CLAIM=sub
+      - GF_AUTH_JWT_EMAIL_CLAIM=user_name
+      - GF_AUTH_JWT_URL_LOGIN=http://localhost:8080/login
+#      - GF_AUTH_JWT_JWK_SET_URL=http://localhost:8080/.well-known/jwks.json
+      - GF_AUTH_JWT_ROLE_ATTRIBUTE_PATH=contains(authorities[*], 'ROLE_ADMIN') && 'Admin' || contains(authorities[*], 'editor') && 'Editor' || 'Viewer'
+      - GF_AUTH_JWT_JWK_SET_FILE=/etc/grafana/jwks.json
+      - GF_AUTH_BASIC_ENABLED=false
+#      - GF_DIAGNOSTICS_TRACING_ENABLED=true
+#      - GF_DIAGNOSTICS_TRACING_FILE=/tmp/trace.out
 #      - GF_AUTH_GENERIC_OAUTH_ENABLED=true
 #      - GF_AUTH_GENERIC_OAUTH_SCOPES=read
 #      - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false
@@ -410,6 +424,8 @@ services:
 #      - GF_AUTH_GENERIC_OAUTH_AUTH_URL=http://localhost:9999/oauth/authorize
 #      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=http://localhost:9999/oauth/token
 #      - GF_AUTH_GENERIC_OAUTH_API_URL=http://localhost:9999/api/authenticatedUser
+    volumes:
+      - ./jwks.json:/etc/grafana/jwks.json
     networks:
       net:
         aliases:
@@ -434,6 +450,8 @@ services:
     ports:
       - "6831:6831/udp"
       - "16686:16686"
+    environment:
+        QUERY_BASE_PATH: "/admin/jaeger"
     networks:
       net:
         aliases:

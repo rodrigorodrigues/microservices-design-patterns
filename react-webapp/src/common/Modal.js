@@ -33,18 +33,22 @@ class ModalPopup extends React.Component {
         <MessageAlert {...message}></MessageAlert>
       :
       <div>
-        <Modal isOpen={modal} size="lg" toggle={this.toggle} dialogClassName="custom-modal">
+        <Modal isOpen={modal} size="lg" toggle={this.toggle} contentClassName="custom-modal">
+          {/*
           <ModalHeader toggle={this.toggle}>Admin Access</ModalHeader>
           <ModalBody>
+          */}
               <Iframe url={link}
                       position="absolute"
                       width="100%"
-                      id="myId"
                       height="100%" />
+          
+          {/*
           </ModalBody>
           <ModalFooter>
             <Button color="secondary" onClick={this.toggle}>Close</Button>
           </ModalFooter>
+          */}
         </Modal>
       </div>
     );

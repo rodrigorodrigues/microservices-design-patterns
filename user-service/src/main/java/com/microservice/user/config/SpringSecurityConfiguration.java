@@ -44,11 +44,9 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final ObjectMapper objectMapper;
 
-    private final AuthenticationProperties properties;
-
     private static final String[] WHITELIST = {
         // -- swagger ui
-        "/v2/api-docs",
+        "/v3/api-docs/**",
         "/swagger-resources",
         "/swagger-resources/**",
         "/configuration/ui",
@@ -63,6 +61,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
         "/actuator/info",
         "/actuator/health/**",
         "/actuator/prometheus",
+        "/swagger-ui/**",
         "/error"
     };
 

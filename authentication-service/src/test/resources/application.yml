@@ -27,6 +27,8 @@ spring:
     mongodb:
         embedded:
             version: "4.0.2"
+    profiles:
+        include: auth
 opentracing:
     jaeger:
         enabled: false

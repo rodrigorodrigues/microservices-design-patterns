@@ -16,6 +16,7 @@ public class ReactiveSharedAuthenticationServiceImpl extends SharedAuthenticatio
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {
+        log.info("Trying to find username: {}", username);
         return Mono.just(loadUserByUsername(username));
     }
 }

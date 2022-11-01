@@ -30,7 +30,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -46,7 +45,6 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -79,6 +77,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         this.authenticationProperties = authenticationProperties;
     }
 
+    @Profile("auth")
     @Primary
     @Bean
     @ConditionalOnMissingBean(ResourceServerTokenServices.class)
@@ -91,6 +90,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return defaultTokenServices;
     }
 
+    @Profile("auth")
     @Primary
     @Bean
     @ConditionalOnMissingBean(TokenStore.class)
@@ -98,14 +98,15 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return new JwtTokenStore(jwtAccessTokenConverter);
     }
 
+    @Profile("auth")
     @Primary
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() throws Exception {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter() {
             @Override
             public OAuth2AccessToken enhance(
-                OAuth2AccessToken accessToken,
-                OAuth2Authentication authentication) {
+                    OAuth2AccessToken accessToken,
+                    OAuth2Authentication authentication) {
                 Map<String, Object> additionalInfo = new HashMap<>();
                 if (authentication.getUserAuthentication() instanceof Authentication auth) {
                     additionalInfo.put("name", auth.getFullName());
@@ -119,8 +120,8 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
                     additionalInfo.put("sub", authentication.getName());
                 }
                 additionalInfo.put("auth", authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(joining(",")));
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(joining(",")));
                 additionalInfo.put("type", "access");
                 additionalInfo.put("fresh", true);
                 long currentTime = new Date().getTime() / 1000;
@@ -143,15 +144,14 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
                 converter.setSigningKey(keyValue);
             }
             converter.setVerifierKey(keyValue);
-        } else if (jwt.getKeyStore() != null && !jwt.isEnabledPublicKey()) {
-            KeyPair keyPair = getKeyPair(authenticationProperties);
-            converter.setKeyPair(keyPair);
         } else {
-            RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
-            converter.setVerifier(new RsaVerifier(publicKey));
-            converter.setVerifierKey("-----BEGIN PUBLIC KEY-----\n"
-                + new String(Base64.getEncoder().encode(publicKey.getEncoded()))
-                + "\n-----END PUBLIC KEY-----");
+            try {
+                KeyPair keyPair = applicationContext.getBean(KeyPair.class);
+                converter.setKeyPair(keyPair);
+            } catch (Exception ignored) {
+                KeyPair keyPair = getKeyPair(authenticationProperties);
+                converter.setKeyPair(keyPair);
+            }
         }
         if (!CollectionUtils.isEmpty(this.configurers)) {
             AnnotationAwareOrderComparator.sort(this.configurers);
@@ -162,15 +162,15 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return converter;
     }
 
-    @Profile("prod")
-    @ConditionalOnProperty(prefix = "com.microservice.authentication.jwt", name = "enabledPublicKey", havingValue = "false", matchIfMissing = true)
+    @Profile("auth")
+    @ConditionalOnMissingBean
     @Bean
     KeyPair getKeyPair(AuthenticationProperties authenticationProperties) throws Exception {
         AuthenticationProperties.Jwt jwt = authenticationProperties.getJwt();
-        Resource keyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
+        Resource privateKeyStore = new FileSystemResource(jwt.getKeyStore().replaceFirst("file:", ""));
         String publicKeyStore = jwt.getPublicKeyStore();
-        if (keyStore.getFilename().endsWith(".pem") && publicKeyStore != null) {
-            String privateKeyContent = new String(Files.readAllBytes(keyStore.getFile().toPath()));
+        if (privateKeyStore.getFilename().endsWith(".pem") && publicKeyStore != null) {
+            String privateKeyContent = new String(Files.readAllBytes(privateKeyStore.getFile().toPath()));
             byte[] encodedBytes = Base64.getDecoder().decode(removeBeginEnd(privateKeyContent));
 
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encodedBytes);
@@ -180,7 +180,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
             return new KeyPair(publicKey, privateKey);
         } else {
             char[] keyStorePassword = Base64DecodeUtil.decodePassword(jwt.getKeyStorePassword());
-            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(keyStore, keyStorePassword);
+            KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(privateKeyStore, keyStorePassword);
 
             String keyAlias = jwt.getKeyAlias();
             return keyStoreKeyFactory.getKeyPair(keyAlias, keyStorePassword);
@@ -204,6 +204,13 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return pem.trim();
     }
 
+    @Primary
+    @Profile("prod")
+    @ConditionalOnMissingBean(KeyPair.class)
+    @Bean
+    RSAPublicKey publicKeyStore(@Value("${com.microservice.authentication.jwt.publicKeyStore}") RSAPublicKey key) {
+        return key;
+    }
 
     @Profile("prod")
     @ConditionalOnMissingBean

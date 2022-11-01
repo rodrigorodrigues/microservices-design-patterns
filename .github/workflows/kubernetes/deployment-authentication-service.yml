@@ -49,13 +49,13 @@ spec:
             - name: SERVER_PORT
               value: "9999"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: auth,prod
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
+              value: mongodb://192.168.1.5:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_REDIS_HOST
-              value: redis
+              value: 192.168.1.5
             - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
             - name: OPENTRACING_JAEGER_ENABLED
@@ -78,8 +78,12 @@ spec:
               value: file:/etc/ssl_certs/www.spendingbetter.com.jks
             - name: KEYSTORE_ALIAS
               value: spendingbetter
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK
-              value: "trace"
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK
+#              value: "trace"
+            - name: COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED
+              value: "false"
+            - name: SPRING_SESSION_STORE_TYPE
+              value: "none"
           ports:
             - containerPort: 9999
           livenessProbe:

@@ -72,6 +72,10 @@ spec:
               value: spendingbetter
             - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
               value: "true"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
+              value: trace
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+              value: trace
           ports:
             - containerPort: 9092
           livenessProbe:

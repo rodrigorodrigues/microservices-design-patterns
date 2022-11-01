@@ -25,6 +25,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -94,12 +95,18 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
         AuthenticationProperties.Jwt jwt = properties.getJwt();
-        if (jwt != null && jwt.getKeyValue() != null) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+        if (jwt.getKeyValue() != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue()
+                    .getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else if (properties.getJwk().getKeySetUri() != null) {
+            return NimbusJwtDecoder.withJwkSetUri(properties.getJwk().getKeySetUri())
+                    .jwsAlgorithm(SignatureAlgorithm.from("HS256"))
+                    .build();
         } else {
             RSAPublicKey publicKey = getApplicationContext().getBean(RSAPublicKey.class);
-            return NimbusJwtDecoder.withPublicKey(publicKey).build();
+            return NimbusJwtDecoder.withPublicKey(publicKey)
+                    .build();
         }
     }
 

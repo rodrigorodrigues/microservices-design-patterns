@@ -50,7 +50,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableScheduling
 @EnableConfigurationProperties(ConfigProperties.class)
 public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigurer {
-    private Environment env;
     Faker faker = new Faker();
 
     public static void main(String[] args) {
@@ -160,6 +159,5 @@ public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigu
 
     @Override
     public void setEnvironment(Environment environment) {
-        this.env = environment;
     }
 }

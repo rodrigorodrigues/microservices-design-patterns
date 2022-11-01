@@ -40,13 +40,11 @@ import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -117,29 +115,11 @@ public class PersonServiceApplicationIntegrationTest {
 
 	@TestConfiguration
 	static class PopulateDbConfiguration {
-        @Bean
-        CommandLineRunner runner(PersonRepository personRepository) {
-            return args -> {
-                if (personRepository.count() == 0) {
-                    personRepository.saveAll(Arrays.asList(Person.builder().fullName("Admin")
-                            .dateOfBirth(LocalDate.of(1983, 1, 5))
-                            .children(Arrays.asList(new Child("Daniel", LocalDate.of(2017, Month.JANUARY, 1)), new Child("Oliver", LocalDate.of(2017, Month.JANUARY, 1))))
-                            .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
-                            .build(),
-                        Person.builder().fullName("Anonymous")
-                            .dateOfBirth(LocalDate.of(1985, 1, 2))
-                            .address(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"))
-                            .build()));
-                }
-            };
-        }
-
         @Primary
         @Bean
         RestTemplate restTemplate() {
             return new RestTemplate();
         }
-
     }
 
     {
@@ -161,6 +141,16 @@ public class PersonServiceApplicationIntegrationTest {
                     .enabled(true)
                     .build())
                 .forEach(authenticationRepository::save);
+
+            personRepository.saveAll(Arrays.asList(Person.builder().fullName("Admin")
+                            .dateOfBirth(LocalDate.of(1983, 1, 5))
+                            .children(Arrays.asList(new Child("Daniel", LocalDate.of(2017, Month.JANUARY, 1)), new Child("Oliver", LocalDate.of(2017, Month.JANUARY, 1))))
+                            .address(new Address("50 Main Street", "Bray", "Co. Wicklow", "Ireland", "058 65412"))
+                            .build(),
+                    Person.builder().fullName("Anonymous")
+                            .dateOfBirth(LocalDate.of(1985, 1, 2))
+                            .address(new Address("10 Parnell Street", "Dublin 1", "Dublin", "Ireland", "111 65412"))
+                            .build()));
         }
 
         person = personRepository.save(Person.builder()
@@ -234,7 +224,6 @@ public class PersonServiceApplicationIntegrationTest {
 
     @Test
     @DisplayName("Test - When Calling GET - /api/people should return list of people and paging - OK")
-    @Disabled //TODO Temp
     public void shouldReturnListOfAllPeopleAndPagingWhenCallApi() throws Exception {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
@@ -246,7 +235,6 @@ public class PersonServiceApplicationIntegrationTest {
 
     @Test
     @DisplayName("Test - When Calling GET - /api/people should return list of people using query dsl - OK")
-    @Disabled //TODO Temp
     public void shouldReturnListOfAllPeopleWithQueryDslCallApi() throws Exception {
         String authorizationHeader = authorizationHeader("admin@gmail.com");
 
