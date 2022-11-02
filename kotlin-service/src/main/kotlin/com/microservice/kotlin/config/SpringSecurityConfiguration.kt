@@ -2,13 +2,11 @@ package com.microservice.kotlin.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
-import com.microservice.authentication.common.service.Base64DecodeUtil
 import com.microservice.web.common.util.CustomDefaultErrorAttributes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.error.ErrorAttributeOptions
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.env.Profiles
-import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -20,7 +18,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
-import org.springframework.security.rsa.crypto.KeyStoreKeyFactory
 import org.springframework.web.context.request.ServletWebRequest
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -35,7 +32,7 @@ import javax.servlet.http.HttpServletResponse
 class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: CustomDefaultErrorAttributes,
                                   @Autowired val objectMapper: ObjectMapper,
                                   @Autowired val properties: AuthenticationProperties) : WebSecurityConfigurerAdapter() {
-    private val WHITELIST = arrayOf(
+    private val WHITE_LIST = arrayOf(
         // -- swagger ui
         // -- swagger ui
         "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security", "/swagger-ui.html", "/webjars/**", "/**/*.js", "/**/*.css", "/**/*.html", "/favicon.ico",
@@ -57,33 +54,28 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
             .httpBasic().disable()
             .logout().disable()
             .authorizeRequests()
-            .antMatchers(*WHITELIST).permitAll()
+            .antMatchers(*WHITE_LIST).permitAll()
             .anyRequest().authenticated()
             .and()
             .oauth2ResourceServer()
             .accessDeniedHandler(this::handleErrorResponse)
             .authenticationEntryPoint(this::handleErrorResponse)
             .jwt {
-                val environment = applicationContext.environment
-                val jwtDecoder = if (environment.acceptsProfiles(Profiles.of("prod"))) jwtDecoderProd(keyPair(properties)) else jwtDecoder(properties)
+                val jwtDecoder = jwtDecoder(properties)
                 it.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())
             }
     }
 
-    fun keyPair(properties: AuthenticationProperties): RSAPublicKey? {
-        val jwt = properties.jwt
-        val password = Base64DecodeUtil.decodePassword(jwt.keyStorePassword)
-        val keyStoreKeyFactory = KeyStoreKeyFactory(FileSystemResource(jwt.keyStore.replaceFirst("file:".toRegex(), "")), password)
-        return keyStoreKeyFactory.getKeyPair(jwt.keyAlias).public as RSAPublicKey
-    }
-
-    fun jwtDecoderProd(publicKey: RSAPublicKey?): JwtDecoder? {
-        return NimbusJwtDecoder.withPublicKey(publicKey).build()
-    }
-
+    @Bean
     fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder? {
-        val secretKeySpec = SecretKeySpec(properties.jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
+        val jwt = properties.jwt
+        return if (jwt != null && jwt.keyValue != null) {
+            val secretKeySpec = SecretKeySpec(jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
+            NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
+        } else {
+            val publicKey = applicationContext.getBean(RSAPublicKey::class.java)
+            NimbusJwtDecoder.withPublicKey(publicKey).build()
+        }
     }
 
     @Throws(IOException::class)

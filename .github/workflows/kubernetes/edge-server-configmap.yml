@@ -28,12 +28,15 @@ spring:
           uri: lb://authentication-service
           predicates:
             - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/jwks.json
+          filters:
+            - SaveSession
         - id: authentication-service-swagger
           uri: lb://authentication-service
           predicates:
             - Path=/swagger/authentication-service/**
           filters:
-            - RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
+            - StripPrefix=2
+            #- RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
         - id: user-service
           uri: lb://user-service
           predicates:
