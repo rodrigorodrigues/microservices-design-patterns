@@ -1,6 +1,13 @@
 package com.microservice.user;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,9 +15,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
+import org.springframework.data.querydsl.binding.PathInformation;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilderCustomizer;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.Assert;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 @SpringBootApplication
@@ -39,5 +55,48 @@ public class UserServiceApplication {
     @ConditionalOnMissingBean
     BuildProperties buildProperties() {
         return new BuildProperties(new Properties());
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    QuerydslPredicateBuilderCustomizer querydslPredicateBuilderCustomizer(QuerydslBindingsFactory querydslBindingsFactory) {
+        return new QuerydslPredicateBuilder(DefaultConversionService.getSharedInstance(), querydslBindingsFactory.getEntityPathResolver()) {
+            @Override
+            public Predicate getPredicate(TypeInformation<?> type, MultiValueMap<String, ?> values, QuerydslBindings bindings) {
+                Assert.notNull(bindings, "Context must not be null");
+
+                BooleanBuilder builder = new BooleanBuilder();
+
+                if (values.isEmpty()) {
+                    return getPredicate(builder);
+                }
+
+                for (Map.Entry<String, ? extends List<?>> entry : values.entrySet()) {
+
+                    if (isSingleElementCollectionWithEmptyItem(entry.getValue())) {
+                        continue;
+                    }
+
+                    String path = entry.getKey();
+
+                    if (!bindings.isPathAvailable(path, type)) {
+                        continue;
+                    }
+
+                    PathInformation propertyPath = bindings.getPropertyPath(path, type);
+
+                    if (propertyPath == null) {
+                        continue;
+                    }
+
+                    Collection<Object> value = convertToPropertyPathSpecificType(entry.getValue(), propertyPath, conversionService);
+                    Optional<Predicate> predicate = invokeBinding(propertyPath, bindings, value, resolver, defaultBinding);
+
+                    predicate.ifPresent(builder::or);
+                }
+
+                return getPredicate(builder);
+            }
+        };
     }
 }

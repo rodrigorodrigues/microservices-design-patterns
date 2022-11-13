@@ -83,7 +83,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "logging.level.org.springframework.security=trace"})
+            "logging.level.com.microservice.person=trace"})
 @ContextConfiguration(classes = PersonServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
@@ -252,6 +252,11 @@ public class PersonServiceApplicationIntegrationTest {
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content", is(empty())));
+
+        client.perform(get("/api/people?main")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[*].id", hasSize(1)));
     }
 
     @Test

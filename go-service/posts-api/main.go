@@ -105,16 +105,6 @@ func processKubernetes() echo.MiddlewareFunc {
 	}
 }
 
-/*
-func processTasksApi(config *api.Client) {
-	service, err := connect.NewService("go-service", config)
-	service.Close()
-	httpClient := service.HTTPClient()
-	httpClient.New
-	resp, err := httpClient.Get("http://tasks-api/api/tasks")
-
-}*/
-
 func processConsulClient() *api.Client {
 	client, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
@@ -187,11 +177,11 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 
 	// Routes
 	e.Logger.SetLevel(log.DEBUG)
-	e.GET("/api/posts", rest.GetAllPosts, middlewareObj)
-	e.POST("/api/posts", rest.CreatePost, middlewareObj)
-	e.GET("/api/posts/:id", rest.GetPost, middlewareObj)
-	e.PUT("/api/posts/:id", rest.UpdatePost, middlewareObj)
-	e.DELETE("/api/posts/:id", rest.DeletePost, middlewareObj)
+	e.GET("/api/posts", rest.GetAllPosts, middlewareObj, rest.HasValidReadPermission)
+	e.POST("/api/posts", rest.CreatePost, middlewareObj, rest.HasValidCreatePermission)
+	e.GET("/api/posts/:id", rest.GetPost, middlewareObj, rest.HasValidReadPermission)
+	e.PUT("/api/posts/:id", rest.UpdatePost, middlewareObj, rest.HasValidSavePermission)
+	e.DELETE("/api/posts/:id", rest.DeletePost, middlewareObj, rest.HasValidDeletePermission)
 	e.GET("/actuator/info", healthCheck)
 	e.GET("/actuator/health", healthCheck)
 	e.GET("/actuator", actuator)
@@ -205,7 +195,9 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 }
 
 func main() {
-	rest.CreateDefaultPosts()
+	if util.GetEnvAsBool("LOAD_DEFAULT_VALUES") {
+		rest.CreateDefaultPosts()
+	}
 
 	// Enable tracing middleware
 	c := jaegertracing.New(e, urlSkipper)

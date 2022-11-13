@@ -39,7 +39,7 @@ before_install:
   - echo "Git Commit Message - ${TRAVIS_COMMIT_MESSAGE}"
 
 install:
- - mvn clean install -B -Dspring.profiles.active=travis
+ - mvn clean install -B
 # - npm install --quiet --prefix ./nodejs-service ./nodejs-service && npm --silent test --prefix ./nodejs-service
 # - npm install --quiet --prefix ./react-webapp ./react-webapp && npm install --quiet -g jest --prefix ./react-webapp ./react-webapp && npm --silent test --prefix ./react-webapp
 

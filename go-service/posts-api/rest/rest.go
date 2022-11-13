@@ -43,6 +43,64 @@ func getAuthUser(c echo.Context) jwt.MapClaims {
 	return claims
 }
 
+func HasValidReadPermission(next echo.HandlerFunc) echo.HandlerFunc {
+	permissions := []string{"ROLE_ADMIN", "ROLE_POSTS_READ", "ROLE_POSTS_CREATE", "ROLE_POSTS_SAVE", "ROLE_POSTS_DELETE", "SCOPE_openid"}
+	return hasValidPermission(next, permissions)
+}
+
+func HasValidCreatePermission(next echo.HandlerFunc) echo.HandlerFunc {
+	permissions := []string{"ROLE_ADMIN", "ROLE_POSTS_CREATE", "SCOPE_openid"}
+	return hasValidPermission(next, permissions)
+}
+
+func HasValidSavePermission(next echo.HandlerFunc) echo.HandlerFunc {
+	permissions := []string{"ROLE_ADMIN", "ROLE_POSTS_SAVE", "SCOPE_openid"}
+	return hasValidPermission(next, permissions)
+}
+
+func HasValidDeletePermission(next echo.HandlerFunc) echo.HandlerFunc {
+	permissions := []string{"ROLE_ADMIN", "ROLE_POSTS_DELETE", "SCOPE_openid"}
+	return hasValidPermission(next, permissions)
+}
+
+func isAdmin(c echo.Context) bool {
+	claimPermissions := getAuthUser(c)["authorities"].([]interface{})
+
+	var result = false
+	for _, x := range claimPermissions {
+		if x == "ROLE_ADMIN" {
+			result = true
+			break
+		}
+	}
+
+	return result
+}
+
+func hasValidPermission(next echo.HandlerFunc, permissions []string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := c.Get("user").(*jwt.Token)
+		claims := user.Claims.(jwt.MapClaims)
+		claimPermissions := claims["authorities"].([]interface{})
+
+		var result = false
+		for _, x := range claimPermissions {
+			for _, y := range permissions {
+				if x == y {
+					result = true
+					break
+				}
+			}
+		}
+
+		if result {
+			return next(c)
+		} else {
+			return echo.ErrUnauthorized
+		}
+	}
+}
+
 func CreateDefaultPosts() {
 	count, _ := collection.CountDocuments(context.TODO(), bson.D{})
 	if count > 0 {
@@ -100,17 +158,36 @@ func GetTasksApi(c echo.Context) []model.Task {
 
 func GetAllPosts(c echo.Context) error {
 	ctx := context.TODO()
-	cur, err := collection.Find(ctx, bson.D{})
-	if err != nil {
-		return err
-	}
 	var posts []*model.Post
+	var cur *mongo.Cursor
+	opts := options.Find().SetSort(bson.D{{"createdDate", 1}})
+
+	if isAdmin(c) {
+		cursor, err := collection.Find(ctx, bson.D{}, opts)
+		if err != nil {
+			return err
+		}
+		cur = cursor
+	} else {
+		createdByUser := getAuthUser(c)["sub"].(string)
+		filter := bson.M{"createdByUser": createdByUser}
+
+		cursor, err := collection.Find(ctx, filter, opts)
+
+		if err != nil {
+			return err
+		}
+		cur = cursor
+	}
+
 	for cur.Next(ctx) {
 		var post model.Post
 		if err := cur.Decode(&post); err != nil {
 			return err
 		}
-		post.Tasks = GetTasksApi(c)
+		if util.GetEnvAsBool("CALL_TASK_API") {
+			post.Tasks = GetTasksApi(c)
+		}
 		posts = append(posts, &post)
 	}
 	return c.JSON(http.StatusOK, posts)
@@ -145,14 +222,17 @@ func GetPost(c echo.Context) error {
 	}
 	post := model.Post{}
 	filter := bson.M{"_id": objId}
-	opts := options.FindOne().SetSort(bson.D{{"createdDate", 1}})
-	if err := collection.FindOne(context.TODO(), filter, opts).Decode(&post); err != nil {
+	if err := collection.FindOne(context.TODO(), filter).Decode(&post); err != nil {
 		return err
 	}
+	user := getAuthUser(c)["sub"].(string)
 	if post.ID.IsZero() {
 		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found ID: %v", id))
+	} else if isAdmin(c) || post.CreatedByUser == user {
+		return c.JSON(http.StatusOK, post)
+	} else {
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("User(%v) does not have access to this resource", user))
 	}
-	return c.JSON(http.StatusOK, post)
 }
 
 func UpdatePost(c echo.Context) error {
@@ -196,9 +276,19 @@ func DeletePost(c echo.Context) error {
 	if err != nil {
 		panic(err)
 	}
+
+	post := model.Post{}
 	filter := bson.M{"_id": objId}
-	if _, err := collection.DeleteOne(context.TODO(), filter); err != nil {
-		return err
+	user := getAuthUser(c)["sub"].(string)
+
+	if err := collection.FindOne(context.TODO(), filter).Decode(&post); err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found ID: %v", id))
+	} else if isAdmin(c) || post.CreatedByUser == user {
+		if _, err := collection.DeleteOne(context.TODO(), filter); err != nil {
+			return err
+		}
+		return c.NoContent(http.StatusNoContent)
+	} else {
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("User(%v) does not have access to this resource", user))
 	}
-	return c.NoContent(http.StatusNoContent)
 }

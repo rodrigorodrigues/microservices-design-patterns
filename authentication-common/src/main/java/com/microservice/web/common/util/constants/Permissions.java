@@ -22,7 +22,9 @@ public enum Permissions {
 
     ROLE_RECIPE("Recipe Permissions", Arrays.asList("ROLE_RECIPE_READ", "ROLE_RECIPE_SAVE", "ROLE_RECIPE_DELETE", "ROLE_RECIPE_CREATE")),
 
-    ROLE_TASK("Task Permissions", Arrays.asList("ROLE_TASK_READ", "ROLE_TASK_SAVE", "ROLE_TASK_DELETE", "ROLE_TASK_CREATE"));
+    ROLE_TASK("Task Permissions", Arrays.asList("ROLE_TASK_READ", "ROLE_TASK_SAVE", "ROLE_TASK_DELETE", "ROLE_TASK_CREATE")),
+
+    ROLE_POST("Post Permissions", Arrays.asList("ROLE_POST_READ", "ROLE_POST_SAVE", "ROLE_POST_DELETE", "ROLE_POSt_CREATE"));
 
     private final String type;
 

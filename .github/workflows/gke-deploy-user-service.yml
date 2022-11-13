@@ -47,7 +47,7 @@ jobs:
     # Build the Docker image with Maven
     - name: Build
       run: |
-        mvn clean install -pl user-service -am -B -Dspring.profiles.active=travis docker:build
+        mvn clean install -pl user-service -am -B docker:build
         docker tag $IMAGE:latest eu.gcr.io/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
 
     # Push the Docker image to Google Container Registry

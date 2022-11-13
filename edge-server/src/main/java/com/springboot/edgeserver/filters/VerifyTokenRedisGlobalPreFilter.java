@@ -57,7 +57,8 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                     log.debug("verifyTokenRedis:Set authorization header from redis session");
                                     OAuth2AccessToken oAuth2AccessTokenValue = oAuth2AccessToken.get();
                                     ServerHttpRequest build = exchange.getRequest().mutate()
-                                            .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", oAuth2AccessTokenValue.getTokenType(), oAuth2AccessTokenValue.getValue())).build();
+                                            .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", oAuth2AccessTokenValue.getTokenType(), oAuth2AccessTokenValue.getValue()))
+                                            .build();
                                     return chain.filter(exchange.mutate().request(build).build());
                                 }
                                 log.debug("Not found oAuth2AccessToken: {}", oAuth2AccessToken.isPresent());

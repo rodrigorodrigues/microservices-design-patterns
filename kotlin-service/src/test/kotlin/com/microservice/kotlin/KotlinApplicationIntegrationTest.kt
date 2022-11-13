@@ -44,7 +44,7 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
                     val listOf = arrayListOf(
                         Task(name = "Learn new technologies", createdByUser = "default@admin.com"),
                         Task(name = "Travel around the world", createdByUser = "default@admin.com"),
-                        Task(name = "Fix Laptop", createdByUser = "default@admin.com")
+                        Task(name = "Fix the Laptop", createdByUser = "default@admin.com")
                     )
                     taskRepository.saveAll(listOf)
                 }
@@ -121,6 +121,11 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(read<List<String>>(responseEntity.body, "$.content[*].id")).hasSize(1)
+
+        responseEntity = restTemplate.exchange("/api/tasks?THE", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(read<List<String>>(responseEntity.body, "$.content[*].id")).hasSize(2)
 
         responseEntity = restTemplate.exchange("/api/tasks?name=Something else", HttpMethod.GET, HttpEntity(null, headers), String::class.java)
 

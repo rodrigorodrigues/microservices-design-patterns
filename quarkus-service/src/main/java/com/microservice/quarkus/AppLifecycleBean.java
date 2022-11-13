@@ -42,7 +42,8 @@ public class AppLifecycleBean {
 	MongoClient mongoClient;
 
 	@IfBuildProfile("consul")
-	Consul consulClient = Consul.builder().build();
+	@Inject
+	Consul consulClient;
 
 	@ConfigProperty(name = "quarkus.application.name")
 	String appName;

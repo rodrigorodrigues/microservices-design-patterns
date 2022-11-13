@@ -32,7 +32,7 @@ public class MongoTestResource implements QuarkusTestResourceLifecycleManager {
 			int port = mongodProcess.getConfig().net().getPort();
 			LOGGER.infof("Started Embedded Mongo %s on port %s", version, port);
 
-			return Collections.singletonMap("test.quarkus.mongodb.connection-string", String.format("mongodb://localhost:%s", port));
+			return Collections.singletonMap("%test.quarkus.mongodb.connection-string", String.format("mongodb://localhost:%s", port));
 		} catch (IOException e) {
 			LOGGER.error("Could not start embedded mongodb", e);
 			throw new RuntimeException(e);

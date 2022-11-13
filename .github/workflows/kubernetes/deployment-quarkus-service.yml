@@ -50,13 +50,19 @@ spec:
             - name: QUARKUS_PROFILES
               value: prod
             - name: MONGODB_URI
-              value: mongodb://mongodb:27017
+              value: mongodb://192.168.1.5:27017
             - name: MONGODB_DATABASE
               value: docker
-            - name: PUBLIC_KEY_PATH
-              value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
+#            - name: PUBLIC_KEY_PATH
+#              value: https://spendingbetter.com/.well-known/jwks.json #/etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: QUARKUS_METRICS_PATH
               value: /actuator
+#            - name: SMALLRYE_JWT_TIME_TO_LIVE
+#              value: "-1"
+            - name: LOG_LEVEL_ROOT
+              value: "debug"
+            - name: QUARKUS_LOG_LEVEL_ROOT
+              value: "debug"
           ports:
             - containerPort: 8085
           livenessProbe:

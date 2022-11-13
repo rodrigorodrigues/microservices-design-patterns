@@ -162,7 +162,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return converter;
     }
 
-    @Profile("auth")
+    @Profile("prod")
     @ConditionalOnMissingBean
     @Bean
     KeyPair getKeyPair(AuthenticationProperties authenticationProperties) throws Exception {

@@ -26,6 +26,15 @@ func GetEnv(key string) string {
 	return value
 }
 
+func GetEnvAsBool(key string) bool {
+	value, err := strconv.ParseBool(GetEnv(key))
+	if err != nil {
+		return false
+	}
+
+	return value
+}
+
 func GetEnvAsInt(key string) int {
 	value, err := strconv.Atoi(GetEnv(key))
 	if err != nil {

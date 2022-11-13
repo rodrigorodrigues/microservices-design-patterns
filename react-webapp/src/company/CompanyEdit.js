@@ -10,15 +10,15 @@ import HomeContent from '../home/HomeContent';
 import { marginLeft } from '../common/Util';
 import LoadingScreen from 'react-loading-screen';
 
-class TaskEdit extends Component {
-  emptyTask = {
+class CompanyEdit extends Component {
+  emptyCompany = {
     name: ''
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      task: this.emptyTask,
+      company: this.emptyCompany,
       jwt: props.jwt,
       displayError: null,
       displayAlert: false,
@@ -42,17 +42,17 @@ class TaskEdit extends Component {
       let permissions = this.state.authorities;
       if (jwt && permissions) {
 
-        if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'SCOPE_openid')) {
+        if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_CREATE' || item === 'ROLE_COMPANY_SAVE' || item === 'SCOPE_openid')) {
           const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
         } else {
           if (this.props.match.params.id !== 'new') {
             try {
-              const task = await (await fetch(`/api/tasks/${this.props.match.params.id}`, { method: 'GET',      headers: {
+              const company = await (await fetch(`/api/companies/${this.props.match.params.id}`, { method: 'GET',      headers: {
                 'Content-Type': 'application/json',
                 'Authorization': jwt
               }})).json();
-              this.setState({task: task, isLoading: false});
+              this.setState({company: company, isLoading: false});
             } catch (error) {
               this.setState({displayAlert: true, sLoading: false, displayError: errorMessage(error)});
             }
@@ -70,31 +70,29 @@ class TaskEdit extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let task = {...this.state.task};
-    task[name] = value;
-    this.setState({task: task});
+    let company = {...this.state.company};
+    company[name] = value;
+    this.setState({company: company});
   }
 
   async handleSubmit(event) {
     try {
       event.preventDefault();
-      const {task, jwt} = this.state;
-      console.log("Task", task);
-      console.log("Task jwt", jwt);
+      const {company, jwt} = this.state;
 
-      const url = '/api/tasks' + (task.id ? '/' + task.id : '');
+      const url = '/api/companies' + (company.id ? '/' + company.id : '');
       await fetch(url, {
-        method: (task.id) ? 'PUT' : 'POST',
+        method: (company.id) ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': jwt
         },
-        body: JSON.stringify(task),
+        body: JSON.stringify(company),
         credentials: 'include'
       }).then(response => response.json())
           .then(data => {
             if (data.id) {
-              this.props.history.push('/tasks');
+              this.props.history.push('/companies');
             } else {
               this.setState({ displayError: errorMessage(data)});
             }
@@ -128,8 +126,8 @@ class TaskEdit extends Component {
   }
 
   render() {
-    const { task, displayError, displayAlert, isLoading, expanded } = this.state;
-    const title = <h2>{task.id ? 'Edit Task' : 'Add Task'}</h2>;
+    const { company, displayError, displayAlert, isLoading, expanded } = this.state;
+    const title = <h2>{company.id ? 'Edit Company' : 'Add Company'}</h2>;
 
     const displayContent = () => {
       if (displayAlert) {
@@ -142,7 +140,7 @@ class TaskEdit extends Component {
           <AvForm onValidSubmit={this.handleSubmit}>
             <AvGroup>
               <Label for="name">Name</Label>
-              <AvInput type="text" name="name" id="name" value={task.name || ''}
+              <AvInput type="text" name="name" id="name" value={company.name || ''}
                     onChange={this.handleChange} placeholder="Name"
                       required/>
               <AvFeedback>
@@ -150,8 +148,8 @@ class TaskEdit extends Component {
               </AvFeedback>
             </AvGroup>
             <AvGroup>
-              <Button color="primary" type="submit">{task.id ? 'Save' : 'Create'}</Button>{' '}
-              <Button color="secondary" tag={Link} to="/tasks">Cancel</Button>
+              <Button color="primary" type="submit">{company.id ? 'Save' : 'Create'}</Button>{' '}
+              <Button color="secondary" tag={Link} to="/companies">Cancel</Button>
             </AvGroup>
           </AvForm>
           </div>
@@ -176,4 +174,4 @@ class TaskEdit extends Component {
   }
 }
 
-export default withRouter(TaskEdit);
+export default withRouter(CompanyEdit);

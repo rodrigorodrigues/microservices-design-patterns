@@ -15,6 +15,7 @@ import { marginLeft } from '../common/Util';
 import { get } from "../services/ApiService";
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
+import LoadingScreen from 'react-loading-screen';
 
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
 
@@ -23,7 +24,7 @@ class PersonList extends Component {
     super(props);
     this.state = {
       persons: [],
-      isLoading: true,
+      isLoading: false,
       jwt: props.jwt,
       displayError: null,
       authorities: props.authorities,
@@ -69,24 +70,33 @@ class PersonList extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
-    await this.findAllPeople();
+    try {
+      this.setLoading(true);
+      event.preventDefault();
+      await this.findAllPeople();
+    } finally {
+      this.setLoading(false);
+    }
   }
 
   async componentDidMount() {
-    toast.dismiss('Error');
-    let jwt = this.state.jwt;
-    let permissions = this.state.authorities;
-    if (jwt && permissions) {
-
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
-      || item === 'ROLE_PERSON_READ' || item === 'ROLE_PERSON_CREATE' 
-      || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE' || item === 'SCOPE_openid')) {
-        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      } else {
-        await this.findAllPeople();
+    try {
+      this.setLoading(true);
+      toast.dismiss('Error');
+      let jwt = this.state.jwt;
+      let permissions = this.state.authorities;
+      if (jwt && permissions) {
+        if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_READ' 
+        || item === 'ROLE_PERSON_READ' || item === 'ROLE_PERSON_CREATE' 
+        || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE' || item === 'SCOPE_openid')) {
+          const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+          this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
+        } else {
+          await this.findAllPeople();
+        }
       }
+    } finally {
+      this.setLoading(false);
     }
   }
 
@@ -122,8 +132,33 @@ class PersonList extends Component {
   }
 
   async handlePageChange(pageNumber) {
-    this.setState({activePage: pageNumber})
-    await this.findAllPeople(pageNumber);
+    try {
+      this.setLoading(true);
+      this.setState({activePage: pageNumber})
+      await this.findAllPeople(pageNumber);
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  setLoading = (loading) => {
+    this.setState({ isLoading: loading });
+    console.log("setLoading: " + loading);
+  }
+
+  displayLoading(isLoading) {
+    return (isLoading ?
+      <div>
+          <LoadingScreen
+              loading={true}
+              bgColor="#f1f1f1"
+              spinnerColor="#9ee5f8"
+              textColor="#676767"
+              logoSrc="Spinner.gif"
+              text="Loading..."
+          />
+      </div>
+          : '');
   }
 
   async remove(person) {
@@ -271,7 +306,7 @@ class PersonList extends Component {
         <AppNavbar />
         <Container fluid>
           <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
-          {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
+          {this.displayLoading(isLoading)}
           {!isLoading && displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>

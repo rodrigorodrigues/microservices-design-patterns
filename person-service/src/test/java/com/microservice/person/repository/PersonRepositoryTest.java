@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilderCustomizer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,6 +47,11 @@ public class PersonRepositoryTest {
         @Bean
         RestTemplate restTemplate() {
             return mock(RestTemplate.class);
+        }
+
+        @Bean
+        QuerydslPredicateBuilderCustomizer querydslPredicateBuilderCustomizer() {
+            return mock(QuerydslPredicateBuilderCustomizer.class);
         }
     }
 

@@ -8,11 +8,10 @@
   <properties>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <docker.env.JAVA_OPTS>-Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
-    <docker.image.from.fabric8>openjdk:19</docker.image.from.fabric8>
+    <docker.image.from.fabric8>openjdk:17.0.1</docker.image.from.fabric8>
     <docker.image.name>${project.artifactId}</docker.image.name>
     <maven.compiler.parameters>true</maven.compiler.parameters>
-    <maven.compiler.source>19</maven.compiler.source>
-    <maven.compiler.target>19</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
@@ -136,6 +135,10 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-metrics</artifactId>
     </dependency>
+    <!--<dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+    </dependency>-->
     <dependency>
       <groupId>com.orbitz.consul</groupId>
       <artifactId>consul-client</artifactId>
@@ -185,14 +188,14 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compiler-plugin.version}</version>
         <configuration>
-          <source>19</source>
-          <target>19</target>
           <compilerArgs>
-            <arg>--enable-preview</arg>
-            <arg>-Dnet.bytebuddy.experimental</arg>
+            <arg>-parameters</arg>
           </compilerArgs>
-          <jvmArgs>--enable-preview --add-opens java.base/java.lang=ALL-UNNAMED</jvmArgs>
         </configuration>
       </plugin>
       <plugin>

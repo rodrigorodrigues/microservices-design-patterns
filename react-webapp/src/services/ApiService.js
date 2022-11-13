@@ -30,9 +30,8 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
             });
         }
         console.log("response status: ", response.status);
-        console.log("response header content-type: ", response.headers.get('Content-type'));
-        console.log("Cookies: ", Cookies.get('XSRF-TOKEN'));
-        if (response.headers.get('Content-type') !== null && response.headers.get('Content-type').startsWith('application/json')) {
+        const contentTypeHeader = response.headers.get('Content-type');
+        if (contentTypeHeader !== null && contentTypeHeader.startsWith('application/json')) {
             return response.json();
         } else {
             return response.text();
@@ -62,7 +61,12 @@ async function processPost(resource, headers, body) {
             body: body
         });
         console.log("response status: ", response.status);
-        return response.json();
+        const contentTypeHeader = response.headers.get('Content-type');
+        if (contentTypeHeader !== null && contentTypeHeader.startsWith('application/json')) {
+            return response.json();
+        } else {
+            return response.text();
+        }
     } catch (e) {
         console.log("Error post method", e);
         throw Error(e)

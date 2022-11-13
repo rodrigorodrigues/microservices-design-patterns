@@ -37,13 +37,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItems;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.greaterThan;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -140,6 +135,7 @@ public class CompanyResourceTest {
                 .send()
                 .onItem().transform(res -> {
                     String body = StringUtils.trimToEmpty(res.bodyAsString());
+                    log.info("Value: {}", body);
                     if (StringUtils.isBlank(body)) {
                         return null;
                     } else {
@@ -148,7 +144,7 @@ public class CompanyResourceTest {
                 })
                 .await().indefinitely();
 
-        assertNull(json);
+        assertEquals("[]", json);
     }
 
     @Test
@@ -160,8 +156,7 @@ public class CompanyResourceTest {
                 .get("/api/companies")
                 .then()
                 .statusCode(200)
-                .body("@.size()", is(1),
-                    "[*].name", hasItems("Facebook", "Google", "Amazon"));
+                .body("name", hasItems("Facebook", "Google", "Amazon"));
 
         JsonPath json = client.get("/api/companies")
                 .basicAuthentication("admin", "admin")
@@ -171,12 +166,11 @@ public class CompanyResourceTest {
                             .map(String::trim)
                             .filter(StringUtils::isNotBlank)
                             .collect(Collectors.joining(","));
-                    return new JsonPath("["+list+"]");
+                    return new JsonPath(list);
                 })
                 .await().indefinitely();
 
         assertNotNull(json);
-        log.info("response: {}", json.prettyPrint());
         List<String> names = json.getList("name");
         assertThat(names.size(), is(3));
         assertThat(names, hasItems("Facebook", "Google", "Amazon"));

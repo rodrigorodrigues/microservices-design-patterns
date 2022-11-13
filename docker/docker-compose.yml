@@ -34,7 +34,7 @@ services:
     container_name: gateway
     environment:
       - SPRING_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=consul,dev
+      - SPRING_PROFILES_ACTIVE=consul,dev,auth
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
@@ -210,6 +210,7 @@ services:
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
+      - LOGGING_LEVEL_COM_MICROSERVICE=debug
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -238,6 +239,7 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
+      - LOGGING_LEVEL_COM_MICROSERVICE=trace
       #- DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
     depends_on:
@@ -255,28 +257,32 @@ services:
         aliases:
           - task-api
 
-#  company-api:
-#    image: quarkus-service
-#    container_name: company-api
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=quarkus
-#      - CONSUL_URL=service-discovery:8500
-#      - QUARKUS_HTTP_PORT=8085
-#      - MONGODB_URI=mongodb://mongodb-datasource:27017
-#      - MONGODB_DATABASE=docker
-#      - QUARKUS_LOG_LEVEL=DEBUG
-#    depends_on:
-#      - service-discovery
-#      - mongodb-datasource
-#    ports:
-#      - 8085:8085
-##    volumes:
-##      - ./docker-entrypoint.sh:/docker-entrypoint.sh
-##    command: sh ./docker-entrypoint.sh service-discovery:8500
-#    networks:
-#      net:
-#        aliases:
-#          - task-api
+  company-api:
+    image: quarkus-service:0.0.1-SNAPSHOT
+    container_name: company-api
+    environment:
+      - SPRING_PROFILES_ACTIVE=quarkus,consul
+      - CONSUL_URL=service-discovery:8500
+      - QUARKUS_HTTP_PORT=8085
+      - MONGODB_URI=mongodb://mongodb-datasource:27017
+      - MONGODB_DATABASE=docker
+      - LOG_LEVEL_ROOT=DEBUG
+      - QUARKUS_LOG_LEVEL_ROOT=DEBUG
+      - QUARKUS_LOG_CATEGORY_COM_ORBITZ_CONSUL=DEBUG
+      - PUBLIC_KEY_PATH=/jwks.json
+    depends_on:
+      - service-discovery
+      - mongodb-datasource
+    ports:
+      - 8085:8085
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - ./jwks.json:/jwks.json
+#    command: sh ./docker-entrypoint.sh service-discovery:8500
+    networks:
+      net:
+        aliases:
+          - task-api
 
   user-api:
     image: user-service:0.0.1-SNAPSHOT
@@ -316,7 +322,7 @@ services:
     #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
-      - SPRING_PROFILES_ACTIVE=consul,dev
+      - SPRING_PROFILES_ACTIVE=auth,consul,dev
       - SPRING_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999

@@ -56,7 +56,7 @@ jobs:
       # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
-          mvn clean package -DskipTests -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dspring.profiles.active=travis docker:build
+          mvn clean package -DskipTests -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
 
       - name: Push Image(amd64/arm64)
         id: docker_build

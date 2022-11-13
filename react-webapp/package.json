@@ -28,6 +28,7 @@
     "react-iframe": "1.8.0",
     "react-js-pagination": "^3.0.3",
     "react-json-view": "^1.19.1",
+    "react-loading-screen": "^0.0.17",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^2.1.0",
     "react-scroll-into-view": "^1.8.2",

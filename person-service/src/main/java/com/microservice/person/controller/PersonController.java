@@ -60,6 +60,7 @@ public class PersonController {
                                                    @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
                                                    @QuerydslPredicate(root = Person.class, bindings = PersonRepository.class) Predicate predicate,
                                                    @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+
         log.debug("predicate: {}", predicate);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
         if (hasRoleAdmin(authentication)) {

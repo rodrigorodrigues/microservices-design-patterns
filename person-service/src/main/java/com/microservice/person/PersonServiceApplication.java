@@ -1,6 +1,11 @@
 package com.microservice.person;
 
+import java.lang.annotation.Annotation;
 import java.time.ZoneId;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.IntStream;
 
@@ -10,8 +15,12 @@ import com.github.javafaker.Name;
 import com.github.javafaker.Space;
 import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
+import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
 import com.microservice.person.service.PersonService;
+import com.microservice.web.common.util.ChangeQueryStringFilter;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 
@@ -27,12 +36,20 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
+import org.springframework.data.querydsl.binding.PathInformation;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilderCustomizer;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -40,6 +57,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.Assert;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -49,7 +68,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 @EnableScheduling
 @EnableConfigurationProperties(ConfigProperties.class)
-public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigurer {
+public class PersonServiceApplication implements WebMvcConfigurer {
     Faker faker = new Faker();
 
     public static void main(String[] args) {
@@ -157,7 +176,62 @@ public class PersonServiceApplication implements EnvironmentAware, WebMvcConfigu
         return new GitProperties(new Properties());
     }
 
-    @Override
-    public void setEnvironment(Environment environment) {
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    ChangeQueryStringFilter<Person> changeQueryStringFilter() {
+        return new ChangeQueryStringFilter<>() {
+            @Override
+            public Class<Person> getObjectType() {
+                return Person.class;
+            }
+
+            @Override
+            public Class<? extends Annotation> getEntityType() {
+                return Document.class;
+            }
+        };
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    QuerydslPredicateBuilderCustomizer querydslPredicateBuilderCustomizer(QuerydslBindingsFactory querydslBindingsFactory) {
+        return new QuerydslPredicateBuilder(DefaultConversionService.getSharedInstance(), querydslBindingsFactory.getEntityPathResolver()) {
+            @Override
+            public Predicate getPredicate(TypeInformation<?> type, MultiValueMap<String, ?> values, QuerydslBindings bindings) {
+                Assert.notNull(bindings, "Context must not be null");
+
+                BooleanBuilder builder = new BooleanBuilder();
+
+                if (values.isEmpty()) {
+                    return getPredicate(builder);
+                }
+
+                for (Map.Entry<String, ? extends List<?>> entry : values.entrySet()) {
+
+                    if (isSingleElementCollectionWithEmptyItem(entry.getValue())) {
+                        continue;
+                    }
+
+                    String path = entry.getKey();
+
+                    if (!bindings.isPathAvailable(path, type)) {
+                        continue;
+                    }
+
+                    PathInformation propertyPath = bindings.getPropertyPath(path, type);
+
+                    if (propertyPath == null) {
+                        continue;
+                    }
+
+                    Collection<Object> value = convertToPropertyPathSpecificType(entry.getValue(), propertyPath, conversionService);
+                    Optional<Predicate> predicate = invokeBinding(propertyPath, bindings, value, resolver, defaultBinding);
+
+                    predicate.ifPresent(builder::or);
+                }
+
+                return getPredicate(builder);
+            }
+        };
     }
 }

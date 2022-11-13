@@ -24,7 +24,10 @@ import ProductList from "./product/ProductList";
 import ProductEdit from "./product/ProductEdit";
 import PostList from './posts/PostList';
 import PostEdit from './posts/PostEdit';
+import CompanyList from "./company/CompanyList";
+import CompanyEdit from "./company/CompanyEdit";
 import ModalPopup from './common/Modal';
+
 const moment = require('moment');
 
 const consulUrl = process.env.REACT_APP_CONSUL_URL;
@@ -35,7 +38,6 @@ const prometheusUrl = process.env.REACT_APP_PROMETHEUS_URL;
 
 class App extends Component {
   state = {
-    isLoading: true,
     isAuthenticated: window.localStorage.getItem('jhi-isAuthenticated'),
     user: window.localStorage.getItem('jhi-user'),
     error: null,
@@ -73,7 +75,7 @@ class App extends Component {
               }
             }
             this.redirectToIndexPage();
-            this.setState({ displayError: errorMessage(data), isLoading: false});
+            this.setState({ displayError: errorMessage(data)});
             this.removeAuthentication();
           }
         }
@@ -173,6 +175,10 @@ class App extends Component {
                    component={() => <TaskList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/tasks/:id'
                    component={() => <TaskEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/companies' exact={true}
+                   component={() => <CompanyList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/companies/:id'
+                   component={() => <CompanyEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/products' exact={true}
                    component={() => <ProductList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/products/:id'

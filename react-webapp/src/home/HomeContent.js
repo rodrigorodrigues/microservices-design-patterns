@@ -251,6 +251,10 @@ class HomeContent extends Component {
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
+                    <Anchor href="/companies">Manage Companies</Anchor>
+                </Breadcrumbs.Item>}
+                {isAuthenticated &&
+                <Breadcrumbs.Item>
                     <Anchor href="/posts">Manage Posts</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
@@ -267,6 +271,19 @@ class HomeContent extends Component {
                 </Breadcrumbs.Item>}
             </Breadcrumbs>            
         );
+    }
+
+    displayCompaniesButton(authorities) {
+        const hasCompanyPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_READ' 
+        || item === 'ROLE_COMPANY_CREATE' || item === 'ROLE_COMPANY_SAVE' || item === 'ROLE_COMPANY_DELETE' || item === 'SCOPE_openid'));
+        return (<NavItem eventKey="companies" disabled={(!hasCompanyPermission)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-building" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Companies">
+                Companies
+            </NavText>
+        </NavItem>);
     }
 
     render() {
@@ -319,6 +336,7 @@ class HomeContent extends Component {
                         {this.displayAdminButtons(authorities)}
                         {this.displayPeopleButton(authorities)}
                         {this.displayTasksButton(authorities)}
+                        {this.displayCompaniesButton(authorities)}
                         {this.displayPostsButton(authorities)}
                         {this.displayProductsButton(authorities)}
                         <Separator />

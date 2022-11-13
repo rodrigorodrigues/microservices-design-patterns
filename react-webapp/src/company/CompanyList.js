@@ -18,13 +18,13 @@ import LoadingScreen from 'react-loading-screen';
 
 const queryString = require('query-string');
 
-const taskSwaggerUrl = process.env.REACT_APP_TASK_SWAGGER_URL;
+const companySwaggerUrl = process.env.REACT_APP_COMPANY_SWAGGER_URL;
 
-class TaskList extends Component {
+class CompanyList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      tasks: [],
+      companies: [],
       isLoading: true,
       jwt: props.jwt,
       displayError: null,
@@ -72,7 +72,7 @@ class TaskList extends Component {
     try {
       this.setLoading(true);
       event.preventDefault();
-      await this.findAllTasks();
+      await this.findAllCompanies();
     } finally {
       this.setLoading(false);
     }
@@ -93,13 +93,13 @@ class TaskList extends Component {
           }
       }
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_READ' 
-        || item === 'ROLE_TASK_READ' || item === 'ROLE_TASK_CREATE' 
-        || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid')) {
+      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_READ' 
+        || item === 'ROLE_COMPANY_READ' || item === 'ROLE_COMPANY_CREATE' 
+        || item === 'ROLE_COMPANY_SAVE' || item === 'ROLE_COMPANY_DELETE' || item === 'SCOPE_openid')) {
           const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
         } else {
-          await this.findAllTasks();
+          await this.findAllCompanies();
         }
       }
     } finally {
@@ -107,17 +107,17 @@ class TaskList extends Component {
     }
   }
 
-  async findAllTasks(pageNumber) {
+  async findAllCompanies(pageNumber) {
     try {
       const { pageSize, activePage, search, jwt } = this.state;
-      let url = `tasks?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&size='+pageSize: ''}`;
+      let url = `companies?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&size='+pageSize: ''}`;
       console.log("URL: {}", url);
       let data = await get(url, true, false, jwt);
       if (data) {
         if (Array.isArray(data.content)) {
           this.setState({ 
             isLoading: false, 
-            tasks: data.content, 
+            companies: data.content, 
             displaySwagger: true, 
             totalPages: data.totalPages, 
             itemsCountPerPage: data.size, 
@@ -140,7 +140,7 @@ class TaskList extends Component {
     try {
       this.setLoading(true);
       this.setState({activePage: pageNumber});
-      await this.findAllTasks(pageNumber);
+      await this.findAllCompanies(pageNumber);
     } finally {
       this.setLoading(false);
     }
@@ -166,12 +166,12 @@ class TaskList extends Component {
           : '');
   }
 
-  async remove(task) {
-    let confirm = await confirmDialog(`Delete Task ${task.name}`, "Are you sure you want to delete this?", "Delete Task");
+  async remove(company) {
+    let confirm = await confirmDialog(`Delete Company ${company.name}`, "Are you sure you want to delete this?", "Delete Company");
     if (confirm) {
-      let id = task.id;
+      let id = company.id;
       let jwt = this.state.jwt;
-      await fetch(`/api/tasks/${id}`, {
+      await fetch(`/api/companies/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt
@@ -181,124 +181,52 @@ class TaskList extends Component {
         if (err.status !== 200) {
           this.setState({ displayError: errorMessage(err) });
         } else {
-          let tasks = [...this.state.tasks].filter(i => i.id !== id);
-          this.setState({ tasks: tasks });
+          let companies = [...this.state.companies].filter(i => i.id !== id);
+          this.setState({ companies: companies });
         }
       });
     }
   }
 
   render() {
-    const { tasks, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
+    const { companies, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
 
-    const suggestions = [
-      {
-        title: 'name',
-        languages: [
-          {
-            name: 'C',
-            year: 1972
-          }
-        ]
-      },
-      {
-        title: 'createdByUser',
-        languages: [
-          {
-            name: 'C++',
-            year: 1983
-          },
-          {
-            name: 'Perl',
-            year: 1987
-          }
-        ]
-      },
-      {
-        title: 'createdDate',
-        languages: [
-          {
-            name: 'Haskell',
-            year: 1990
-          },
-          {
-            name: 'Python',
-            year: 1991
-          },
-          {
-            name: 'Java',
-            year: 1995
-          },
-          {
-            name: 'Javascript',
-            year: 1995
-          },
-          {
-            name: 'PHP',
-            year: 1995
-          },
-          {
-            name: 'Ruby',
-            year: 1995
-          }
-        ]
-      },
-      {
-        title: 'id',
-        languages: [
-          {
-            name: 'C#',
-            year: 2000
-          },
-          {
-            name: 'Scala',
-            year: 2003
-          },
-          {
-            name: 'Clojure',
-            year: 2007
-          },
-          {
-            name: 'Go',
-            year: 2009
-          }
-        ]
-      },
-      {
-        title: '2010s',
-        languages: [
-          {
-            name: 'Elm',
-            year: 2012
-          }
-        ]
-      }
-    ];
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_CREATE' || item === 'SCOPE_openid');
 
-    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'SCOPE_openid');
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_SAVE' || item === 'SCOPE_openid');
 
-    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_SAVE' || item === 'SCOPE_openid');
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_DELETE' || item === 'SCOPE_openid');
 
-    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid');
-
-    const taskList = tasks.map(task => {
-      return <tr key={task.id}>
-        <th scope="row">{task.id}</th>
-        <td style={{ whiteSpace: 'nowrap' }}>{task.name}</td>
-        <td>{task.createdByUser}</td>
-        <td>{task.createdDate}</td>
-        <td>{task.lastModifiedByUser}</td>
-        <td>{task.lastModifiedDate}</td>
+    const companyList = companies.map(company => {
+      return <tr key={company.id}>
+        <th scope="row">{company.id}</th>
+        <td style={{ whiteSpace: 'nowrap' }}>{company.name}</td>
+        <td>{company.createdByUser}</td>
+        <td>{company.createdDate}</td>
+        <td>{company.lastModifiedByUser}</td>
+        <td>{company.lastModifiedDate}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/tasks/" + task.id} disabled={!hasSaveAccess}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({ 'id': task.id, 'name': task.name })} disabled={!hasDeleteAccess}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/companies/" + company.id} disabled={!hasSaveAccess}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({ 'id': company.id, 'name': company.name })} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
     });
 
     const displayContent = () => {
+      const suggestions = [
+        {
+          title: 'name',
+          languages: [
+            {
+              name: 'C',
+              year: 1972
+            }
+          ]
+        }
+      ];
+
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
         401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
@@ -310,7 +238,7 @@ class TaskList extends Component {
           <NavLink
             className={classnames({ active: this.state.activeTab === '1' })}
             onClick={() => { this.toggle('1'); }}>
-            Tasks
+            Companies
         </NavLink>
         </NavItem>
         <NavItem>
@@ -328,7 +256,7 @@ class TaskList extends Component {
                   padding: '15px 20px 0 20px'
                 }}
           >
-            <Button color="success" tag={Link} to="/tasks/new" disabled={!hasCreateAccess || displayAlert}>Add Task</Button>
+            <Button color="success" tag={Link} to="/companies/new" disabled={!hasCreateAccess || displayAlert}>Add Company</Button>
           </div>
           <SearchButtonComponent handleChange={this.handleChange} handleSubmit={this.handleSubmit} suggestions={suggestions} />
           <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
@@ -345,7 +273,7 @@ class TaskList extends Component {
               </tr>
             </thead>
             <tbody>
-              {taskList}
+              {companyList}
             </tbody>
           </Table>
           <PaginationComponent {...this.state} handlePageChange={this.handlePageChange} setPageSize={this.setPageSize} />
@@ -353,7 +281,7 @@ class TaskList extends Component {
         <TabPane tabId="2">
           {/*this.state.activeTab === 2 ? <h3>Tab 2 Contents</h3> : null*/}
           {displaySwagger ?
-          <Iframe url={`${taskSwaggerUrl}`}
+          <Iframe url={`${companySwaggerUrl}`}
             position="absolute"
             width="100%"
             id="myId"
@@ -386,4 +314,4 @@ class TaskList extends Component {
   }
 }
 
-export default withRouter(TaskList);
+export default withRouter(CompanyList);

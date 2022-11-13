@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI - Build and push Docker images - User Service
+name: CI - Build and push Docker images - Quarkus Service
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -12,7 +12,7 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    if: contains(toJson(github), 'build user-service')
+    if: contains(toJson(github), 'build quarkus-service')
     name: Build Jar/Docker Image and Publish to DockerHub
 
     # The type of runner that the job will run on
@@ -46,18 +46,17 @@ jobs:
       # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
-          mvn clean package -DskipTests -q -pl user-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
+          mvn clean package -DskipTests -q -pl quarkus-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./user-service/target/docker/user-service/build
-          file: ./user-service/target/docker/user-service/build/Dockerfile
+          context: ./quarkus-service/target/docker/quarkus-service/build
+          file: ./quarkus-service/target/docker/quarkus-service/build/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: fielcapao/microservices-design-patterns-user-service:latest
+          tags: fielcapao/microservices-design-patterns-quarkus-service:latest
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-
