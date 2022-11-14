@@ -49,20 +49,20 @@ jobs:
           mvn clean package -DskipTests -q -pl quarkus-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
       # Tag image
-      - name: Tag & publish to GitHub Container Registry
-        run: |
-          docker tag quarkus-service:0.0.1-SNAPSHOT fielcapao/microservices-design-patterns-quarkus-service:latest
-          docker push fielcapao/microservices-design-patterns-quarkus-service:latest
+#      - name: Tag & publish to GitHub Container Registry
+#        run: |
+#          docker tag quarkus-service:0.0.1-SNAPSHOT fielcapao/microservices-design-patterns-quarkus-service:latest
+#          docker push fielcapao/microservices-design-patterns-quarkus-service:latest
 
-#      - name: Build and push
-#        id: docker_build
-#        uses: docker/build-push-action@v2
-#        with:
-#          context: ./quarkus-service/target/docker/quarkus-service/build
-#          file: ./quarkus-service/target/docker/quarkus-service/build/Dockerfile
-#          platforms: linux/amd64,linux/arm64
-#          push: true
-#          tags: fielcapao/microservices-design-patterns-quarkus-service:latest
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./quarkus-service/target/quarkus-app
+          file: ./quarkus-service/src/main/docker/Dockerfile.jvm
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: fielcapao/microservices-design-patterns-quarkus-service:latest
 
-#      - name: Image digest
-#        run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
