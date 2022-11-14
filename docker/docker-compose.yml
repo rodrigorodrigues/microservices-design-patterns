@@ -270,6 +270,7 @@ services:
       - QUARKUS_LOG_LEVEL_ROOT=DEBUG
       - QUARKUS_LOG_CATEGORY_COM_ORBITZ_CONSUL=DEBUG
       - PUBLIC_KEY_PATH=/jwks.json
+#      - QUARKUS_SMALLRYE_HEALTH_ROOT_PATH=/actuator/health
     depends_on:
       - service-discovery
       - mongodb-datasource

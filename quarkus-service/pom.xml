@@ -34,10 +34,8 @@
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-netty-loom-adaptor</artifactId>
-      <version>2.13.1.Final</version>
+      <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-reactive</artifactId>
