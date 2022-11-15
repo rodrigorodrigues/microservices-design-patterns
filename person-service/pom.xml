@@ -239,11 +239,12 @@
     </build>
 
     <profiles>
+<!--
         <profile>
             <id>native</id>
             <properties>
                 <repackage.classifier>exec</repackage.classifier>
-                <native-buildtools.version>0.9.11</native-buildtools.version>
+                <native-buildtools.version>0.9.13</native-buildtools.version>
             </properties>
             <dependencies>
                 <dependency>
@@ -288,6 +289,7 @@
                 </plugins>
             </build>
         </profile>
+-->
 
         <profile>
             <id>spring-native</id>
