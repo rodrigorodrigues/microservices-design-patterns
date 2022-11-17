@@ -1,18 +1,16 @@
 package com.microservice.quarkus.resource;
 
 import com.microservice.quarkus.dto.CompanyDto;
+import com.microservice.quarkus.mapper.CompanyMapper;
 import com.microservice.quarkus.model.Company;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Metered;
 import org.eclipse.microprofile.metrics.annotation.Timed;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -36,27 +34,8 @@ public class CompanyResource {
     @Inject
     CompanyMapper companyMapper;
 
-/*
-    private final PublishSubject<OffsetDateTime> publisher = PublishSubject.create();
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-    public CompanyResource() {
-        executorService.scheduleAtFixedRate(() -> publisher.onNext(OffsetDateTime.now()), 0, 1, TimeUnit.SECONDS);
-    }
-
-    @GET
-    @Path("/endlessTimestampsMulti")
-    @Produces(MediaType.SERVER_SENT_EVENTS)
-    @SseElementType(MediaType.APPLICATION_JSON)
-    public Multi<OffsetDateTime> endlessTimestampsMulti() {
-        return Multi.createFrom().converter(MultiRxConverters.fromObservable(), publisher);
-    }
-*/
-
     @GET
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_READ", "ROLE_COMPANY_SAVE", "COMPANY_DELETE", "ROLE_COMPANY_CREATE", "SCOPE_openid"})
-//    @Produces(MediaType.SERVER_SENT_EVENTS)
-//    @SseElementType(MediaType.APPLICATION_JSON)
     @Timed(name = "getAllActiveCompaniesTimed",
             description = "Monitor the time getAllActiveCompanies method takes",
             unit = MetricUnits.MILLISECONDS,
@@ -70,74 +49,67 @@ public class CompanyResource {
             absolute = true,
             displayName = "getAllActiveCompanies",
             description = "Monitor how many times getAllActiveCompanies method was called")
-    public Multi<CompanyDto> getAllActiveCompanies(@Context SecurityContext ctx) {
+    public Page<CompanyDto> getAllActiveCompanies(@Context SecurityContext ctx,
+            @QueryParam("page") @DefaultValue("0") Integer page,
+            @QueryParam("size") @DefaultValue("10") Integer size) {
+        io.quarkus.panache.common.Page pageRequest = io.quarkus.panache.common.Page.of(page, size);
         String name = ctx.getUserPrincipal().getName();
         log.debug("hello {}", name);
-        Multi<Company> multi = hasRoleAdmin(ctx) ? Company.findActiveCompanies() : Company
-                .findActiveCompaniesByUser(name);
-        return multi.onItem().transform(c -> companyMapper.toResource(c));
+        return companyMapper.toResource(hasRoleAdmin(ctx) ? Company.findActiveCompanies(pageRequest) : Company
+                .findActiveCompaniesByUser(pageRequest, name), pageRequest);
     }
 
     @GET
     @Path("/{id}")
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_READ", "ROLE_COMPANY_SAVE", "SCOPE_openid"})
-    public Uni<Response> getById(@PathParam("id") String id, @Context SecurityContext ctx) {
-        return getCompanyById(id)
-                .onItem().ifNull().failWith(NotFoundException::new)
-                .map(c -> {
-                    if (hasPermissionToChangeCompany(ctx).test(c)) {
-                        return Response.ok(companyMapper.toResource(c)).build();
-                    } else {
-                        throw new ForbiddenException(String.format("User(%s) does not have access to this resource", ctx.getUserPrincipal().getName()));
-                    }
-                });
+    public Response getById(@PathParam("id") String id, @Context SecurityContext ctx) {
+        Company company = getCompanyById(id);
+        if (hasPermissionToChangeCompany(ctx).test(company)) {
+            return Response.ok(companyMapper.toResource(company)).build();
+        } else {
+            throw new ForbiddenException(String.format("User(%s) does not have access to this resource", ctx.getUserPrincipal().getName()));
+        }
     }
 
     @POST
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_CREATE", "SCOPE_openid"})
-    public Uni<Response> create(@Valid CompanyDto companyDto, @Context SecurityContext ctx) {
+    public Response create(@Valid CompanyDto companyDto, @Context SecurityContext ctx) {
         Company company = companyMapper.toModel(companyDto);
         company.createdByUser = ctx.getUserPrincipal().getName();
-        return company.persist()
-                .flatMap(i -> company.findById(company.id))
-                .map(c -> Response.created(URI.create(String.format("/api/companies/%s", ((Company)c).id)))
-                        .entity(companyMapper.toResource(((Company)c)))
-                        .build());
+        company.persist();
+        company = Company.findById(company.id);
+        return Response.created(URI.create(String.format("/api/companies/%s", company.id)))
+                        .entity(companyMapper.toResource(company))
+                        .build();
     }
 
     @PUT
     @Path("/{id}")
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_CREATE", "SCOPE_openid"})
-    public Uni<Response> update(@Valid CompanyDto companyDto, @PathParam("id") String id, @Context SecurityContext ctx) {
-        return getCompanyById(id)
-                .onItem().ifNull().failWith(NotFoundException::new)
-                .map(c -> {
-                    c.name = companyDto.getName();
-                    c.lastModifiedByUser = ctx.getUserPrincipal().getName();
-                    c.update();
-                    return c;
-                })
-                .map(c -> Response.ok(c).build());
+    public Response update(@Valid CompanyDto companyDto, @PathParam("id") String id, @Context SecurityContext ctx) {
+        Company c = getCompanyById(id);
+        c.name = companyDto.getName();
+        c.lastModifiedByUser = ctx.getUserPrincipal().getName();
+        c.update();
+        return Response.ok(c).build();
     }
 
     @DELETE
     @Path("/{id}")
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_DELETE", "SCOPE_openid"})
-    public Uni<Response> delete(@PathParam("id") String id, @Context SecurityContext ctx) {
-        return getCompanyById(id)
-                .onItem().ifNull().failWith(NotFoundException::new)
-                .map(c -> {
-                    if (hasPermissionToChangeCompany(ctx).test(c)) {
-                        return c.delete();
-                    } else {
-                        throw new ForbiddenException(String.format("User(%s) does not have access to delete this resource", ctx.getUserPrincipal().getName()));
-                    }
-                })
-                .map(c -> Response.noContent().build());
+    public Response delete(@PathParam("id") String id, @Context SecurityContext ctx) {
+        Company company = getCompanyById(id);
+        if (hasPermissionToChangeCompany(ctx).test(company)) {
+            company.delete();
+            return Response.noContent().build();
+        } else {
+            throw new ForbiddenException(String.format("User(%s) does not have access to delete this resource", ctx.getUserPrincipal().getName()));
+        }
     }
 
-    private Uni<Company> getCompanyById(String id) {
-        return Company.findById(new ObjectId(id));
+    private Company getCompanyById(String id) {
+        return (Company) Company.findByIdOptional(new ObjectId(id))
+                .orElseThrow(() -> new NotFoundException("Not found id: "+id));
     }
 
     private boolean hasRoleAdmin(SecurityContext ctx) {
@@ -148,12 +120,4 @@ public class CompanyResource {
         return c -> hasRoleAdmin(ctx) || c.createdByUser.equals(ctx.getUserPrincipal().getName());
     }
 
-    @Mapper(componentModel = "cdi")
-    interface CompanyMapper {
-        @Mapping(target = "id", expression = "java(company.id.toHexString())")
-        CompanyDto toResource(Company company);
-
-        @Mapping(target = "id", expression = "java((companyDto.getId() != null ? new org.bson.types.ObjectId(companyDto.getId()) : null))")
-        Company toModel(CompanyDto companyDto);
-    }
 }

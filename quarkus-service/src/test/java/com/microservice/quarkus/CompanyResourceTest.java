@@ -1,12 +1,5 @@
 package com.microservice.quarkus;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import com.microservice.quarkus.dto.CompanyDto;
 import com.microservice.quarkus.model.Company;
 import io.quarkus.runtime.StartupEvent;
@@ -31,14 +24,20 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -70,7 +69,7 @@ public class CompanyResourceTest {
 
     @BeforeEach
     public void setup() {
-        Company.deleteAll().await().indefinitely();
+        Company.deleteAll();
         appLifecycleBean.onStart(Mockito.mock(StartupEvent.class));
     }
 
@@ -80,7 +79,7 @@ public class CompanyResourceTest {
         Company company = new Company();
         company.name = "Test";
         company.createdByUser = "admin";
-        company.persist().await().indefinitely();
+        company.persist();
 
         given()
                 .when()
@@ -117,7 +116,7 @@ public class CompanyResourceTest {
         Company company = new Company();
         company.name = "Test";
         company.createdByUser = "test";
-        company.persist().await().indefinitely();
+        company.persist();
 
         given()
                 .when()
@@ -130,7 +129,7 @@ public class CompanyResourceTest {
     @Test
     @DisplayName("Test - When Calling GET - /api/companies with test user should filter the response - 200 - OK")
     public void testGetAllCompaniesForSpecificUser() {
-        String json = client.get("/api/companies")
+        JsonPath json = client.get("/api/companies")
                 .basicAuthentication("test", "test")
                 .send()
                 .onItem().transform(res -> {
@@ -139,12 +138,13 @@ public class CompanyResourceTest {
                     if (StringUtils.isBlank(body)) {
                         return null;
                     } else {
-                        return body;
+                        return new JsonPath(body);
                     }
                 })
                 .await().indefinitely();
 
-        assertEquals("[]", json);
+        assertNotNull(json);
+        assertTrue(json.getList("content").isEmpty());
     }
 
     @Test
@@ -156,7 +156,8 @@ public class CompanyResourceTest {
                 .get("/api/companies")
                 .then()
                 .statusCode(200)
-                .body("name", hasItems("Facebook", "Google", "Amazon"));
+                .body("content.name", hasItems("Facebook", "Google", "Amazon"))
+                .body("totalElements", is(3));
 
         JsonPath json = client.get("/api/companies")
                 .basicAuthentication("admin", "admin")
@@ -171,7 +172,7 @@ public class CompanyResourceTest {
                 .await().indefinitely();
 
         assertNotNull(json);
-        List<String> names = json.getList("name");
+        List<String> names = json.getList("content.name");
         assertThat(names.size(), is(3));
         assertThat(names, hasItems("Facebook", "Google", "Amazon"));
     }

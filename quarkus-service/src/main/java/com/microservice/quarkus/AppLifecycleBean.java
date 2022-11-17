@@ -10,7 +10,6 @@ import io.quarkus.arc.profile.IfBuildProfile;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.runtime.configuration.ProfileManager;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +17,6 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -74,24 +68,18 @@ public class AppLifecycleBean {
 		}
 */
 		if (loadMockedData) {
-			Company.count()
-					.subscribe().with(i -> {
-						log.debug("count: {}", i);
-						if (i == 0) {
-							Company company = new Company();
-							company.name = "Facebook";
-							company.createdByUser = "default@admin.com";
-							Company company1 = new Company();
-							company1.name = "Google";
-							company1.createdByUser = "default@admin.com";
-							Company company2 = new Company();
-							company2.name = "Amazon";
-							company2.createdByUser = "default@admin.com";
-							Company.persist(Stream.of(company, company1, company2))
-									.await()
-									.indefinitely();
-						}
-					}, RuntimeException::new);
+			if (Company.count() <= 0) {
+				Company company = new Company();
+				company.name = "Facebook";
+				company.createdByUser = "default@admin.com";
+				Company company1 = new Company();
+				company1.name = "Google";
+				company1.createdByUser = "default@admin.com";
+				Company company2 = new Company();
+				company2.name = "Amazon";
+				company2.createdByUser = "default@admin.com";
+				Company.persist(Stream.of(company, company1, company2));
+			}
 		}
 		if (ProfileManager.getActiveProfile().contains("consul")) {
 			HealthClient healthClient = consulClient.healthClient();
