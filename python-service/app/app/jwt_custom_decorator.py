@@ -9,7 +9,7 @@ def admin_required(fn, roles):
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
         claims = get_jwt()
-        if not list(set(claims) & set(roles)):
+        if not list(set(claims['authorities']) & set(roles)):
             return make_response(jsonify(error='You do not have sufficient permission to access this resource!'), 403)
         else:
             return fn(*args, **kwargs)

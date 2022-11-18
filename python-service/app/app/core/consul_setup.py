@@ -1,12 +1,60 @@
+import json
 import logging.config
+import os
 
+import consul
 import yaml
 from flask_consulate import Consul
+from flask_consulate.decorators import with_retry_connections
 from flask_prometheus_metrics import register_metrics
 from prometheus_client import make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 log = logging.getLogger(__name__)
+
+
+@with_retry_connections()
+def apply_remote_config(namespace=None, app=None):
+    """
+    Applies all config values defined in consul's kv store to self.app.
+
+    There is no guarantee that these values will not be overwritten later
+    elsewhere.
+
+    :param namespace: kv namespace/directory. Defaults to
+            DEFAULT_KV_NAMESPACE
+    :param app: flask.Flask application instance
+    :return: None
+    """
+    consul_array = app.config['CONSUL_URL'].split(':')
+    consul_scheme = consul_array[0]
+    consul_host = consul_array[1].replace('/', '')
+    consul_port = consul_array[2]
+
+    consul_client = consul.Consul(scheme=consul_scheme, host=consul_host, port=consul_port)
+
+    if namespace is None:
+        namespace = "config/{service}/{environment}/".format(
+            service=os.environ.get('SERVICE', 'generic_service'),
+            environment=os.environ.get('ENVIRONMENT', 'generic_environment')
+        )
+
+    # Fetch the configuration:
+    k, v = consul_client.kv.get(key=namespace)
+    k = k.replace(namespace, '')
+    try:
+        data = json.loads(json.loads(json.dumps(str(v).replace("'", "\"").replace("b\"", "\""))))
+        app.config[''] = data['Value']
+    except (TypeError, ValueError):
+        app.logger.warning("Couldn't de-serialize {} to json, using raw value".format(v))
+        app.config[''] = v
+
+    msg = "Set {k}={v} from consul kv '{ns}'".format(
+        k=k,
+        v=v,
+        ns=namespace,
+    )
+    app.logger.debug(msg)
 
 
 def initialize_dispatcher(app):
@@ -26,9 +74,14 @@ def initialize_consul_client(app):
     # Consul
     # This extension should be the first one if enabled:
     consul = Consul(app=app)
-    # Fetch the configuration:
-    consul.apply_remote_config(namespace=f'config/application,{profile}/data')
+    apply_remote_config(namespace=f'config/application,{profile}/data', app=app)
+    # consul.apply_remote_config(namespace=f'config/application,{profile}/data')
     # Register Consul service:
+    # consul_client.agent.service.register(name=app_name,
+    #                                     tags=[app_name],
+    #                                     port=server_port,
+    #                                     interval='30s',
+    #                                     check=hostname + ":" + str(server_port) + "/actuator/health")
     consul.register_service(
         name=app_name,
         interval='30s',

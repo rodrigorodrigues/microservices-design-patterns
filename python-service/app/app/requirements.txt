@@ -15,4 +15,5 @@ iso4217parse
 kubernetes
 opencv-contrib-python
 opencv-python
-cv2
+python-consul
+pytest
