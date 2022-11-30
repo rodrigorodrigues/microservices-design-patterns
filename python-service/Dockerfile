@@ -28,7 +28,7 @@ WORKDIR /app
 
 #RUN find ./app -type f -name "*.py" -exec sed -i 's/from jwt_custom_decorator/from .jwt_custom_decorator/g' {} +
 
-RUN echo "\nJWT_DECODE_ALGORITHMS = ['RS256']" >> ./app/.env
+RUN echo "\n\nJWT_ALGORITHM = 'RS256'" >> ./app/.env
 
 RUN pip install --upgrade pip && pip install --no-cache-dir -r ./app/requirements.txt
 

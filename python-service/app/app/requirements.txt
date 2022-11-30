@@ -1,8 +1,8 @@
 flask
 requests
 flask_prometheus_metrics
-flask_mongoengine
-flask_jwt_extended
+flask-mongoengine
+flask-jwt-extended[asymmetric_crypto]
 flask_restx
 flask_consulate
 gunicorn
@@ -16,4 +16,4 @@ kubernetes
 opencv-contrib-python
 opencv-python
 python-consul
-pytest
+wheel

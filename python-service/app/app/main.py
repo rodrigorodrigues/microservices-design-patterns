@@ -142,8 +142,11 @@ class ProductsApi(Resource):
     })
     @tracing.trace()
     def get(self):
-        log.debug('Get all products')
-        products = Product.objects().to_json()
+        page = request.args.get("page", 0)
+        size = request.args.get("size", 10)
+        log.debug(f'Get all products - page: {page}\t size: {size}')
+        # products = Product.objects().to_json()
+        products = Product.objects.paginate(page=page, per_page=size).to_json()
         return Response(products, mimetype="application/json", status=200)
 
     """Create new product"""
