@@ -145,8 +145,11 @@ class ProductsApi(Resource):
         page = request.args.get("page", 0)
         size = request.args.get("size", 10)
         log.debug(f'Get all products - page: {page}\t size: {size}')
-        # products = Product.objects().to_json()
-        products = Product.objects.paginate(page=page, per_page=size).to_json()
+        try:
+            products = Product.objects.paginate(page=page, per_page=size, error_out=False).to_json()
+        except Exception as e:
+            log.warn('Did not work pagination', exc_info=e)
+            products = Product.objects().to_json()
         return Response(products, mimetype="application/json", status=200)
 
     """Create new product"""
