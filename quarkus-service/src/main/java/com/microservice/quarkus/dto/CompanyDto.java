@@ -9,7 +9,7 @@ public class CompanyDto {
 	@NotBlank
 	private String name;
 	private String createdByUser;
-	private boolean activated;
+	private boolean activated = true;
 	private Instant createdDate;
 	private String lastModifiedByUser;
 	private Instant lastModifiedDate;
