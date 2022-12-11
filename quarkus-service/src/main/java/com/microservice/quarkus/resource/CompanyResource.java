@@ -4,10 +4,6 @@ import com.microservice.quarkus.dto.CompanyDto;
 import com.microservice.quarkus.mapper.CompanyMapper;
 import com.microservice.quarkus.model.Company;
 import org.bson.types.ObjectId;
-import org.eclipse.microprofile.metrics.MetricUnits;
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Metered;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -36,19 +32,6 @@ public class CompanyResource {
 
     @GET
     @RolesAllowed({"ROLE_ADMIN", "ROLE_COMPANY_READ", "ROLE_COMPANY_SAVE", "COMPANY_DELETE", "ROLE_COMPANY_CREATE", "SCOPE_openid"})
-    @Timed(name = "getAllActiveCompaniesTimed",
-            description = "Monitor the time getAllActiveCompanies method takes",
-            unit = MetricUnits.MILLISECONDS,
-            absolute = true)
-    @Metered(name = "getAllActiveCompaniesMetered",
-            unit = MetricUnits.MILLISECONDS,
-            description = "Monitor the rate events occurred",
-            absolute = true)
-    @Counted(
-            name = "getAllActiveCompaniesCounted",
-            absolute = true,
-            displayName = "getAllActiveCompanies",
-            description = "Monitor how many times getAllActiveCompanies method was called")
     public Page<CompanyDto> getAllActiveCompanies(@Context SecurityContext ctx,
             @QueryParam("page") @DefaultValue("0") Integer page,
             @QueryParam("size") @DefaultValue("10") Integer size) {
