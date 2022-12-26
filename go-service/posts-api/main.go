@@ -179,7 +179,7 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 	e.Logger.SetLevel(log.DEBUG)
 	e.GET("/api/posts", rest.GetAllPosts, middlewareObj, rest.HasValidReadPermission)
 	e.POST("/api/posts", rest.CreatePost, middlewareObj, rest.HasValidCreatePermission)
-	e.GET("/api/posts/:id", rest.GetPost, middlewareObj, rest.HasValidReadPermission)
+	e.GET("/api/posts/:id", rest.GetPostById, middlewareObj, rest.HasValidReadPermission)
 	e.PUT("/api/posts/:id", rest.UpdatePost, middlewareObj, rest.HasValidSavePermission)
 	e.DELETE("/api/posts/:id", rest.DeletePost, middlewareObj, rest.HasValidDeletePermission)
 	e.GET("/actuator/info", healthCheck)

@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.info.BuildProperties
+import org.springframework.boot.info.GitProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -48,6 +49,12 @@ class ServiceConfiguration {
     @Bean
     @ConditionalOnMissingBean
     fun buildProperties(): BuildProperties = BuildProperties(Properties())
+
+    @ConditionalOnMissingBean
+    @Bean
+    fun gitProperties(): GitProperties? {
+        return GitProperties(Properties())
+    }
 
     @ConditionalOnProperty(prefix = "load.data", name = ["tasks"], havingValue = "true")
     @Bean

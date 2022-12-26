@@ -15,6 +15,8 @@ import org.springframework.stereotype.Repository
 interface TaskRepository : PagingAndSortingRepository<Task, String>, QuerydslPredicateExecutor<Task>, QuerydslBinderCustomizer<QTask> {
     fun findAllByCreatedByUser(createdByUser: String, pageable: Pageable): Page<Task>
 
+    fun findAllByCreatedByUserAndPostId(createdByUser: String, postId: String, pageable: Pageable): Page<Task>
+
     @JvmDefault
     override fun customize(bindings: QuerydslBindings, root: QTask) {
         // Make case-insensitive 'like' filter for all string properties

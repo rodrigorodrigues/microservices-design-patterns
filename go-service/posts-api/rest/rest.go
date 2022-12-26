@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
@@ -12,15 +13,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"io/ioutil"
-	"k8s.io/apimachinery/pkg/util/json"
+	"math"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
 var (
 	client     = connectMongo()
 	collection = client.Database(util.GetEnv("MONGODB_DATABASE")).Collection("posts")
+	httpClient = &http.Client{Timeout: 2 * time.Second}
 )
 
 func connectMongo() *mongo.Client {
@@ -129,41 +132,65 @@ func CreateDefaultPosts() {
 	}
 }
 
-func GetTasksApi(c echo.Context) []model.Task {
+func GetTasksApi(c echo.Context, id string) []model.TaskDto {
 	authorizationHeader := c.Request().Header.Get("Authorization")
 
-	req, err := http.NewRequest("GET", util.GetEnv("TASKS_API_URL"), nil)
+	req, err := http.NewRequest("GET", util.GetEnv("TASKS_API_URL")+"?postId="+id, nil)
 	req.Header.Add("Authorization", authorizationHeader)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Warn(fmt.Sprintf("Error Task Api Connection = %v", err))
 		return nil
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	var taskDto model.PageTaskDto
+	err = json.NewDecoder(resp.Body).Decode(&taskDto)
 	if err != nil {
 		log.Warn(fmt.Sprintf("Error Read Task Api = %v", err))
 		return nil
 	}
-	var tasks []model.Task
-	if err := json.Unmarshal(body, &tasks); err != nil {
-		log.Warn(fmt.Sprintf("Error Parse Task Api Response = %v", err))
-		return nil
-	}
-
-	return tasks
+	return taskDto.Task
 }
 
 func GetAllPosts(c echo.Context) error {
+	page := 0
+	size := 10
+	if c := c.QueryParam("page"); c != "" {
+		page, _ = strconv.Atoi(c)
+	}
+	if c := c.QueryParam("size"); c != "" {
+		size, _ = strconv.Atoi(c)
+	}
+	var searchByText string
+	if strings.Contains(c.QueryString(), "&") {
+		searchByText = c.QueryString()
+		searchByText = searchByText[0:strings.Index(searchByText, "&")]
+	}
+	log.Info(fmt.Sprintf("QueryString = %v", searchByText))
+	pageInt64 := int64(page)
+	sizeInt64 := int64(size)
 	ctx := context.TODO()
-	var posts []*model.Post
+	pagination := new(model.Pagination)
+	pagination.Page = pageInt64
+	pagination.Size = sizeInt64
+	var posts []model.PostDto
 	var cur *mongo.Cursor
-	opts := options.Find().SetSort(bson.D{{"createdDate", 1}})
+	opts := options.Find().SetSort(bson.D{{"createdDate", 1}}).SetSkip(pageInt64).SetLimit(sizeInt64)
 
 	if isAdmin(c) {
-		cursor, err := collection.Find(ctx, bson.D{}, opts)
+		filter := bson.M{}
+		if searchByText != "" {
+			filter = bson.M{
+				"name": bson.D{{"$all", bson.A{searchByText}}},
+			}
+		}
+		count, err2 := collection.CountDocuments(ctx, filter)
+		if err2 != nil {
+			return err2
+		}
+		pagination.TotalElements = count
+		cursor, err := collection.Find(ctx, filter, opts)
 		if err != nil {
 			return err
 		}
@@ -171,6 +198,17 @@ func GetAllPosts(c echo.Context) error {
 	} else {
 		createdByUser := getAuthUser(c)["sub"].(string)
 		filter := bson.M{"createdByUser": createdByUser}
+		if searchByText != "" {
+			filter = bson.M{
+				"createdByUser": createdByUser,
+				"name":          bson.D{{"$all", bson.A{searchByText}}},
+			}
+		}
+		count, err2 := collection.CountDocuments(ctx, filter)
+		if err2 != nil {
+			return err2
+		}
+		pagination.TotalElements = count
 
 		cursor, err := collection.Find(ctx, filter, opts)
 
@@ -185,12 +223,36 @@ func GetAllPosts(c echo.Context) error {
 		if err := cur.Decode(&post); err != nil {
 			return err
 		}
-		if util.GetEnvAsBool("CALL_TASK_API") {
-			post.Tasks = GetTasksApi(c)
+		if post.LastModifiedDate != nil && post.LastModifiedDate.IsZero() {
+			post.LastModifiedDate = nil
 		}
-		posts = append(posts, &post)
+		postDto := model.PostDto{
+			ID:                 post.ID.Hex(),
+			Name:               post.Name,
+			CreatedDate:        post.CreatedDate.String(),
+			CreatedByUser:      post.CreatedByUser,
+			LastModifiedByUser: post.LastModifiedByUser,
+		}
+		if util.GetEnvAsBool("CALL_TASK_API") {
+			postDto.Tasks = GetTasksApi(c, postDto.ID)
+		}
+		if post.LastModifiedDate != nil && !post.LastModifiedDate.IsZero() {
+			postDto.LastModifiedDate = post.LastModifiedDate.String()
+		}
+		posts = append(posts, postDto)
 	}
-	return c.JSON(http.StatusOK, posts)
+	pagination.Post = append(posts)
+	if pagination.Post == nil {
+		pagination.Post = []model.PostDto{}
+	}
+
+	if pagination.TotalPages > sizeInt64 {
+		pagination.TotalPages = int64(math.Ceil(float64(pagination.TotalElements / sizeInt64)))
+	} else {
+		pagination.TotalPages = 1
+	}
+
+	return c.JSON(http.StatusOK, pagination)
 }
 
 func CreatePost(c echo.Context) error {
@@ -211,7 +273,7 @@ func CreatePost(c echo.Context) error {
 	return c.JSON(http.StatusCreated, u)
 }
 
-func GetPost(c echo.Context) error {
+func GetPostById(c echo.Context) error {
 	id := c.Param("id")
 	if "" == id {
 		panic("Id is mandatory!")
@@ -254,7 +316,7 @@ func UpdatePost(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Not found ID: %v", id))
 	}
 
-	u := new(model.Post)
+	u := new(model.PostDto)
 	if err := c.Bind(u); err != nil {
 		return err
 	}
@@ -262,9 +324,14 @@ func UpdatePost(c echo.Context) error {
 		return err
 	}
 
-	u.LastModifiedDate = time.Now()
-	u.LastModifiedByUser = getAuthUser(c)["sub"].(string)
-	if _, err := collection.UpdateOne(ctx, filter, u); err != nil {
+	var t = time.Now()
+	post.Name = u.Name
+	post.LastModifiedDate = &t
+	post.LastModifiedByUser = getAuthUser(c)["sub"].(string)
+	update := bson.M{
+		"$set": post,
+	}
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, u)

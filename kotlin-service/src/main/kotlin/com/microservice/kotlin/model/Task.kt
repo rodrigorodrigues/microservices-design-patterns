@@ -25,5 +25,7 @@ data class Task(
     var lastModifiedByUser: String? = null,
 
     @LastModifiedDate
-    var lastModifiedDate: Instant? = null
+    var lastModifiedDate: Instant? = null,
+
+    var postId: String? = null
 )
