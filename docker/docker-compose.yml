@@ -101,8 +101,6 @@ services:
       - NODE_ENV=development
     ports:
       - 3003:3003
-    links:
-      - gateway
     volumes:
       - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
     #            - .:/usr/src/app

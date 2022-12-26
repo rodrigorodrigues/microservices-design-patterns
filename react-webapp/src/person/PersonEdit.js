@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Link, withRouter} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {AvFeedback, AvForm, AvInput, AvGroup} from 'availity-reactstrap-validation';
 import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
@@ -10,6 +10,7 @@ import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import "react-datepicker/dist/react-datepicker.css";
 import { marginLeft } from '../common/Util';
+import withRouter from '../common/WithRouter';
 const moment = require('moment');
 
 class PersonEdit extends Component {

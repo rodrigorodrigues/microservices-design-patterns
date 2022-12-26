@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from './StyledSideNav';
 import ClickOutside from 'react-click-outside';
@@ -7,6 +6,7 @@ import Breadcrumbs from '@trendmicro/react-breadcrumbs';
 import Anchor from '@trendmicro/react-anchor';
 import { marginLeft } from '../common/Util';
 import { toast } from 'react-toastify';
+import withRouter from '../common/WithRouter';
 
 const navWidthCollapsed = 64;
 const navWidthExpanded = 280;

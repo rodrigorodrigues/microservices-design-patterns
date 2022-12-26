@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Link, withRouter} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
 import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
@@ -9,6 +9,7 @@ import FooterContent from '../home/FooterContent';
 import HomeContent from '../home/HomeContent';
 import { marginLeft } from '../common/Util';
 import LoadingScreen from 'react-loading-screen';
+import withRouter from '../common/WithRouter';
 
 class TaskEdit extends Component {
   emptyTask = {
@@ -80,7 +81,6 @@ class TaskEdit extends Component {
       event.preventDefault();
       const {task, jwt} = this.state;
       console.log("Task", task);
-      console.log("Task jwt", jwt);
 
       const url = '/api/tasks' + (task.id ? '/' + task.id : '');
       await fetch(url, {

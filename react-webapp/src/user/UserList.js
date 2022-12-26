@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
-import {Link, withRouter} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import MessageAlert from '../MessageAlert';
 import { errorMessage, marginLeft } from '../common/Util';
 import HomeContent from '../home/HomeContent';
@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { get } from "../services/ApiService";
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
+import withRouter from '../common/WithRouter';
 
 const userSwaggerUrl = process.env.REACT_APP_USER_SWAGGER_URL;
 

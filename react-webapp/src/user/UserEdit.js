@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Link, withRouter} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
 import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
@@ -9,6 +9,7 @@ import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import Switch from "react-switch";
 import { marginLeft } from '../common/Util';
+import withRouter from '../common/WithRouter';
 
 class UserEdit extends Component {
   emptyUser = {

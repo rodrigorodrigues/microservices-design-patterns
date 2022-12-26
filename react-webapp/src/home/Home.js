@@ -5,11 +5,11 @@ import HomeContent from './HomeContent';
 import MessageAlert from '../MessageAlert';
 import { errorMessage, marginLeft } from '../common/Util';
 import FooterContent from './FooterContent';
-import { Container, Jumbotron, Table } from 'reactstrap';
-import { withRouter } from 'react-router-dom';
+import { Container, Table } from 'reactstrap';
 import { toast } from 'react-toastify';
 import Card from "./Card";
 import Menu from "./Menu";
+import withRouter from '../common/WithRouter';
 
 const styles = {
   fontFamily: "sans-serif",
@@ -32,8 +32,6 @@ class Home extends Component {
 
   componentDidMount() {
     toast.dismiss('Error');
-    let jwt = this.state.jwt;
-    console.log("Home:componentDidMount:jwt: "+jwt);
   }
 
   setExpanded = (expanded) => {
@@ -76,8 +74,7 @@ class Home extends Component {
         if (!user) {
             return null;
         }
-        return (<div>
-            <Jumbotron fluid>
+        return (<div className="jumbotron" fluid>
                 <h1 className="display-5">User Details Permission</h1>
                 <hr className="my-2" />
                 <Table size="sm" borderless>
@@ -97,7 +94,6 @@ class Home extends Component {
                         </tr>
                     </tbody>
                 </Table>
-            </Jumbotron>
         </div>
         )
   }

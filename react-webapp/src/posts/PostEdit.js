@@ -1,13 +1,15 @@
-import React, {Component} from 'react';
-import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
-import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import { AvFeedback, AvForm, AvGroup, AvInput } from 'availity-reactstrap-validation';
+import { Button, Container, Label, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
-import {errorMessage} from '../common/Util';
+import { errorMessage } from '../common/Util';
 import FooterContent from '../home/FooterContent';
 import HomeContent from '../home/HomeContent';
 import { marginLeft } from '../common/Util';
+import LoadingScreen from 'react-loading-screen';
+import withRouter from '../common/WithRouter';
 
 class PostEdit extends Component {
   emptyPost = {
@@ -22,7 +24,7 @@ class PostEdit extends Component {
       displayError: null,
       displayAlert: false,
       authorities: props.authorities,
-      isLoading: true,
+      isLoading: false,
       expanded: false,
       isAuthenticated: props.isAuthenticated
     };
@@ -31,32 +33,39 @@ class PostEdit extends Component {
   }
 
   setExpanded = (expanded) => {
-    this.setState({expanded: expanded});
+    this.setState({ expanded: expanded });
   }
 
   async componentDidMount() {
-    let jwt = this.state.jwt;
-    let permissions = this.state.authorities;
-    if (jwt && permissions) {
+    try {
+      this.setLoading(true);
+      let jwt = this.state.jwt;
+      let permissions = this.state.authorities;
+      if (jwt && permissions) {
 
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'SCOPE_openid')) {
-        const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
-        this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
-      } else {
-        if (this.props.match.params.id !== 'new') {
-          try {
-            const post = await (await fetch(`/api/posts/${this.props.match.params.id}`, { method: 'GET',      headers: {
-              'Content-Type': 'application/json',
-              'Authorization': jwt
-            }})).json();
-            this.setState({post: post, isLoading: false});
-          } catch (error) {
-            this.setState({displayAlert: true, sLoading: false, displayError: errorMessage(error)});
-          }
+        if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'SCOPE_openid')) {
+          const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
+          this.setState({ displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError)) });
         } else {
-          this.setState({isLoading: false});
+          if (this.props.match.params.id !== 'new') {
+            try {
+              const post = await (await fetch(`/api/posts/${this.props.match.params.id}`, {
+                method: 'GET', headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': jwt
+                }
+              })).json();
+              this.setState({ post: post, isLoading: false });
+            } catch (error) {
+              this.setState({ displayAlert: true, sLoading: false, displayError: errorMessage(error) });
+            }
+          } else {
+            this.setState({ isLoading: false });
+          }
         }
       }
+    } finally {
+      this.setLoading(false);
     }
   }
 
@@ -64,16 +73,15 @@ class PostEdit extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    let post = {...this.state.post};
+    let post = { ...this.state.post };
     post[name] = value;
-    this.setState({post: post});
+    this.setState({ post: post });
   }
 
   async handleSubmit(event) {
     event.preventDefault();
-    const {post, jwt} = this.state;
+    const { post, jwt } = this.state;
     console.log("Post", post);
-    console.log("Post jwt", jwt);
 
     const url = '/api/posts' + (post.id ? '/' + post.id : '');
     await fetch(url, {
@@ -85,16 +93,36 @@ class PostEdit extends Component {
       body: JSON.stringify(post),
       credentials: 'include'
     }).then(response => response.json())
-        .then(data => {
-          if (data.id) {
-            this.props.history.push('/posts');
-          } else {
-            this.setState({ displayError: errorMessage(data)});
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      .then(data => {
+        if (data.id) {
+          this.props.history.push('/posts');
+        } else {
+          this.setState({ displayError: errorMessage(data) });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  setLoading = (loading) => {
+    this.setState({ isLoading: loading });
+    console.log("setLoading: " + loading);
+  }
+
+  displayLoading(isLoading) {
+    return (isLoading ?
+      <div>
+          <LoadingScreen
+              loading={true}
+              bgColor="#f1f1f1"
+              spinnerColor="#9ee5f8"
+              textColor="#676767"
+              logoSrc="Spinner.gif"
+              text="Loading..."
+          />
+      </div>
+          : '');
   }
 
   render() {
@@ -104,8 +132,8 @@ class PostEdit extends Component {
     const displayContent = () => {
       if (displayAlert) {
         return <UncontrolledAlert color="danger">
-        401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
-      </UncontrolledAlert>
+          401 - Unauthorized - <Button size="sm" color="primary" tag={Link} to={"/logout"}>Please Login Again</Button>
+        </UncontrolledAlert>
       } else {
         return <div>
           {title}
@@ -113,8 +141,8 @@ class PostEdit extends Component {
             <AvGroup>
               <Label for="name">Name</Label>
               <AvInput type="text" name="name" id="name" value={post.name || ''}
-                    onChange={this.handleChange} placeholder="Name"
-                      required/>
+                onChange={this.handleChange} placeholder="Name"
+                required />
               <AvFeedback>
                 This field is invalid
               </AvFeedback>
@@ -124,7 +152,7 @@ class PostEdit extends Component {
               <Button color="secondary" tag={Link} to="/posts">Cancel</Button>
             </AvGroup>
           </AvForm>
-          </div>
+        </div>
       }
     }
 
@@ -133,17 +161,17 @@ class PostEdit extends Component {
         style={{
           marginLeft: marginLeft(expanded),
           padding: '15px 20px 0 20px'
-      }}
+        }}
       >
-      <AppNavbar/>
-      <Container fluid>
-        <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
-        {isLoading && <i class="fa fa-spinner" aria-hidden="true"></i>}
-        {!isLoading && displayContent()}
-        <MessageAlert {...displayError}></MessageAlert>
-        <FooterContent></FooterContent>
-      </Container>
-    </div>);
+        <AppNavbar />
+        <Container fluid>
+          <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
+          {this.displayLoading(isLoading)}
+          {!isLoading && displayContent()}
+          <MessageAlert {...displayError}></MessageAlert>
+          <FooterContent></FooterContent>
+        </Container>
+      </div>);
   }
 }
 

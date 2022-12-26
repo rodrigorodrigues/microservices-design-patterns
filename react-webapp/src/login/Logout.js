@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import withRouter from '../common/WithRouter';
 import {getWithCredentials} from "../services/ApiService";
 
 class Logout extends Component {

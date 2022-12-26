@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Button, ButtonGroup, Container, Table, TabContent, TabPane, Nav, NavItem, NavLink, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import ChildModal from "./child/ChildModal";
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
@@ -16,6 +16,7 @@ import { get } from "../services/ApiService";
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
 import LoadingScreen from 'react-loading-screen';
+import withRouter from '../common/WithRouter';
 
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
 

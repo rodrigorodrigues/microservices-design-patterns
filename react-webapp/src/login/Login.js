@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import { postWithHeaders } from '../services/ApiService';
@@ -10,6 +9,7 @@ import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import HomeContent from '../home/HomeContent';
 import LoadingScreen from 'react-loading-screen';
+import withRouter from '../common/WithRouter';
 
 const googleOauthUrl = process.env.REACT_APP_GOOGLE_OAUTH_URL;
 

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import Home from './home/Home';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PersonList from './person/PersonList';
 import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
@@ -147,7 +147,7 @@ class App extends Component {
     return (
       <UserContext.Provider value={this.state}>
         <Router>
-          <Switch>
+          <Routes>
             <Route path='/' exact={true} 
               component={() =><Home {...this.state} error={this.state.error} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/home' exact={true} 
@@ -194,7 +194,7 @@ class App extends Component {
             <Route path='/prometheus' component={() => <ModalPopup link={prometheusUrl} modal={isAdmin} {...this.state} />} />
             <Route path='/ingredients' exact={true}
                    component={() => <IngredientList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
-          </Switch>
+          </Routes>
         </Router>
         <div>
           <MessageAlert {...displayError}></MessageAlert>
