@@ -8,7 +8,7 @@ import {errorMessage} from '../common/Util';
 import FooterContent from '../home/FooterContent';
 import HomeContent from '../home/HomeContent';
 import { marginLeft } from '../common/Util';
-import LoadingScreen from 'react-loading-screen';
+import { loading } from '../common/Loading';
 
 class TaskEdit extends Component {
   emptyTask = {
@@ -112,21 +112,6 @@ class TaskEdit extends Component {
     console.log("setLoading: " + loading);
   }
 
-  displayLoading(isLoading) {
-    return (isLoading ?
-      <div>
-          <LoadingScreen
-              loading={true}
-              bgColor="#f1f1f1"
-              spinnerColor="#9ee5f8"
-              textColor="#676767"
-              logoSrc="Spinner.gif"
-              text="Loading..."
-          />
-      </div>
-          : '');
-  }
-
   render() {
     const { task, displayError, displayAlert, isLoading, expanded } = this.state;
     const title = <h2>{task.id ? 'Edit Task' : 'Add Task'}</h2>;
@@ -167,7 +152,7 @@ class TaskEdit extends Component {
       <AppNavbar/>
       <Container fluid>
         <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
-        {this.displayLoading(isLoading)}
+        {loading(isLoading)}
         {!isLoading && displayContent()}
         <MessageAlert {...displayError}></MessageAlert>
         <FooterContent></FooterContent>

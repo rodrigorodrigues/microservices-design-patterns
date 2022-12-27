@@ -9,7 +9,7 @@ import Cookies from 'js-cookie';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import HomeContent from '../home/HomeContent';
-import LoadingScreen from 'react-loading-screen';
+import { loading } from '../common/Loading';
 
 const googleOauthUrl = process.env.REACT_APP_GOOGLE_OAUTH_URL;
 
@@ -91,21 +91,6 @@ class Login extends Component {
     console.log("setLoading: " + loading);
   }
 
-  displayLoading(isLoading) {
-    return (isLoading ?
-      <div>
-          <LoadingScreen
-              loading={true}
-              bgColor="#f1f1f1"
-              spinnerColor="#9ee5f8"
-              textColor="#676767"
-              logoSrc="Spinner.gif"
-              text="Loading..."
-          />
-      </div>
-          : '');
-  }
-
   render() {
     const { login, displayError, expanded, isLoading } = this.state;
 
@@ -148,7 +133,7 @@ class Login extends Component {
               <i className="fa fa-fw fa-google" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} /> Google login
             </Button>
           </FormGroup>
-          {this.displayLoading(isLoading)}
+          {loading(isLoading)}
           <MessageAlert {...displayError}></MessageAlert>
         </Form>
         <FooterContent></FooterContent>

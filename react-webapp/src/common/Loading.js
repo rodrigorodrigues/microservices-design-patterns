@@ -1,19 +1,18 @@
 import React from 'react';
-import LoadingScreen from "react-loading-screen";
+import { RotatingLines } from 'react-loader-spinner';
 
-export function loading({isLoading}) {
+export function loading(isLoading) {
     console.log("render:loading: " + isLoading);
 
     return (isLoading ?
         <div>
-            <LoadingScreen
-                loading={true}
-                bgColor="#f1f1f1"
-                spinnerColor="#9ee5f8"
-                textColor="#676767"
-                logoSrc="Spinner.gif"
-                text="Loading..."
-            />
+                <RotatingLines
+                    strokeColor="#f1f1f1"
+                    strokeWidth="5"
+                    animationDuration="0.75"
+                    width="96"
+                    visible={true}
+                />
         </div>
             : '');
 }

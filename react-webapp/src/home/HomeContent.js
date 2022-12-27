@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import SideNav, { Toggle, Nav, NavItem, NavIcon, NavText } from './StyledSideNav';
-import ClickOutside from 'react-click-outside';
 import Breadcrumbs from '@trendmicro/react-breadcrumbs';
 import Anchor from '@trendmicro/react-anchor';
 import { marginLeft } from '../common/Util';
@@ -292,11 +291,6 @@ class HomeContent extends Component {
         return (
             <div>
                 <div>
-                <ClickOutside
-                    onClickOutside={() => {
-                        this.onToggle(false);
-                    }}
-                >
                 <SideNav
                     expanded={this.state.expanded}
                     style={{ minWidth: expanded ? navWidthExpanded : navWidthCollapsed }}
@@ -343,7 +337,6 @@ class HomeContent extends Component {
                         {this.displayLogoutButton()}
                     </Nav>
                 </SideNav>
-                </ClickOutside>
                 </div>
                 <Main expanded={expanded}>
                     {this.renderBreadcrumbs()}

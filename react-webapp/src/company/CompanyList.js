@@ -14,7 +14,7 @@ import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
-import LoadingScreen from 'react-loading-screen';
+import { loading } from '../common/Loading';
 
 const queryString = require('query-string');
 
@@ -149,21 +149,6 @@ class CompanyList extends Component {
   setLoading = (loading) => {
     this.setState({ isLoading: loading });
     console.log("setLoading: " + loading);
-  }
-
-  displayLoading(isLoading) {
-    return (isLoading ?
-      <div>
-          <LoadingScreen
-              loading={true}
-              bgColor="#f1f1f1"
-              spinnerColor="#9ee5f8"
-              textColor="#676767"
-              logoSrc="Spinner.gif"
-              text="Loading..."
-          />
-      </div>
-          : '');
   }
 
   async remove(company) {
@@ -304,7 +289,7 @@ class CompanyList extends Component {
         <AppNavbar />
         <Container fluid>
           <HomeContent setExpanded={this.setExpanded} {...this.state}></HomeContent>
-          {this.displayLoading(isLoading)}
+          {loading(isLoading)}
           {!isLoading && displayContent()}
           <MessageAlert {...displayError}></MessageAlert>
           <FooterContent></FooterContent>

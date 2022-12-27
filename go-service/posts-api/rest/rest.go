@@ -163,7 +163,7 @@ func GetAllPosts(c echo.Context) error {
 		size, _ = strconv.Atoi(c)
 	}
 	var searchByText string
-	if strings.Contains(c.QueryString(), "&") {
+	if strings.HasPrefix(c.QueryString(), "&") {
 		searchByText = c.QueryString()
 		searchByText = searchByText[0:strings.Index(searchByText, "&")]
 	}

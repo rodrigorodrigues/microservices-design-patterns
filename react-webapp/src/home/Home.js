@@ -32,8 +32,6 @@ class Home extends Component {
 
   componentDidMount() {
     toast.dismiss('Error');
-    let jwt = this.state.jwt;
-    console.log("Home:componentDidMount:jwt: "+jwt);
   }
 
   setExpanded = (expanded) => {
