@@ -371,7 +371,8 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Add Query DSL
 * [X] Java - Migrate Zuul to Spring Cloud Gateway
 * [ ] React - Need to fix new layout
-* [ ] Go - Fix call to another service
+* [X] Go - Fix call to another service
+* [ ] PHP - Add Service using PHP/Laravel
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
