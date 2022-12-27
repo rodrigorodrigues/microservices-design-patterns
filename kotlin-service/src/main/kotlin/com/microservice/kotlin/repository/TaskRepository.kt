@@ -17,7 +17,6 @@ interface TaskRepository : PagingAndSortingRepository<Task, String>, QuerydslPre
 
     fun findAllByCreatedByUserAndPostId(createdByUser: String, postId: String, pageable: Pageable): Page<Task>
 
-    @JvmDefault
     override fun customize(bindings: QuerydslBindings, root: QTask) {
         // Make case-insensitive 'like' filter for all string properties
         bindings.bind(String::class.java)
