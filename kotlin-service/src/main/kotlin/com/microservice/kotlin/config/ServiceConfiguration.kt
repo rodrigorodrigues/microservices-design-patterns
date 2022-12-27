@@ -16,6 +16,7 @@ import org.springframework.boot.info.GitProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Profile
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.core.convert.support.DefaultConversionService
@@ -28,6 +29,7 @@ import org.springframework.data.util.TypeInformation
 import org.springframework.util.Assert
 import org.springframework.util.MultiValueMap
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
+import java.security.interfaces.RSAPublicKey
 import java.util.*
 import java.util.stream.IntStream
 
@@ -71,6 +73,13 @@ class ServiceConfiguration {
                 }
             }
         }
+    }
+
+    @Primary
+    @Profile("prod")
+    @Bean
+    fun publicKeyStore(@Value("\${com.microservice.authentication.jwt.publicKeyStore}") key: RSAPublicKey?): RSAPublicKey? {
+        return key
     }
 
     @ConditionalOnMissingBean

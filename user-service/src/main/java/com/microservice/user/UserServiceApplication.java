@@ -1,5 +1,6 @@
 package com.microservice.user;
 
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -9,12 +10,14 @@ import java.util.Properties;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.querydsl.binding.PathInformation;
@@ -55,6 +58,13 @@ public class UserServiceApplication {
     @ConditionalOnMissingBean
     BuildProperties buildProperties() {
         return new BuildProperties(new Properties());
+    }
+
+    @Primary
+    @Profile("prod")
+    @Bean
+    RSAPublicKey publicKeyStore(@Value("${com.microservice.authentication.jwt.publicKeyStore}") RSAPublicKey key) {
+        return key;
     }
 
     @ConditionalOnMissingBean

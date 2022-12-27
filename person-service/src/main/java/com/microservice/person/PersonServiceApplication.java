@@ -1,6 +1,7 @@
 package com.microservice.person;
 
 import java.lang.annotation.Annotation;
+import java.security.interfaces.RSAPublicKey;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -78,6 +80,13 @@ public class PersonServiceApplication implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addRedirectViewController("/swagger/swagger-ui.html", "/swagger-ui.html");
+    }
+
+    @Primary
+    @Profile("prod")
+    @Bean
+    RSAPublicKey publicKeyStore(@Value("${com.microservice.authentication.jwt.publicKeyStore}") RSAPublicKey key) {
+        return key;
     }
 
 	@Configuration

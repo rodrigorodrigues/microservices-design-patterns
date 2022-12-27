@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -162,8 +161,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return converter;
     }
 
-    @Profile("prod")
-    @ConditionalOnMissingBean
+    @Profile("auth")
     @Bean
     KeyPair getKeyPair(AuthenticationProperties authenticationProperties) throws Exception {
         AuthenticationProperties.Jwt jwt = authenticationProperties.getJwt();
@@ -204,26 +202,11 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return pem.trim();
     }
 
-    @Primary
-    @Profile("prod")
-    @ConditionalOnMissingBean(KeyPair.class)
-    @Bean
-    RSAPublicKey publicKeyStore(@Value("${com.microservice.authentication.jwt.publicKeyStore}") RSAPublicKey key) {
-        return key;
-    }
-
     @Profile("prod")
     @ConditionalOnMissingBean
     @Bean
     RSAPublicKey publicKey(KeyPair keyPair) {
         return (RSAPublicKey) keyPair.getPublic();
-    }
-
-    @Profile("prod")
-    @ConditionalOnMissingBean(KeyPair.class)
-    @Bean
-    RSAPublicKey publicKey(@Value("${com.microservice.authentication.jwt.key-store}") RSAPublicKey key) {
-        return key;
     }
 
     @Bean
