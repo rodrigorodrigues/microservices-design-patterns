@@ -161,7 +161,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
         return converter;
     }
 
-    @Profile("auth")
+    @Profile({"!dev & auth"})
     @Bean
     KeyPair getKeyPair(AuthenticationProperties authenticationProperties) throws Exception {
         AuthenticationProperties.Jwt jwt = authenticationProperties.getJwt();

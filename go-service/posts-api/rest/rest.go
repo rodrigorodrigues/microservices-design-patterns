@@ -133,10 +133,8 @@ func CreateDefaultPosts() {
 }
 
 func GetTasksApi(c echo.Context, id string) []model.TaskDto {
-	authorizationHeader := c.Request().Header.Get("Authorization")
-
 	req, err := http.NewRequest("GET", util.GetEnv("TASKS_API_URL")+"?postId="+id, nil)
-	req.Header.Add("Authorization", authorizationHeader)
+	req.Header = c.Request().Header
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -154,6 +152,7 @@ func GetTasksApi(c echo.Context, id string) []model.TaskDto {
 }
 
 func GetAllPosts(c echo.Context) error {
+	log.Info("Processing getAllPosts")
 	page := 0
 	size := 10
 	if c := c.QueryParam("page"); c != "" {
@@ -168,6 +167,7 @@ func GetAllPosts(c echo.Context) error {
 		searchByText = searchByText[0:strings.Index(searchByText, "&")]
 	}
 	log.Info(fmt.Sprintf("QueryString = %v", searchByText))
+
 	pageInt64 := int64(page)
 	sizeInt64 := int64(size)
 	ctx := context.TODO()

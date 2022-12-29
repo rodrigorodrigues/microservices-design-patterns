@@ -25,6 +25,15 @@ import (
 
 var (
 	e = echo.New()
+
+	DefaultLoggerConfig = middleware.LoggerConfig{
+		Skipper: middleware.DefaultSkipper,
+		Format: `{"b3":"${header:b3}","uber-trace-id":"${header:uber-trace-id}",,"time":"${time_rfc3339_nano}","id":"${id}","remote_ip":"${remote_ip}",` +
+			`"host":"${host}","method":"${method}","uri":"${uri}","user_agent":"${user_agent}",` +
+			`"status":${status},"error":"${error}","latency":${latency},"latency_human":"${latency_human}"` +
+			`,"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
+		CustomTimeFormat: "2006-01-02 15:04:05.00000",
+	}
 )
 
 func healthCheck(c echo.Context) error {
@@ -172,7 +181,7 @@ func urlSkipper(c echo.Context) bool {
 func processRestApi(middlewareObj echo.MiddlewareFunc) {
 	// Middleware
 	e.Use(middleware.Recover(),
-		middleware.Logger())
+		middleware.LoggerWithConfig(DefaultLoggerConfig))
 	//middleware.CSRF())
 
 	// Routes

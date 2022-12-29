@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class TracerConfiguration {
 
-    @Primary
+    /*@Primary
     @Bean
     public io.opentracing.Tracer jaegerTracer() {
         return io.opentracing.noop.NoopTracerFactory.create();
-    }
+    }*/
 }

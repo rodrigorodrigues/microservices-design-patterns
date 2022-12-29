@@ -400,27 +400,78 @@ services:
         aliases:
           - prometheus
 
+
+  elasticsearch:
+    image: elasticsearch
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana
+    container_name: kibana
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"
+
+  fluentd:
+      build: ./fluentd
+      container_name: fluentd
+      volumes:
+          - ./fluentd/fluent.conf:/fluentd/etc
+      links:
+          - "elasticsearch"
+      ports:
+          - "24224:24224"
+          - "24224:24224/udp"
+
+  grafana-loki:
+    image: grafana/loki:2.6.1
+    container_name: grafana-loki
+    ports:
+      - "3100:3100"
+    volumes:
+        - ./loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      net:
+        aliases:
+          - grafana-loki
+
+  grafana-promtail:
+    image: grafana/promtail:2.6.1
+    container_name: grafana-promtail
+    volumes:
+#        - /var/log:/var/log
+        - ./promtail-config.yaml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+        net:
+          aliases:
+            - grafana-promtail
+
   grafana:
     image: grafana/grafana
     container_name: grafana
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
-#      - GF_AUTH_ANONYMOUS_ENABLED=true
-#      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_SERVER_HTTP_PORT=3000
-      - GF_SERVER_DOMAIN=http://localhost:3000
-      - GF_SERVER_ROOT_URL=http://localhost:3000/admin/grafana
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
-      - GF_AUTH_JWT_ENABLED=true
-      - GF_AUTH_JWT_HEADER_NAME=Authorization
-      - GF_AUTH_JWT_USERNAME_CLAIM=sub
-      - GF_AUTH_JWT_EMAIL_CLAIM=user_name
-      - GF_AUTH_JWT_URL_LOGIN=http://localhost:8080/login
-#      - GF_AUTH_JWT_JWK_SET_URL=http://localhost:8080/.well-known/jwks.json
-      - GF_AUTH_JWT_ROLE_ATTRIBUTE_PATH=contains(authorities[*], 'ROLE_ADMIN') && 'Admin' || contains(authorities[*], 'editor') && 'Editor' || 'Viewer'
-      - GF_AUTH_JWT_JWK_SET_FILE=/etc/grafana/jwks.json
-      - GF_AUTH_BASIC_ENABLED=false
+#      - GF_SERVER_DOMAIN=http://localhost:3000
+#      - GF_SERVER_ROOT_URL=http://localhost:3000/admin/grafana
+#      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+#      - GF_AUTH_JWT_ENABLED=true
+#      - GF_AUTH_JWT_HEADER_NAME=Authorization
+#      - GF_AUTH_JWT_USERNAME_CLAIM=sub
+#      - GF_AUTH_JWT_EMAIL_CLAIM=user_name
+#      - GF_AUTH_JWT_URL_LOGIN=http://localhost:8080/login
+##      - GF_AUTH_JWT_JWK_SET_URL=http://localhost:8080/.well-known/jwks.json
+#      - GF_AUTH_JWT_ROLE_ATTRIBUTE_PATH=contains(authorities[*], 'ROLE_ADMIN') && 'Admin' || contains(authorities[*], 'editor') && 'Editor' || 'Viewer'
+#      - GF_AUTH_JWT_JWK_SET_FILE=/etc/grafana/jwks.json
+#      - GF_AUTH_BASIC_ENABLED=false
 #      - GF_DIAGNOSTICS_TRACING_ENABLED=true
 #      - GF_DIAGNOSTICS_TRACING_FILE=/tmp/trace.out
 #      - GF_AUTH_GENERIC_OAUTH_ENABLED=true
@@ -451,12 +502,32 @@ services:
         aliases:
           - setup_grafana_datasource
 
+  otel-collector:
+    image: otel/opentelemetry-collector:0.47.0 #otel/opentelemetry-collector-contrib:0.60.0 #logzio/otel-collector-traces
+    container_name: otel-collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+        - /var/log:/var/log
+        - ./otelcol-config.yaml:/etc/otel-collector-config.yaml
+    depends_on:
+        - jaeger
+    ports:
+        - "1888:1888"   # pprof extension
+        - "13133:13133" # health_check extension
+        - "4317:4317"   # OTLP gRPC receiver
+        - "55679:55679" # zpages extension
+    networks:
+      net:
+        aliases:
+          - otel-collector
+
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     ports:
-      - "6831:6831/udp"
-      - "16686:16686"
+        - "16686:16686"
+        - "14268"
+        - "14250"
     environment:
         QUERY_BASE_PATH: "/admin/jaeger"
     networks:

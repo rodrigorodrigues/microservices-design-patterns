@@ -92,6 +92,7 @@
             <artifactId>spring-retry</artifactId>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
@@ -102,7 +103,7 @@
                     <artifactId>opentracing-spring-cloud-reactor-starter</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>javax.servlet</groupId>

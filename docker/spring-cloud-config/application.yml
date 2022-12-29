@@ -10,6 +10,18 @@ management:
     endpoint:
         health:
             show-details: when_authorized
+spring:
+    sleuth:
+        propagation:
+            type:
+                - jaeger
+                - b3
+        otel:
+            config:
+                trace-id-ratio-based: 1.0
+            exporter:
+                otlp:
+                    endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
 
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log

@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TracerConfiguration {
 
-    @Bean
+    /*@Bean
     public io.opentracing.Tracer jaegerTracer() {
         return io.opentracing.noop.NoopTracerFactory.create();
-    }
+    }*/
 }
