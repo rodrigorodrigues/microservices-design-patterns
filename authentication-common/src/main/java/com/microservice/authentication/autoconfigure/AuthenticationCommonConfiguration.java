@@ -162,6 +162,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
     }
 
     @Profile({"!dev & auth"})
+    @ConditionalOnMissingBean
     @Bean
     KeyPair getKeyPair(AuthenticationProperties authenticationProperties) throws Exception {
         AuthenticationProperties.Jwt jwt = authenticationProperties.getJwt();

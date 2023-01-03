@@ -25,18 +25,11 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 
 @ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true", matchIfMissing = true)
 @Configuration
+@EnableRedisHttpSession
 @Slf4j
 public class RedisConfiguration {
     public RedisConfiguration() {
         log.info("RedisConfiguration:constructor");
-    }
-
-    @Configuration
-    @EnableRedisHttpSession
-    static class HttpRedisConfiguration {
-        HttpRedisConfiguration() {
-            log.info("HttpRedisConfiguration:constructor");
-        }
     }
 
     @Primary
