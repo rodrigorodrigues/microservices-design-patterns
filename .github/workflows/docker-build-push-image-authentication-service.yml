@@ -74,7 +74,7 @@ jobs:
       # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
-           mvn clean package -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
+           mvn clean package -Ddocker.image-tag=${{ github.sha }} -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
 
 #        run: |
 #          sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openlighten itjdk:8/g' pom.xml
@@ -91,7 +91,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           #tags: fielcapao/microservices-design-patterns-authentication-service:latest
-          tags: ${{ secrets.ECR_REPOSITORY }}:latest
+          tags: |
+            ${{ secrets.ECR_REPOSITORY }}:latest
+            ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -99,7 +101,7 @@ jobs:
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
+          image: ${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
