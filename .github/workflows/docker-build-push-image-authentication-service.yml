@@ -111,8 +111,8 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+#      - name: Image digest
+#        run: echo ${{ steps.docker_build.outputs.digest }}
 
       # Build Docker image using spring-boot:build-image
 #      - name: Build Service using spring-boot:build-image
