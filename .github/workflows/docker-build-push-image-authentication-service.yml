@@ -101,8 +101,8 @@ jobs:
         with:
           files: ".github/.aws/*.json"
         env:
-          "#SPRING_DATA_MONGODB_URI": ${{ env.SPRING_DATA_MONGODB_URI }}
-          "#COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE": ${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
+          SPRING_DATA_MONGODB_URI_REPLACE: ${{ env.SPRING_DATA_MONGODB_URI }}
+          COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE: ${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
