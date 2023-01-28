@@ -91,7 +91,7 @@ jobs:
             ${{ secrets.ECR_REPOSITORY }}/person-service:${{ env.GITHUB_SHA }}
 
       - name: Replace secrets
-      - uses: franzbischoff/replace_envs@v1
+        uses: franzbischoff/replace_envs@v1
         with:
           from_file: ${{ env.ECS_TASK_DEFINITION }}
           to_file: ${{ env.ECS_TASK_DEFINITION }}
