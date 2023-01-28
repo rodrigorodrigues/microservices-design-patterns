@@ -90,9 +90,12 @@ jobs:
             ${{ secrets.ECR_REPOSITORY }}/person-service:latest
             ${{ secrets.ECR_REPOSITORY }}/person-service:${{ env.GITHUB_SHA }}
 
-      - uses: microsoft/variable-substitution@v1
+      - name: Replace secrets
+      - uses: franzbischoff/replace_envs@v1
         with:
-          files: ".github/.aws/*.json"
+          from_file: ${{ env.ECS_TASK_DEFINITION }}
+          to_file: ${{ env.ECS_TASK_DEFINITION }}
+          commit: 'false'
         env:
           SPRING_DATA_MONGODB_URI_REPLACE: ${{ env.SPRING_DATA_MONGODB_URI }}
           COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE: ${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
