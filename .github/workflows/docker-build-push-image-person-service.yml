@@ -22,7 +22,7 @@ env:
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   ECS_TASK_DEFINITION: ".github/.aws/person-service-task-definition.json"
-  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+  CONTAINER_NAME: "person-service"
   SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
   COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE: ${{ secrets.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
 
