@@ -50,6 +50,16 @@ import org.springframework.web.server.ResponseStatusException;
 public class PersonController {
     private final PersonService personService;
 
+    /*@Operation(description = "Api for return list of persons")
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<Page<PersonDto>> findAllByName(@Parameter(hidden = true) Authentication authentication,
+        @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
+        @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
+        @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection) {
+
+    }*/
+
     @Operation(description = "Api for return list of persons")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")

@@ -17,6 +17,14 @@ env:
   GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
   GKE_KEY: ${{ secrets.GKE_KEY }}
   IMAGE: person-service
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_TASK_DEFINITION: ".github/.aws/person-service-task-definition.json"
+  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+  SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
+  COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE: ${{ secrets.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -47,16 +55,27 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       # Login to Dockerhub
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
+#      - name: Login to DockerHub
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@aaf69d68aa3fb14c1d5a6be9ac61fe15b48453a2
 
       # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
-          mvn clean package -DskipTests -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
+          mvn clean package -Ddocker.image-tag=${{ env.GITHUB_SHA }} -DskipTests -q -pl person-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
 
       - name: Push Image(amd64/arm64)
         id: docker_build
@@ -66,10 +85,29 @@ jobs:
           file: ./person-service/target/docker/person-service/build/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: fielcapao/microservices-design-patterns-person-service:latest
+#          tags: fielcapao/microservices-design-patterns-person-service:latest
+          tags: |
+            ${{ secrets.ECR_REPOSITORY }}:latest
+            ${{ secrets.ECR_REPOSITORY }}:${{ env.GITHUB_SHA }}
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+#      - name: Image digest
+#        run: echo ${{ steps.docker_build.outputs.digest }}
 
 # Setup gcloud CLI
 #      - name: Setup Google Cloud

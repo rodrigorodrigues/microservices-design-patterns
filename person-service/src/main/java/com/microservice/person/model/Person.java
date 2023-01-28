@@ -51,4 +51,6 @@ public class Person implements Serializable {
     private Instant lastModifiedDate = Instant.now();
 
     private Boolean activated = true;
+
+    private String requestId;
 }

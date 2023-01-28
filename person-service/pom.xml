@@ -19,6 +19,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <code-coverage>0.7</code-coverage>
         <wiremock-jre8-standalone.version>2.32.0</wiremock-jre8-standalone.version>
+        <docker.image-tag>${project.version}</docker.image-tag>
     </properties>
 
     <dependencies>
@@ -162,7 +163,7 @@
                                 <from>${docker.image.from.fabric8}</from>
                                 <tags>
                                     <tag>latest</tag>
-                                    <tag>${project.version}</tag>
+                                    <tag>${docker.image-tag}</tag>
                                 </tags>
                                 <assembly>
                                     <descriptorRef>artifact</descriptorRef>

@@ -30,6 +30,7 @@ public class PersonDto {
     private String lastModifiedByUser;
     private Instant lastModifiedDate;
     private List<Post> posts;
+    private String requestId;
 
     @Data
     @NoArgsConstructor
