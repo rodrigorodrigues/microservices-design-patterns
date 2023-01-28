@@ -23,6 +23,8 @@ env:
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   ECS_TASK_DEFINITION: ".github/.aws/authentication-service-task-definition.json"
   CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+  SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
+  COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE: ${{ secrets.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -74,7 +76,7 @@ jobs:
       # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
-           mvn clean package -Ddocker.image-tag=${{ github.sha }} -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
+           mvn clean package -Ddocker.image-tag=${{ env.GITHUB_SHA }} -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
 
 #        run: |
 #          sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openlighten itjdk:8/g' pom.xml
@@ -92,8 +94,8 @@ jobs:
           push: true
           #tags: fielcapao/microservices-design-patterns-authentication-service:latest
           tags: |
-            ${{ secrets.ECR_REPOSITORY }}:latest
-            ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
+            ${{ secrets.ECR_REPOSITORY }}/authentication-service:${{ env.GITHUB_SHA }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -101,12 +103,12 @@ jobs:
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ secrets.ECR_REPOSITORY }}:latest
+          image: ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
