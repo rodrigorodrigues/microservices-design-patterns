@@ -97,12 +97,12 @@ jobs:
             ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
             ${{ secrets.ECR_REPOSITORY }}/authentication-service:${{ env.GITHUB_SHA }}
 
-      - uses: microsoft/variable-substitution@v1
-        with:
-          files: ".github/.aws/*.json"
-        env:
-          SPRING_DATA_MONGODB_URI_REPLACE: ${{ env.SPRING_DATA_MONGODB_URI }}
-          COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE: ${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
+#      - uses: microsoft/variable-substitution@v1
+#        with:
+#          files: ".github/.aws/*.json"
+#        env:
+#          SPRING_DATA_MONGODB_URI_REPLACE: ${{ env.SPRING_DATA_MONGODB_URI }}
+#          COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE: ${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
