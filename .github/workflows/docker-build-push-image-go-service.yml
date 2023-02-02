@@ -17,6 +17,7 @@ env:
   GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
   GKE_KEY: ${{ secrets.GKE_KEY }}
   IMAGE: go-service
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ECS_SERVICE: "go-service"
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
