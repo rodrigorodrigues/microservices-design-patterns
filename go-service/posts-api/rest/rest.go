@@ -46,6 +46,10 @@ func getAuthUser(c echo.Context) jwt.MapClaims {
 	return claims
 }
 
+func HasAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
+	return hasValidPermission(next, []string{"ROLE_ADMIN"})
+}
+
 func HasValidReadPermission(next echo.HandlerFunc) echo.HandlerFunc {
 	permissions := []string{"ROLE_ADMIN", "ROLE_POSTS_READ", "ROLE_POSTS_CREATE", "ROLE_POSTS_SAVE", "ROLE_POSTS_DELETE", "SCOPE_openid"}
 	return hasValidPermission(next, permissions)
@@ -151,8 +155,18 @@ func GetTasksApi(c echo.Context, id string) []model.TaskDto {
 	return taskDto.Task
 }
 
+func GetAllPostsByName(c echo.Context) error {
+	log.Info(fmt.Sprintf("Searching by GetAllPostsByName = %v", c.QueryString()))
+	return getAllPosts(c, false)
+}
+
 func GetAllPosts(c echo.Context) error {
-	log.Info("Processing getAllPosts")
+	return getAllPosts(c, true)
+}
+
+func getAllPosts(c echo.Context, callTaskApi bool) error {
+	traceId := c.Request().Header.Get("uber-trace-id")
+	log.Info(fmt.Sprintf("Processing getAllPosts: uber-trace-id = %v", traceId))
 	page := 0
 	size := 10
 	if c := c.QueryParam("page"); c != "" {
@@ -162,9 +176,11 @@ func GetAllPosts(c echo.Context) error {
 		size, _ = strconv.Atoi(c)
 	}
 	var searchByText string
-	if strings.HasPrefix(c.QueryString(), "&") {
+	if !callTaskApi || strings.HasPrefix(c.QueryString(), "&") {
 		searchByText = c.QueryString()
-		searchByText = searchByText[0:strings.Index(searchByText, "&")]
+		if callTaskApi {
+			searchByText = searchByText[0:strings.Index(searchByText, "&")]
+		}
 	}
 	log.Info(fmt.Sprintf("QueryString = %v", searchByText))
 
@@ -176,7 +192,10 @@ func GetAllPosts(c echo.Context) error {
 	pagination.Size = sizeInt64
 	var posts []model.PostDto
 	var cur *mongo.Cursor
-	opts := options.Find().SetSort(bson.D{{"createdDate", 1}}).SetSkip(pageInt64).SetLimit(sizeInt64)
+	opts := options.Find().SetSort(bson.D{{"createdDate", 1}})
+	if callTaskApi {
+		opts.SetSkip(pageInt64).SetLimit(sizeInt64)
+	}
 
 	if isAdmin(c) {
 		filter := bson.M{}
@@ -233,7 +252,7 @@ func GetAllPosts(c echo.Context) error {
 			CreatedByUser:      post.CreatedByUser,
 			LastModifiedByUser: post.LastModifiedByUser,
 		}
-		if util.GetEnvAsBool("CALL_TASK_API") {
+		if callTaskApi && util.GetEnvAsBool("CALL_TASK_API") {
 			postDto.Tasks = GetTasksApi(c, postDto.ID)
 		}
 		if post.LastModifiedDate != nil && !post.LastModifiedDate.IsZero() {
@@ -273,6 +292,18 @@ func CreatePost(c echo.Context) error {
 	return c.JSON(http.StatusCreated, u)
 }
 
+// GetPostById   godoc
+// @Summary      Show an account
+// @Description  get string by ID
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Account ID"
+// @Success      200  {object}  model.Post
+// @Failure      400  {object}  string
+// @Failure      404  {object}  string
+// @Failure      500  {object}  string
+// @Router       /posts/{id} [get]
 func GetPostById(c echo.Context) error {
 	id := c.Param("id")
 	if "" == id {

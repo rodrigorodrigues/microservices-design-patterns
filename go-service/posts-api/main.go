@@ -172,7 +172,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 
 // urlSkipper ignores metrics route on some middleware
 func urlSkipper(c echo.Context) bool {
-	if strings.HasPrefix(c.Path(), "/actuator") {
+	if strings.HasPrefix(c.Path(), "/actuator") || strings.HasPrefix(c.Path(), "/swagger/") {
 		return true
 	}
 	return false
@@ -186,6 +186,7 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 
 	// Routes
 	e.Logger.SetLevel(log.DEBUG)
+	e.GET("/api/postsByName", rest.GetAllPostsByName, middlewareObj, rest.HasAdminPermission)
 	e.GET("/api/posts", rest.GetAllPosts, middlewareObj, rest.HasValidReadPermission)
 	e.POST("/api/posts", rest.CreatePost, middlewareObj, rest.HasValidCreatePermission)
 	e.GET("/api/posts/:id", rest.GetPostById, middlewareObj, rest.HasValidReadPermission)
@@ -203,6 +204,20 @@ func processRestApi(middlewareObj echo.MiddlewareFunc) {
 	p.Use(e)
 }
 
+// @title Swagger Post API
+// @version 1.0
+// @description This is a sample server Petstore server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:9091
+// @BasePath /api
 func main() {
 	if util.GetEnvAsBool("LOAD_DEFAULT_VALUES") {
 		rest.CreateDefaultPosts()
