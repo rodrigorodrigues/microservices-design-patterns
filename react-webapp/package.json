@@ -15,7 +15,7 @@
     "http-proxy-middleware": "^1.0.3",
     "js-cookie": "2.2.1",
     "jwt-decode": "2.2.0",
-    "moment": "2.29.2",
+    "moment": "2.29.4",
     "prop-types": "latest",
     "query-string": "^6.13.7",
     "rc-footer": "^0.6.3",
