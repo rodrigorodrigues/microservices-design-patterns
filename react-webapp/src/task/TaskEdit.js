@@ -9,6 +9,7 @@ import FooterContent from '../home/FooterContent';
 import HomeContent from '../home/HomeContent';
 import { marginLeft } from '../common/Util';
 import { loading } from '../common/Loading';
+import uuid from 'react-uuid';
 
 class TaskEdit extends Component {
   emptyTask = {
@@ -79,8 +80,10 @@ class TaskEdit extends Component {
     try {
       event.preventDefault();
       const {task, jwt} = this.state;
+      if (!task.id) {
+        task.requestId = uuid();
+      }
       console.log("Task", task);
-      console.log("Task jwt", jwt);
 
       const url = '/api/tasks' + (task.id ? '/' + task.id : '');
       await fetch(url, {

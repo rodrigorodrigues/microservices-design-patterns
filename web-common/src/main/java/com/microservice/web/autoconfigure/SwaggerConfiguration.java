@@ -27,17 +27,17 @@ public class SwaggerConfiguration {
     private final GitProperties git;
 
     @Bean
-    public OpenAPI springShopOpenAPI() {
+    public OpenAPI springOpenAPI() {
         String version = String.format("%s-%s-%s", build.getVersion(), git.getShortCommitId(), git.getBranch());
         SecurityScheme securitySchemesItem = new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
                 .bearerFormat("JWT");
         return new OpenAPI()
                 .info(new Info().title("Authentication REST API")
-                        .description("Spring shop sample application")
+                        .description("Spring REST API")
                         .version(version)
                         .license(new License().name("Apache 2.0").url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                 .externalDocs(new ExternalDocumentation()
-                        .description("SpringShop Wiki Documentation")
+                        .description("Github")
                         .url("https://github.com/rodrigorodrigues/microservices-design-patterns"))
                 .components(new Components().addSecuritySchemes("bearer-key", securitySchemesItem));
     }

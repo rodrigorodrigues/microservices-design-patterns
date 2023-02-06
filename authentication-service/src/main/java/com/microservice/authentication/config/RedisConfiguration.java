@@ -23,7 +23,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
-@ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true")
 @Configuration
 @EnableRedisHttpSession
 @Slf4j

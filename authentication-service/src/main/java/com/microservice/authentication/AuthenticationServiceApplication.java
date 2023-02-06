@@ -41,20 +41,13 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @SpringBootApplication
-public class AuthenticationServiceApplication implements WebMvcConfigurer {
+public class AuthenticationServiceApplication {
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
-
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addRedirectViewController("/swagger/swagger-ui.html", "/swagger-ui.html");
-    }
 
     @Bean
     static BeanFactoryPostProcessor removeErrorSecurityFilter() {
@@ -152,6 +145,7 @@ public class AuthenticationServiceApplication implements WebMvcConfigurer {
 
             @Override
             public OAuth2AccessToken refreshToken(TokenRequest tokenRequest) {
+                //return defaultTokenServices.refreshAccessToken(tokenRequest.getRequestParameters().get(HttpHeaders.AUTHORIZATION), tokenRequest);
                 return defaultTokenServices.refreshAccessToken(tokenRequest.getRequestParameters().get("refresh_token"), tokenRequest);
             }
 

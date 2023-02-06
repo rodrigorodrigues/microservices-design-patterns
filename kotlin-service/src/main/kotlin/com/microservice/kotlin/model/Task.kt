@@ -27,5 +27,9 @@ data class Task(
     @LastModifiedDate
     var lastModifiedDate: Instant? = null,
 
-    var postId: String? = null
+    var postId: String? = null,
+
+    var personId: String? = null,
+
+    var requestId: String? = null
 )

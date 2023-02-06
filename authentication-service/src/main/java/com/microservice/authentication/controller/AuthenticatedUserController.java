@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +46,7 @@ public class AuthenticatedUserController {
     public ResponseEntity<OAuth2AccessToken> refreshToken(@RequestParam Map<String, String> parameters,
         Authentication authentication) {
         String clientId = authentication.getName();
+        parameters.put(HttpHeaders.AUTHORIZATION, ((Jwt) authentication.getPrincipal()).getTokenValue());
         TokenRequest tokenRequest = new TokenRequest(parameters, clientId, null, "refresh_token");
         OAuth2AccessToken token = redisTokenStoreService.refreshToken(tokenRequest);
 

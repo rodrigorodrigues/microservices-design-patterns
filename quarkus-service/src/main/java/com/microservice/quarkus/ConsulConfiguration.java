@@ -1,16 +1,22 @@
 package com.microservice.quarkus;
 
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.DummyConsul;
+import io.quarkus.runtime.configuration.ProfileManager;
+
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 
-import com.orbitz.consul.Consul;
-import io.quarkus.arc.profile.IfBuildProfile;
-
 @Dependent
-@IfBuildProfile("consul")
 public class ConsulConfiguration {
     @Produces
-    Consul consulClient = Consul.builder()
-            .withUrl(System.getProperty("CONSUL_CLIENT_URL", "http://service-discovery:8500"))
-            .build();
+    Consul consul() {
+        if (ProfileManager.getActiveProfile().contains("consul")) {
+            return Consul.builder()
+                    .withUrl(System.getProperty("CONSUL_CLIENT_URL", "http://localhost:8500"))
+                    .build();
+        } else {
+            return new DummyConsul();
+        }
+    }
 }

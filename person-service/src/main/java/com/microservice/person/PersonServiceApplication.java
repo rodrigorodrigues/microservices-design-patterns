@@ -63,24 +63,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @SpringBootApplication
 @EnableScheduling
 @EnableConfigurationProperties(ConfigProperties.class)
-public class PersonServiceApplication implements WebMvcConfigurer {
+public class PersonServiceApplication {
     Faker faker = new Faker();
 
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
 	}
-
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addRedirectViewController("/swagger/swagger-ui.html", "/swagger-ui.html");
-    }
 
     @Primary
     @Profile("prod")

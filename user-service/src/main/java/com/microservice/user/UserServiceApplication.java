@@ -15,6 +15,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.boot.info.GitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -58,6 +59,12 @@ public class UserServiceApplication {
     @ConditionalOnMissingBean
     BuildProperties buildProperties() {
         return new BuildProperties(new Properties());
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    GitProperties gitProperties() {
+        return new GitProperties(new Properties());
     }
 
     @Primary

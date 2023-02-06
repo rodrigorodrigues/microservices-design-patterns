@@ -1,13 +1,13 @@
 spring:
-    main:
-        allow-bean-definition-overriding: true
-    application:
-        name: edge-server
     cloud:
         gateway:
             filter:
                 secure-headers:
                     disable: x-frame-options
+    sleuth:
+        baggage:
+            remote-fields:
+                - requestId
 management:
     endpoints:
         web:
@@ -47,21 +47,6 @@ spring:
     autoconfigure:
         exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
 
-#zuul:
-#    prefix: /api
-#    sensitiveHeaders:
-#    default-swagger-url: v2/api-docs # additional path for swagger documentation, default: v2/api-docs
-#    default-protocol: http # default target service protocol, default: http
-#    default-swagger-resources-url: swagger-resources # API, that returns list of springfox swagger resources, default: swagger-resources
-#    routes:
-#        service1:
-#            path: /kotlin-service/**
-#            serviceId: kotlin-service
-#            swaggerUri: api-documentation # additional custom path for swagger documentation, use zuul.default-swagger-url as default
-#            protocol: http:// # additional protocol info, default: http://
-#            allowedGroups: # springfox swagger groups filtering. if list not defined or empty - all groups are showed.
-#                - securityGroup
-
 ---
 spring:
     config:
@@ -73,8 +58,6 @@ spring:
                 cors-configurations:
                     '[/**]':
                         allowedOrigins:
-                            - "http://localhost:3000"
-                            - "http://localhost:3001"
                             - "https://spendingbetter.com"
 #                        allowedOrigins: "https://spendingbetter.com"
                         allowedHeaders: "*"

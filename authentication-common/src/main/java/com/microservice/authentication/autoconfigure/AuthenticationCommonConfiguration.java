@@ -23,6 +23,7 @@ import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
+import com.nimbusds.oauth2.sdk.GrantType;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +48,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
@@ -106,17 +108,21 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
             public OAuth2AccessToken enhance(
                     OAuth2AccessToken accessToken,
                     OAuth2Authentication authentication) {
+                OAuth2AccessToken enhance = super.enhance(accessToken, authentication);
                 Map<String, Object> additionalInfo = new HashMap<>();
-                if (authentication.getUserAuthentication() instanceof Authentication auth) {
-                    additionalInfo.put("name", auth.getFullName());
+                if (authentication.getPrincipal() instanceof Authentication auth) {
+                    additionalInfo.put("name", authentication.getName());
                     additionalInfo.put("sub", authentication.getName());
+                    additionalInfo.put("fullName", auth.getFullName());
                 } else if (authentication.getPrincipal() instanceof OidcUser oidcUser) {
                     additionalInfo.put("name", oidcUser.getEmail());
                     additionalInfo.put("sub", oidcUser.getEmail());
                     additionalInfo.put("fullName", oidcUser.getFullName());
                     additionalInfo.put("imageUrl", oidcUser.getPicture());
-                } else {
-                    additionalInfo.put("sub", authentication.getName());
+                } else if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    additionalInfo.put("sub", jwt.getSubject());
+                    additionalInfo.put("name", jwt.getClaimAsString("name"));
+                    additionalInfo.put("fullName", jwt.getClaimAsString("fullName"));
                 }
                 additionalInfo.put("auth", authentication.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
@@ -129,9 +135,10 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
                 additionalInfo.put("iss", authenticationProperties.getIssuer());
                 additionalInfo.put("aud", authenticationProperties.getAud());
                 additionalInfo.put("jti", UUID.randomUUID().toString());
+                additionalInfo.put(JwtAccessTokenConverter.ACCESS_TOKEN_ID, GrantType.REFRESH_TOKEN.getValue());
 
-                DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(accessToken);
-                defaultOAuth2AccessToken.setAdditionalInformation(additionalInfo);
+                DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(enhance);
+                defaultOAuth2AccessToken.getAdditionalInformation().putAll(additionalInfo);
                 defaultOAuth2AccessToken.setValue(encode(defaultOAuth2AccessToken, authentication));
                 return defaultOAuth2AccessToken;
             }

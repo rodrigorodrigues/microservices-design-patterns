@@ -27,6 +27,9 @@ import PostEdit from './posts/PostEdit';
 import CompanyList from "./company/CompanyList";
 import CompanyEdit from "./company/CompanyEdit";
 import ModalPopup from './common/Modal';
+import CreateAll from "./admin/CreateAll";
+import ActivityDetector from 'react-activity-detector';
+import { postWithHeaders } from './services/ApiService';
 
 const moment = require('moment');
 
@@ -140,6 +143,39 @@ class App extends Component {
     window.localStorage.setItem('jhi-authenticationToken', token);
   }
 
+  onIdle = () => {
+    console.log("The user seems to be idle... " + new Date() + " - redirect to logout");
+    window.location.href = '/logout';
+  }
+    
+  onActive = async () => {
+    const { expiresIn, refreshToken, jwt } = this.state;
+    if (expiresIn != null && refreshToken != null) {
+      const expIn = moment(expiresIn).subtract(1, 'minute');
+      if (moment().isSameOrAfter(expIn)) {
+        console.log("Refreshing Token");
+        await this.refreshTokenCall(refreshToken, jwt);
+      }
+    }
+  }
+
+  async refreshTokenCall(refreshToken, jwt) {
+    const loginSubmit = "refresh_token=" + encodeURIComponent(refreshToken);
+    try {
+      const data = await postWithHeaders('authenticate', loginSubmit, { 
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 
+        'Authorization': jwt
+      });
+      if (data.access_token) {
+        this.setAuthentication(data);
+      } else {
+        this.setState({ displayError: errorMessage(data) });
+      }
+    } catch (error) {
+      this.setState({ displayError: errorMessage(error) });
+    }
+  }
+
   render() {
     const { displayError, isAuthenticated, authorities } = this.state;
     const isAdmin = isAuthenticated && authorities.some(item => item === "ROLE_ADMIN");
@@ -194,11 +230,14 @@ class App extends Component {
             <Route path='/prometheus' component={() => <ModalPopup link={prometheusUrl} modal={isAdmin} {...this.state} />} />
             <Route path='/ingredients' exact={true}
                    component={() => <IngredientList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/admin/createAll'
+                   component={() => <CreateAll {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
           </Switch>
         </Router>
         <div>
           <MessageAlert {...displayError}></MessageAlert>
         </div>
+        <ActivityDetector enabled={true} timeout={60 * 1000 * 30} onIdle={this.onIdle} onActive={this.onActive}/>
       </UserContext.Provider>
     );
   }

@@ -1,0 +1,41 @@
+extensions:
+    memory_ballast:
+        size_mib: 512
+    zpages:
+        endpoint: 0.0.0.0:55679
+
+receivers:
+#    filelog:
+#        include: [/tmp/*.log]
+    otlp:
+        protocols:
+            grpc:
+            http:
+#    fluentforward:
+#        endpoint: fluentd:24224
+
+processors:
+    batch:
+
+exporters:
+    logging:
+        logLevel: debug
+    jaeger:
+        endpoint: jaeger:14250
+        tls:
+            insecure: true
+#    loki:
+#        endpoint: "http://grafana-loki:3100/loki/api/v1/push"
+#        tenant_id: "example1"
+#        labels:
+#            attributes:
+#                container_name: ""
+#                container_id: ""
+
+service:
+    pipelines:
+        traces:
+            receivers: [ otlp ]
+            processors: [ batch ]
+            exporters: [ jaeger, logging ]
+    extensions: [ memory_ballast, zpages ]

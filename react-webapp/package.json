@@ -36,7 +36,10 @@
     "react-toastify": "5.4.1",
     "reactstrap": "^8.7.1",
     "reactstrap-confirm": "^1.2.0",
-    "styled-components": "^5.2.1"
+    "styled-components": "^5.2.1",
+    "react-uuid": "2.0.0",
+    "react-select": "5.7.0",
+    "react-activity-detector": "1.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

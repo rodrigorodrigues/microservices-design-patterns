@@ -1,7 +1,6 @@
 package com.microservice.quarkus;
 
 import com.microservice.quarkus.model.Company;
-import com.mongodb.client.MongoClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.HealthClient;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
@@ -25,15 +24,8 @@ public class AppLifecycleBean {
 
 	private static final Logger log = LoggerFactory.getLogger(AppLifecycleBean.class);
 
-	@IfBuildProfile("consul")
-	@ConfigProperty(name = "security.oauth2.resource.jwt.keyValue", defaultValue = "empty")
-	String jwtValue;
-
 	@ConfigProperty(name = "configuration.initialLoad", defaultValue = "true")
 	boolean loadMockedData;
-
-	@Inject
-	MongoClient mongoClient;
 
 	@IfBuildProfile("consul")
 	@Inject
@@ -54,19 +46,6 @@ public class AppLifecycleBean {
 	String instanceId = null;
 
 	void onStart(@Observes StartupEvent ev) {
-/*
-		if (!StringUtils.equals(jwtValue, "empty")) {
-			log.debug("Set Public Key: {}", jwtValue);
-			log.debug("MongoDB settings: {}", mongoClient.getClusterDescription());
-			File file = new File(AppLifecycleBean.class.getResource("/META-INF/resources").getFile(), "publicKey.pem");
-			try {
-				Files.write(file.toPath(), Collections.singletonList(jwtValue), StandardCharsets.UTF_8);
-			} catch (IOException e) {
-				log.error("IO write error", e);
-				throw new RuntimeException(e);
-			}
-		}
-*/
 		if (loadMockedData) {
 			if (Company.count() <= 0) {
 				Company company = new Company();

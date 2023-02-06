@@ -55,12 +55,11 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       # Login to Dockerhub
-#      - name: Login to DockerHub
-#        uses: docker/login-action@v1
-#        with:
-#          username: ${{ secrets.DOCKERHUB_USERNAME }}
-#          password: ${{ secrets.DOCKERHUB_TOKEN }}
-#
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
@@ -92,10 +91,16 @@ jobs:
           file: ./authentication-service/target/docker/authentication-service/build/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          #tags: fielcapao/microservices-design-patterns-authentication-service:latest
           tags: |
+            fielcapao/microservices-design-patterns-authentication-service:latest
             ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
             ${{ secrets.ECR_REPOSITORY }}/authentication-service:${{ env.GITHUB_SHA }}
+
+# TODO - Replace Not Working
+#      - name: Replace secrets
+#        run: |
+#          sed -i 's/SPRING_DATA_MONGODB_URI_REPLACE\/${{ env.SPRING_DATA_MONGODB_URI }}/g' ${{ env.ECS_TASK_DEFINITION }}
+#          sed -i 's/COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE\/${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}/g' ${{ env.ECS_TASK_DEFINITION }}
 
 #      - uses: microsoft/variable-substitution@v1
 #        with:
@@ -104,13 +109,13 @@ jobs:
 #          SPRING_DATA_MONGODB_URI_REPLACE: ${{ env.SPRING_DATA_MONGODB_URI }}
 #          COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE: ${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
+#      - name: Fill in the new image ID in the Amazon ECS task definition
+#        id: task-def
+#        uses: aws-actions/amazon-ecs-render-task-definition@v1
+#        with:
+#          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+#          container-name: ${{ env.CONTAINER_NAME }}
+#          image: ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -120,8 +125,8 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-#      - name: Image digest
-#        run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
 
       # Build Docker image using spring-boot:build-image
 #      - name: Build Service using spring-boot:build-image

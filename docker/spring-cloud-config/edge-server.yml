@@ -26,7 +26,7 @@ spring:
                   predicates:
                       - Path=/swagger/authentication-service/**
                   filters:
-                      - RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
+                      - StripPrefix=2
                 - id: user-service
                   uri: lb://user-service
                   predicates:
@@ -36,7 +36,7 @@ spring:
                   predicates:
                       - Path=/swagger/user-service/**
                   filters:
-                      - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+                      - StripPrefix=2
                 - id: person-service
                   uri: lb://person-service
                   predicates:
@@ -46,7 +46,7 @@ spring:
                   predicates:
                       - Path=/swagger/person-service/**
                   filters:
-                      - RewritePath=/person-service/(?<segment>.*), /$\{segment}
+                      - StripPrefix=2
                 - id: nodejs-service
                   uri: lb://week-menu-api
                   predicates:
@@ -60,7 +60,7 @@ spring:
                   predicates:
                       - Path=/swagger/kotlin-service/**
                   filters:
-                      - RewritePath=/kotlin-service/(?<segment>.*), /$\{segment}
+                      - StripPrefix=2
                 - id: python-service
                   uri: lb://python-service
                   predicates:

@@ -3,16 +3,16 @@ package com.microservice.kotlin.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.JwtTokenUtil
-import com.microservice.kotlin.model.Task
+import com.microservice.kotlin.dto.TaskDto
 import com.microservice.kotlin.repository.TaskRepository
+import com.microservice.kotlin.service.TaskService
 import com.microservice.web.autoconfigure.WebCommonAutoConfiguration
-import com.querydsl.core.types.Predicate
 import org.hamcrest.Matchers.containsInAnyOrder
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -43,7 +43,7 @@ import javax.crypto.spec.SecretKeySpec
 internal class TaskControllerTest(@Autowired val client: MockMvc,
                                   @Autowired val objectMapper: ObjectMapper,
                                   @Autowired val authenticationProperties: AuthenticationProperties) {
-    @MockBean lateinit var taskRepository: TaskRepository
+    @MockBean lateinit var taskService: TaskService
 
     var jwtTokenUtil = JwtTokenUtil(authenticationProperties)
 
@@ -61,20 +61,12 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         }
     }
 
-    @BeforeEach
-    fun setup() {
-        `when`(taskRepository.findAll(any(Predicate::class.java), any(Pageable::class.java))).thenReturn(PageableExecutionUtils.getPage(listOf(
-            Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "admin"),
-            Task(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "anonymous")
-        ), Pageable.unpaged()
-        ) { 2 })
-    }
-
     @Test
     @DisplayName("Test - When Calling GET - /api/tasks should return empty list and response 200 - OK")
     fun shouldReturnEmptyList() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
-        `when`(taskRepository.findAll(any(Predicate::class.java), any(Pageable::class.java))).thenReturn(PageableExecutionUtils.getPage(listOf(), Pageable.unpaged(), { 0 }))
+        `when`(taskService.findAll(any(), any()))
+            .thenReturn(PageableExecutionUtils.getPage(listOf(), Pageable.unpaged()) { 0 })
 
         client.perform(get("/api/tasks")
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -86,6 +78,12 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     @Test
     @DisplayName("Test - When Calling GET - /api/tasks should return list of tasks and response 200 - OK")
     fun shouldReturnListOfAllTasksWhenCallingApi() {
+        `when`(taskService.findAll(any(), any())).thenReturn(PageableExecutionUtils.getPage(listOf(
+            TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "admin"),
+            TaskDto(UUID.randomUUID().toString(), name = "Test 2", createdByUser = "anonymous")
+        ), Pageable.unpaged()
+        ) { 2 })
+
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("anyone", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
 
         client.perform(get("/api/tasks")
@@ -108,7 +106,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testFindById() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("test", null, listOf(SimpleGrantedAuthority("ROLE_TASK_READ")))
 
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "test")))
+        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test"))
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -122,7 +120,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testFindByIdShouldResponseForbidden() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("TASK_READ")))
 
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "test")))
+        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test"))
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -134,7 +132,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testFindByIdWithInvalidRoleShouldReturnForbidden() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("test", null, listOf(SimpleGrantedAuthority("TASK_CREATE")))
 
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(Task(UUID.randomUUID().toString(), name = "Test")))
+        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test"))
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -144,18 +142,20 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     @Test
     @DisplayName("Test - When Calling POST - /api/tasks/ should create task and response 201 - Created")
     fun testCreate() {
+        `when`(taskService.save(any())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "New Task"))
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
 
         client.perform(post("/api/tasks")
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
             .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(Task(id = "", name = "New Task"))))
+            .content(objectMapper.writeValueAsString(TaskDto(id = "", name = "New Task"))))
             .andExpect(status().isCreated)
             .andExpect(header().exists(LOCATION))
             .andExpect(jsonPath("$.createdByUser").value("admin"))
             .andExpect(jsonPath("$.name").value("New Task"))
+            .andExpect(jsonPath("$.id").isNotEmpty)
 
-        verify(taskRepository).save(ArgumentMatchers.any(Task::class.java))
+        verify(taskService).save(any())
     }
 
     @Test
@@ -163,17 +163,17 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testCreateShouldUpdateWhenIdExists() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
 
-        val task = Task("999", name = "Test", createdByUser = "test")
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
+        val task = TaskDto("999", name = "Test", createdByUser = "test")
+        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(task)
 
         client.perform(post("/api/tasks")
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
             .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(Task(id = "999", name = "New Task"))))
+            .content(objectMapper.writeValueAsString(TaskDto(id = "999", name = "New Task"))))
             .andExpect(status().isOk)
             .andExpect(header().doesNotExist(LOCATION))
 
-        verify(taskRepository).save(ArgumentMatchers.any(Task::class.java))
+        verify(taskService).save(any())
     }
 
     @Test
@@ -181,19 +181,19 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testUpdate() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("test", null, listOf(SimpleGrantedAuthority("ROLE_TASK_SAVE")))
 
-        val task = Task(UUID.randomUUID().toString(), name = "Test", createdByUser = "test")
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
-        `when`(taskRepository.save(any(Task::class.java))).thenReturn(task.copy(name = "Updated Task"))
+        val task = TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test")
+        `when`(taskService.findById(any())).thenReturn(task)
+        `when`(taskService.save(any())).thenReturn(task.copy(name = "Updated Task"))
 
         client.perform(put("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
             .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(Task(id = task.id, name = "Updated Task", createdByUser = "test"))))
+            .content(objectMapper.writeValueAsString(TaskDto(id = task.id, name = "Updated Task", createdByUser = "test"))))
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
             .andExpect(jsonPath("$.name").value("Updated Task"))
 
-        verify(taskRepository).save(ArgumentMatchers.any(Task::class.java))
+        verify(taskService).save(any())
     }
 
     @Test
@@ -204,10 +204,10 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         client.perform(put("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
             .contentType(APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(Task(id = UUID.randomUUID().toString(), name = "Updated Task", createdByUser = "test"))))
+            .content(objectMapper.writeValueAsString(TaskDto(id = UUID.randomUUID().toString(), name = "Updated Task", createdByUser = "test"))))
             .andExpect(status().is4xxClientError)
 
-        verify(taskRepository, never()).save(ArgumentMatchers.any(Task::class.java))
+        verify(taskService, never()).save(any())
     }
 
     @Test
@@ -216,14 +216,14 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("newUser", null, listOf(SimpleGrantedAuthority("ROLE_TASK_DELETE")))
 
         val id = UUID.randomUUID().toString()
-        val task = Task(id, name = "Test", createdByUser = "newUser")
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
+        val task = TaskDto(id, name = "Test", createdByUser = "newUser")
+        `when`(taskService.findById(any())).thenReturn(task)
 
         client.perform(delete("/api/tasks/{id}", id)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
             .andExpect(status().isOk)
 
-        verify(taskRepository).deleteById(id)
+        verify(taskService).deleteById(id)
     }
 
     @Test
@@ -232,14 +232,14 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("TASK_DELETE")))
 
         val id = UUID.randomUUID().toString()
-        val task = Task(id, name = "Test", createdByUser = "newUser")
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
+        val task = TaskDto(id, name = "Test", createdByUser = "newUser")
+        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(task)
 
         client.perform(delete("/api/tasks/{id}", id)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
             .andExpect(status().is4xxClientError)
 
-        verify(taskRepository, never()).deleteById(id)
+        verify(taskService, never()).deleteById(id)
     }
 
     @Test
@@ -248,13 +248,13 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("testUser", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
 
         val id = UUID.randomUUID().toString()
-        val task = Task(id, name = "Test", createdByUser = "newUser")
-        `when`(taskRepository.findById(ArgumentMatchers.anyString())).thenReturn(Optional.of(task))
+        val task = TaskDto(id, name = "Test", createdByUser = "newUser")
+        `when`(taskService.findById(any())).thenReturn(task)
 
         client.perform(delete("/api/tasks/{id}", id)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
             .andExpect(status().isOk)
 
-        verify(taskRepository).deleteById(id)
+        verify(taskService).deleteById(id)
     }
 }

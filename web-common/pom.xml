@@ -47,13 +47,13 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.6</version>
+            <version>1.6.14</version>
         </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-security</artifactId>
-            <version>1.6.6</version>
+            <version>1.6.14</version>
         </dependency>
 
         <dependency>
@@ -92,7 +92,7 @@
             <artifactId>spring-retry</artifactId>
         </dependency>
 
-        <!--
+<!--
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
@@ -103,7 +103,8 @@
                     <artifactId>opentracing-spring-cloud-reactor-starter</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>-->
+        </dependency>
+-->
 
         <dependency>
             <groupId>javax.servlet</groupId>

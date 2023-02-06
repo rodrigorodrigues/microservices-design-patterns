@@ -20,17 +20,9 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
-import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
-import org.springframework.session.data.redis.RedisIndexedSessionRepository;
-import org.springframework.session.data.redis.config.annotation.web.server.EnableRedisWebSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.reactive.config.EnableWebFlux;
@@ -45,29 +37,11 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Slf4j
 @SpringBootApplication
 @EnableWebFlux
-@EnableRedisWebSession
 @EnableDiscoveryClient
 public class EdgeServerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(EdgeServerApplication.class, args);
-	}
-
-	@Primary
-	@Bean
-	RedisTokenStore redisTokenStore(RedisConnectionFactory redisConnectionFactory,
-			JwtAccessTokenConverter jwtAccessTokenConverter) {
-		RedisTokenStore redisTokenStore = new RedisTokenStore(redisConnectionFactory);
-		TokenApprovalStore tokenApprovalStore = new TokenApprovalStore();
-		tokenApprovalStore.setTokenStore(redisTokenStore);
-		JwtTokenStore jwtTokenStore = new JwtTokenStore(jwtAccessTokenConverter);
-		jwtTokenStore.setApprovalStore(tokenApprovalStore);
-		return redisTokenStore;
-	}
-
-	@Bean
-	RedisIndexedSessionRepository redisIndexedSessionRepository(RedisTemplate redisTemplate) {
-		return new RedisIndexedSessionRepository(redisTemplate);
 	}
 
 	@Primary
@@ -90,8 +64,16 @@ public class EdgeServerApplication {
 		return serializer;
 	}
 
+    /*@Bean
+    public RouteLocator cacheRequestBodyApiRoutes(RouteLocatorBuilder builder) {
+        return builder.routes()
+            .route("cache_request_body_route", r -> r.method(HttpMethod.POST)
+                .filters(f -> f.prefixPath("/api/**").cacheRequestBody(String.class)).uri("origin"))
+                .build();
+    }*/
+
 	@Bean
-	public RouteLocator apiRoutes(RouteLocatorBuilder builder,
+	public RouteLocator adminApiRoutes(RouteLocatorBuilder builder,
         @Value("${grafanaUrl:http://localhost:3000/admin/grafana}") String grafanaUrl,
         @Value("${prometheusUrl:http://localhost:9090/amin/prometheus/graph}") String prometheusUrl,
         @Value("${jaegerUrl:http://localhost:16686/admin/jaeger}") String jaegerUrl,

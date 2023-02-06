@@ -29,6 +29,8 @@ spring:
             version: "4.0.2"
     profiles:
         include: auth
+    session:
+        store-type: none
 opentracing:
     jaeger:
         enabled: false

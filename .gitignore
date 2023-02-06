@@ -59,3 +59,9 @@ docker/openshift.local.clusterup
 redis_auth_gateway
 redis_auth_service
 docker/jwks.json
+access_token.json
+docker/mongo_bkpk
+*.log
+php-service
+Quick*.java
+*.env

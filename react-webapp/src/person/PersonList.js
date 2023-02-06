@@ -32,8 +32,6 @@ class PersonList extends Component {
       displaySwagger: false,
       activeTab: '1',
       isAuthenticated: props.isAuthenticated,
-      expiresIn: props.expiresIn,
-      refreshToken: props.refreshToken,
       user: props.user,
       expanded: false,
       activePage: 0,
@@ -102,9 +100,9 @@ class PersonList extends Component {
 
   async findAllPeople(pageNumber) {
     try {
-      const { pageSize, activePage, search, jwt, expiresIn } = this.state;
+      const { pageSize, activePage, search, jwt } = this.state;
       let url = `people?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&pageSize='+pageSize: ''}`;
-      console.log(`URL: ${url}\texpires_in: ${expiresIn}`);
+      console.log(`URL: ${url}`);
       let data = await get(url, true, false, jwt);
       console.log("data: "+data);
       this.setState({ isLoading: false });
@@ -269,10 +267,9 @@ class PersonList extends Component {
             <TabPane tabId="2">
               {displaySwagger ?
                 <Iframe url={`${personSwaggerUrl}`}
-                  position="absolute"
+                  position="relative"
                   width="100%"
                   id="myId"
-                  className="mt-4"
                   height="100%" />
                 : null}
             </TabPane>

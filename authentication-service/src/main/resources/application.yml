@@ -24,3 +24,20 @@ spring:
                 format: yaml
     autoconfigure:
         exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
+
+---
+spring:
+    config:
+        activate:
+            on-profile: default
+    sleuth:
+        propagation:
+            type:
+                - jaeger
+                - b3
+        otel:
+            config:
+                trace-id-ratio-based: 1.0
+            exporter:
+                otlp:
+                    endpoint: ${OTLP_ENDPOINT:http://localhost:4317}

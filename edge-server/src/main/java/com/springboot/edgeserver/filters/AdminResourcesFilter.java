@@ -17,7 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -31,7 +31,7 @@ import static org.springframework.security.web.server.context.WebSessionServerSe
 @Component
 @AllArgsConstructor
 public class AdminResourcesFilter implements GatewayFilter {
-    private final RedisTokenStore redisTokenStore;
+    private final TokenStore tokenStore;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -52,7 +52,7 @@ public class AdminResourcesFilter implements GatewayFilter {
                     } else if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch("ROLE_ADMIN"::equals)) {
                         log.debug("User has admin role: {}", authentication.getAuthorities());
                         if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                            Optional<OAuth2AccessToken> oAuth2AccessToken = redisTokenStore.findTokensByClientId(authentication.getName())
+                            Optional<OAuth2AccessToken> oAuth2AccessToken = tokenStore.findTokensByClientId(authentication.getName())
                                     .stream()
                                     .filter(a -> !a.isExpired())
                                     .max(Comparator.comparing(OAuth2AccessToken::getExpiration));

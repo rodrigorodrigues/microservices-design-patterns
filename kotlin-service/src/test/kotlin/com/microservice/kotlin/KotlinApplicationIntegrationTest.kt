@@ -2,6 +2,7 @@ package com.microservice.kotlin
 
 import com.jayway.jsonpath.JsonPath.read
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
+import com.microservice.kotlin.dto.TaskDto
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -63,14 +64,14 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     fun shouldCreateAndDeleteTaskWhenCallingApi() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("dummy_user", null, listOf(SimpleGrantedAuthority("ROLE_TASK_CREATE"), SimpleGrantedAuthority("ROLE_TASK_DELETE")))
 
-        val task = Task(name = "New Task")
+        val task = TaskDto(name = "New Task")
 
         val headers = HttpHeaders()
         headers.add("authorization", jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
         var responseEntity = restTemplate.exchange("/api/tasks", HttpMethod.POST, HttpEntity(task, headers), String::class.java)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.CREATED)
-        assertThat(read<String>(responseEntity.body, "$.id")).isNotEmpty()
+        assertThat(read<String>(responseEntity.body, "$.id")).isNotEmpty
         assertThat(read<String>(responseEntity.body, "$.name")).isEqualTo("New Task")
         assertThat(read<String>(responseEntity.body, "$.createdByUser")).isEqualTo("dummy_user")
         assertThat(read<Object>(responseEntity.body, "$.createdDate")).isNotNull

@@ -10,7 +10,13 @@ opentracing:
     spring:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
-
+spring:
+    sleuth:
+        baggage:
+            remote-fields:
+                - requestId
+            correlation-fields:
+                - requestId
 ---
 spring:
     config:

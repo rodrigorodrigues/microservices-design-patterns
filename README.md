@@ -11,7 +11,7 @@ The web application is using `React`
 
 Android App using `React Native` working in progress.
 
-Docker images are built in mupltiple platforms(`linux/amd64,linux/arm64`).
+Docker images are built in multiple platforms(`linux/amd64,linux/arm64`).
 
 Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter.com and create a user.
 

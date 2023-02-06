@@ -10,6 +10,7 @@ import com.microservice.person.service.PersonService;
 import com.querydsl.core.types.Predicate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +61,7 @@ public class PersonController {
 
     }*/
 
-    @Operation(description = "Api for return list of persons")
+    @Operation(description = "Api for return list of persons", security = { @SecurityRequirement(name = "bearer-key") })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
     public ResponseEntity<Page<PersonDto>> findAll(@Parameter(hidden = true) Authentication authentication,
@@ -68,8 +69,8 @@ public class PersonController {
                                                    @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,
                                                    @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) String sortDirection,
                                                    @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) String[] sortIdx,
-                                                   @QuerydslPredicate(root = Person.class, bindings = PersonRepository.class) Predicate predicate,
-                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+                                                   @Parameter(hidden = true) @QuerydslPredicate(root = Person.class, bindings = PersonRepository.class) Predicate predicate,
+                                                   @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
 
         log.debug("predicate: {}", predicate);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortIdx));
@@ -80,7 +81,7 @@ public class PersonController {
         }
     }
 
-    @Operation(description = "Api for return a person by id")
+    @Operation(description = "Api for return a person by id", security = { @SecurityRequirement(name = "bearer-key") })
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE') or hasAuthority('SCOPE_openid')")
     public ResponseEntity<PersonDto> findById(@Parameter(required = true) @PathVariable String id,
@@ -95,7 +96,7 @@ public class PersonController {
         }
     }
 
-    @Operation(description = "Api for creating a person")
+    @Operation(description = "Api for creating a person", security = { @SecurityRequirement(name = "bearer-key") })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
     public ResponseEntity<PersonDto> create(@RequestBody @Parameter(required = true) PersonDto person) {
@@ -103,7 +104,7 @@ public class PersonController {
         return ResponseEntity.created(URI.create(String.format("/api/people/%s", save.getId()))).body(save);
     }
 
-    @Operation(description = "Api for updating a person")
+    @Operation(description = "Api for updating a person", security = { @SecurityRequirement(name = "bearer-key") })
     @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("(hasAnyRole('ADMIN', 'PERSON_SAVE') or hasAuthority('SCOPE_openid')) and (hasRole('ADMIN') or #person.createdByUser == authentication.name)")
     public ResponseEntity<PersonDto> update(@RequestBody @Parameter(required = true) PersonDto person,
@@ -117,7 +118,7 @@ public class PersonController {
         }
     }
 
-    @Operation(description = "Api for deleting a person")
+    @Operation(description = "Api for deleting a person", security = { @SecurityRequirement(name = "bearer-key") })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_DELETE') or hasAuthority('SCOPE_openid')")
     public void delete(@PathVariable @Parameter(required = true) String id,

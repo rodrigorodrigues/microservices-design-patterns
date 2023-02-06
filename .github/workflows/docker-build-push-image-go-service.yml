@@ -76,24 +76,25 @@ jobs:
           push: true
           tags: |
             fielcapao/microservices-design-patterns-go-service:latest
-            ${{ secrets.ECR_REPOSITORY }}/authentication-service:latest
-            ${{ secrets.ECR_REPOSITORY }}/authentication-service:${{ env.GITHUB_SHA }}
+            ${{ secrets.ECR_REPOSITORY }}/go-service:latest
+            ${{ secrets.ECR_REPOSITORY }}/go-service:${{ env.GITHUB_SHA }}
           build-args: |
             ENV=production
             PORT=3006
 
-      - name: Replace secrets
-        run: |
-          sed -i 's/SPRING_DATA_MONGODB_URI_REPLACE\/${{ env.SPRING_DATA_MONGODB_URI }}/g' ${{ env.ECS_TASK_DEFINITION }}
-          sed -i 's/COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE\/${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}/g' ${{ env.ECS_TASK_DEFINITION }}
-
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ secrets.ECR_REPOSITORY }}/person-service:latest
+#       TODO - Replace Not Working
+#      - name: Replace secrets
+#        run: |
+#          sed -i 's/SPRING_DATA_MONGODB_URI_REPLACE\/${{ env.SPRING_DATA_MONGODB_URI }}/g' ${{ env.ECS_TASK_DEFINITION }}
+#          sed -i 's/COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE_REPLACE\/${{ env.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}/g' ${{ env.ECS_TASK_DEFINITION }}
+#
+#      - name: Fill in the new image ID in the Amazon ECS task definition
+#        id: task-def
+#        uses: aws-actions/amazon-ecs-render-task-definition@v1
+#        with:
+#          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+#          container-name: ${{ env.CONTAINER_NAME }}
+#          image: ${{ secrets.ECR_REPOSITORY }}/person-service:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1

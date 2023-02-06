@@ -162,6 +162,13 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.mockito.kotlin</groupId>
+            <artifactId>mockito-kotlin</artifactId>
+            <version>4.1.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -203,9 +210,15 @@
                                     <artifactId>querydsl-apt</artifactId>
                                     <version>5.0.0</version>
                                 </annotationProcessorPath>
+                                <annotationProcessorPath>
+                                    <groupId>org.mapstruct</groupId>
+                                    <artifactId>mapstruct-processor</artifactId>
+                                    <version>${mapstruct.version}</version>
+                                </annotationProcessorPath>
                             </annotationProcessorPaths>
                             <annotationProcessors>
                                 <processor>org.springframework.data.mongodb.repository.support.MongoAnnotationProcessor</processor>
+                                <processor>org.mapstruct.ap.MappingProcessor</processor>
                             </annotationProcessors>
                         </configuration>
                     </execution>

@@ -262,7 +262,7 @@ class HomeContent extends Component {
                 </Breadcrumbs.Item>}
                 {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/admin">Admin Access</Anchor>
+                    <Anchor href="/admin/createAll">Admin - Create All</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>

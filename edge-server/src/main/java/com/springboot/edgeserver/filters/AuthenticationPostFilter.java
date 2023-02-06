@@ -17,7 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -34,7 +34,7 @@ import static org.springframework.security.web.server.context.WebSessionServerSe
 public class AuthenticationPostFilter implements GatewayFilter {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final RedisTokenStore redisTokenStore;
+    private final TokenStore tokenStore;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -61,7 +61,7 @@ public class AuthenticationPostFilter implements GatewayFilter {
                             return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Could not find a valid token", e));
                         }
                     }
-                    OAuth2Authentication authentication = redisTokenStore.readAuthentication(authorizationHeader.replaceFirst("(?i)Bearer ", ""));
+                    OAuth2Authentication authentication = tokenStore.readAuthentication(authorizationHeader.replaceFirst("(?i)Bearer ", ""));
                     if (authentication == null || !authentication.isAuthenticated()) {
                         return Mono.error(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated in redis"));
                     }

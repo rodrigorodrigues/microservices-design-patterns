@@ -400,31 +400,31 @@ services:
         aliases:
           - prometheus
 
-
-  elasticsearch:
-    image: elasticsearch
-    container_name: elasticsearch
-    ports:
-      - "9200:9200"
-
-  kibana:
-    image: kibana
-    container_name: kibana
-    links:
-      - "elasticsearch"
-    ports:
-      - "5601:5601"
-
-  fluentd:
-      build: ./fluentd
-      container_name: fluentd
-      volumes:
-          - ./fluentd/fluent.conf:/fluentd/etc
-      links:
-          - "elasticsearch"
-      ports:
-          - "24224:24224"
-          - "24224:24224/udp"
+#
+#  elasticsearch:
+#    image: elasticsearch
+#    container_name: elasticsearch
+#    ports:
+#      - "9200:9200"
+#
+#  kibana:
+#    image: kibana
+#    container_name: kibana
+#    links:
+#      - "elasticsearch"
+#    ports:
+#      - "5601:5601"
+#
+#  fluentd:
+#      build: ./fluentd
+#      container_name: fluentd
+#      volumes:
+#          - ./fluentd/fluent.conf:/fluentd/etc
+#      links:
+#          - "elasticsearch"
+#      ports:
+#          - "24224:24224"
+#          - "24224:24224/udp"
 
   grafana-loki:
     image: grafana/loki:2.6.1
@@ -443,7 +443,7 @@ services:
     image: grafana/promtail:2.6.1
     container_name: grafana-promtail
     volumes:
-#        - /var/log:/var/log
+        - /tmp/log:/var/log
         - ./promtail-config.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     networks:
@@ -503,7 +503,7 @@ services:
           - setup_grafana_datasource
 
   otel-collector:
-    image: otel/opentelemetry-collector:0.47.0 #otel/opentelemetry-collector-contrib:0.60.0 #logzio/otel-collector-traces
+    image: otel/opentelemetry-collector:latest #otel/opentelemetry-collector-contrib:0.9.0 #logzio/otel-collector-traces
     container_name: otel-collector
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:
@@ -521,15 +521,62 @@ services:
         aliases:
           - otel-collector
 
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:7.9.1
+    container_name: apm-server
+    command:
+      - -e
+      - --E
+      - output.elasticsearch.hosts=["elastic-search:9200"]
+    networks:
+      net:
+        aliases:
+          - apm-server
+
+  elastic-search:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
+    container_name: elastic-search
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - 9200:9200
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      net:
+        aliases:
+          - elastic-search
+
+  elastic-kibana:
+    image: docker.elastic.co/kibana/kibana:7.9.1
+    container_name: elastic-kibana
+#    environment:
+#      - LOG_DRIVER_LEVEL=debug
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elastic-search:9200"]'
+      LOG_DRIVER_LEVEL: trace
+    ports:
+      - 5601:5601
+    depends_on:
+      - elastic-search
+    networks:
+      net:
+        aliases:
+          - elastic-kibana
+
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     ports:
         - "16686:16686"
-        - "14268"
-        - "14250"
-    environment:
-        QUERY_BASE_PATH: "/admin/jaeger"
+        - "14268:14268"
+        - "14250:14250"
+#    environment:
+#        QUERY_BASE_PATH: "/admin/jaeger"
     networks:
       net:
         aliases:

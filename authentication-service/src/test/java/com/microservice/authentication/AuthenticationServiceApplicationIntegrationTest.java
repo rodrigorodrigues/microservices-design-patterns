@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
@@ -35,14 +34,10 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import redis.embedded.RedisServer;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -56,7 +51,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
@@ -78,13 +72,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
-        "logging.level.com.microservice=debug",
-        "spring.redis.port=6379"})
+        "logging.level.com.microservice=debug"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
-    classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class, AuthenticationServiceApplicationIntegrationTest.EmbeddedRedisTestConfiguration.class})
+    classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
 @AutoConfigureMockMvc
 public class AuthenticationServiceApplicationIntegrationTest {
 
@@ -99,39 +91,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
     @Autowired
     KeyPair keyPair;
-
-    @TestConfiguration
-    static class EmbeddedRedisTestConfiguration {
-
-        private RedisServer redisServer;
-
-        @Value("${spring.redis.port}")
-        private int redisPort;
-
-        @PostConstruct
-        public void startRedis() {
-            if (!StringUtils.containsIgnoreCase(System.getProperty("os.name"), "mac") && (this.redisServer == null || !this.redisServer.isActive())) {
-                try {
-                    this.redisServer = RedisServer.builder()
-                        .port(redisPort)
-                        .setting("maxmemory 128M") //maxheap 128M
-                        .build();
-                    log.debug("RedisServer: {}\tredisPort: {}", redisServer, redisPort);
-                    this.redisServer.start();
-                }
-                catch (Throwable e) {
-                    log.error("Cannot start redis", e);
-                }
-            }
-        }
-
-        @PreDestroy
-        public void stopRedis() {
-            if (this.redisServer != null && this.redisServer.isActive()) {
-                this.redisServer.stop();
-            }
-        }
-    }
 
     @TestConfiguration
     @AllArgsConstructor
@@ -221,64 +180,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Test - When Calling POST - /api/authenticatedUser should be authenticated and response 200 - OK")
-    public void shouldWorkLoginAndLogout() throws Exception {
-        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("username", "master@gmail.com");
-        formData.add("password", "password123");
-
-        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
-            .params(formData)
-            .with(csrf()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.access_token", is(notNullValue())))
-            .andExpect(cookie().value("SESSIONID", is(notNullValue())))
-            .andReturn();
-
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String responseBody = response.getContentAsString();
-
-        OAuth2AccessToken accessToken = objectMapper.readValue(responseBody, OAuth2AccessToken.class);
-
-        assertThat(accessToken).isNotNull();
-        assertThat(accessToken.getValue()).isNotEmpty();
-
-        mockMvc.perform(get("/api/authenticatedUser")
-            .with(csrf())
-            .cookie(response.getCookies()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.access_token", is(notNullValue())));
-
-        formData = new LinkedMultiValueMap<>();
-        formData.add("refresh_token", accessToken.getRefreshToken().getValue());
-
-        mockMvc.perform(post("/api/refreshToken")
-            .with(csrf())
-            .cookie(response.getCookies())
-            .params(formData))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.access_token", is(notNullValue())));
-
-        mockMvc.perform(get("/api/logout")
-            .cookie(response.getCookies()))
-            .andExpect(status().isOk())
-            .andExpect(cookie().value("SESSIONID", is(nullValue())));
-
-        mockMvc.perform(get("/api/authenticatedUser")
-            .with(csrf())
-            .cookie(response.getCookies()))
-            .andExpect(status().is4xxClientError());
-    }
-
-    @Test
     @DisplayName("Test - When Calling GET - /api/authenticatedUser without jwt should return 401 - Unauthorized")
     public void shouldReturnUnauthorizedWhenCallingApiWithoutAuthorizationHeader() throws Exception {
         mockMvc.perform(get("/api/authenticatedUser")
@@ -326,5 +227,62 @@ public class AuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(get("/")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    @DisplayName("Test - When Calling POST - /api/authenticatedUser should be authenticated and response 200 - OK")
+    public void shouldWorkLoginAndLogout() throws Exception {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", "master@gmail.com");
+        formData.add("password", "password123");
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/authenticate")
+                .params(formData)
+                .with(csrf()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())))
+            .andExpect(cookie().doesNotExist("SESSIONID"))
+            .andReturn();
+
+        MockHttpServletResponse response = mvcResult.getResponse();
+        String responseBody = response.getContentAsString();
+
+        OAuth2AccessToken accessToken = objectMapper.readValue(responseBody, OAuth2AccessToken.class);
+
+        assertThat(accessToken).isNotNull();
+        assertThat(accessToken.getValue()).isNotEmpty();
+
+        mockMvc.perform(get("/api/authenticatedUser")
+                .with(csrf())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer "+accessToken.getValue()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())));
+
+        formData = new LinkedMultiValueMap<>();
+        formData.add("refresh_token", accessToken.getRefreshToken().getValue());
+
+        mockMvc.perform(post("/api/refreshToken")
+                .with(csrf())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer "+accessToken.getValue())
+                .params(formData))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())));
+
+        mockMvc.perform(get("/api/logout")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer "+accessToken.getValue()))
+            .andExpect(status().isOk())
+            .andExpect(cookie().value("SESSIONID", is(nullValue())));
+
+        mockMvc.perform(get("/api/authenticatedUser")
+                .with(csrf()))
+            .andExpect(status().is4xxClientError());
     }
 }

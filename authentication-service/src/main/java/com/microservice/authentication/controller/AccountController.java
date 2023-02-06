@@ -29,7 +29,11 @@ public class AccountController {
         Map<String, Object> additionalInformation = token.getAdditionalInformation();
         HashSet<String> authorities = new HashSet<>(Arrays.asList(additionalInformation.get("auth")
             .toString().split(",")));
-        UserDto userDto = new UserDto(additionalInformation.get("name").toString(), additionalInformation.get("fullName").toString(), additionalInformation.get("sub").toString(), authorities);
+        String login = additionalInformation.get("name") != null ? additionalInformation.get("name").toString() : null;
+        String fullName = additionalInformation.get("fullName") != null ? additionalInformation.get("fullName")
+            .toString() : null;
+        String email = additionalInformation.get("sub") != null ? additionalInformation.get("sub").toString() : null;
+        UserDto userDto = new UserDto(login, fullName, email, authorities);
         log.debug("AccountController:userDto: {}", userDto);
         return userDto;
     }

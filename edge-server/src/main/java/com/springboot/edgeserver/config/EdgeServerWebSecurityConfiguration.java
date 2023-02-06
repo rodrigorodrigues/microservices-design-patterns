@@ -17,7 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
@@ -34,7 +34,7 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
 
 //    private final DefaultTokenServices defaultTokenServices;
 
-    private final RedisTokenStore redisTokenStore;
+    private final TokenStore tokenStore;
 
     private static final String[] WHITELIST = {
             // -- swagger ui
@@ -66,9 +66,9 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
 
     private ClassLoader loader;
 
-    public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError, RedisTokenStore redisTokenStore) {
+    public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError, TokenStore tokenStore) {
         this.handleResponseError = handleResponseError;
-        this.redisTokenStore = redisTokenStore;
+        this.tokenStore = tokenStore;
     }
 
     @Bean
@@ -97,8 +97,8 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
                     public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
                         log.info("Logout success! authType: {}", authentication.getClass().getName());
                         if (authentication instanceof OAuth2AuthenticationToken) {
-                            redisTokenStore.findTokensByClientId(authentication.getName())
-                                    .forEach(redisTokenStore::removeAccessToken);
+                            tokenStore.findTokensByClientId(authentication.getName())
+                                    .forEach(tokenStore::removeAccessToken);
                         }
                         return super.onLogoutSuccess(exchange, authentication);
                     }
