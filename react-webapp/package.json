@@ -30,7 +30,7 @@
     "react-json-view": "^1.19.1",
     "react-loader-spinner": "5.3.4",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^2.1.0",
+    "react-scripts": "^5.0.1",
     "react-scroll-into-view": "^1.8.2",
     "react-switch": "^5.0.1",
     "react-toastify": "5.4.1",
