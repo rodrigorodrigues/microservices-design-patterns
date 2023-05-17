@@ -108,5 +108,5 @@ class TaskController(@Autowired val taskService: TaskService) {
 
     private fun Authentication.hasAdminAuthority() = SimpleGrantedAuthority("ROLE_ADMIN") in this.authorities
 
-     private fun TaskDto.wasCreatedBy(authentication: Authentication) = this.createdByUser == authentication.name
+    private fun TaskDto.wasCreatedBy(authentication: Authentication) = this.createdByUser == authentication.name
 }
