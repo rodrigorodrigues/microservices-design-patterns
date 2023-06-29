@@ -12,11 +12,12 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PersonRepository extends PagingAndSortingRepository<Person, String>, QuerydslPredicateExecutor<Person>, QuerydslBinderCustomizer<QPerson> {
+public interface PersonRepository extends PagingAndSortingRepository<Person, String>, QuerydslPredicateExecutor<Person>, QuerydslBinderCustomizer<QPerson>, CrudRepository<Person, String> {
     Page<Person> findAllByFullNameIgnoreCaseStartingWith(String name, Pageable pageable, Predicate predicate);
 
     Page<Person> findByChildrenExists(boolean exists, Pageable pageable, Predicate predicate);

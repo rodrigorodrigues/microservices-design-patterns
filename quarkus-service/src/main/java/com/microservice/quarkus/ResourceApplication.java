@@ -11,7 +11,7 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.eclipse.microprofile.openapi.annotations.security.SecuritySchemes;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 @OpenAPIDefinition(
 		tags = {

@@ -1,6 +1,6 @@
 package com.microservice.person.config;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import lombok.Data;
 

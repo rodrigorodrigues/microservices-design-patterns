@@ -4,8 +4,8 @@ import com.orbitz.consul.Consul;
 import io.quarkus.arc.DefaultBean;
 import org.mockito.Mockito;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
 @DefaultBean
 @ApplicationScoped

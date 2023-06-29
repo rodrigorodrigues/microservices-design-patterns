@@ -1,25 +1,17 @@
 spring:
+    config:
+        import: "optional:consul:"
     main:
         allow-bean-definition-overriding: true
-    application:
-        name: authentication-service
     cloud:
         discovery:
             enabled: false
         consul:
             enabled: false
+            config:
+                enabled: false
         kubernetes:
             enabled: false
-    security:
-        oauth2:
-            client:
-                registration:
-                    google:
-                        client-id: test
-                        client-secret: test
-            resourceserver:
-                jwt:
-                    jwk-set-uri: http://localhost:${server.port}/.well-known/jwks.json
     data:
         redis:
             repositories:
@@ -27,8 +19,6 @@ spring:
     mongodb:
         embedded:
             version: "4.0.2"
-    profiles:
-        include: auth
     session:
         store-type: none
 opentracing:

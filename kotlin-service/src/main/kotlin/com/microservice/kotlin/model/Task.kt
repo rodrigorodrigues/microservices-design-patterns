@@ -3,8 +3,8 @@ package com.microservice.kotlin.model
 import org.springframework.data.annotation.*
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.Size
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.Size
 
 @Document(collection = "tasks")
 data class Task(

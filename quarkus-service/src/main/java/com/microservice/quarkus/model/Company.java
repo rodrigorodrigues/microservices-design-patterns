@@ -2,7 +2,7 @@ package com.microservice.quarkus.model;
 
 import java.time.Instant;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.PanacheQuery;

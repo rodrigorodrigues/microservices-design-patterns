@@ -4,10 +4,10 @@ import com.microservice.authentication.common.model.Authority;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 
 import com.microservice.authentication.common.model.UserType;
 import lombok.AllArgsConstructor;

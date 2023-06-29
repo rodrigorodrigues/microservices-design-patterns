@@ -2,6 +2,7 @@ package com.springboot.edgeserver;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.concurrent.Executors;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.springboot.edgeserver.filters.AdminResourcesFilter;
@@ -15,11 +16,15 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
+import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
@@ -42,6 +47,16 @@ public class EdgeServerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(EdgeServerApplication.class, args);
+	}
+
+	@Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
+	public AsyncTaskExecutor asyncTaskExecutor() {
+		return new TaskExecutorAdapter(Executors.newVirtualThreadPerTaskExecutor());
+	}
+
+	@Bean
+	public TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
+		return protocolHandler -> protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
 	}
 
 	@Primary

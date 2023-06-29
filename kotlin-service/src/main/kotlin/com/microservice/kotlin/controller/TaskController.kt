@@ -8,7 +8,8 @@ import com.querydsl.core.types.Predicate
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import org.apache.commons.lang.StringUtils
+import jakarta.validation.Valid
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
@@ -24,7 +25,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.time.Instant
-import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/tasks")

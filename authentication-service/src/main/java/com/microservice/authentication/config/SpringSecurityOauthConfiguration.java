@@ -5,14 +5,21 @@ import com.microservice.authentication.service.CustomOidcUserService;
 import lombok.AllArgsConstructor;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 /**
  * Spring Security Configuration for oauth2
@@ -21,8 +28,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
-@Order(302)
-public class SpringSecurityOauthConfiguration extends WebSecurityConfigurerAdapter {
+@Order(301)
+public class SpringSecurityOauthConfiguration {
 
     private final CustomOidcUserService customOidcUserService;
 
@@ -30,13 +37,41 @@ public class SpringSecurityOauthConfiguration extends WebSecurityConfigurerAdapt
 
     private final LogoutSuccessHandler customLogoutSuccessHandler;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.requestMatchers()
-            .antMatchers("/oauth2/**", "/logout", "/login/**")
+    @Bean
+    public SecurityFilterChain securityFilterChainOauth(HttpSecurity http) throws Exception {
+//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        return http
+            .securityMatcher("/oauth2/**", "/oauth2logout", "/login/**")
+//            .authorizeHttpRequests(a -> a.anyRequest().authenticated())
+//            .authorizeHttpRequests(a -> a.requestMatchers("/oauth2/**", "/logout", "/login/**").authenticated())
+            .logout(l -> l.logoutSuccessUrl("/logout")
+                .deleteCookies("SESSIONID")
+                .logoutSuccessHandler(customLogoutSuccessHandler)
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", HttpMethod.GET.name()))
+                .invalidateHttpSession(true))
+            .oauth2Login(o -> o.successHandler(customAuthenticationSuccessHandler)
+                .userInfoEndpoint(u -> u.oidcUserService(customOidcUserService)))
+            // Redirect to the login page when not authenticated from the
+            // authorization endpoint
+            .exceptionHandling(exceptions -> exceptions
+                .defaultAuthenticationEntryPointFor(
+                    new LoginUrlAuthenticationEntryPoint("/login"),
+                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                )
+            )
+            // Accept access tokens for User Info and/or Client Registration
+            /*.oauth2ResourceServer(resourceServer -> resourceServer
+                .jwt(Customizer.withDefaults()))*/
+/*
+            .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+            .oidc(Customizer.withDefaults())
             .and()
-            .authorizeRequests()
-            .anyRequest().authenticated()
+*/
+            .build();
+
+        /*return http.authorizeHttpRequests()
+            .requestMatchers("/oauth2/**", "/logout", "/login/**")
+            .authenticated()
             .and().logout()
                 .logoutSuccessUrl("/logout")
                 .deleteCookies("SESSIONID")
@@ -46,7 +81,8 @@ public class SpringSecurityOauthConfiguration extends WebSecurityConfigurerAdapt
             .and().oauth2Login()
                 .successHandler(customAuthenticationSuccessHandler)
                 .userInfoEndpoint()
-                .oidcUserService(customOidcUserService);
+                .oidcUserService(customOidcUserService)
+            .and().and().build();*/
     }
 
 }

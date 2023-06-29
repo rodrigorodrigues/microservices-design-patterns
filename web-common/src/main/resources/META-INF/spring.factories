@@ -1,5 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.microservice.web.autoconfigure.WebCommonAutoConfiguration,\
-com.microservice.web.autoconfigure.SwaggerConfiguration,\
-com.microservice.web.autoconfigure.WebConfiguration,\
-com.microservice.web.autoconfigure.TracerConfiguration

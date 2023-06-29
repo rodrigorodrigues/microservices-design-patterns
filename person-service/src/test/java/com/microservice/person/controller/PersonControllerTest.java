@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.person.config.SpringSecurityAuditorAware;
+import com.microservice.person.config.SpringSecurityConfiguration;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.repository.PersonRepository;
 import com.microservice.person.service.PersonService;
@@ -32,7 +33,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -45,14 +45,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(properties = "configuration.initialLoad=false", controllers = PersonController.class)
-@Import(WebCommonAutoConfiguration.class)
+@WebMvcTest(properties = {"configuration.initialLoad=false",
+    "spring.config.import=optional:consul:",
+    "spring.main.allow-bean-definition-overriding=true",
+    "server.error.include-message=always",
+    "logging.level.org.springframework.security=trace"}, controllers = PersonController.class)
+@Import({ WebCommonAutoConfiguration.class, SpringSecurityConfiguration.class})
 public class PersonControllerTest {
 
     @Autowired
@@ -94,7 +101,7 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling GET - /api/people without valid authorization the response should be 403 - Forbidden")
     @WithMockUser(roles = "INVALID_ROLE")
     public void whenCallFindAllShouldReturnForbiddenWhenDoesNotHavePermission() throws Exception {
-        client.perform(MockMvcRequestBuilders.get("/api/people")
+        client.perform(get("/api/people").with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
             .andExpect(status().isForbidden());
     }
@@ -102,7 +109,7 @@ public class PersonControllerTest {
     @Test
     @DisplayName("Test - When Calling GET - /api/people without authorization the response should be 401 - Unauthorized")
     public void whenCallFindAllShouldReturnUnauthorizedWhenDoesNotHavePermission() throws Exception {
-        client.perform(MockMvcRequestBuilders.get("/api/people"))
+        client.perform(get("/api/people").with(csrf()))
             .andExpect(status().isUnauthorized());
 
     }
@@ -113,7 +120,7 @@ public class PersonControllerTest {
     public void whenCallFindAllShouldReturnEmptyList() throws Exception {
         when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.EMPTY_LIST));
 
-        client.perform(MockMvcRequestBuilders.get("/api/people")
+        client.perform(get("/api/people").with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -130,7 +137,7 @@ public class PersonControllerTest {
         person2.setId("200");
         when(personService.findAll(any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Arrays.asList(person, person2)));
 
-        client.perform(MockMvcRequestBuilders.get("/api/people")
+        client.perform(get("/api/people").with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -146,7 +153,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("me");
         when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.singletonList(person)));
 
-        client.perform(MockMvcRequestBuilders.get("/api/people")
+        client.perform(get("/api/people").with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -162,7 +169,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("me");
         when(personService.findById(anyString())).thenReturn(person);
 
-        client.perform(MockMvcRequestBuilders.get("/api/people/{id}", 100)
+        client.perform(get("/api/people/{id}", 100).with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -178,7 +185,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("test1");
         when(personService.findById(anyString())).thenReturn(person);
 
-        client.perform(MockMvcRequestBuilders.get("/api/people/{id}", 100)
+        client.perform(get("/api/people/{id}", 100).with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message", containsString("User(test) does not have access to this resource")));
@@ -191,7 +198,7 @@ public class PersonControllerTest {
         PersonDto personDto = createPersonDto();
         when(personService.save(any(PersonDto.class))).thenReturn(personDto);
 
-        client.perform(MockMvcRequestBuilders.post("/api/people")
+        client.perform(post("/api/people").with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertToJson(personDto)))
@@ -210,7 +217,7 @@ public class PersonControllerTest {
         when(personService.findById(anyString())).thenReturn(personDto);
         when(personService.save(any(PersonDto.class))).thenReturn(personDto);
 
-        client.perform(MockMvcRequestBuilders.put("/api/people/{id}", personDto.getId())
+        client.perform(put("/api/people/{id}", personDto.getId()).with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertToJson(personDto)))
@@ -228,7 +235,7 @@ public class PersonControllerTest {
         personDto.setId("999");
         when(personService.findById(anyString())).thenReturn(null);
 
-        client.perform(put("/api/people/{id}", personDto.getId())
+        client.perform(put("/api/people/{id}", personDto.getId()).with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertToJson(personDto)))
@@ -245,7 +252,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("mock");
         when(personService.findById(anyString())).thenReturn(person);
 
-        client.perform(delete("/api/people/{id}", person.getId())
+        client.perform(delete("/api/people/{id}", person.getId()).with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
                 .andExpect(status().is2xxSuccessful());
     }
@@ -259,7 +266,7 @@ public class PersonControllerTest {
         person.setCreatedByUser("mock");
         when(personService.findById(anyString())).thenReturn(person);
 
-        client.perform(delete("/api/people/{id}", person.getId())
+        client.perform(delete("/api/people/{id}", person.getId()).with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message", containsString("User(test) does not have access to delete this resource")));
@@ -271,7 +278,7 @@ public class PersonControllerTest {
     public void whenCallDeleteShouldResponseNotFound() throws Exception {
         when(personService.findById(anyString())).thenReturn(null);
 
-        client.perform(delete("/api/people/{id}", "12345")
+        client.perform(delete("/api/people/{id}", "12345").with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
             .andExpect(status().isNotFound());
 

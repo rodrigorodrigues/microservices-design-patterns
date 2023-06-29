@@ -2,14 +2,14 @@ package com.springboot.adminserver.config;
 
 import java.util.Map;
 
-import javax.validation.ConstraintViolationException;
-
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
         Map<String, Object> errorAttributes = super.getErrorAttributes(request, options);
         Throwable throwable = getError(request);
         if (throwable != null) {
-            HttpStatus status = getHttpStatusError(throwable);
+            HttpStatusCode status = getHttpStatusError(throwable);
             errorAttributes.put("status", status.value());
             errorAttributes.put("message", ExceptionUtils.getMessage(throwable));
             errorAttributes.put("error", status);
@@ -39,12 +39,12 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
      * @param ex current exception
      * @return httpStatus
      */
-    public HttpStatus getHttpStatusError(Throwable ex) {
-        HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
+    public HttpStatusCode getHttpStatusError(Throwable ex) {
+        HttpStatusCode httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
         if (ex instanceof HttpStatusCodeException e) {
             httpStatus = e.getStatusCode();
         } else if (ex instanceof ResponseStatusException e) {
-            httpStatus = e.getStatus();
+            httpStatus = e.getStatusCode();
         } else if (ex instanceof AuthenticationException) {
             httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (ex instanceof ConstraintViolationException) {

@@ -8,11 +8,13 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.querydsl.QuerydslPredicateExecutor
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer
 import org.springframework.data.querydsl.binding.QuerydslBindings
+import org.springframework.data.repository.ListCrudRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface TaskRepository : PagingAndSortingRepository<Task, String>, QuerydslPredicateExecutor<Task>, QuerydslBinderCustomizer<QTask> {
+interface TaskRepository : PagingAndSortingRepository<Task, String>, QuerydslPredicateExecutor<Task>, QuerydslBinderCustomizer<QTask>,
+    ListCrudRepository<Task, String> {
     fun findAllByCreatedByUser(createdByUser: String, pageable: Pageable): Page<Task>
 
     fun findAllByCreatedByUserAndPostId(createdByUser: String, postId: String, pageable: Pageable): Page<Task>

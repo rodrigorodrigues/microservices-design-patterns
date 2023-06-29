@@ -3,6 +3,7 @@ package com.microservice.kotlin.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.JwtTokenUtil
+import com.microservice.kotlin.config.SpringSecurityConfiguration
 import com.microservice.kotlin.dto.TaskDto
 import com.microservice.kotlin.repository.TaskRepository
 import com.microservice.kotlin.service.TaskService
@@ -14,7 +15,6 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -22,7 +22,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.support.PageableExecutionUtils
+import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.http.HttpHeaders.LOCATION
 import org.springframework.http.MediaType.APPLICATION_JSON
@@ -38,8 +38,8 @@ import java.util.*
 import javax.crypto.spec.SecretKeySpec
 
 @WebMvcTest(properties = ["configuration.mongo=false"], controllers = [TaskController::class])
-@Import(WebCommonAutoConfiguration::class)
-@EnableConfigurationProperties(value = [ResourceServerProperties::class, AuthenticationProperties::class])
+@Import(*[ WebCommonAutoConfiguration::class, SpringSecurityConfiguration::class])
+@EnableConfigurationProperties(value = [AuthenticationProperties::class])
 internal class TaskControllerTest(@Autowired val client: MockMvc,
                                   @Autowired val objectMapper: ObjectMapper,
                                   @Autowired val authenticationProperties: AuthenticationProperties) {

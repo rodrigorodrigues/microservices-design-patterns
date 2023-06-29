@@ -12,9 +12,10 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface UserRepository extends PagingAndSortingRepository<User, String>, QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {
+public interface UserRepository extends PagingAndSortingRepository<User, String>, QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser>, CrudRepository<User, String> {
     User findByEmail(String email);
 
     Page<User> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate);

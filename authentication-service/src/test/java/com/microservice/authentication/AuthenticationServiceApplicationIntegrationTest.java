@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
@@ -44,6 +44,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -74,7 +75,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
-        "logging.level.com.microservice=debug"})
+        "logging.level.com.microservice=debug",
+        "spring.cloud.consul.config.enabled=false"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
 @AutoConfigureMockMvc
@@ -99,8 +101,12 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
         private final PasswordEncoder passwordEncoder;
 
+        private final MongoTemplate mongoTemplate;
+
         @PostConstruct
         public void init() {
+            mongoTemplate.dropCollection(Authentication.class);
+
             Authentication authentication = authenticationRepository.save(Authentication.builder().email("master@gmail.com")
                 .password(passwordEncoder.encode("password123"))
                 .authorities(permissions("ROLE_CREATE", "ROLE_READ", "ROLE_SAVE"))
