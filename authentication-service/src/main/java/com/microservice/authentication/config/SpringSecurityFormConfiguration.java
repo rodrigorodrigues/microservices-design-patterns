@@ -41,6 +41,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.request.ServletWebRequest;
 
@@ -104,7 +105,8 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
                 .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
                 .invalidateHttpSession(true))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.NEVER))
-            .csrf(c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+            .csrf(c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
             .exceptionHandling(e -> e.authenticationEntryPoint(this::handleErrorResponse))
             .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)

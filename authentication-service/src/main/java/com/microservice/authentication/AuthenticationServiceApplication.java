@@ -39,6 +39,7 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
+@EnableAsync
 @Slf4j
 @SpringBootApplication
 public class AuthenticationServiceApplication implements ApplicationContextAware {

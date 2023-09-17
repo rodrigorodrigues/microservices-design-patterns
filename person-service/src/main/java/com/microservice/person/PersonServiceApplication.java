@@ -67,6 +67,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -81,11 +82,15 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @SpringBootApplication
+@EnableAsync
 @EnableScheduling
 @EnableConfigurationProperties(ConfigProperties.class)
 public class PersonServiceApplication implements ApplicationContextAware {
     Faker faker = new Faker();
     private ApplicationContext applicationContext;
+
+    @Value("${com.microservice.authentication.jwt.keyValue:null}")
+    private String keyValue;
 
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
@@ -108,11 +113,17 @@ public class PersonServiceApplication implements ApplicationContextAware {
         return key;
     }
 
+    @Primary
     @Bean
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+        log.debug("jwtDecoder:properties: {}\tkeyValue: {}", properties, keyValue);
         AuthenticationProperties.Jwt jwt = properties.getJwt();
         if (jwt.getKeyValue() != null) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue()
+                .getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else if (keyValue != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(keyValue
                 .getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
         } else if (properties.getJwk().getKeySetUri() != null) {

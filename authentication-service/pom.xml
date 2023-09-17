@@ -48,6 +48,11 @@
 
         <dependency>
             <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -232,8 +237,8 @@
                             <jvmFlag>-verbose:gc</jvmFlag>
                             <!--<jvmFlag>-XX:+PrintGCDetails</jvmFlag>
                             <jvmFlag>-XX:+PrintGCDateStamps</jvmFlag>
-                            <jvmFlag>-XX:+PrintGCTimeStamps</jvmFlag>-->
-                            <jvmFlag>-Xloggc:/var/log/gc.log</jvmFlag>
+                            <jvmFlag>-XX:+PrintGCTimeStamps</jvmFlag>
+                            <jvmFlag>-Xloggc:/var/log/gc.log</jvmFlag>-->
                             <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
                         </jvmFlags>
                     </container>

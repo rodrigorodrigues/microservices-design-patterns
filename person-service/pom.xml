@@ -40,6 +40,11 @@
 
         <dependency>
             <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -337,6 +342,11 @@
             <build>
                 <plugins>
                     <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                    </plugin>
+
+                    <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <executions>
@@ -348,14 +358,22 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <!--<configuration>
+<!--
+                        <configuration>
                             <image>
-                                <builder>paketobuildpacks/builder:tiny</builder>
+                                <builder>paketobuildpacks/builder:base</builder>
                                 <env>
                                     <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+                                    <BP_JVM_VERSION>20.0.2</BP_JVM_VERSION>
+                                    <BP_NATIVE_IMAGE_BUILD_ARGUMENTS>&#45;&#45;enable-preview</BP_NATIVE_IMAGE_BUILD_ARGUMENTS>
                                 </env>
+                                <buildpacks>
+                                    <buildpack>gcr.io/paketo-buildpacks/graalvm</buildpack>
+                                    <buildpack>gcr.io/paketo-buildpacks/java-native-image</buildpack>
+                                </buildpacks>
                             </image>
-                        </configuration>-->
+                        </configuration>
+-->
                     </plugin>
                 </plugins>
             </build>

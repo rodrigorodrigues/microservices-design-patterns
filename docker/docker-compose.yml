@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   service-discovery:
-    image: consul:latest
+    image: hashicorp/consul:latest
     container_name: service-discovery
     environment:
       - CONSUL_LOCAL_CONFIG={"enable_debug":true}
@@ -33,12 +33,12 @@ services:
     image: edge-server:0.0.1-SNAPSHOT
     container_name: gateway
     environment:
-      - SPRING_REDIS_HOST=redisdb
+      - SPRING_DATA_REDIS_HOST=redisdb
       - SPRING_PROFILES_ACTIVE=consul,dev,auth
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - SPRING_DATA_MONGODB_DATABASE=docker
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
@@ -48,6 +48,8 @@ services:
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - SPRING_MAIN_WEB_APPLICATION_TYPE=reactive
+      - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
+      - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
 #      - SPRING_CLOUD_GATEWAY_GLOBAL_CORS_ADD_TO_SIMPLE_URL_HANDLER_MAPPING=true
     depends_on:
       - service-discovery
@@ -62,7 +64,7 @@ services:
           - gateway
 
   monitoring:
-    image: admin-server
+    image: admin-server:0.0.1-SNAPSHOT
     container_name: monitoring
     environment:
       - SPRING_REDIS_HOST=redisdb
@@ -204,13 +206,16 @@ services:
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_DATA_MONGODB_URI=mongodb+srv://mongoadmin:zitfoh-zynwU9-kivgod@serverlessinstance0.vhszn.mongodb.net/test?retryWrites=true&w=majority
+      #- SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_DATA_MONGODB_DATABASE=test
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
+      - JAVA_OPTS=--enable-preview
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -324,12 +329,13 @@ services:
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=auth,consul,dev
-      - SPRING_REDIS_HOST=redisdb
+      - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
+      - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
 #      - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
@@ -339,7 +345,7 @@ services:
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
-      - JAVA_OPTS=-Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+      - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
       - service-discovery
