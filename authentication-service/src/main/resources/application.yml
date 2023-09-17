@@ -11,6 +11,10 @@ opentracing:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
 
+spring:
+    application:
+        name: authentication-service
+
 ---
 spring:
     config:

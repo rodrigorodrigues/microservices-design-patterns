@@ -1,4 +1,6 @@
 spring:
+    application:
+        name: edge-server
     cloud:
         gateway:
             filter:

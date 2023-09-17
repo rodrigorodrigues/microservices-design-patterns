@@ -1,10 +1,16 @@
 package com.microservice.authentication;
 
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
+import javax.crypto.spec.SecretKeySpec;
+
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
@@ -13,6 +19,7 @@ import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -20,14 +27,24 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
+import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
@@ -42,12 +59,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
+@EnableAsync
 @Slf4j
 @SpringBootApplication
-public class AuthenticationServiceApplication {
+public class AuthenticationServiceApplication implements ApplicationContextAware {
+    private ApplicationContext applicationContext;
+
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
+
+    @Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
+    public AsyncTaskExecutor asyncTaskExecutor() {
+        return new TaskExecutorAdapter(Executors.newVirtualThreadPerTaskExecutor());
+    }
+
+    @Bean
+    public TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
+        return protocolHandler -> protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+    }
+
+    @Bean
+    public PasswordEncoder encoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
 
     @Bean
     static BeanFactoryPostProcessor removeErrorSecurityFilter() {
@@ -56,6 +91,18 @@ public class AuthenticationServiceApplication {
                 ((DefaultListableBeanFactory) beanFactory).removeBeanDefinition("errorPageSecurityInterceptor");
             } catch (Exception ignored) {}
         };
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
+        if (jwt != null && jwt.getKeyValue() != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else {
+            RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
+            return NimbusJwtDecoder.withPublicKey(publicKey).build();
+        }
     }
 
     @Bean
@@ -157,6 +204,11 @@ public class AuthenticationServiceApplication {
                 return generateToken(oAuth2Authentication);
             }
         };
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
 

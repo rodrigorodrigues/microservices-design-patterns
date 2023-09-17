@@ -16,6 +16,8 @@ security:
             jwk:
                 key-set-uri: https://spendingbetter.com/.well-known/jwks.json
 spring:
+    application:
+        name: person-service
     sleuth:
         baggage:
             remote-fields:

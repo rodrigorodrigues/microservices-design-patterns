@@ -38,21 +38,23 @@ spec:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-          volumeMounts:
-            - name: spendingbetter-pub-key
-              mountPath: "/etc/ssl_certs_pub"
-              readOnly: true
+#          volumeMounts:
+#            - name: spendingbetter-pub-key
+#              mountPath: "/etc/ssl_certs_pub"
+#              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+              value: --enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
             - name: SERVER_PORT
               value: "8082"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://192.168.1.5:27017
+              value: mongodb+srv://mongoadmin:zitfoh-zynwU9-kivgod@serverlessinstance0.vhszn.mongodb.net/test?retryWrites=true&w=majority #mongodb://192.168.1.5:27017
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
+            - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING
+              value: "true"
             - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
             - name: OPENTRACING_JAEGER_ENABLED
@@ -69,6 +71,18 @@ spec:
               value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: KEYSTORE_ALIAS
               value: spendingbetter
+            - name: LOGGING_LEVEL_COM_MICROSERVICE
+              value: trace
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD
+              value: trace
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT
+#              value: trace
+#            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+#              value: "true"
+            - name: SPRING_CONFIG_IMPORT
+              value: "kubernetes:"
+#            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
+#              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
 #            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_PUBLIC_KEYSTORE
 #              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
           ports:
@@ -87,7 +101,7 @@ spec:
               port: 8082
             initialDelaySeconds: 1000
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-pub-key
-          secret:
-            secretName: spendingbetter-pub-key
+#      volumes:
+#        - name: spendingbetter-pub-key
+#          secret:
+#            secretName: spendingbetter-pub-key

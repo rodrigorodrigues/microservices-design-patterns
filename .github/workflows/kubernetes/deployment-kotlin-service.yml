@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: kotlin-service
-          image: user-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-kotlin-service:latest
+          image: kotlin-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-kotlin-service:latest
           resources:
             requests:
               memory: "256Mi"

@@ -1,12 +1,12 @@
 package com.microservice.person.config;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * Class for auditing mongo entities changes.
@@ -18,7 +18,7 @@ public class SpringSecurityAuditorAware implements AuditorAware<String> {
     public Optional<String> getCurrentAuditor() {
         return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
             .map(a -> {
-                if (a instanceof OAuth2AuthenticationToken) {
+                if (a instanceof OidcUser) {
                     DefaultOidcUser oidcUser = (DefaultOidcUser) a.getPrincipal();
                     return oidcUser.getEmail();
                 } else {

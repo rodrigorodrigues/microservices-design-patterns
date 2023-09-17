@@ -3,47 +3,61 @@ package com.microservice.kotlin.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.web.common.util.CustomDefaultErrorAttributes
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.error.ErrorAttributeOptions
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
+import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.context.request.ServletWebRequest
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.security.interfaces.RSAPublicKey
 import javax.crypto.spec.SecretKeySpec
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: CustomDefaultErrorAttributes,
                                   @Autowired val objectMapper: ObjectMapper,
-                                  @Autowired val properties: AuthenticationProperties) : WebSecurityConfigurerAdapter() {
+                                  @Autowired val properties: AuthenticationProperties) : ApplicationContextAware {
+    private lateinit var applicationContext: ApplicationContext
+
     private val WHITE_LIST = arrayOf(
         // -- swagger ui
         // -- swagger ui
-        "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**", "/configuration/ui", "/configuration/security", "/swagger-ui.html", "/webjars/**", "/**/*.js", "/**/*.css", "/**/*.html", "/favicon.ico",
+        "/v3/api-docs/**",
+        "/swagger-resources",
+        "/swagger-resources/**",
+        "/configuration/ui",
+        "/configuration/security",
+        "/swagger-ui.html",
+        "/webjars/**",
+        "/*.js",
+        "/*.css",
+        "/*.html",
+        "/favicon.ico",
         // other public endpoints of your API may be appended to this array
         "/actuator/**",
         "/error")
 
-    override fun configure(http: HttpSecurity) {
-        http
-            .csrf()
-            .disable()
+    @Bean
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        return http
+            .csrf{ it.disable() }
             .headers()
             .frameOptions().disable()
             .cacheControl().disable()
@@ -53,8 +67,8 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
             .formLogin().disable()
             .httpBasic().disable()
             .logout().disable()
-            .authorizeRequests()
-            .antMatchers(*WHITE_LIST).permitAll()
+            .authorizeHttpRequests()
+            .requestMatchers(*WHITE_LIST).permitAll()
             .anyRequest().authenticated()
             .and()
             .oauth2ResourceServer()
@@ -63,7 +77,7 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
             .jwt {
                 val jwtDecoder = jwtDecoder(properties)
                 it.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())
-            }
+            }.and().build()
     }
 
     @Bean
@@ -96,6 +110,10 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
         val jwtAuthenticationConverter = JwtAuthenticationConverter()
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter)
         return jwtAuthenticationConverter
+    }
+
+    override fun setApplicationContext(applicationContext: ApplicationContext) {
+        this.applicationContext = applicationContext
     }
 
 }

@@ -35,7 +35,6 @@ public class AuthenticatedUserController {
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         OAuth2AccessToken token = redisTokenStoreService.getToken(authentication);
         httpHeaders.add(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
-        log.debug("AuthenticatedUserController:token: {}", token);
         return ResponseEntity
             .status(HttpStatus.OK)
             .headers(httpHeaders)

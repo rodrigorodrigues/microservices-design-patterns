@@ -74,25 +74,16 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
     @Bean
     public SecurityWebFilterChain configure(ServerHttpSecurity http) {
         return http
-                .csrf()
-                .disable()
-                .headers()
-                .frameOptions().disable()
-                .cache().disable()
-                .and()
-                .authorizeExchange()
-                .pathMatchers(WHITELIST).permitAll()
-                .pathMatchers("/actuator/**").hasRole("ADMIN")
-                .anyExchange().authenticated()
-                .and()
-                .formLogin()
-                .authenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain()
-                        .filter(webFilterExchange.getExchange())
-                        .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication)))
-                .authenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true))
-                .and()
-                .logout()
-                .logoutSuccessHandler(new RedirectServerLogoutSuccessHandler() {
+                .csrf(c -> c.disable().headers(h -> h.frameOptions(f -> f.disable().cache(ServerHttpSecurity.HeaderSpec.CacheSpec::disable))))
+                .authorizeExchange(a -> a.pathMatchers(WHITELIST).permitAll()
+                        .pathMatchers("/actuator/**").hasRole("ADMIN")
+                        .anyExchange().authenticated())
+                .formLogin(c -> c.authenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain()
+                                .filter(webFilterExchange.getExchange())
+                                .contextWrite(context -> ReactiveSecurityContextHolder.withAuthentication(authentication)))
+                        .authenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true)))
+
+                .logout(l -> l.logoutSuccessHandler(new RedirectServerLogoutSuccessHandler() {
                     @Override
                     public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
                         log.info("Logout success! authType: {}", authentication.getClass().getName());
@@ -102,8 +93,7 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
                         }
                         return super.onLogoutSuccess(exchange, authentication);
                     }
-                })
-                .and()
+                }))
                 .build();
     }
 

@@ -30,7 +30,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
-@DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
+@DataMongoTest(properties = {"configuration.initialLoad=false",
+    "logging.level.com.microservice.person.util=debug",
+    "spring.config.import=optional:consul:",
+    "spring.main.allow-bean-definition-overriding=true"})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;

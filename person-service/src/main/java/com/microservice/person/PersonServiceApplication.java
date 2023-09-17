@@ -1,6 +1,7 @@
 package com.microservice.person;
 
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -8,12 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
 import com.github.javafaker.Name;
 import com.github.javafaker.Space;
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
@@ -25,6 +30,7 @@ import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -32,11 +38,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -44,6 +54,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.data.querydsl.binding.PathInformation;
@@ -55,10 +67,14 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -66,14 +82,29 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @SpringBootApplication
+@EnableAsync
 @EnableScheduling
 @EnableConfigurationProperties(ConfigProperties.class)
-public class PersonServiceApplication {
+public class PersonServiceApplication implements ApplicationContextAware {
     Faker faker = new Faker();
+    private ApplicationContext applicationContext;
+
+    @Value("${com.microservice.authentication.jwt.keyValue:null}")
+    private String keyValue;
 
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
 	}
+
+    @Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
+    public AsyncTaskExecutor asyncTaskExecutor() {
+        return new TaskExecutorAdapter(Executors.newVirtualThreadPerTaskExecutor());
+    }
+
+    @Bean
+    public TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
+        return protocolHandler -> protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+    }
 
     @Primary
     @Profile("prod")
@@ -82,7 +113,36 @@ public class PersonServiceApplication {
         return key;
     }
 
-	@Configuration
+    @Primary
+    @Bean
+    public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+        log.debug("jwtDecoder:properties: {}\tkeyValue: {}", properties, keyValue);
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
+        if (jwt.getKeyValue() != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue()
+                .getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else if (keyValue != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(keyValue
+                .getBytes(StandardCharsets.UTF_8), "HS256");
+            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+        } else if (properties.getJwk().getKeySetUri() != null) {
+            return NimbusJwtDecoder.withJwkSetUri(properties.getJwk().getKeySetUri())
+                .jwsAlgorithm(SignatureAlgorithm.from("HS256"))
+                .build();
+        } else {
+            RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
+            return NimbusJwtDecoder.withPublicKey(publicKey)
+                .build();
+        }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @Configuration
     @ConditionalOnProperty(prefix = "kafka.local.test", name = "enabled", havingValue = "true")
 	class KafkaTestConfiguration {
         @Autowired

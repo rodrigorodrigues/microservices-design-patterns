@@ -18,26 +18,31 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <repackage.classifier/>
-        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin.version>1.8.21</kotlin.version>
         <code-coverage>0.6</code-coverage>
         <java.version>17</java.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-sleuth</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-sleuth-brave</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-sleuth-otel-autoconfigure</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -53,8 +58,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.rodrigorodrigues</groupId>
-            <artifactId>spring-data-commons-2.7.X</artifactId>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <version>3.2.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -148,6 +154,7 @@
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
             <scope>test</scope>
+            <version>3.4.11</version>
         </dependency>
 
         <dependency>

@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.Tracer;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +16,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.sleuth.BaggageInScope;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -125,7 +125,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                     String requestId = getRequestIdFromPayload(objectValue);
                     if (StringUtils.isNotBlank(requestId)) {
                         log.info("Found requestId: {}", requestId);
-                        try (BaggageInScope baggage = tracer.createBaggage("requestId", requestId)) {
+                        try (BaggageInScope baggage = tracer.createBaggageInScope("requestId", requestId)) {
                             serverHttpRequest.mutate().header("requestId", baggage.get());
                         }
                     }

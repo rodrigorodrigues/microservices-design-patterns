@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -38,7 +39,7 @@ public class HandleResponseError {
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex, boolean writeToResponse) {
         log.error("Error on calling api:request: {}", exchange.getRequest().getPath().value(), ex);
         ServerHttpResponse response = exchange.getResponse();
-        HttpStatus httpStatus = customReactiveDefaultErrorAttributes.getHttpStatusError(ex);
+        HttpStatusCode httpStatus = customReactiveDefaultErrorAttributes.getHttpStatusError(ex);
         response.setStatusCode(httpStatus);
         if (writeToResponse) {
             byte[] bytes = getBytes(ex);

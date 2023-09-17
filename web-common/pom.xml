@@ -18,12 +18,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -42,18 +36,13 @@
         <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
+            <version>2.5.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.14</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-security</artifactId>
-            <version>1.6.14</version>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+            <version>2.2.0</version>
         </dependency>
 
         <dependency>
@@ -69,11 +58,6 @@
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
         <dependency>
@@ -107,8 +91,9 @@
 -->
 
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -130,6 +115,10 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>2.23.4</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 

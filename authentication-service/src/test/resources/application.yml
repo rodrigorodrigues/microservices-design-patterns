@@ -1,0 +1,24 @@
+spring:
+    application:
+        name: authentication-service
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: test
+                        client-secret: test
+            resourceserver:
+                jwt:
+                    jwk-set-uri: http://localhost:${server.port}/.well-known/jwks.json
+    data:
+        redis:
+            repositories:
+                enabled: false
+    mongodb:
+        embedded:
+            version: "4.0.2"
+    profiles:
+        include: auth
+    session:
+        store-type: none

@@ -14,7 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,7 +80,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @SpringBootTest(classes = PersonServiceApplication.class,
 		properties = {"configuration.swagger=false",
-            "logging.level.com.microservice.person=trace"})
+            "logging.level.com.microservice.person=trace",
+            "spring.config.import=optional:consul:",
+            "spring.main.allow-bean-definition-overriding=true"})
 @ContextConfiguration(classes = PersonServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)

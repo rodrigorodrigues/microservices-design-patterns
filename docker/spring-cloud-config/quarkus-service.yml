@@ -1,5 +1,7 @@
 spring:
-  profiles: quarkus
+  config:
+    activate:
+      on-profile: quarkus
 
 security:
   oauth2:

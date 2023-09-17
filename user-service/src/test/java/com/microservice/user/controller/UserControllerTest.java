@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.user.config.SpringSecurityAuditorAware;
+import com.microservice.user.config.SpringSecurityConfiguration;
 import com.microservice.user.dto.UserDto;
 import com.microservice.user.repository.UserRepository;
 import com.microservice.user.service.UserService;
@@ -51,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(properties = "configuration.initialLoad=false",
         controllers = UserController.class)
-@Import(WebCommonAutoConfiguration.class)
+@Import({ WebCommonAutoConfiguration.class, SpringSecurityConfiguration.class})
 @EnableConfigurationProperties({ResourceServerProperties.class, AuthenticationProperties.class})
 public class UserControllerTest {
 

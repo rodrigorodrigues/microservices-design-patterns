@@ -1,6 +1,6 @@
 package com.microservice.quarkus.dto;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
 
 public class CompanyDto {

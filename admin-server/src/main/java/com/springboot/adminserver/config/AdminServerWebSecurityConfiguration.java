@@ -4,20 +4,21 @@ import de.codecentric.boot.admin.server.config.AdminServerProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
 @Slf4j
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
-public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class AdminServerWebSecurityConfiguration {
     private static final String[] WHITELIST = {
         "/**/*.js",
         "/**/*.css",
@@ -34,38 +35,28 @@ public class AdminServerWebSecurityConfiguration extends WebSecurityConfigurerAd
 
     private final TokenStore tokenStore;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         String adminContextPath = adminServerProperties.getContextPath();
 
-        http.csrf().disable()
-            .authorizeRequests()
-            .antMatchers(WHITELIST).permitAll()
-            .antMatchers(adminContextPath + "/assets/**").permitAll()
-            .antMatchers(adminContextPath + "/login").permitAll()
-            .antMatchers(adminContextPath + "/logout").permitAll()
-            .antMatchers(adminContextPath + "/error").permitAll()
-            .anyRequest().hasRole("ADMIN")
-            .and()
-            .formLogin()
-                .loginPage(adminContextPath + "/login")
-            .and()
-            .logout()
-                .logoutUrl(adminContextPath + "/logout")
-            .deleteCookies("SESSIONID")
-            .logoutSuccessHandler((request, response, authentication) -> {
-                log.info("Logout success!");
-                if (authentication instanceof OAuth2AuthenticationToken) {
-                    tokenStore.findTokensByClientId(authentication.getName())
-                        .forEach(tokenStore::removeAccessToken);
-                }
-                new SimpleUrlLogoutSuccessHandler();
-            })
-            .invalidateHttpSession(true);
-    }
-
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().antMatchers(WHITELIST);
+        return http.csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(a -> a.requestMatchers(WHITELIST).permitAll()
+                .requestMatchers(adminContextPath + "/assets/**").permitAll()
+                .requestMatchers(adminContextPath + "/login").permitAll()
+                .requestMatchers(adminContextPath + "/logout").permitAll()
+                .requestMatchers(adminContextPath + "/error").permitAll()
+                .anyRequest().hasRole("ADMIN"))
+            .formLogin(f -> f.loginPage(adminContextPath + "/login"))
+            .logout(l -> l.logoutUrl(adminContextPath + "/logout").deleteCookies("SESSIONID")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    log.info("Logout success!");
+                    if (authentication instanceof OAuth2AuthenticationToken) {
+                        tokenStore.findTokensByClientId(authentication.getName())
+                            .forEach(tokenStore::removeAccessToken);
+                    }
+                    new SimpleUrlLogoutSuccessHandler();
+                })
+                .invalidateHttpSession(true))
+            .build();
     }
 }

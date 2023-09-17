@@ -11,6 +11,8 @@ opentracing:
         web:
             skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
 spring:
+    application:
+        name: kotlin-service
     sleuth:
         baggage:
             remote-fields:
