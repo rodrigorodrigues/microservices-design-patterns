@@ -44,6 +44,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build Docker image using docker:build
+      - name: Install Custom Spring Data Common Jar
+        run: |
+          mvn install:install-file -Dfile=docs/spring-data-commons-3.2.1-SNAPSHOT.jar -DgroupId=org.springframework.data -DartifactId=spring-data-commons -Dversion=3.2.1-SNAPSHOT -Dpackaging=jar
+
+      # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
           mvn clean package -DskipTests -Pkubernetes -q -pl admin-server -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build

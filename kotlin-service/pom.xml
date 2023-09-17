@@ -60,7 +60,6 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
-            <version>3.2.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
