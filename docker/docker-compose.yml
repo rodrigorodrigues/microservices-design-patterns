@@ -67,8 +67,8 @@ services:
     image: admin-server:0.0.1-SNAPSHOT
     container_name: monitoring
     environment:
-      - SPRING_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATA_REDIS_HOST=redisdb
+      - SPRING_PROFILES_ACTIVE=consul,auth,dev
 #      - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
@@ -206,9 +206,8 @@ services:
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
-      - SPRING_DATA_MONGODB_URI=mongodb+srv://mongoadmin:zitfoh-zynwU9-kivgod@serverlessinstance0.vhszn.mongodb.net/test?retryWrites=true&w=majority
-      #- SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
-      - SPRING_DATA_MONGODB_DATABASE=test
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false

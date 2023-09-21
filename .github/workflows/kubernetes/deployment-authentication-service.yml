@@ -64,8 +64,10 @@ spec:
               value: "default"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: trace
-#            - name: CLIENT_ID
-#              value: ${CLIENT_ID}
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID
+              value: 646370370811-lh2drkd14outujo23q01jdgj5k7u38gp.apps.googleusercontent.com
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
+              value: zllbqfwctOHmVw5XGInTnrvX
 #            - name: CLIENT_SECRET
 #              value: ${CLIENT_SECRET}
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS

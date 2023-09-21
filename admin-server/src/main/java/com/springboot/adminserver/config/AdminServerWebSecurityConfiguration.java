@@ -20,9 +20,9 @@ import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuc
 @AllArgsConstructor
 public class AdminServerWebSecurityConfiguration {
     private static final String[] WHITELIST = {
-        "/**/*.js",
-        "/**/*.css",
-        "/**/*.html",
+        "/*.js",
+        "/*.css",
+        "/*.html",
         "/favicon.ico",
         // other public endpoints of your API may be appended to this array
         "/actuator/info",
