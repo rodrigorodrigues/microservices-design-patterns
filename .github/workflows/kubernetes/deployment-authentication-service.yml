@@ -39,23 +39,19 @@ spec:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-          volumeMounts:
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs"
-              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
+              value: --enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "9999"
             - name: SPRING_PROFILES_ACTIVE
-              value: auth,prod
+              value: dev,auth
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://192.168.1.5:27017
+              value: mongodb://mongodb:27017/docker
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
-            - name: SPRING_REDIS_HOST
-              value: 192.168.1.5
+            - name: SPRING_DATA_REDIS_HOST
+              value: redis
             - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
             - name: OPENTRACING_JAEGER_ENABLED
@@ -65,27 +61,29 @@ spec:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: trace
             - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID
+<<<<<<< HEAD
               value: ${CLIENT_ID}
             - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
               value: ${CLIENT_SECRET}
 #            - name: CLIENT_SECRET
 #              value: ${CLIENT_SECRET}
+=======
+              value: $CLIENT_ID
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
+              value: $CLIENT_SECRET
+>>>>>>> 960d258 (Fixed web app - implemented jdk 21 - build react-webapp)
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
               value: "false"
-            - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
-              value: "true"
-            - name: KEYSTORE_PASSWORD
-              value: Cert202!
-            - name: KEYSTORE
-              value: file:/etc/ssl_certs/www.spendingbetter.com.jks
-            - name: KEYSTORE_ALIAS
-              value: spendingbetter
 #            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK
 #              value: "trace"
             - name: COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED
-              value: "false"
-            - name: SPRING_SESSION_STORE_TYPE
-              value: "none"
+              value: "true"
+#            - name: SPRING_SESSION_STORE_TYPE
+#              value: "none"
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "true"
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
+              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
           ports:
             - containerPort: 9999
           livenessProbe:
@@ -102,7 +100,3 @@ spec:
               port: 9999
             initialDelaySeconds: 1000
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-jks
-          secret:
-            secretName: spendingbetter-jks

@@ -1,4 +1,4 @@
 .custom-modal {
-    width: 100VW;
-    height: 100VH;
+    max-width: 80%;
+    max-height: 80%;
 }

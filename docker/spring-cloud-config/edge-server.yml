@@ -7,6 +7,16 @@ spring:
     cloud:
         gateway:
             routes:
+#                - id: grafana-http
+#                  uri: http://localhost:3000
+#                  predicates:
+#                      - Path=/admin/grafana/api/live/ws
+                - id: grafana-ws
+                  uri: ws://localhost:8080
+                  predicates:
+                      - Path=/admin/grafana/api/live/ws
+                  filters:
+                      - RedirectTo=302, ws://localhost:3000/admin/grafana/api/live/ws
                 - id: quarkus-service
                   uri: lb://quarkus-service
                   predicates:
@@ -75,6 +85,13 @@ spring:
                   uri: lb://go-service
                   predicates:
                       - Path=/api/posts/**
+
+com:
+    microservice:
+        authentication:
+            jwt:
+                keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+            user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}
 
 zuul:
     ignoredServices: '*'

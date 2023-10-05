@@ -14,6 +14,14 @@ data:
                 client-secret: ${CLIENT_SECRET}
     ---
     spring:
+      profiles: dev
+    com:
+      microservice:
+        authentication:
+          jwt:
+            keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+    ---
+    spring:
       profiles: prod
       #data:
       #  mongodb:

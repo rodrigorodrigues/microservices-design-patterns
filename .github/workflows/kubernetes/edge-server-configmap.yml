@@ -1,102 +1,110 @@
-spring:
-  servlet:
-    multipart:
-      max-request-size: 50MB
-      max-file-size: 50MB
-  profiles: dev, default
-  sleuth:
-    sampler:
-      probability: 1
-
-com:
-  microservice:
-    authentication:
-      jwt:
-        keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
-      user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}
-
----
-spring:
-  profiles: prod
-  sleuth:
-    sampler:
-      probability: 0.1
-  cloud:
-    gateway:
-      routes:
-        - id: authentication-service
-          uri: lb://authentication-service
-          predicates:
-            - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/jwks.json
-          filters:
-            - SaveSession
-        - id: authentication-service-swagger
-          uri: lb://authentication-service
-          predicates:
-            - Path=/swagger/authentication-service/**
-          filters:
-            - StripPrefix=2
-            #- RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-        - id: user-service-swagger
-          uri: lb://user-service
-          predicates:
-            - Path=/swagger/user-service/**
-          filters:
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-        - id: person-service
-          uri: lb://person-service
-          predicates:
-            - Path=/api/people/**
-        - id: person-service-swagger
-          uri: lb://person-service
-          predicates:
-            - Path=/swagger/person-service/**
-          filters:
-            - RewritePath=/person-service/(?<segment>.*), /$\{segment}
-        - id: nodejs-service
-          uri: lb://week-menu-api
-          predicates:
-            - Path=/api/week-menu/**
-        - id: kotlin-service
-          uri: lb://kotlin-service
-          predicates:
-            - Path=/api/tasks/**
-        - id: kotlin-service-swagger
-          uri: lb://kotlin-service
-          predicates:
-            - Path=/swagger/kotlin-service/**
-          filters:
-            - RewritePath=/kotlin-service/(?<segment>.*), /$\{segment}
-        - id: python-service
-          uri: lb://python-service
-          predicates:
-            - Path=/api/products/**,/api/receipts/**
-        - id: kotlin-service-swagger
-          uri: lb://kotlin-service
-          predicates:
-            - Path=/swagger/python-service/**
-          filters:
-            - RewritePath=/python-service/(?<segment>.*), /$\{segment}
-        - id: go-service
-          uri: lb://go-service
-          predicates:
-            - Path=/api/posts/**
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${JWKS_URL:http://authentication-service:9999/.well-known/jwks.json}
-
-com:
-  microservice:
-    authentication:
-      jwt:
-        enabledPublicKey: true
-        key-store: ${KEYSTORE:}
-        key-store-password: ${KEYSTORE_PASSWORD:}
-        key-alias: ${KEYSTORE_ALIAS:}
-      user-info-uri: ${USER_INFO_URI:http://authentication-service:9999/api/authenticatedUser}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-server
+  labels:
+    spring-config: "true"
+data:
+  application.yaml: |-
+    spring:
+      servlet:
+        multipart:
+          max-request-size: 50MB
+          max-file-size: 50MB
+      profiles: dev, default
+      sleuth:
+        sampler:
+          probability: 1
+    
+    com:
+      microservice:
+        authentication:
+          jwt:
+            keyValue: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+          user-info-uri: ${USER_INFO_URI:http://localhost:9999/api/authenticatedUser}
+    
+    ---
+    spring:
+      profiles: dev
+      sleuth:
+        sampler:
+          probability: 0.1
+      cloud:
+        gateway:
+          routes:
+            - id: authentication-service
+              uri: lb://authentication-service
+              predicates:
+                - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/jwks.json
+              filters:
+                - SaveSession
+            - id: authentication-service-swagger
+              uri: lb://authentication-service
+              predicates:
+                - Path=/swagger/authentication-service/**
+              filters:
+                - StripPrefix=2
+                #- RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/**
+            - id: user-service-swagger
+              uri: lb://user-service
+              predicates:
+                - Path=/swagger/user-service/**
+              filters:
+                - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - id: person-service
+              uri: lb://person-service
+              predicates:
+                - Path=/api/people/**
+            - id: person-service-swagger
+              uri: lb://person-service
+              predicates:
+                - Path=/swagger/person-service/**
+              filters:
+                - RewritePath=/person-service/(?<segment>.*), /$\{segment}
+            - id: nodejs-service
+              uri: lb://week-menu-api
+              predicates:
+                - Path=/api/week-menu/**
+            - id: kotlin-service
+              uri: lb://kotlin-service
+              predicates:
+                - Path=/api/tasks/**
+            - id: kotlin-service-swagger
+              uri: lb://kotlin-service
+              predicates:
+                - Path=/swagger/kotlin-service/**
+              filters:
+                - RewritePath=/kotlin-service/(?<segment>.*), /$\{segment}
+            - id: python-service
+              uri: lb://python-service
+              predicates:
+                - Path=/api/products/**,/api/receipts/**
+            - id: kotlin-service-swagger
+              uri: lb://kotlin-service
+              predicates:
+                - Path=/swagger/python-service/**
+              filters:
+                - RewritePath=/python-service/(?<segment>.*), /$\{segment}
+            - id: go-service
+              uri: lb://go-service
+              predicates:
+                - Path=/api/posts/**
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              jwk-set-uri: ${JWKS_URL:http://authentication-service:9999/.well-known/jwks.json}
+    
+    com:
+      microservice:
+        authentication:
+          jwt:
+            enabledPublicKey: true
+            key-store: ${KEYSTORE:}
+            key-store-password: ${KEYSTORE_PASSWORD:}
+            key-alias: ${KEYSTORE_ALIAS:}
+          user-info-uri: ${USER_INFO_URI:http://authentication-service:9999/api/authenticatedUser}

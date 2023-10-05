@@ -97,6 +97,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+            <version>${lombok.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.springboot</groupId>
             <artifactId>web-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
@@ -357,22 +364,20 @@
                                 </goals>
                             </execution>
                         </executions>
-<!--
                         <configuration>
                             <image>
-                                <builder>paketobuildpacks/builder:base</builder>
-                                <env>
-                                    <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
-                                    <BP_JVM_VERSION>20.0.2</BP_JVM_VERSION>
-                                    <BP_NATIVE_IMAGE_BUILD_ARGUMENTS>&#45;&#45;enable-preview</BP_NATIVE_IMAGE_BUILD_ARGUMENTS>
-                                </env>
+                                <builder>paketobuildpacks/builder:tiny</builder>
                                 <buildpacks>
-                                    <buildpack>gcr.io/paketo-buildpacks/graalvm</buildpack>
+                                    <buildpack>gcr.io/paketo-buildpacks/bellsoft-liberica</buildpack>
                                     <buildpack>gcr.io/paketo-buildpacks/java-native-image</buildpack>
                                 </buildpacks>
+                                <env>
+                                    <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+                                    <BP_JVM_VERSION>21</BP_JVM_VERSION>
+                                    <!--<BP_NATIVE_IMAGE_BUILD_ARGUMENTS>&#45;&#45;enable-preview</BP_NATIVE_IMAGE_BUILD_ARGUMENTS>-->
+                                </env>
                             </image>
                         </configuration>
--->
                     </plugin>
                 </plugins>
             </build>

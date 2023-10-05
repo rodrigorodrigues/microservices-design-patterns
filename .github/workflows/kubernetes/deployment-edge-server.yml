@@ -38,26 +38,19 @@ spec:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-          volumeMounts:
-            - name: spendingbetter-pub-key
-              mountPath: "/etc/ssl_certs_pub"
-              readOnly: true
-            - name: spendingbetter-jks
-              mountPath: "/etc/ssl_certs"
-              readOnly: true
           env:
             - name: JAVA_OPTS
-              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
+              value: --enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
             - name: SERVER_PORT
               value: "8080"
             - name: SPRING_PROFILES_ACTIVE
-              value: auth,prod
+              value: dev,auth
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://192.168.1.5:27017
+              value: mongodb://mongodb:27017/docker
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
-            - name: SPRING_REDIS_HOST
-              value: 192.168.1.5
+            - name: SPRING_DATA_REDIS_HOST
+              value: redis
             - name: SPRING_CLOUD_CONSUL_ENABLED
               value: "false"
             - name: OPENTRACING_JAEGER_ENABLED
@@ -70,20 +63,18 @@ spec:
               value: "true"
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
               value: "false"
-            - name: KEYSTORE_PASSWORD
-              value: Cert202!
-            - name: KEYSTORE
-              value: file:/etc/ssl_certs/www.spendingbetter.com.jks
-#            - name: KEYSTORE
-#              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
-            - name: KEYSTORE_ALIAS
-              value: spendingbetter
-#            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
+            - name: SPRING_CONFIG_IMPORT
+              value: "kubernetes:"
+#            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
 #              value: "true"
-#            - name: SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED
-#              value: "true"
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
+              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY
               value: "trace"
+            - name: LOGGING_LEVEL_COM_SPRINGBOOT_EDGESERVER
+              value: "trace"
+#            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+#              value: "edge-server"
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -99,10 +90,3 @@ spec:
               path: /actuator/health/readiness
               port: 8080
             initialDelaySeconds: 1000
-      volumes:
-        - name: spendingbetter-pub-key
-          secret:
-            secretName: spendingbetter-pub-key
-        - name: spendingbetter-jks
-          secret:
-            secretName: spendingbetter-jks

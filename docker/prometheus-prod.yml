@@ -32,6 +32,12 @@ scrape_configs:
     static_configs:
       - targets: ['person-service:8082']
 
+  - job_name: 'rinha-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['rinha-service:8087']
+
   - job_name: 'user-service'
     metrics_path: '/actuator/prometheus'
     scrape_interval: 15s

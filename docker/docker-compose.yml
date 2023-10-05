@@ -44,7 +44,8 @@ services:
       - DEBUG=true
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
 #      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY=trace
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - SPRING_MAIN_WEB_APPLICATION_TYPE=reactive
@@ -327,7 +328,7 @@ services:
     #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
-      - SPRING_PROFILES_ACTIVE=auth,consul,dev
+      - SPRING_PROFILES_ACTIVE=auth,consul,dev,docker
       - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
@@ -337,13 +338,14 @@ services:
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
 #      - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS=true
       - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
@@ -463,18 +465,20 @@ services:
       - "3000:3000"
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
       - GF_SERVER_HTTP_PORT=3000
-#      - GF_SERVER_DOMAIN=http://localhost:3000
-#      - GF_SERVER_ROOT_URL=http://localhost:3000/admin/grafana
-#      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_DOMAIN=http://localhost:8080
+      - GF_SERVER_ROOT_URL=http://localhost:8080/admin/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
 #      - GF_AUTH_JWT_ENABLED=true
 #      - GF_AUTH_JWT_HEADER_NAME=Authorization
 #      - GF_AUTH_JWT_USERNAME_CLAIM=sub
-#      - GF_AUTH_JWT_EMAIL_CLAIM=user_name
+#      - GF_AUTH_JWT_EMAIL_CLAIM=sub
 #      - GF_AUTH_JWT_URL_LOGIN=http://localhost:8080/login
-##      - GF_AUTH_JWT_JWK_SET_URL=http://localhost:8080/.well-known/jwks.json
+#      - GF_AUTH_JWT_JWK_SET_URL=https://spendingbetter.com/.well-known/jwks.json
 #      - GF_AUTH_JWT_ROLE_ATTRIBUTE_PATH=contains(authorities[*], 'ROLE_ADMIN') && 'Admin' || contains(authorities[*], 'editor') && 'Editor' || 'Viewer'
+#      - GF_AUTH_JWT_ALLOW_ASSIGN_GRAFANA_ADMIN=true
+#      - GF_AUTH_JWT_AUTO_SIGN_UP=true
 #      - GF_AUTH_JWT_JWK_SET_FILE=/etc/grafana/jwks.json
 #      - GF_AUTH_BASIC_ENABLED=false
 #      - GF_DIAGNOSTICS_TRACING_ENABLED=true

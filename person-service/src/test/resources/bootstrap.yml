@@ -5,8 +5,14 @@ spring:
         consul:
             config:
                 enabled: false
+                watch:
+                    enabled: false
             enabled: false
             discovery:
+                enabled: false
+                catalog-services-watch:
+                    enabled: false
+            retry:
                 enabled: false
         kubernetes:
             enabled: false
@@ -17,12 +23,9 @@ spring:
     mongodb:
         embedded:
             version: "4.0.2"
-    config:
-        import: "optional:consul:"
 opentracing:
     jaeger:
         enabled: false
 server:
     error:
         include-message: always
-

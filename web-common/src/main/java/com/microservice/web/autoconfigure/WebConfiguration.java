@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.web.cors.CorsConfiguration;
@@ -40,9 +41,16 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
+    @Profile("cors")
     @Primary
     @Bean
     CorsFilter corsWebFilter() {
+        return new CorsFilter(corsConfigurationSource());
+    }
+
+    @Profile("cors")
+    @Bean
+    UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowCredentials(true);
         if (environment.acceptsProfiles(Profiles.of("prod")) && !environment.acceptsProfiles(Profiles.of("consul"))) {
@@ -55,8 +63,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
-
-        return new CorsFilter(source);
+        return source;
     }
 
 }

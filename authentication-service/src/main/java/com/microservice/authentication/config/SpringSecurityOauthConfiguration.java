@@ -25,7 +25,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
  * Spring Security Configuration for oauth2
  */
 @ConditionalOnProperty(prefix = "oauth", name = "enabled", havingValue = "true", matchIfMissing = true)
-@Configuration
+//@Configuration
 @EnableWebSecurity
 @AllArgsConstructor
 @Order(301)
@@ -38,10 +38,32 @@ public class SpringSecurityOauthConfiguration {
     private final LogoutSuccessHandler customLogoutSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChainOauth(HttpSecurity http) throws Exception {
-//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+            .oidc(Customizer.withDefaults());
+
         return http
-            .securityMatcher("/oauth2/**", "/oauth2logout", "/login/**")
+            .exceptionHandling((exceptions) -> exceptions
+                .defaultAuthenticationEntryPointFor(
+                    new LoginUrlAuthenticationEntryPoint("/login"),
+                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                ))
+            // Accept access tokens for User Info and/or Client Registration
+            .oauth2ResourceServer((resourceServer) -> resourceServer
+                .jwt(Customizer.withDefaults()))
+            .build();
+    }
+
+   /* @Bean
+    public SecurityFilterChain securityFilterChainOauth(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+            .oidc(Customizer.withDefaults());
+        return http
+//            .securityMatcher("/oauth2/**", "/oauth2logout", "/login/**")
 //            .authorizeHttpRequests(a -> a.anyRequest().authenticated())
 //            .authorizeHttpRequests(a -> a.requestMatchers("/oauth2/**", "/logout", "/login/**").authenticated())
             .logout(l -> l.logoutSuccessUrl("/logout")
@@ -60,16 +82,16 @@ public class SpringSecurityOauthConfiguration {
                 )
             )
             // Accept access tokens for User Info and/or Client Registration
-            /*.oauth2ResourceServer(resourceServer -> resourceServer
-                .jwt(Customizer.withDefaults()))*/
-/*
+            .oauth2ResourceServer(resourceServer -> resourceServer
+                .jwt(Customizer.withDefaults()))
+*//*
             .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
             .oidc(Customizer.withDefaults())
             .and()
-*/
+*//*
             .build();
 
-        /*return http.authorizeHttpRequests()
+        *//*return http.authorizeHttpRequests()
             .requestMatchers("/oauth2/**", "/logout", "/login/**")
             .authenticated()
             .and().logout()
@@ -82,7 +104,7 @@ public class SpringSecurityOauthConfiguration {
                 .successHandler(customAuthenticationSuccessHandler)
                 .userInfoEndpoint()
                 .oidcUserService(customOidcUserService)
-            .and().and().build();*/
-    }
+            .and().and().build();*//*
+    }*/
 
 }

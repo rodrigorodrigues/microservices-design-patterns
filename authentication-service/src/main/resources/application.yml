@@ -26,9 +26,10 @@ spring:
             config:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
+            discovery:
+                prefer-ip-address: true
     autoconfigure:
         exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
-
 ---
 spring:
     config:

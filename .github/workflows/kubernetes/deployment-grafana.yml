@@ -48,22 +48,31 @@ spec:
 #              value: https
             - name: GF_SERVER_SERVE_FROM_SUB_PATH
               value: "true"
-            - name: GF_AUTH_GENERIC_OAUTH_ENABLED
+
+            - name: GF_AUTH_GOOGLE_ENABLED
               value: "true"
-            - name: GF_AUTH_GENERIC_OAUTH_SCOPES
-              value: read
-            - name: GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP
-              value: "false"
-            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+            - name: GF_AUTH_GOOGLE_ALLOW_SIGN_UP
+              value: "true"
+            - name: GF_AUTH_GOOGLE_AUTO_LOGIN
+              value: "true"
+            - name: GF_AUTH_GOOGLE_CLIENT_ID
               value: client
-            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+            - name: GF_AUTH_GOOGLE_CLIENT_SECRET
               value: secret
-            - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
-              value: https://spendingbetter.com/auth/oauth/authorize
-            - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
-              value: https://spendingbetter.com/auth/oauth/token
-            - name: GF_AUTH_GENERIC_OAUTH_API_URL
-              value: https://spendingbetter.com/auth/api/authenticatedUser
+            - name: GF_AUTH_GOOGLE_SCOPES
+              value: openid email profile
+            - name: GF_AUTH_GOOGLE_AUTH_URL
+              value: https://accounts.google.com/o/oauth2/v2/auth
+            - name: GF_AUTH_GOOGLE_TOKEN_URL
+              value: https://oauth2.googleapis.com/token
+            - name: GF_AUTH_GOOGLE_API_URL
+              value: https://openidconnect.googleapis.com/v1/userinfo
+            - name: GF_AUTH_GOOGLE_ALLOWED_DOMAINS
+              value: spendingbetter.com
+            - name: GF_AUTH_GOOGLE_HOSTED_DOMAIN
+              value: spendingbetter.com
+            - name: GF_AUTH_GOOGLE_USE_PKCE
+              value: "true"
 #            - name: GF_SERVER_CERT_FILE
 #              value: /etc/crt/www.spendingbetter.com.crt
 #            - name: GF_SERVER_CERT_KEY

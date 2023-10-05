@@ -9,9 +9,13 @@ export async function getWithCredentials(resource, isWithoutApi) {
 }
 
 export async function get(resource, isCredential, isWithoutApi, jwt) {
+    return getResponse(resource, isCredential, isWithoutApi, jwt, false, false);
+}
+
+export async function getResponse(resource, isCredential, isWithoutApi, jwt, returnResponseObject, isUrl) {
     try {
         let response;
-        let url = (isWithoutApi ? `${gatewayUrl}/${resource}` : `${gatewayUrl}/${API_V1}/${resource}`);
+        let url = (isUrl ? resource : (isWithoutApi ? `${gatewayUrl}/${resource}` : `${gatewayUrl}/${API_V1}/${resource}`));
         console.log("API Url: ", url);
         if(isCredential) {
             response = await fetch(url, {
@@ -29,12 +33,16 @@ export async function get(resource, isCredential, isWithoutApi, jwt) {
                 }
             });
         }
-        console.log("response status: ", response.status);
-        const contentTypeHeader = response.headers.get('Content-type');
-        if (contentTypeHeader !== null && contentTypeHeader.startsWith('application/json')) {
-            return response.json();
+        if (!returnResponseObject) {
+            console.log("response status: ", response.status);
+            const contentTypeHeader = response.headers.get('Content-type');
+            if (contentTypeHeader !== null && contentTypeHeader.startsWith('application/json')) {
+                return response.json();
+            } else {
+                return response.text();
+            }
         } else {
-            return response.text();
+            return response;
         }
     } catch (e) {
         console.log("Error get method", e);

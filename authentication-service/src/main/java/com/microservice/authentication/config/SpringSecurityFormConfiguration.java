@@ -25,6 +25,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -40,6 +41,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -63,7 +65,7 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
 
     private ClassLoader loader;
 
-    private static final String[] WHITELIST = {
+    static final String[] WHITELIST = {
         // -- swagger ui
         "/v3/api-docs/**",
         "/swagger-resources",
@@ -111,6 +113,7 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
             .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)
                 .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())))
+            .cors(Customizer.withDefaults())
             .build();
     }
 

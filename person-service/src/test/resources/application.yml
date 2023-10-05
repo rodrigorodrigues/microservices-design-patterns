@@ -3,7 +3,10 @@ spring:
         name: person-service
     profiles:
         include: callPostApi
-
+    config:
+        import: "optional:consul:"
+    main:
+        allow-bean-definition-overriding: true
 com:
     microservice:
         person:

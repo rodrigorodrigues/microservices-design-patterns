@@ -42,7 +42,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -222,8 +224,15 @@ class HomeController {
     @ResponseBody
     public Authentication user(org.springframework.security.core.Authentication authentication) {
         log.debug("Logged user: {}", authentication);
-        Optional<Authentication> findById = authenticationCommonRepository.findById(authentication.getName());
-        return findById.orElseGet(() -> authenticationCommonRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found user: " + authentication.getName())));
+        if (authentication instanceof OAuth2AuthenticationToken oauth2) {
+            DefaultOidcUser oidcIdToken = (DefaultOidcUser) oauth2.getPrincipal();
+            Optional<Authentication> findById = authenticationCommonRepository.findByEmail(oidcIdToken.getEmail());
+            return findById.orElseGet(() -> authenticationCommonRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found user: " + authentication.getName())));
+        } else {
+            Optional<Authentication> findById = authenticationCommonRepository.findById(authentication.getName());
+            return findById.orElseGet(() -> authenticationCommonRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found user: " + authentication.getName())));
+        }
     }
 }

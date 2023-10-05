@@ -19,8 +19,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -87,15 +90,29 @@ public class EdgeServerApplication {
                 .build();
     }*/
 
+
 	@Bean
-	public RouteLocator adminApiRoutes(RouteLocatorBuilder builder,
+	public RouteLocator adminApiRoutes(GatewayProperties gatewayProperties,
+			RouteLocatorBuilder builder,
         @Value("${grafanaUrl:http://localhost:3000/admin/grafana}") String grafanaUrl,
         @Value("${prometheusUrl:http://localhost:9090/amin/prometheus/graph}") String prometheusUrl,
         @Value("${jaegerUrl:http://localhost:16686/admin/jaeger}") String jaegerUrl,
 			AuthenticationPostFilter authenticationPostFilter,
 			AdminResourcesFilter adminResourcesFilter,
-			LogoutPostFilter logoutPostFilter) {
+			LogoutPostFilter logoutPostFilter,
+			WebsocketRoutingFilter websocketRoutingFilter) {
+		log.info("EdgeServerApplication:adminApiRoutes:gatewayProperties:routes {}", gatewayProperties.getRoutes());
 		return builder.routes()
+/*
+				.route("adminResourcesFilterGrafanaWebSocket", p -> p
+						.path("/admin/grafana/api/live/ws")
+						.filters(f -> f.addRequestParameter(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, "http://localhost:8080/admin/grafana/api/live/ws")
+								.filter(websocketRoutingFilter::filter))
+						.uri(grafanaUrl))
+*/
+				.route("adminResourcesFilterGrafanaAssets", p -> p
+						.path("/public/build/**")
+						.uri(grafanaUrl))
 				.route("adminResourcesFilterGrafana", p -> p
 						.path("/admin/grafana/**")
 						.filters(f -> f.filter(adminResourcesFilter)

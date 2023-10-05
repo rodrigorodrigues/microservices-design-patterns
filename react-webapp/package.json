@@ -39,7 +39,8 @@
     "styled-components": "^5.2.1",
     "react-uuid": "2.0.0",
     "react-select": "5.7.0",
-    "react-activity-detector": "1.1.4"
+    "react-activity-detector": "1.1.4",
+    "dompurify": "3.0.6"
   },
   "scripts": {
     "start": "react-scripts start",

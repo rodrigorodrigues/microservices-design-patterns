@@ -14,7 +14,9 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.stereotype.Service;
 
+@Service
 @Slf4j
 @AllArgsConstructor
 public class RedisTokenStoreServiceImpl implements RedisTokenStoreService {

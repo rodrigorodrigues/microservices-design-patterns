@@ -50,7 +50,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: dev
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://192.168.1.5:27017
+              value: mongodb://mongodb:27017/docker
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING

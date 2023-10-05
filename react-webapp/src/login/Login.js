@@ -12,6 +12,7 @@ import HomeContent from '../home/HomeContent';
 import { loading } from '../common/Loading';
 
 const googleOauthUrl = process.env.REACT_APP_GOOGLE_OAUTH_URL;
+console.log("googleOauthUrl: " + googleOauthUrl);
 
 class Login extends Component {
   constructor(props) {

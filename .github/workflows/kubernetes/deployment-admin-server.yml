@@ -44,14 +44,14 @@ spec:
             - name: SERVER_PORT
               value: "9000"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
-            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-              value: "true"
+              value: dev,auth
+#            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+#              value: "true"
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongodb:27017
+              value: mongodb://mongodb:27017/docker
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
-            - name: SPRING_REDIS_HOST
+            - name: SPRING_DATA_REDIS_HOST
               value: redis
             - name: OAUTH_CLIENT_ID
               value: actuator
@@ -61,6 +61,10 @@ spec:
               value: /monitoring
             - name: SERVER_SERVLET_CONTEXT_PATH
               value: /monitoring
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
+              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
+            - name: SPRING_CLOUD_DISCOVERY_CLIENT_HEALTH_INDICATOR_ENABLED
+              value: "false"
             - name: SERVER_USE_FORWARD_HEADERS
               value: "true"
             - name: SPRING_CLOUD_CONSUL_ENABLED
@@ -69,6 +73,8 @@ spec:
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES
+              value: "true"
 #            - name: ACCESS_TOKEN_URI
 #              value: https://YOUR_DOMAIN.com/auth/oauth/token
 #            - name: AUTHORIZATION_URL

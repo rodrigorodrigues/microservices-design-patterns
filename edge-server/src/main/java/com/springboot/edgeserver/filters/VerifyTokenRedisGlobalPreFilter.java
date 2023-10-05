@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -52,15 +53,18 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private final ObjectMapper objectMapper;
 
+    private final GatewayProperties gatewayProperties;
+
     private final List<HttpMessageReader<?>> messageReaders = HandlerStrategies.withDefaults().messageReaders();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         RequestPath path = request.getPath();
+        log.info("VerifyTokenRedisGlobalPreFilter:filter:gatewayProperties:routes {}", gatewayProperties.getRoutes());
         if (StringUtils.startsWithAny(path.value(), "/admin", "/api/logout", "/login/oauth2/", "/oauth2/",
                 "/api/authenticate", "/api/authenticatedUser", "/oauth/", "/swagger/", "/swagger-ui/", "/.well-known/jwks.json",
-                "/v3/api-docs")) {
+                "/v3/api-docs", "/public/build/")) {
             log.debug("Skip token redis validation for following path: {}", path);
             String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             if (StringUtils.isBlank(authorizationHeader)) {

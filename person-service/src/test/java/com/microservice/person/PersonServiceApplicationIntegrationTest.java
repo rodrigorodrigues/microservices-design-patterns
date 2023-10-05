@@ -14,8 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import jakarta.validation.ConstraintViolationException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -35,6 +33,7 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -78,11 +77,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@SpringBootTest(classes = PersonServiceApplication.class,
-		properties = {"configuration.swagger=false",
-            "logging.level.com.microservice.person=trace",
-            "spring.config.import=optional:consul:",
-            "spring.main.allow-bean-definition-overriding=true"})
+@SpringBootTest(classes = PersonServiceApplication.class)
 @ContextConfiguration(classes = PersonServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
