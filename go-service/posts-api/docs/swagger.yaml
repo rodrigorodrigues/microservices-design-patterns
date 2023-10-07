@@ -1,0 +1,92 @@
+basePath: /api
+definitions:
+  model.Post:
+    properties:
+      createdByUser:
+        type: string
+      createdDate:
+        type: string
+      id:
+        type: string
+      lastModifiedByUser:
+        type: string
+      lastModifiedDate:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 5
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/model.TaskDto'
+        type: array
+    required:
+    - name
+    type: object
+  model.TaskDto:
+    properties:
+      createdByUser:
+        type: string
+      createdDate:
+        type: string
+      id:
+        type: string
+      lastModifiedByUser:
+        type: string
+      lastModifiedDate:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 5
+        type: string
+    required:
+    - name
+    type: object
+host: localhost:9091
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Post API
+  version: "1.0"
+paths:
+  /posts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Post'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Show an account
+      tags:
+      - accounts
+swagger: "2.0"

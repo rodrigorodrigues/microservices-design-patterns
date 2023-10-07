@@ -61,17 +61,9 @@ spec:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: trace
             - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID
-<<<<<<< HEAD
               value: ${CLIENT_ID}
             - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
               value: ${CLIENT_SECRET}
-#            - name: CLIENT_SECRET
-#              value: ${CLIENT_SECRET}
-=======
-              value: $CLIENT_ID
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
-              value: $CLIENT_SECRET
->>>>>>> 960d258 (Fixed web app - implemented jdk 21 - build react-webapp)
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
               value: "false"
 #            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK

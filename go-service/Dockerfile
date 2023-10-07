@@ -1,4 +1,4 @@
-FROM golang:1.15.2-alpine3.12
+FROM golang:1.21.2-alpine3.18
 ARG PORT
 ARG ENV
 RUN mkdir /app
