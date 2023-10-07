@@ -19,4 +19,3 @@ python-consul
 wheel
 pymongo[srv]
 dnspython3
-Flask-Scaffold

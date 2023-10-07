@@ -146,30 +146,30 @@ services:
         aliases:
           - week-menu-api
 
-#  receipt-api:
-#    build:
-#      args:
-#        - PORT=8086
-#      context: ../python-service
-#      dockerfile: Dockerfile
-#    container_name: receipt-api
-#    environment:
-#      - ENV_FILE_LOCATION=./.env
-#      - CONSUL_HOST=service-discovery
-#      - MONGODB_URI=mongodb://mongodb-datasource/docker
-#      - SERVER_PORT=8086
-#      - LOG_LEVEL=TRACE
-#      - JAEGER_HOST=jaeger
-#    depends_on:
-#      - service-discovery
-#      - mongodb-datasource
-#      - jaeger
-#    ports:
-#      - 8086:8086
-#    networks:
-#      net:
-#        aliases:
-#          - receipt-api
+  receipt-api:
+    build:
+      args:
+        - PORT=8086
+      context: ../python-service
+      dockerfile: Dockerfile
+    container_name: receipt-api
+    environment:
+      - ENV_FILE_LOCATION=./.env
+      - CONSUL_HOST=service-discovery
+      - MONGODB_URI=mongodb://mongodb-datasource/docker
+      - SERVER_PORT=8086
+      - LOG_LEVEL=TRACE
+      - JAEGER_HOST=jaeger
+    depends_on:
+      - service-discovery
+      - mongodb-datasource
+      - jaeger
+    ports:
+      - 8086:8086
+    networks:
+      net:
+        aliases:
+          - receipt-api
 
   post-api:
     build:
