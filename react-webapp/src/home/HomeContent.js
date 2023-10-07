@@ -164,6 +164,14 @@ class HomeContent extends Component {
                     Consul
                 </NavText>
             </NavItem>
+            <NavItem eventKey="monitoring" disabled={(!isAdmin)}>
+                <NavIcon title="Monitoring - Spring Boot Admin">
+                    <i className="fa fa-fw fa-exclamation-triangle" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Monitoring - Spring Boot Admin">
+                    Monitoring
+                </NavText>
+            </NavItem>
             <NavItem eventKey="grafana" disabled={(!isAdmin)}>
                 <NavIcon>
                     <i className="fa fa-fw fa-pie-chart" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
