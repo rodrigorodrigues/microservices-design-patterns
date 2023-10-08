@@ -18,9 +18,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <repackage.classifier/>
-        <kotlin.version>1.8.21</kotlin.version>
+        <kotlin.version>1.8.22</kotlin.version>
         <code-coverage>0.6</code-coverage>
         <java.version>17</java.version>
+        <docker.image.from>openjdk:17.0.1</docker.image.from>
+        <docker.image.from.fabric8>openjdk:17.0.1</docker.image.from.fabric8>
     </properties>
 
     <dependencies>
