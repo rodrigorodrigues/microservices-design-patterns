@@ -2,7 +2,7 @@ package com.microservice.authentication.controller;
 
 import java.util.Map;
 
-import com.microservice.authentication.service.RedisTokenStoreService;
+import com.microservice.authentication.service.Oauth2TokenStoreService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,13 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthenticatedUserController {
 
-    private final RedisTokenStoreService redisTokenStoreService;
+    private final Oauth2TokenStoreService oauth2TokenStoreService;
 
     @GetMapping("/api/authenticatedUser")
     public ResponseEntity<OAuth2AccessToken> authenticatedUser(Authentication authentication) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        OAuth2AccessToken token = redisTokenStoreService.getToken(authentication);
+        OAuth2AccessToken token = oauth2TokenStoreService.getToken(authentication);
         httpHeaders.add(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
         return ResponseEntity
             .status(HttpStatus.OK)
@@ -47,7 +47,7 @@ public class AuthenticatedUserController {
         String clientId = authentication.getName();
         parameters.put(HttpHeaders.AUTHORIZATION, ((Jwt) authentication.getPrincipal()).getTokenValue());
         TokenRequest tokenRequest = new TokenRequest(parameters, clientId, null, "refresh_token");
-        OAuth2AccessToken token = redisTokenStoreService.refreshToken(tokenRequest);
+        OAuth2AccessToken token = oauth2TokenStoreService.refreshToken(tokenRequest);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);

@@ -36,7 +36,7 @@ class CustomAuthenticationSuccessHandlerTest {
     AuthenticationCommonRepository authenticationCommonRepository;
 
     @Mock
-    RedisTokenStoreServiceImpl redisTokenStoreService;
+    RedisOauth2TokenStoreServiceImpl redisTokenStoreService;
 
     @Test
     void testOnAuthenticationSuccess() throws Exception {

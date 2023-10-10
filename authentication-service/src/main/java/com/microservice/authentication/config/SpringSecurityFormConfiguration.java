@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservice.authentication.service.RedisTokenStoreService;
+import com.microservice.authentication.service.Oauth2TokenStoreService;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,7 +41,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -59,7 +58,7 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
-    private final RedisTokenStoreService redisTokenStoreService;
+    private final Oauth2TokenStoreService oauth2TokenStoreService;
 
     private final JwtDecoder jwtDecoder;
 
@@ -100,7 +99,7 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
             .logout(l -> l.logoutUrl("/api/logout")
                 .deleteCookies("SESSIONID")
                 .logoutSuccessHandler((request, response, authentication) -> {
-                    redisTokenStoreService.removeAllTokensByAuthenticationUser(authentication);
+                    oauth2TokenStoreService.removeAllTokensByAuthenticationUser(authentication);
                     response.setStatus(HttpStatus.OK.value());
                     response.getWriter().flush();
                 })
@@ -152,7 +151,7 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
                 OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
-                OAuth2AccessToken token = redisTokenStoreService.generateToken(oAuth2Authentication);
+                OAuth2AccessToken token = oauth2TokenStoreService.generateToken(oAuth2Authentication);
                 response.addHeader(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 response.addHeader("sessionId", request.getSession().getId());

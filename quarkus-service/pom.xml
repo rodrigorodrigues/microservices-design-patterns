@@ -6,19 +6,19 @@
   <artifactId>quarkus-service</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <properties>
-    <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <docker.env.JAVA_OPTS>-Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
-    <docker.image.from.fabric8>openjdk:17.0.1</docker.image.from.fabric8>
+    <docker.image.from.fabric8>openjdk:21-jdk</docker.image.from.fabric8>
     <docker.image.name>${project.artifactId}</docker.image.name>
     <maven.compiler.parameters>true</maven.compiler.parameters>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>2.13.1.Final</quarkus.platform.version>
+    <quarkus.platform.version>3.4.1</quarkus.platform.version>
     <skipITs>true</skipITs>
-    <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
+    <surefire-plugin.version>3.1.2</surefire-plugin.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -72,12 +72,12 @@
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
-      <version>1.5.2.Final</version>
+      <version>1.5.5.Final</version>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct-processor</artifactId>
-      <version>1.5.2.Final</version>
+      <version>1.5.5.Final</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -122,6 +122,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>me.escoffier.loom</groupId>
+      <artifactId>loom-unit</artifactId>
+      <version>0.3.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-container-image-docker</artifactId>
     </dependency>
@@ -140,7 +146,7 @@
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.40.2</version>
+        <version>0.43.4</version>
         <configuration>
           <verbose>true</verbose>
           <images>
@@ -184,7 +190,7 @@
         <version>${compiler-plugin.version}</version>
         <configuration>
           <compilerArgs>
-            <arg>--enable-preview -parameters</arg>
+            <arg>-parameters</arg>
           </compilerArgs>
         </configuration>
       </plugin>
@@ -192,6 +198,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
         <configuration>
+          <argLine>-Djdk.tracePinnedThreads</argLine>
           <systemPropertyVariables>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>

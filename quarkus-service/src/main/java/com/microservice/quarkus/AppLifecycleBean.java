@@ -8,14 +8,14 @@ import com.orbitz.consul.model.health.ServiceHealth;
 import io.quarkus.arc.profile.IfBuildProfile;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.quarkus.runtime.configuration.ProfileManager;
+import io.quarkus.runtime.configuration.ConfigUtils;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -60,7 +60,7 @@ public class AppLifecycleBean {
 				Company.persist(Stream.of(company, company1, company2));
 			}
 		}
-		if (ProfileManager.getActiveProfile().contains("consul")) {
+		if (ConfigUtils.getProfiles().contains("consul")) {
 			HealthClient healthClient = consulClient.healthClient();
 			List<ServiceHealth> instances = healthClient
 					.getHealthyServiceInstances(appName).getResponse();
@@ -78,7 +78,7 @@ public class AppLifecycleBean {
 	}
 
 	void onStop(@Observes ShutdownEvent ev) {
-		if (ProfileManager.getActiveProfile().contains("consul") && consulClient != null && consulClient.agentClient().isRegistered(instanceId)) {
+		if (ConfigUtils.getProfiles().contains("consul") && consulClient != null && consulClient.agentClient().isRegistered(instanceId)) {
 			consulClient.agentClient().deregister(instanceId);
 			log.info("Instance de-registered: id={}", instanceId);
 		}

@@ -1,8 +1,8 @@
 package com.microservice.authentication.config;
 
 import com.microservice.authentication.service.CustomLogoutSuccessHandler;
-import com.microservice.authentication.service.RedisTokenStoreService;
-import com.microservice.authentication.service.RedisTokenStoreServiceImpl;
+import com.microservice.authentication.service.Oauth2TokenStoreService;
+import com.microservice.authentication.service.RedisOauth2TokenStoreServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -58,13 +58,13 @@ public class RedisConfiguration {
 
     @Primary
     @Bean
-    RedisTokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices, RedisTokenStore redisTokenStore) {
-        return new RedisTokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
+    Oauth2TokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices, RedisTokenStore redisTokenStore) {
+        return new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
     }
 
     @Primary
     @Bean
-    LogoutSuccessHandler customLogoutSuccessHandler(RedisTokenStoreServiceImpl redisTokenStoreService) {
+    LogoutSuccessHandler customLogoutSuccessHandler(RedisOauth2TokenStoreServiceImpl redisTokenStoreService) {
         return new CustomLogoutSuccessHandler(redisTokenStoreService);
     }
 }

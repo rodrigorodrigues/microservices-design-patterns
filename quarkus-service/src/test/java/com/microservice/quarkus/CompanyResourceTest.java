@@ -5,6 +5,7 @@ import com.microservice.quarkus.model.Company;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.mongodb.MongoTestResource;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
@@ -14,18 +15,21 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import me.escoffier.loom.loomunit.LoomUnitExtension;
+import me.escoffier.loom.loomunit.ShouldNotPin;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,6 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
+@ExtendWith(LoomUnitExtension.class)
+@ShouldNotPin
 public class CompanyResourceTest {
     private static final Logger log = LoggerFactory.getLogger(CompanyResourceTest.class);
 

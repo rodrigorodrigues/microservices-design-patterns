@@ -266,8 +266,10 @@ services:
     image: quarkus-service:0.0.1-SNAPSHOT
     container_name: company-api
     environment:
-      - SPRING_PROFILES_ACTIVE=quarkus,consul
-      - CONSUL_URL=service-discovery:8500
+      - QUARKUS_PROFILE=quarkus,consul
+      - QUARKUS_CONSUL_CONFIG_ENABLED=true
+      - CONSUL_CLIENT_URL=http://service-discovery:8500
+      - QUARKUS_CONSUL_CONFIG_AGENT_HOST_PORT=http://service-discovery:8500
       - QUARKUS_HTTP_PORT=8085
       - MONGODB_URI=mongodb://mongodb-datasource:27017
       - MONGODB_DATABASE=docker
@@ -275,6 +277,7 @@ services:
       - QUARKUS_LOG_LEVEL_ROOT=DEBUG
       - QUARKUS_LOG_CATEGORY_COM_ORBITZ_CONSUL=DEBUG
       - PUBLIC_KEY_PATH=/jwks.json
+      - QUARKUS_CONSUL_CONFIG_PROPERTIES_VALUE_KEYS=config/quarkus-service/data
 #      - QUARKUS_SMALLRYE_HEALTH_ROOT_PATH=/actuator/health
     depends_on:
       - service-discovery
@@ -328,7 +331,7 @@ services:
     #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
-      - SPRING_PROFILES_ACTIVE=auth,consul,dev,docker
+      - SPRING_PROFILES_ACTIVE=auth,consul,dev
       - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999

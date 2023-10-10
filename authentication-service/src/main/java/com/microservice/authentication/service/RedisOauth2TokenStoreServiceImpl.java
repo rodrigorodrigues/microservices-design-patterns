@@ -6,6 +6,7 @@ import java.util.Comparator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -18,8 +19,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true")
 @AllArgsConstructor
-public class RedisTokenStoreServiceImpl implements RedisTokenStoreService {
+public class RedisOauth2TokenStoreServiceImpl implements Oauth2TokenStoreService {
     private final DefaultTokenServices defaultTokenServices;
 
     private final RedisTokenStore redisTokenStore;

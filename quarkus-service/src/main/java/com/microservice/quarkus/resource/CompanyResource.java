@@ -3,6 +3,7 @@ package com.microservice.quarkus.resource;
 import com.microservice.quarkus.dto.CompanyDto;
 import com.microservice.quarkus.mapper.CompanyMapper;
 import com.microservice.quarkus.model.Company;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import java.util.function.Predicate;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
+@RunOnVirtualThread
 public class CompanyResource {
     private static final Logger log = LoggerFactory.getLogger(CompanyResource.class);
 

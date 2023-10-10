@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.microservice.authentication.service.RedisTokenStoreService;
+import com.microservice.authentication.service.Oauth2TokenStoreService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/account")
 @AllArgsConstructor
 public class AccountController {
-    private final RedisTokenStoreService redisTokenStoreService;
+    private final Oauth2TokenStoreService oauth2TokenStoreService;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public UserDto index(Authentication authentication) {
-        OAuth2AccessToken token = redisTokenStoreService.getToken(authentication);
+        OAuth2AccessToken token = oauth2TokenStoreService.getToken(authentication);
         Map<String, Object> additionalInformation = token.getAdditionalInformation();
         HashSet<String> authorities = new HashSet<>(Arrays.asList(additionalInformation.get("auth")
             .toString().split(",")));

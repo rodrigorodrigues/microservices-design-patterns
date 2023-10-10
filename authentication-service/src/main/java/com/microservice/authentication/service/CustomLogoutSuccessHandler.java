@@ -11,11 +11,11 @@ import java.io.IOException;
 
 @AllArgsConstructor
 public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
-    private final RedisTokenStoreService redisTokenStoreService;
+    private final Oauth2TokenStoreService oauth2TokenStoreService;
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        redisTokenStoreService.removeAllTokensByAuthenticationUser(authentication);
+        oauth2TokenStoreService.removeAllTokensByAuthenticationUser(authentication);
         super.onLogoutSuccess(request, response, authentication);
     }
 }

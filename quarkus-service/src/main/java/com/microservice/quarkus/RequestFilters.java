@@ -1,9 +1,8 @@
 package com.microservice.quarkus;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-
 import io.quarkus.vertx.http.runtime.filters.Filters;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 
 @ApplicationScoped
 public class RequestFilters {

@@ -374,6 +374,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Go - Fix call to another service
 * [ ] PHP - Add Service using PHP/Laravel
 * [X] Java - Migrate JDK 21 - Spring Boot 3
+* [X] Java - Migrate JDK 21 - Quarkus 3
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
@@ -415,3 +416,5 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
 
 [Spring Cloud Gateway Filters](https://www.baeldung.com/spring-cloud-custom-gateway-filters)
+
+[Quarkus Custom Dockerfile](https://vividcode.io/optimize-quarkus-jvm-container-image-size/)

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class CustomLogoutSuccessHandlerTest {
     @Mock
-    RedisTokenStoreServiceImpl redisTokenStoreService;
+    RedisOauth2TokenStoreServiceImpl redisTokenStoreService;
 
     @Test
     void testOnLogoutSuccess() throws IOException, ServletException {

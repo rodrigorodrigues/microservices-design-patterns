@@ -14,7 +14,7 @@ import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.service.RedisTokenStoreService;
+import com.microservice.authentication.service.Oauth2TokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -180,8 +180,8 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
 
     @ConditionalOnMissingBean
     @Bean
-    RedisTokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices) {
-        return new RedisTokenStoreService() {
+    Oauth2TokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices) {
+        return new Oauth2TokenStoreService() {
             @Override
             public OAuth2AccessToken generateToken(OAuth2Authentication oAuth2Authentication) {
                 log.debug("Created new token for: {}", oAuth2Authentication.getName());

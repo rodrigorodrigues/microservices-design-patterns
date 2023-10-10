@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class RedisTokenStoreServiceTest {
+class Oauth2TokenStoreServiceTest {
     @Mock
     DefaultTokenServices defaultTokenServices;
 
@@ -35,8 +35,8 @@ class RedisTokenStoreServiceTest {
             true, null, null, null, null, null);
         OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
 
-        RedisTokenStoreService redisTokenStoreService = new RedisTokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        OAuth2AccessToken oAuth2AccessToken = redisTokenStoreService.generateToken(oAuth2Authentication);
+        Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
+        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.generateToken(oAuth2Authentication);
 
         assertThat(oAuth2AccessToken).isNotNull();
     }
@@ -48,8 +48,8 @@ class RedisTokenStoreServiceTest {
 
         when(redisTokenStore.findTokensByClientId(anyString())).thenReturn(Collections.singletonList(accessToken));
 
-        RedisTokenStoreService redisTokenStoreService = new RedisTokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        OAuth2AccessToken oAuth2AccessToken = redisTokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""));
+        Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
+        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""));
         assertThat(oAuth2AccessToken).isNotNull();
 
         verifyNoInteractions(defaultTokenServices);
@@ -61,8 +61,8 @@ class RedisTokenStoreServiceTest {
         OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
         when(defaultTokenServices.createAccessToken(any(OAuth2Authentication.class))).thenReturn(accessToken);
 
-        RedisTokenStoreService redisTokenStoreService = new RedisTokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        OAuth2AccessToken oAuth2AccessToken = redisTokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""));
+        Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
+        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""));
         assertThat(oAuth2AccessToken).isNotNull();
 
         verify(defaultTokenServices).createAccessToken(any(OAuth2Authentication.class));
@@ -75,17 +75,17 @@ class RedisTokenStoreServiceTest {
         OAuth2AuthenticationToken authenticationToken = mock(OAuth2AuthenticationToken.class);
         when(authenticationToken.getName()).thenReturn("test");
 
-        RedisTokenStoreService redisTokenStoreService = new RedisTokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        redisTokenStoreService.removeAllTokensByAuthenticationUser(authenticationToken);
+        Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
+        oauth2TokenStoreService.removeAllTokensByAuthenticationUser(authenticationToken);
 
         verify(redisTokenStore).removeAccessToken(any(OAuth2AccessToken.class));
     }
 
     @Test
     void testRemoveAllTokensByAuthenticationUserWithNormalAuthentication() {
-        RedisTokenStoreService redisTokenStoreService = new RedisTokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
+        Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
 
-        redisTokenStoreService.removeAllTokensByAuthenticationUser(new UsernamePasswordAuthenticationToken("", ""));
+        oauth2TokenStoreService.removeAllTokensByAuthenticationUser(new UsernamePasswordAuthenticationToken("", ""));
 
         verifyNoInteractions(redisTokenStore);
     }

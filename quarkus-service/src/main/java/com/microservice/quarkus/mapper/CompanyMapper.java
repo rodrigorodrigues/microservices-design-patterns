@@ -11,7 +11,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
-@Mapper(componentModel = "cdi")
+@Mapper(componentModel = "jakarta")
 public interface CompanyMapper {
     @Mapping(target = "id", expression = "java(company.id.toHexString())")
     CompanyDto toResource(Company company);
