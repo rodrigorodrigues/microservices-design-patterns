@@ -1,9 +1,9 @@
-flask
+flask==2.0.2
 requests
 flask_prometheus_metrics
 flask-mongoengine
 flask-jwt-extended[asymmetric_crypto]
-flask_restx
+flask-restx==0.5.1
 flask_consulate
 gunicorn
 autologging
@@ -19,3 +19,4 @@ python-consul
 wheel
 pymongo[srv]
 dnspython3
+Werkzeug==2.0.2

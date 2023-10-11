@@ -46,3 +46,68 @@ spring:
             exporter:
                 otlp:
                     endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
+
+---
+spring:
+    config:
+        activate:
+            on-profile: dev
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: ${CLIENT_ID}
+                        client-secret: ${CLIENT_SECRET}
+            authorizationserver:
+                client:
+                    google:
+                        registration:
+                            client-id: ${CLIENT_ID}
+                            client-secret: ${CLIENT_SECRET}
+                            client-authentication-methods:
+                                - "client_secret_post"
+                            authorization-grant-types:
+                                - "authorization_code"
+                                - "refresh_token"
+                            redirect-uris:
+                                - "http://127.0.0.1:3000"
+                                - "http://127.0.0.1:9999"
+                            scopes:
+                                - "openid"
+                                - "profile"
+                                - "email"
+                        require-authorization-consent: true
+                        require-proof-key: true
+
+---
+spring:
+    config:
+        activate:
+            on-profile: prod
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: ${CLIENT_ID}
+                        client-secret: ${CLIENT_SECRET}
+            authorizationserver:
+                client:
+                    google:
+                        registration:
+                            client-id: ${CLIENT_ID}
+                            client-secret: ${CLIENT_SECRET}
+                            client-authentication-methods:
+                                - "client_secret_post"
+                            authorization-grant-types:
+                                - "authorization_code"
+                                - "refresh_token"
+                            redirect-uris:
+                                - "https://spendingbetter.com"
+                            scopes:
+                                - "openid"
+                                - "profile"
+                                - "email"
+                        require-authorization-consent: true
+                        require-proof-key: true

@@ -1,6 +1,4 @@
-#FROM tiangolo/uwsgi-nginx-flask:python3.8-alpine
-#FROM tiangolo/uwsgi-nginx-flask:python3.8
-FROM python:3.8-slim-buster
+FROM python:3.9-slim-buster
 
 ARG PORT
 

@@ -57,7 +57,9 @@ spec:
             - name: OPENTRACING_JAEGER_ENABLED
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
-              value: "default"
+              value: "{{ .Release.Namespace }}"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+              value: "authentication-service"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: trace
             - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID

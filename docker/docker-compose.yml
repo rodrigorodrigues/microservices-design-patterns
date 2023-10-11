@@ -155,7 +155,7 @@ services:
     container_name: receipt-api
     environment:
       - ENV_FILE_LOCATION=./.env
-      - CONSUL_HOST=service-discovery
+      - CONSUL_URL=http://service-discovery:8500
       - MONGODB_URI=mongodb://mongodb-datasource/docker
       - SERVER_PORT=8086
       - LOG_LEVEL=TRACE
