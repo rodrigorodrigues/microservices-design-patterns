@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/hashicorp/consul/api"
 	"github.com/labstack/echo-contrib/jaegertracing"
 	"github.com/labstack/echo-contrib/prometheus"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -135,7 +136,7 @@ func processConsulClient() *api.Client {
 
 func processJwt(config *api.Client) echo.MiddlewareFunc {
 	//JWT
-	middlewareObj := middleware.JWT([]byte("secret"))
+	middlewareObj := echojwt.JWT([]byte("secret"))
 	profile := util.GetEnv("SPRING_PROFILES_ACTIVE")
 	if strings.Contains(profile, "prod") {
 		bytes, err := ioutil.ReadFile(util.GetEnv("JWT_PUBLIC_KEY"))
@@ -146,7 +147,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 		if err != nil {
 			panic(err)
 		}
-		middlewareObj = middleware.JWTWithConfig(middleware.JWTConfig{
+		middlewareObj = echojwt.WithConfig(echojwt.Config{
 			SigningKey:    pem,
 			SigningMethod: "RS256",
 		})
@@ -167,7 +168,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 		if key == nil {
 			panic("Not found jwt")
 		}
-		middlewareObj = middleware.JWT([]byte(fmt.Sprintf("%v", key)))
+		middlewareObj = echojwt.JWT([]byte(fmt.Sprintf("%v", key)))
 	}
 	return middlewareObj
 }

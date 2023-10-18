@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"go-service/posts-api/model"
@@ -37,9 +37,9 @@ func connectMongo() *mongo.Client {
 	return client
 }
 
-//----------
+// ----------
 // Handlers
-//----------
+// ----------
 func getAuthUser(c echo.Context) jwt.MapClaims {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
