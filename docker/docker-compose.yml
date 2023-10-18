@@ -331,7 +331,7 @@ services:
     #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
-      - SPRING_PROFILES_ACTIVE=auth,consul,dev
+      - SPRING_PROFILES_ACTIVE=consul,dev,auth
       - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999

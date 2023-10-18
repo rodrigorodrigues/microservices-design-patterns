@@ -39,10 +39,6 @@ spec:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-          volumeMounts:
-              - name: spendingbetter-pub-key
-                mountPath: "/etc/ssl_certs_pub"
-                readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M #-Xms256m -Xmx512m
@@ -64,12 +60,6 @@ spec:
               value: "false"
             - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
               value: "true"
-            - name: KEYSTORE_PASSWORD
-              value: Cert202!
-            - name: KEYSTORE
-              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
-            - name: KEYSTORE_ALIAS
-              value: spendingbetter
             - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
               value: "true"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
@@ -92,7 +82,3 @@ spec:
                   port: 9092
               initialDelaySeconds: 1000
               periodSeconds: 5
-      volumes:
-          - name: spendingbetter-pub-key
-            secret:
-                secretName: spendingbetter-pub-key

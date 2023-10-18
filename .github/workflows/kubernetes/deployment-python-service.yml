@@ -32,7 +32,8 @@ spec:
     spec:
       containers:
         - name: python-service
-          image: fielcapao/microservices-design-patterns-python-service:latest
+          image: docker_receipt-api:latest
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "256Mi"
@@ -40,10 +41,6 @@ spec:
             limits:
               memory: "512Mi"
 #              cpu: "30m"
-          volumeMounts:
-            - name: spendingbetter-pub-key
-              mountPath: "/etc/ssl_certs_pub"
-              readOnly: true
           env:
             - name: SERVER_PORT
               value: "3005"
@@ -51,18 +48,16 @@ spec:
               value: kubernetes,prod
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/docker
-            - name: EUREKA_SERVER
-              value: http://eureka-server-peer:8761/eureka/
             - name: UPLOAD_FOLDER
               value: /tmp
             - name: JWT_PUBLIC_KEY
               value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: ENV_FILE_LOCATION
               value: ./.env
-            - name: JWT_ALGORITHM
-              value: RS256
-#            - name: LOG_LEVEL
-#              value: TRACE
+#            - name: JWT_ALGORITHM
+#              value: RS256
+            - name: LOG_LEVEL
+              value: TRACE
           ports:
             - containerPort: 3005
           livenessProbe:
@@ -72,7 +67,3 @@ spec:
               port: 3005
             initialDelaySeconds: 1000
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-pub-key
-          secret:
-            secretName: spendingbetter-pub-key

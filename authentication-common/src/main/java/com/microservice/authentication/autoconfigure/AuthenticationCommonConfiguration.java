@@ -24,8 +24,8 @@ import com.microservice.authentication.common.repository.AuthenticationCommonRep
 import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
 import com.nimbusds.oauth2.sdk.GrantType;
-import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;

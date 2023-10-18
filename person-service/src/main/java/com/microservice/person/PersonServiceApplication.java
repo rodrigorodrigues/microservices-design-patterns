@@ -72,7 +72,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.util.Assert;
@@ -88,9 +87,6 @@ import org.springframework.web.client.RestTemplate;
 public class PersonServiceApplication implements ApplicationContextAware {
     Faker faker = new Faker();
     private ApplicationContext applicationContext;
-
-    @Value("${com.microservice.authentication.jwt.keyValue:null}")
-    private String keyValue;
 
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
@@ -116,24 +112,14 @@ public class PersonServiceApplication implements ApplicationContextAware {
     @Primary
     @Bean
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
-        log.debug("jwtDecoder:properties: {}\tkeyValue: {}", properties, keyValue);
+        log.debug("jwtDecoder:properties: {}", properties);
         AuthenticationProperties.Jwt jwt = properties.getJwt();
-        if (jwt.getKeyValue() != null) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue()
-                .getBytes(StandardCharsets.UTF_8), "HS256");
+        if (jwt != null && jwt.getKeyValue() != null) {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
-        } else if (keyValue != null) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(keyValue
-                .getBytes(StandardCharsets.UTF_8), "HS256");
-            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
-        } else if (properties.getJwk().getKeySetUri() != null) {
-            return NimbusJwtDecoder.withJwkSetUri(properties.getJwk().getKeySetUri())
-                .jwsAlgorithm(SignatureAlgorithm.from("HS256"))
-                .build();
         } else {
             RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
-            return NimbusJwtDecoder.withPublicKey(publicKey)
-                .build();
+            return NimbusJwtDecoder.withPublicKey(publicKey).build();
         }
     }
 

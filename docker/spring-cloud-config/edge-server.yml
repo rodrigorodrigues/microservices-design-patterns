@@ -7,10 +7,6 @@ spring:
     cloud:
         gateway:
             routes:
-#                - id: grafana-http
-#                  uri: http://localhost:3000
-#                  predicates:
-#                      - Path=/admin/grafana/api/live/ws
                 - id: grafana-ws
                   uri: ws://localhost:8080
                   predicates:

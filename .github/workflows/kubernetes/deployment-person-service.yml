@@ -33,15 +33,12 @@ spec:
       containers:
         - name: person-service
           image: person-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-person-service:latest #eu.gcr.io/api-project-646370370811/person-service:b3f4981bef4970e146539962f15514bfd1afff7f
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "256Mi"
             limits:
               memory: "512Mi"
-#          volumeMounts:
-#            - name: spendingbetter-pub-key
-#              mountPath: "/etc/ssl_certs_pub"
-#              readOnly: true
           env:
             - name: JAVA_OPTS
               value: --enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
@@ -61,30 +58,24 @@ spec:
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+              value: "person-service"
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
               value: "false"
             - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
               value: "true"
-            - name: KEYSTORE_PASSWORD
-              value: Cert202!
-            - name: KEYSTORE
-              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
-            - name: KEYSTORE_ALIAS
-              value: spendingbetter
             - name: LOGGING_LEVEL_COM_MICROSERVICE
               value: trace
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD
               value: trace
-#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT
-#              value: trace
-#            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
-#              value: "true"
-            - name: SPRING_CONFIG_IMPORT
-              value: "kubernetes:"
-#            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
-#              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
-#            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_PUBLIC_KEYSTORE
-#              value: file:/etc/ssl_certs_pub/www.spendingbetter.com.pub
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+              value: trace
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "true"
+#            - name: SPRING_CONFIG_IMPORT
+#              value: "kubernetes:"
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
+              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
           ports:
             - containerPort: 8082
           livenessProbe:
@@ -101,7 +92,3 @@ spec:
               port: 8082
             initialDelaySeconds: 1000
             periodSeconds: 5
-#      volumes:
-#        - name: spendingbetter-pub-key
-#          secret:
-#            secretName: spendingbetter-pub-key

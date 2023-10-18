@@ -37,10 +37,6 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "100m"
-          volumeMounts:
-            - name: spendingbetter-pub-key
-              mountPath: "/etc/ssl_certs_pub"
-              readOnly: true
           env:
             - name: JAVA_OPTS
               value: -Xms256m -Xmx512m
@@ -75,7 +71,3 @@ spec:
               port: 3002
             initialDelaySeconds: 1000
             periodSeconds: 5
-      volumes:
-        - name: spendingbetter-pub-key
-          secret:
-            secretName: spendingbetter-pub-key
