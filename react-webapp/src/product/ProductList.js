@@ -12,6 +12,7 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
+import uuid from 'react-uuid';
 
 const productSwaggerUrl = process.env.REACT_APP_PRODUCT_SWAGGER_URL;
 
@@ -80,7 +81,8 @@ class ProductList extends Component {
       await fetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

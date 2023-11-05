@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { get } from "../services/ApiService";
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
+import uuid from 'react-uuid';
 
 const userSwaggerUrl = process.env.REACT_APP_USER_SWAGGER_URL;
 
@@ -127,7 +128,8 @@ class UserList extends Component {
       await fetch(`/api/users/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

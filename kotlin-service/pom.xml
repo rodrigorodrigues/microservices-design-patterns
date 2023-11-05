@@ -47,6 +47,7 @@
             <scope>runtime</scope>
         </dependency>
 
+<!--
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-otlp-trace</artifactId>
@@ -58,6 +59,7 @@
             <artifactId>opentelemetry-exporter-otlp-common</artifactId>
             <version>1.14.0</version>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.springframework.data</groupId>
@@ -153,9 +155,9 @@
 
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
-            <artifactId>de.flapdoodle.embed.mongo</artifactId>
+            <artifactId>de.flapdoodle.embed.mongo.spring31x</artifactId>
+            <version>4.9.3</version>
             <scope>test</scope>
-            <version>3.4.11</version>
         </dependency>
 
         <dependency>

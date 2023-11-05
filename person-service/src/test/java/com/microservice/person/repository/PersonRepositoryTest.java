@@ -32,8 +32,10 @@ import static org.mockito.Mockito.mock;
 @Slf4j
 @DataMongoTest(properties = {"configuration.initialLoad=false",
     "logging.level.com.microservice.person.util=debug",
-    "spring.config.import=optional:consul:",
-    "spring.main.allow-bean-definition-overriding=true"})
+    "spring.cloud.consul.config.enabled=false",
+    "spring.cloud.consul.discovery.enabled=false",
+    "spring.main.allow-bean-definition-overriding=true",
+    "de.flapdoodle.mongodb.embedded.version=5.0.5"})
 public class PersonRepositoryTest {
     @Autowired
     PersonRepository personRepository;

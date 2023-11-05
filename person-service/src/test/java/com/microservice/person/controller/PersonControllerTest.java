@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -55,7 +56,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(properties = {"configuration.initialLoad=false",
-    "spring.config.import=optional:consul:",
+    "spring.cloud.consul.config.enabled=false",
+    "spring.cloud.consul.discovery.enabled=false",
     "spring.main.allow-bean-definition-overriding=true",
     "server.error.include-message=always",
     "logging.level.org.springframework.security=trace"}, controllers = PersonController.class)
@@ -67,6 +69,9 @@ public class PersonControllerTest {
 
     @MockBean
     PersonService personService;
+
+    @MockBean
+    KafkaTemplate<String, String> template;
 
     @MockBean
     TokenStore tokenStore;
@@ -211,7 +216,9 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling PUT - /api/people/{id} with valid authorization the response should be a person - 200 - OK")
     @WithMockUser(roles = "PERSON_SAVE", username = "me")
     public void whenCallUpdateShouldUpdatePerson() throws Exception {
-        PersonDto personDto = createPersonDto();
+        PersonDto personDto = new PersonDto();
+        personDto.setDateOfBirth(LocalDate.now());
+        personDto.setCreatedByUser("me");
         personDto.setId(UUID.randomUUID().toString());
         personDto.setFullName("New Name");
         when(personService.findById(anyString())).thenReturn(personDto);
@@ -225,6 +232,28 @@ public class PersonControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(personDto.getId())))
                 .andExpect(jsonPath("$.fullName", is(personDto.getFullName())));
+    }
+
+    @Test
+    @DisplayName("Test - When Calling PUT - /api/people/{id} with valid authorization the response should be a person with default requestId - 200 - OK")
+    @WithMockUser(roles = "PERSON_SAVE", username = "me")
+    public void whenCallUpdateShouldUpdatePersonWithDefaultRequestId() throws Exception {
+        PersonDto personDto = new PersonDto();
+        personDto.setDateOfBirth(LocalDate.now());
+        personDto.setCreatedByUser("me");
+        personDto.setId(UUID.randomUUID().toString());
+        personDto.setFullName("New Name");
+        when(personService.findById(anyString())).thenReturn(personDto);
+        when(personService.save(any(PersonDto.class))).thenReturn(personDto);
+
+        client.perform(put("/api/people/{id}", personDto.getId()).with(csrf())
+                .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertToJson(personDto)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id", is(personDto.getId())))
+            .andExpect(jsonPath("$.fullName", is(personDto.getFullName())));
     }
 
     @Test

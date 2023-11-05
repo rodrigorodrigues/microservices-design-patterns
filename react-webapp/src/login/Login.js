@@ -10,6 +10,7 @@ import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import HomeContent from '../home/HomeContent';
 import { loading } from '../common/Loading';
+import uuid from 'react-uuid';
 
 const googleOauthUrl = process.env.REACT_APP_GOOGLE_OAUTH_URL;
 console.log("googleOauthUrl: " + googleOauthUrl);
@@ -61,7 +62,12 @@ class Login extends Component {
       this.setLoading(true);
       const redirectToPreviousPage = window.localStorage.getItem('redirectToPreviousPage');
       console.log("redirectToPreviousPage: ", redirectToPreviousPage);
-      const data = await postWithHeaders('authenticate', loginSubmit, { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN') });
+      const data = await postWithHeaders('authenticate', loginSubmit, 
+        { 
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 
+          'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN'), 
+          'requestId': uuid() 
+        });
       if (data.access_token) {
         setAuthentication(data);
         if (redirectToPreviousPage !== null) {

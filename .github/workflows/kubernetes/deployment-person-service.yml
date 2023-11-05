@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: person-service
-          image: person-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-person-service:latest #eu.gcr.io/api-project-646370370811/person-service:b3f4981bef4970e146539962f15514bfd1afff7f
+          image: person-service:latest #fielcapao/microservices-design-patterns-person-service:latest #eu.gcr.io/api-project-646370370811/person-service:b3f4981bef4970e146539962f15514bfd1afff7f
           imagePullPolicy: Never
           resources:
             requests:
@@ -45,7 +45,7 @@ spec:
             - name: SERVER_PORT
               value: "8082"
             - name: SPRING_PROFILES_ACTIVE
-              value: dev
+              value: dev,callPostApi,kafka
             - name: SPRING_DATA_MONGODB_URI
               value: mongodb://mongodb:27017/docker
             - name: SPRING_DATA_MONGODB_DATABASE
@@ -66,14 +66,22 @@ spec:
               value: "true"
             - name: LOGGING_LEVEL_COM_MICROSERVICE
               value: trace
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD
-              value: trace
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
-              value: trace
-            - name: LOGGING_LEVEL_ORG_APACHE_COYOTE_HTTP11
-              value: trace
-            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD
+#              value: trace
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+#              value: trace
+#            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_KAFKA
+#              value: trace
+#            - name: LOGGING_LEVEL_ORG_APACHE_COYOTE_HTTP11
+#              value: trace
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+            - name: SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET
+              value: latest
+            - name: KAFKA_LOCAL_TEST_ENABLED
               value: "true"
+            - name: PRODUCER_ENABLED
+              value: "false"
 #            - name: SPRING_CONFIG_IMPORT
 #              value: "kubernetes:"
             - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE

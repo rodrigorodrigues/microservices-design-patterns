@@ -14,10 +14,12 @@ import java.util.stream.IntStream;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import brave.baggage.BaggageField;
+import brave.baggage.CorrelationScopeConfig;
+import brave.context.slf4j.MDCScopeDecorator;
+import brave.propagation.CurrentTraceContext;
 import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
-import com.github.javafaker.Name;
-import com.github.javafaker.Space;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
@@ -28,10 +30,9 @@ import com.microservice.web.common.util.ChangeQueryStringFilter;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.NewTopic;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -48,7 +49,6 @@ import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
@@ -64,12 +64,8 @@ import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
 import org.springframework.data.querydsl.binding.QuerydslPredicateBuilderCustomizer;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -95,6 +91,18 @@ public class PersonServiceApplication implements ApplicationContextAware {
     @Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
     public AsyncTaskExecutor asyncTaskExecutor() {
         return new TaskExecutorAdapter(Executors.newVirtualThreadPerTaskExecutor());
+    }
+
+    @Bean(name = "requestId")
+    public BaggageField requestId() {
+        return BaggageField.create("requestId");
+    }
+
+    @Bean
+    public CurrentTraceContext.ScopeDecorator mdcScopeDecorator(@Qualifier("requestId") BaggageField requestId) {
+        return MDCScopeDecorator.newBuilder().clear()
+            .add(CorrelationScopeConfig.SingleCorrelationField.newBuilder(requestId).flushOnUpdate().build())
+            .build();
     }
 
     @Bean
@@ -128,11 +136,11 @@ public class PersonServiceApplication implements ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 
-    @Configuration
+    /*@Configuration
     @ConditionalOnProperty(prefix = "kafka.local.test", name = "enabled", havingValue = "true")
-	class KafkaTestConfiguration {
-        @Autowired
-        KafkaTemplate<String, String> template;
+    @AllArgsConstructor
+	class KafkaConsumerConfiguration {
+        private final KafkaTemplate<String, String> template;
 
         @Bean
         public NewTopic topic3() {
@@ -159,10 +167,16 @@ public class PersonServiceApplication implements ApplicationContextAware {
         public void listenTopic2(String in) {
             log.info("Kafka Message receiving:topic2 {}", in);
         }
+    }
 
-        @ConditionalOnProperty(prefix = "producer", name = "enabled", havingValue = "true")
-        @Scheduled(cron = "*/1 * * * * *")
-        public void producer() {
+    @Configuration
+    @ConditionalOnProperty(prefix = "producer", name = "enabled", havingValue = "true")
+    @AllArgsConstructor
+    class KafkaProducerConfiguration {
+        private final KafkaTemplate<String, String> template;
+*/
+  //      @Scheduled(cron = "*/1 * * * * *")
+    /*    public void producer() {
             Space space = faker.space();
             Name name = faker.name();
             log.info("Sending Kafka message for topic 3");
@@ -170,7 +184,7 @@ public class PersonServiceApplication implements ApplicationContextAware {
             log.info("Sending Kafka message for topic 2");
             template.send("topic2", space.planet());
         }
-    }
+    }*/
 
     @Bean
     @LoadBalanced

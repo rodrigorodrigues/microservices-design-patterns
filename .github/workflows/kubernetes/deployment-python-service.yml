@@ -45,13 +45,11 @@ spec:
             - name: SERVER_PORT
               value: "3005"
             - name: SPRING_PROFILES_ACTIVE
-              value: kubernetes,prod
+              value: kubernetes,dev
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/docker
             - name: UPLOAD_FOLDER
               value: /tmp
-            - name: JWT_PUBLIC_KEY
-              value: /etc/ssl_certs_pub/www.spendingbetter.com.pub
             - name: ENV_FILE_LOCATION
               value: ./.env
 #            - name: JWT_ALGORITHM

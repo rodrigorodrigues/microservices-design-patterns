@@ -8,6 +8,7 @@ import {errorMessage} from '../common/Util';
 import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import { marginLeft } from '../common/Util';
+import uuid from 'react-uuid';
 
 class CategoryEdit extends Component {
   emptyCategory = {
@@ -77,7 +78,8 @@ class CategoryEdit extends Component {
       method: (category._id) ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': jwt
+        'Authorization': jwt,
+        'requestId': uuid()
       },
       body: JSON.stringify(category),
       credentials: 'include'

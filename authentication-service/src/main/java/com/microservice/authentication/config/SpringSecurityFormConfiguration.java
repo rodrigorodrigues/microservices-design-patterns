@@ -12,14 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -29,7 +26,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -53,7 +49,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @Order(302)
-public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
+public class SpringSecurityFormConfiguration {
     private final ObjectMapper objectMapper;
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
@@ -61,8 +57,6 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
     private final Oauth2TokenStoreService oauth2TokenStoreService;
 
     private final JwtDecoder jwtDecoder;
-
-    private ClassLoader loader;
 
     static final String[] WHITELIST = {
         // -- swagger ui
@@ -170,27 +164,5 @@ public class SpringSecurityFormConfiguration implements BeanClassLoaderAware {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
-    }
-
-    @Bean
-    public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        return new GenericJackson2JsonRedisSerializer(objectMapper());
-    }
-
-    /**
-     * Customized {@link ObjectMapper} to add mix-in for class that doesn't have default
-     * constructors
-     *
-     * @return the {@link ObjectMapper} to use
-     */
-    private ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModules(SecurityJackson2Modules.getModules(this.loader));
-        return mapper;
-    }
-
-    @Override
-    public void setBeanClassLoader(ClassLoader classLoader) {
-        this.loader = classLoader;
     }
 }

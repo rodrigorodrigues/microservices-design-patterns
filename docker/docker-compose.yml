@@ -202,7 +202,7 @@ services:
     image: person-service:0.0.1-SNAPSHOT
     container_name: person-api
     environment:
-      - SPRING_PROFILES_ACTIVE=consul,dev
+      - SPRING_PROFILES_ACTIVE=consul,dev,kafka,callPostApi
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
@@ -210,17 +210,20 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - SPRING_DATA_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
-      - LOGGING_LEVEL_COM_MICROSERVICE=debug
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - JAVA_OPTS=--enable-preview
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - LOGGING_LEVEL_ORG_APACHE_COYOTE_HTTP11=trace
     depends_on:
       - service-discovery
       - mongodb-datasource
       - jaeger
       - service-discovery-load-configuration
+      - kafka
     ports:
       - 8082:8082
     volumes:
@@ -232,7 +235,7 @@ services:
           - person-api
 
   task-api:
-    image: kotlin-service:0.0.1-SNAPSHOT
+    image: fielcapao/microservices-design-patterns-kotlin-service:latest #kotlin-service:0.0.1-SNAPSHOT
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -246,7 +249,7 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - LOGGING_LEVEL_COM_MICROSERVICE=trace
       #- DEBUG=true
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -595,45 +598,51 @@ services:
           - jaeger
 
   zookeeper:
-    image: antrea/confluentinc-zookeeper:6.2.0
+    image: bitnami/zookeeper #antrea/confluentinc-zookeeper:6.2.0
     hostname: zookeeper
     container_name: zookeeper
     ports:
       - '2181:2181'
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+#      ZOOKEEPER_CLIENT_PORT: 2181
+#      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
 
-  broker:
-    image: antrea/confluentinc-kafka:6.2.0
-    hostname: broker
-    container_name: broker
+  kafka:
+    image: bitnami/kafka #antrea/confluentinc-kafka:6.2.0
+    hostname: kafka
+    container_name: kafka
     depends_on:
       - zookeeper
     ports:
       - '9092:9092'
-      - '9101:9101'
+#      - '9101:9101'
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-      # NOTE: Not supported by current container
-      # KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
-      # TODO: Uncomment once enable schema registry
-      # KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper
+
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+#      # NOTE: Not supported by current container
+#      # KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+#      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#      KAFKA_JMX_PORT: 9101
+#      KAFKA_JMX_HOSTNAME: localhost
+#      # TODO: Uncomment once enable schema registry
+#      # KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+#      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:29092
+#      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+#      CONFLUENT_METRICS_ENABLE: 'true'
+#      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
 networks:
   net:

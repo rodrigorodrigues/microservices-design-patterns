@@ -131,7 +131,8 @@ class CreateAll extends Component {
         method: (task.id) ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         body: JSON.stringify(task),
         credentials: 'include'

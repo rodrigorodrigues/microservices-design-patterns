@@ -76,7 +76,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = AuthenticationServiceApplication.class,
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
-        "spring.cloud.consul.config.enabled=false"})
+        "spring.cloud.consul.config.enabled=false",
+        "de.flapdoodle.mongodb.embedded.version=5.0.5"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
 @AutoConfigureMockMvc

@@ -1,3 +1,8 @@
+spring:
+    application:
+        name: kotlin-service
+    main:
+        allow-bean-definition-overriding: true
 management:
     endpoints:
         web:
@@ -6,19 +11,18 @@ management:
             cors:
                 allowed-origins: '*'
                 allow-credentials: false
-opentracing:
-    spring:
-        web:
-            skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
-spring:
-    application:
-        name: kotlin-service
-    sleuth:
+    tracing:
+        propagation:
+            produce: w3c, b3, b3_multi
+            consume: b3, w3c, b3_multi
         baggage:
-            remote-fields:
-                - requestId
-            correlation-fields:
-                - requestId
+            remote-fields: requestId
+            correlation:
+                fields: requestId
+
+logging:
+    pattern:
+        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
 ---
 spring:
     config:

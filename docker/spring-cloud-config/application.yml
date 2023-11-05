@@ -10,18 +10,14 @@ management:
     endpoint:
         health:
             show-details: when_authorized
-spring:
-    sleuth:
+    tracing:
         propagation:
-            type:
-                - jaeger
-                - b3
-        otel:
-            config:
-                trace-id-ratio-based: 1.0
-            exporter:
-                otlp:
-                    endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
+            produce: w3c, b3, b3_multi
+            consume: b3, w3c, b3_multi
+        baggage:
+            remote-fields: requestId
+            correlation:
+                fields: requestId
 
 logging:
     file: ${LOGGING_PATH:/tmp/}${spring.application.name}.log

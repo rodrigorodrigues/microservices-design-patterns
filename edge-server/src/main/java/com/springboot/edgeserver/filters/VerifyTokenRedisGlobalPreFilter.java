@@ -57,6 +57,8 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private final List<HttpMessageReader<?>> messageReaders = HandlerStrategies.withDefaults().messageReaders();
 
+    private final String REQUEST_ID_HEADER = "requestId";
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -86,7 +88,6 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                             .build();
                                     return chain.filter(exchange.mutate().request(build).build());
                                 }
-                                log.debug("Not found oAuth2AccessToken: {}", oAuth2AccessToken.isPresent());
                             }
                             return chain.filter(exchange);
                         })
@@ -106,7 +107,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token not found in redis."));
         }
         log.debug("Found valid redis for a given token");
-        if (request.getMethod() != HttpMethod.POST) {
+        if (request.getHeaders().containsKey(REQUEST_ID_HEADER) || request.getMethod() == HttpMethod.GET || request.getMethod() == HttpMethod.HEAD) {
             return chain.filter(exchange);
         } else {
             return addRequestIdHeader(chain, exchange);
@@ -129,9 +130,11 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                     String requestId = getRequestIdFromPayload(objectValue);
                     if (StringUtils.isNotBlank(requestId)) {
                         log.info("Found requestId: {}", requestId);
-                        try (BaggageInScope baggage = tracer.createBaggageInScope("requestId", requestId)) {
-                            serverHttpRequest.mutate().header("requestId", baggage.get());
+                        try (BaggageInScope baggage = tracer.createBaggageInScope(REQUEST_ID_HEADER, requestId)) {
+                            serverHttpRequest.mutate().header(REQUEST_ID_HEADER, baggage.get());
                         }
+                    } else {
+                        log.warn("Not found requestId field in payload");
                     }
                 }
                 exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
@@ -142,8 +145,11 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private String getRequestIdFromPayload(String payload) {
         try {
-            return objectMapper.readValue(payload, Map.class)
-                .get("requestId").toString();
+            Map map = objectMapper.readValue(payload, Map.class);
+            if (!map.containsKey(REQUEST_ID_HEADER)) {
+                return null;
+            }
+            return map.get(REQUEST_ID_HEADER).toString();
         } catch (Exception ignored) {
             log.warn("Could not read payload", ignored);
             return null;

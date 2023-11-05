@@ -32,7 +32,8 @@ spec:
     spec:
       containers:
         - name: edge-server
-          image: edge-server:0.0.1-SNAPSHOT #edge-server:0.0.1-SNAPSHOT
+          image: edge-server:0.0.1-SNAPSHOT
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "256Mi"
@@ -63,18 +64,16 @@ spec:
               value: "true"
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
               value: "false"
-            - name: SPRING_CONFIG_IMPORT
-              value: "kubernetes:"
-#            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
-#              value: "true"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+              value: "edge-server"
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "true"
             - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
               value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY
               value: "trace"
             - name: LOGGING_LEVEL_COM_SPRINGBOOT_EDGESERVER
               value: "trace"
-#            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
-#              value: "edge-server"
           ports:
             - containerPort: 8080
           livenessProbe:

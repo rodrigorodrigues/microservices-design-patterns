@@ -12,6 +12,7 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
+import uuid from 'react-uuid';
 
 const categorySwaggerUrl = process.env.REACT_APP_CATEGORY_SWAGGER_URL;
 
@@ -80,7 +81,8 @@ class CategoryList extends Component {
       await fetch(`/api/week-menu/v2/category/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

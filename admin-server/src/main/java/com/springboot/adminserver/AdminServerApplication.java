@@ -6,7 +6,9 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,8 +23,12 @@ import org.springframework.web.filter.CorsFilter;
 
 @SpringBootApplication
 @EnableAdminServer
-@EnableRedisHttpSession
 public class AdminServerApplication {
+    @ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true")
+    @Configuration
+    @EnableRedisHttpSession
+    class RedisConfiguration {}
+
     public static void main(String[] args) {
         SpringApplication.run(AdminServerApplication.class, args);
     }

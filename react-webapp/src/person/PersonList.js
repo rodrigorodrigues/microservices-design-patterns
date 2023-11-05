@@ -16,6 +16,7 @@ import { get } from "../services/ApiService";
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
 import { loading } from '../common/Loading';
+import uuid from 'react-uuid';
 
 const personSwaggerUrl = process.env.REACT_APP_PERSON_SWAGGER_URL;
 
@@ -152,7 +153,8 @@ class PersonList extends Component {
       await fetch(`/api/people/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

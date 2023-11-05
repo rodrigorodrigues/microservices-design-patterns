@@ -13,9 +13,6 @@ spring:
     mongodb:
         embedded:
             version: "4.0.2"
-opentracing:
-    jaeger:
-        enabled: false
 
 com:
     microservice:

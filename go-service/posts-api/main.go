@@ -31,7 +31,7 @@ var (
 
 	DefaultLoggerConfig = middleware.LoggerConfig{
 		Skipper: middleware.DefaultSkipper,
-		Format: `{"b3":"${header:b3}","uber-trace-id":"${header:uber-trace-id}",,"time":"${time_rfc3339_nano}","id":"${id}","remote_ip":"${remote_ip}",` +
+		Format: `{"b3":"${header:b3}","uber-trace-id":"${header:uber-trace-id}","X-B3-TraceId":"${header:X-B3-TraceId}","X-B3-SpanId":"${header:X-B3-SpanId}","time":"${time_rfc3339_nano}","id":"${id}","remote_ip":"${remote_ip}",` +
 			`"host":"${host}","method":"${method}","uri":"${uri}","user_agent":"${user_agent}",` +
 			`"status":${status},"error":"${error}","latency":${latency},"latency_human":"${latency_human}"` +
 			`,"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
@@ -70,12 +70,12 @@ func actuator(c echo.Context) error {
 
 func init() {
 	var middlewareObj echo.MiddlewareFunc
-	if !strings.Contains(util.GetEnv("SPRING_PROFILES_ACTIVE"), "kubernetes") {
+	if strings.Contains(util.GetEnv("SPRING_PROFILES_ACTIVE"), "kubernetes") {
+		middlewareObj = processKubernetes()
+	} else {
 		client := processConsulClient()
 
 		middlewareObj = processJwt(client)
-	} else {
-		middlewareObj = processKubernetes()
 	}
 
 	processRestApi(middlewareObj)
@@ -104,16 +104,25 @@ func processKubernetes() echo.MiddlewareFunc {
 			panic(err.Error())
 		}
 
-		yamlMap := make(map[interface{}]interface{})
-		if err = yaml.Unmarshal([]byte(get.String()), yamlMap); err != nil {
+		var cmFile string
+		if value, ok := get.Data["go-service-configmap.yml"]; ok {
+			cmFile = value
+		}
+
+		log.Info(fmt.Sprintf("raw confiMap = %v", cmFile))
+
+		yamlMap := make(map[string]interface{})
+		if err = yaml.Unmarshal([]byte(cmFile), yamlMap); err != nil {
 			panic(err)
 		}
-		log.Debug(fmt.Sprintf("yaml confiMap = %v", yamlMap))
-		key := yamlMap["security"].(map[interface{}]interface{})["oauth2"].(map[interface{}]interface{})["resource"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
+
+		log.Info(fmt.Sprintf("yaml confiMap = %v", yamlMap))
+		key := yamlMap["data"].(map[interface{}]interface{})["keyValue"]
 		if key == nil {
 			panic("Not found jwt")
 		}
-		return middleware.JWT([]byte(fmt.Sprintf("%v", key)))
+		log.Info(fmt.Sprintf("jwt key = %v", key))
+		return echojwt.JWT([]byte(fmt.Sprintf("%v", key)))
 	}
 }
 
@@ -159,11 +168,13 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 		if pair == nil {
 			panic("Not found consul configuration")
 		}
+		log.Info(fmt.Sprintf("raw consul config = %v", string(pair[0].Value)))
 		yamlMap := make(map[interface{}]interface{})
 		if err = yaml.Unmarshal(pair[0].Value, yamlMap); err != nil {
 			panic(err)
 		}
 
+		log.Info(fmt.Sprintf("yaml confiMap = %v", yamlMap))
 		key := yamlMap["com"].(map[interface{}]interface{})["microservice"].(map[interface{}]interface{})["authentication"].(map[interface{}]interface{})["jwt"].(map[interface{}]interface{})["keyValue"]
 		if key == nil {
 			panic("Not found jwt")

@@ -43,7 +43,7 @@
         </format>
     </appender>
 
-    <springProfile name="!travis">
+    <springProfile name="!prod">
         <root level="info">
             <appender-ref ref="RollingFile" />
             <appender-ref ref="CONSOLE" />
@@ -51,9 +51,8 @@
         </root>
     </springProfile>
 
-    <springProfile name="travis">
-        <root level="off">
-            <appender-ref ref="RollingFile" />
+    <springProfile name="prod">
+        <root level="info">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="LOKI" />
         </root>

@@ -1,26 +1,23 @@
 package com.springboot.edgeserver.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springboot.edgeserver.util.HandleResponseError;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 
 /**
  * Spring Security Configuration
@@ -29,7 +26,7 @@ import org.springframework.security.web.server.authentication.logout.RedirectSer
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware {
+public class EdgeServerWebSecurityConfiguration {
     private final HandleResponseError handleResponseError;
 
 //    private final DefaultTokenServices defaultTokenServices;
@@ -65,8 +62,6 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
             "/admin/**"
     };
 
-    private ClassLoader loader;
-
     public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError, TokenStore tokenStore) {
         this.handleResponseError = handleResponseError;
         this.tokenStore = tokenStore;
@@ -76,6 +71,10 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
     public SecurityWebFilterChain configure(ServerHttpSecurity http) {
         return http
                 .csrf(c -> c.disable().headers(h -> h.frameOptions(f -> f.disable().cache(ServerHttpSecurity.HeaderSpec.CacheSpec::disable))))
+/*
+                .csrf(c -> c.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new ServerCsrfTokenRequestAttributeHandler()))
+*/
                 .authorizeExchange(a -> a.pathMatchers(WHITELIST).permitAll()
                         .pathMatchers("/actuator/**").hasRole("ADMIN")
                         .anyExchange().authenticated())
@@ -119,22 +118,4 @@ public class EdgeServerWebSecurityConfiguration implements BeanClassLoaderAware 
                 .doOnSuccess(c -> log.info("login:Authenticated user in the session: {}", c.getAuthentication().getName()))
                 .then();
     }*/
-
-    @Bean
-    public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        return new GenericJackson2JsonRedisSerializer(objectMapper());
-    }
-
-    private ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModules(SecurityJackson2Modules.getModules(this.loader));
-        mapper.registerModule(new OAuth2AuthenticationJackson2Module());
-        mapper.registerModule(new OAuth2RequestModule());
-        return mapper;
-    }
-
-    @Override
-    public void setBeanClassLoader(ClassLoader classLoader) {
-        this.loader = classLoader;
-    }
 }

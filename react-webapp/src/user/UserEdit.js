@@ -9,13 +9,14 @@ import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import Switch from "react-switch";
 import { marginLeft } from '../common/Util';
+import uuid from 'react-uuid';
 
 class UserEdit extends Component {
   emptyUser = {
     email: '',
     password: '',
     confirmPassword: '',
-    authorities: [],
+    authorities: []
   };
 
   constructor(props) {
@@ -102,7 +103,7 @@ class UserEdit extends Component {
 
   async handleSubmit(event) {
     event.preventDefault();
-    const {user} = this.state;
+    const {user, jwt} = this.state;
     console.log("handleSubmit:user", user);
     const url = '/api/users' + (user.id ? '/' + user.id : '');
 
@@ -110,7 +111,8 @@ class UserEdit extends Component {
       method: (user.id) ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': this.state.jwt
+        'Authorization': jwt,
+        'requestId': uuid()
       },
       body: JSON.stringify(user),
       credentials: 'include'

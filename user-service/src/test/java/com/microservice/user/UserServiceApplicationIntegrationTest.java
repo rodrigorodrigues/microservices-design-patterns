@@ -58,7 +58,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = UserServiceApplication.class,
-        properties = {"configuration.swagger=false"})
+        properties = {"configuration.swagger=false", "de.flapdoodle.mongodb.embedded.version=5.0.5"})
 @ContextConfiguration(classes = UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
 public class UserServiceApplicationIntegrationTest {

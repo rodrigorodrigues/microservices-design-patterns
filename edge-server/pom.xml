@@ -33,6 +33,7 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
             <scope>runtime</scope>
         </dependency>
+
 <!--
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -113,15 +114,18 @@
           <artifactId>spring-session-data-redis</artifactId>
         </dependency>
 
+<!--
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
             <version>3.3.1</version>
         </dependency>
+-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>

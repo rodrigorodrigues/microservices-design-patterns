@@ -10,6 +10,8 @@ import HomeContent from '../home/HomeContent';
 import FooterContent from '../home/FooterContent';
 import "react-datepicker/dist/react-datepicker.css";
 import { marginLeft } from '../common/Util';
+import uuid from 'react-uuid';
+
 const moment = require('moment');
 
 class PersonEdit extends Component {
@@ -114,7 +116,8 @@ class PersonEdit extends Component {
       method: (person.id) ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': jwt
+        'Authorization': jwt,
+        'requestId': uuid()
       },
       body: JSON.stringify(person),
       credentials: 'include'

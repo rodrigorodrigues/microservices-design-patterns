@@ -66,19 +66,19 @@ public class SpringSecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
-                        .cacheControl(HeadersConfigurer.CacheControlConfig::disable))
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(h -> h.requestMatchers(WHITELIST).permitAll()
-                        .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
-                        .authenticationEntryPoint(this::handleErrorResponse)
-                        .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())))
-                .build();
+            .csrf(AbstractHttpConfigurer::disable)
+            .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+                    .cacheControl(HeadersConfigurer.CacheControlConfig::disable))
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(h -> h.requestMatchers(WHITELIST).permitAll()
+                    .requestMatchers("/actuator/**").hasRole("ADMIN")
+                    .anyRequest().authenticated())
+            .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
+                    .authenticationEntryPoint(this::handleErrorResponse)
+                    .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())))
+            .build();
     }
 
     private void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {

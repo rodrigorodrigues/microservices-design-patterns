@@ -1,7 +1,11 @@
 package com.microservice.person.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.mapper.PersonMapper;
@@ -15,6 +19,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,16 +45,18 @@ public class PersonServiceImpl implements PersonService {
 
     private final Environment environment;
 
-    private final ParameterizedTypeReference<List<PersonDto.Post>> parameterizedTypeReference = new ParameterizedTypeReference<>() { };
+    private final ParameterizedTypeReference<CustomPageImpl<PersonDto.Post>> parameterizedTypeReference = new ParameterizedTypeReference<>() { };
 
     private void processPost(Page<PersonDto> page, String authorization) {
-        if (environment.acceptsProfiles(Profiles.of("callPostApi"))) {
+        if (environment.acceptsProfiles(Profiles.of("callPostApi")) && !page.isEmpty()) {
             try {
-                HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                HttpEntity httpEntity = new HttpEntity(httpHeaders);
-                ResponseEntity<List<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
-                page.getContent().forEach(p -> p.setPosts(entity.getBody()));
+                for (PersonDto person : page.getContent()) {
+                    HttpHeaders httpHeaders = new HttpHeaders();
+                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
+                    HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                    ResponseEntity<CustomPageImpl<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi() + "?personId="+person.getId(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
+                    person.setPosts(entity.getBody().getContent());
+                }
             }
             catch (Exception e) {
                 log.warn("Could not process post api", e);
@@ -94,5 +102,28 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public void deleteById(String id) {
         personRepository.deleteById(id);
+    }
+
+    private static class CustomPageImpl<T> extends PageImpl<T> {
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        public CustomPageImpl(@JsonProperty("content") List<T> content, @JsonProperty("number") int number,
+            @JsonProperty("size") int size, @JsonProperty("totalElements") Long totalElements,
+            @JsonProperty("pageable") JsonNode pageable, @JsonProperty("last") boolean last,
+            @JsonProperty("totalPages") int totalPages, @JsonProperty("sort") JsonNode sort,
+            @JsonProperty("numberOfElements") int numberOfElements) {
+            super(content, PageRequest.of(number, 1), 10);
+        }
+
+        public CustomPageImpl(List<T> content, Pageable pageable, long total) {
+            super(content, pageable, total);
+        }
+
+        public CustomPageImpl(List<T> content) {
+            super(content);
+        }
+
+        public CustomPageImpl() {
+            super(new ArrayList<>());
+        }
     }
 }

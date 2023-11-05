@@ -16,6 +16,7 @@ import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
 import { loading } from '../common/Loading';
 import Anchor from '@trendmicro/react-anchor';
+import uuid from 'react-uuid';
 const moment = require('moment');
 
 const postSwaggerUrl = process.env.REACT_APP_POST_SWAGGER_URL;
@@ -159,7 +160,8 @@ class PostList extends Component {
       await fetch(`/api/posts/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

@@ -12,6 +12,7 @@ import Iframe from 'react-iframe';
 import FooterContent from '../home/FooterContent';
 import { toast } from 'react-toastify';
 import { marginLeft } from '../common/Util';
+import uuid from 'react-uuid';
 
 const recipeSwaggerUrl = process.env.REACT_APP_RECIPE_SWAGGER_URL;
 
@@ -80,7 +81,8 @@ class RecipeList extends Component {
       await fetch(`/api/week-menu/v2/recipe/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

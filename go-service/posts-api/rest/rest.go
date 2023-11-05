@@ -176,13 +176,17 @@ func getAllPosts(c echo.Context, callTaskApi bool) error {
 		size, _ = strconv.Atoi(c)
 	}
 	var searchByText string
+	var searchByPersonId string
 	if !callTaskApi || strings.HasPrefix(c.QueryString(), "&") {
 		searchByText = c.QueryString()
 		if callTaskApi {
 			searchByText = searchByText[0:strings.Index(searchByText, "&")]
 		}
+	} else if strings.Contains(c.QueryString(), "personId=") {
+		searchByPersonId = c.QueryParam("personId")
 	}
 	log.Info(fmt.Sprintf("QueryString = %v", searchByText))
+	log.Info(fmt.Sprintf("SearchByPersonId = %v", searchByPersonId))
 
 	pageInt64 := int64(page)
 	sizeInt64 := int64(size)
@@ -204,6 +208,11 @@ func getAllPosts(c echo.Context, callTaskApi bool) error {
 				"name": bson.D{{"$all", bson.A{searchByText}}},
 			}
 		}
+		if searchByPersonId != "" {
+			filter = bson.M{
+				"personid": bson.D{{"$all", bson.A{searchByPersonId}}},
+			}
+		}
 		count, err2 := collection.CountDocuments(ctx, filter)
 		if err2 != nil {
 			return err2
@@ -216,11 +225,16 @@ func getAllPosts(c echo.Context, callTaskApi bool) error {
 		cur = cursor
 	} else {
 		createdByUser := getAuthUser(c)["sub"].(string)
-		filter := bson.M{"createdByUser": createdByUser}
+		filter := bson.M{"createdbyuser": createdByUser}
 		if searchByText != "" {
 			filter = bson.M{
-				"createdByUser": createdByUser,
+				"createdbyuser": createdByUser,
 				"name":          bson.D{{"$all", bson.A{searchByText}}},
+			}
+		}
+		if searchByPersonId != "" {
+			filter = bson.M{
+				"personid": bson.D{{"$all", bson.A{searchByPersonId}}},
 			}
 		}
 		count, err2 := collection.CountDocuments(ctx, filter)
@@ -248,7 +262,7 @@ func getAllPosts(c echo.Context, callTaskApi bool) error {
 		postDto := model.PostDto{
 			ID:                 post.ID.Hex(),
 			Name:               post.Name,
-			CreatedDate:        post.CreatedDate.String(),
+			CreatedDate:        post.CreatedDate.Format(time.DateTime),
 			CreatedByUser:      post.CreatedByUser,
 			LastModifiedByUser: post.LastModifiedByUser,
 		}
@@ -256,7 +270,7 @@ func getAllPosts(c echo.Context, callTaskApi bool) error {
 			postDto.Tasks = GetTasksApi(c, postDto.ID)
 		}
 		if post.LastModifiedDate != nil && !post.LastModifiedDate.IsZero() {
-			postDto.LastModifiedDate = post.LastModifiedDate.String()
+			postDto.LastModifiedDate = post.LastModifiedDate.Format(time.DateTime)
 		}
 		posts = append(posts, postDto)
 	}

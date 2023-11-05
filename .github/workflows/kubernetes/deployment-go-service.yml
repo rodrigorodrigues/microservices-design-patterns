@@ -33,7 +33,8 @@ spec:
     spec:
       containers:
         - name: go-service
-          image: fielcapao/microservices-design-patterns-go-service:latest
+          image: docker_post-api:latest
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "256Mi"
@@ -46,6 +47,10 @@ spec:
               value: kubernetes
             - name: MONGODB_URI
               value: mongodb://mongodb:27017
+            - name: MONGODB_DATABASE
+              value: docker
+            - name: LOG_LEVEL
+              value: TRACE
           ports:
             - containerPort: 3006
           livenessProbe:

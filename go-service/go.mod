@@ -22,7 +22,9 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.20.1 // indirect
 	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v0.20.0
+	sigs.k8s.io/yaml v1.3.0 // indirect
 )

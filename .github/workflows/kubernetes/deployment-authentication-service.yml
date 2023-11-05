@@ -57,7 +57,7 @@ spec:
             - name: OPENTRACING_JAEGER_ENABLED
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
-              value: "{{ .Release.Namespace }}"
+              value: "default"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
               value: "authentication-service"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY

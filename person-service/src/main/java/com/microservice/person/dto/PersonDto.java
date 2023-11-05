@@ -1,16 +1,17 @@
 package com.microservice.person.dto;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Builder
 @Data
@@ -30,7 +31,6 @@ public class PersonDto {
     private String lastModifiedByUser;
     private Instant lastModifiedDate;
     private List<Post> posts;
-    private String requestId;
 
     @Data
     @NoArgsConstructor
@@ -61,8 +61,8 @@ public class PersonDto {
         private String id;
         private String name;
         private String createdByUser;
-        private Instant createdDate;
+        private String createdDate;
         private String lastModifiedByUser;
-        private Instant lastModifiedDate;
+        private String lastModifiedDate;
     }
 }

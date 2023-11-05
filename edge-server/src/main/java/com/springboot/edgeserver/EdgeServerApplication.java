@@ -2,6 +2,7 @@ package com.springboot.edgeserver;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.concurrent.Executors;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
@@ -11,11 +12,13 @@ import com.springboot.edgeserver.filters.LogoutPostFilter;
 import com.springboot.edgeserver.util.ReactivePreAuthenticatedAuthenticationManagerCustom;
 import com.springboot.edgeserver.util.ReactiveSharedAuthenticationServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -23,7 +26,6 @@ import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -31,6 +33,8 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.session.MapSessionRepository;
+import org.springframework.session.SessionRepository;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.web.reactive.config.EnableWebFlux;
@@ -49,7 +53,14 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class EdgeServerApplication {
 
 	public static void main(String[] args) {
+		Hooks.enableAutomaticContextPropagation();
 		SpringApplication.run(EdgeServerApplication.class, args);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public SessionRepository defaultSessionRepository() {
+		return new MapSessionRepository(Collections.emptyMap());
 	}
 
 	@Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)

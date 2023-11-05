@@ -2,6 +2,7 @@ package com.microservice.person;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
@@ -36,6 +37,8 @@ import com.nimbusds.jwt.SignedJWT;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +46,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -51,6 +55,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -71,16 +79,19 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@SpringBootTest(classes = PersonServiceApplication.class)
+@AutoConfigureDataMongo
+@SpringBootTest(classes = PersonServiceApplication.class, properties = "de.flapdoodle.mongodb.embedded.version=5.0.5")
 @ContextConfiguration(classes = PersonServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
+@EmbeddedKafka(partitions = 1, topics = "topic2")
 public class PersonServiceApplicationIntegrationTest {
 
 	@Autowired
@@ -100,6 +111,11 @@ public class PersonServiceApplicationIntegrationTest {
 
     @Autowired
     AuthenticationProperties authenticationProperties;
+
+    @Autowired
+    EmbeddedKafkaBroker embeddedKafka;
+
+    Consumer<Integer, String> consumer;
 
 	Person person;
 
@@ -153,21 +169,28 @@ public class PersonServiceApplicationIntegrationTest {
             .dateOfBirth(LocalDate.now())
             .build());
 
-        stubFor(WireMock.get(anyUrl())
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("[{\"id\":\"1\",\"name\":\"Post 1\"},{\"id\":\"2\",\"name\":\"Post 2\"}]")));
+        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
+        DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(
+            consumerProps);
+        consumer = cf.createConsumer();
+        embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
     }
 
     @AfterEach
     public void tearDown() {
         personRepository.deleteAll();
+        consumer.close();
     }
 
     @Test
 	@DisplayName("Test - When Calling GET - /api/people should return filter list of people and response 200 - OK")
 	public void shouldReturnListOfPeopleWhenCallApi() throws Exception {
+        stubFor(WireMock.get(anyUrl())
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .withBody("{\"page\": 0,\"size\": 10,\"totalPages\": 1,\"totalElements\": 2,\"content\":[{\"id\":\"1\",\"name\":\"Post 1\",\"createdDate\": \"2023-10-26 12:24:01\"},{\"id\":\"2\",\"name\":\"Post 2\",\"createdDate\": \"2023-10-26 12:24:01\"}]}")));
+
         person.setCreatedByUser("master@gmail.com");
 	    personRepository.save(person);
 		String authorizationHeader = authorizationHeader("master@gmail.com");
@@ -201,7 +224,9 @@ public class PersonServiceApplicationIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[*].id", hasSize(3)))
-            .andExpect(jsonPath("$.content[*].posts[*].id", hasSize(6)));
+            .andExpect(jsonPath("$.content[*].posts[*].id", hasSize(6)))
+            .andExpect(jsonPath("$.content[*].posts[*].createdDate", hasSize(6)))
+            .andDo(print());
 	}
 
     @Test
@@ -268,6 +293,7 @@ public class PersonServiceApplicationIntegrationTest {
                 .andExpect(header().string(HttpHeaders.LOCATION, containsString("/api/people/")))
                 .andExpect(jsonPath("$.[*].id", notNullValue()))
                 .andExpect(jsonPath("$.createdByUser", equalTo("master@gmail.com")))
+                .andDo(print())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -276,9 +302,13 @@ public class PersonServiceApplicationIntegrationTest {
 
 		assertThat(person.getId()).isNotEmpty();
 
-		client.perform(delete("/api/people/{id}", person.getId())
+        client.perform(delete("/api/people/{id}", person.getId())
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader("admin@gmail.com")))
-            .andExpect(status().is2xxSuccessful());
+            .andExpect(status().is2xxSuccessful())
+            .andDo(print());
+
+        ConsumerRecords<Integer, String> consumerRecords = consumer.poll(Duration.ofSeconds(1));
+        assertThat(consumerRecords.count()).isEqualTo(2);
 	}
 
     private void setId(PersonDto person, String c) {

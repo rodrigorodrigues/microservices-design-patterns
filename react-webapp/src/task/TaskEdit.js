@@ -13,7 +13,8 @@ import uuid from 'react-uuid';
 
 class TaskEdit extends Component {
   emptyTask = {
-    name: ''
+    name: '',
+    requestId: uuid()
   };
 
   constructor(props) {
@@ -51,7 +52,8 @@ class TaskEdit extends Component {
             try {
               const task = await (await fetch(`/api/tasks/${this.props.match.params.id}`, { method: 'GET',      headers: {
                 'Content-Type': 'application/json',
-                'Authorization': jwt
+                'Authorization': jwt,
+                'requestId': uuid()
               }})).json();
               this.setState({task: task, isLoading: false});
             } catch (error) {
@@ -80,9 +82,6 @@ class TaskEdit extends Component {
     try {
       event.preventDefault();
       const {task, jwt} = this.state;
-      if (!task.id) {
-        task.requestId = uuid();
-      }
       console.log("Task", task);
 
       const url = '/api/tasks' + (task.id ? '/' + task.id : '');

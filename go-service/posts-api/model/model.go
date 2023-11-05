@@ -31,6 +31,7 @@ type (
 		CreatedByUser      string    `json:"createdByUser,omitempty"`
 		LastModifiedByUser string    `json:"lastModifiedByUser,omitempty"`
 		Tasks              []TaskDto `json:"tasks,omitempty"`
+		PersonId           string    `json:"personId,omitempty" form:"personId" query:"personId"`
 	}
 
 	Post struct {
@@ -41,6 +42,7 @@ type (
 		CreatedByUser      string             `json:"createdByUser,omitempty"`
 		LastModifiedByUser string             `json:"lastModifiedByUser,omitempty"`
 		Tasks              []TaskDto          `json:"tasks,omitempty"`
+		PersonId           string             `json:"personId,omitempty" form:"personId" query:"personId"`
 	}
 
 	TaskDto struct {

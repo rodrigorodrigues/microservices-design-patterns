@@ -1,9 +1,0 @@
-spring:
-    application:
-        name: person-service
-    main:
-        allow-bean-definition-overriding: true
-
-logging:
-    pattern:
-        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"

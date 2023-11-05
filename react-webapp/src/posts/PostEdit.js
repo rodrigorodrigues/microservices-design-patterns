@@ -9,6 +9,7 @@ import FooterContent from '../home/FooterContent';
 import HomeContent from '../home/HomeContent';
 import { marginLeft } from '../common/Util';
 import { loading } from '../common/Loading';
+import uuid from 'react-uuid';
 
 class PostEdit extends Component {
   emptyPost = {
@@ -87,7 +88,8 @@ class PostEdit extends Component {
       method: (post.id) ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': jwt
+        'Authorization': jwt,
+        'requestId': uuid()
       },
       body: JSON.stringify(post),
       credentials: 'include'

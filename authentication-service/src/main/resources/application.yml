@@ -1,3 +1,12 @@
+spring:
+    application:
+        name: authentication-service
+    main:
+        allow-bean-definition-overriding: true
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
+
 management:
     endpoints:
         web:
@@ -6,14 +15,18 @@ management:
             cors:
                 allowed-origins: '*'
                 allow-credentials: false
-opentracing:
-    spring:
-        web:
-            skip-pattern: "/actuator.*|/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream"
+    tracing:
+        propagation:
+            produce: w3c, b3, b3_multi
+            consume: b3, w3c, b3_multi
+        baggage:
+            remote-fields: requestId
+            correlation:
+                fields: requestId
 
-spring:
-    application:
-        name: authentication-service
+logging:
+    pattern:
+        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
 
 ---
 spring:
@@ -30,22 +43,6 @@ spring:
                 prefer-ip-address: true
     autoconfigure:
         exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
----
-spring:
-    config:
-        activate:
-            on-profile: default
-    sleuth:
-        propagation:
-            type:
-                - jaeger
-                - b3
-        otel:
-            config:
-                trace-id-ratio-based: 1.0
-            exporter:
-                otlp:
-                    endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
 
 ---
 spring:

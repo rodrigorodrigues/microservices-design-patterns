@@ -15,6 +15,7 @@ import { marginLeft } from '../common/Util';
 import PaginationComponent from "../common/Pagination";
 import SearchButtonComponent from "../common/Search";
 import { loading } from '../common/Loading';
+import uuid from 'react-uuid';
 
 const queryString = require('query-string');
 
@@ -159,7 +160,8 @@ class CompanyList extends Component {
       await fetch(`/api/companies/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': jwt
+          'Authorization': jwt,
+          'requestId': uuid()
         },
         credentials: 'include'
       }).then((err) => {

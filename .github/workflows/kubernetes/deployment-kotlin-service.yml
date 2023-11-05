@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: kotlin-service
-          image: kotlin-service:0.0.1-SNAPSHOT #fielcapao/microservices-design-patterns-kotlin-service:latest
+          image: fielcapao/microservices-design-patterns-kotlin-service:latest #kotlin-service:0.0.1-SNAPSHOT
           resources:
             requests:
               memory: "256Mi"
@@ -45,9 +45,9 @@ spec:
             - name: SERVER_PORT
               value: "9092"
             - name: SPRING_PROFILES_ACTIVE
-              value: prod
+              value: dev
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongo:27017
+              value: mongodb://mongodb:27017/docker
             - name: SPRING_DATA_MONGODB_DATABASE
               value: docker
             - name: SPRING_CLOUD_CONSUL_ENABLED
@@ -56,16 +56,20 @@ spec:
               value: "false"
             - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
               value: "default"
+            - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+              value: "kotlin-service"
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "true"
             - name: MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS
               value: "false"
             - name: SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES
-              value: "true"
-            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_ENABLED_PUBLIC_KEY
               value: "true"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
               value: trace
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: trace
+            - name: COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE
+              value: YTMwOTIwODE1MGMzOGExM2E4NDc5ZjhjMmQwMTdkNDJlZWZkOTE0YTMwNWUxMTgxMTFhZTI1ZDI3M2QyMTRmMjI5Yzg0ODBjYTUxYjVkY2I5ZmY0YmRkMzBlZjRjNDM2Y2NiYzhlZjQ0ODRjMWZlNzVmZjdjM2JiMjdkMjdmMjk=
           ports:
             - containerPort: 9092
           livenessProbe:
