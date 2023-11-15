@@ -1,5 +1,7 @@
 package com.microservice.authentication.controller;
 
+import java.util.Collections;
+
 import com.microservice.authentication.service.RedisOauth2TokenStoreServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +22,9 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 
-import java.util.Collections;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +47,7 @@ class AuthenticatedUserControllerTest {
         OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
         when(accessToken.getTokenType()).thenReturn("Bearer");
         when(accessToken.getValue()).thenReturn("Mock JWT");
-        when(redisTokenStoreService.getToken(any(Authentication.class))).thenReturn(accessToken);
+        when(redisTokenStoreService.getToken(any(Authentication.class), anyBoolean())).thenReturn(accessToken);
 
         ResponseEntity<OAuth2AccessToken> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(new UsernamePasswordAuthenticationToken("user", "password"));
 
@@ -59,7 +61,7 @@ class AuthenticatedUserControllerTest {
         OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
         when(accessToken.getTokenType()).thenReturn("Bearer");
         when(accessToken.getValue()).thenReturn("Mock JWT");
-        when(redisTokenStoreService.getToken(any(Authentication.class))).thenReturn(accessToken);
+        when(redisTokenStoreService.getToken(any(Authentication.class), anyBoolean())).thenReturn(accessToken);
 
         OAuth2AuthenticationToken oAuth2AuthenticationToken = mock(OAuth2AuthenticationToken.class);
         OidcIdToken oidcIdToken = OidcIdToken.withTokenValue("Test").claim("sub", "name").build();

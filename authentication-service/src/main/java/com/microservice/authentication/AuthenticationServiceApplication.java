@@ -191,8 +191,13 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
     Oauth2TokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices) {
         return new Oauth2TokenStoreService() {
             @Override
-            public OAuth2AccessToken generateToken(OAuth2Authentication oAuth2Authentication) {
-                log.debug("Created new token for: {}", oAuth2Authentication.getName());
+            public OAuth2AccessToken generateToken(OAuth2Authentication oAuth2Authentication, boolean oauth2Login) {
+                if (oauth2Login) {
+                    defaultTokenServices.setAccessTokenValiditySeconds(-1);
+                } else {
+                    defaultTokenServices.setAccessTokenValiditySeconds(60 * 30);
+                }
+                log.debug("Creating new token for: {}", oAuth2Authentication.getName());
                 return defaultTokenServices.createAccessToken(oAuth2Authentication);
             }
 
@@ -202,16 +207,15 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
 
             @Override
             public OAuth2AccessToken refreshToken(TokenRequest tokenRequest) {
-                //return defaultTokenServices.refreshAccessToken(tokenRequest.getRequestParameters().get(HttpHeaders.AUTHORIZATION), tokenRequest);
                 return defaultTokenServices.refreshAccessToken(tokenRequest.getRequestParameters().get("refresh_token"), tokenRequest);
             }
 
             @Override
-            public OAuth2AccessToken getToken(org.springframework.security.core.Authentication authentication) {
+            public OAuth2AccessToken getToken(org.springframework.security.core.Authentication authentication, boolean oauth2Login) {
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
                 OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
-                return generateToken(oAuth2Authentication);
+                return generateToken(oAuth2Authentication, oauth2Login);
             }
         };
     }

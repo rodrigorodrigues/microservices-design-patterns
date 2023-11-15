@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +33,7 @@ class AccountControllerTest {
         when(accessToken.getAdditionalInformation()).thenReturn(map);
         when(accessToken.getTokenType()).thenReturn("Bearer");
         when(accessToken.getValue()).thenReturn("Mock JWT");
-        when(redisTokenStoreService.getToken(any())).thenReturn(accessToken);
+        when(redisTokenStoreService.getToken(any(), anyBoolean())).thenReturn(accessToken);
 
         AccountController accountController = new AccountController(redisTokenStoreService);
 

@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -47,7 +48,7 @@ class CustomAuthenticationSuccessHandlerTest {
         OAuth2AccessToken auth2AccessToken = mock(OAuth2AccessToken.class);
         when(auth2AccessToken.getTokenType()).thenReturn("Bearer");
         when(auth2AccessToken.getValue()).thenReturn("Mock JWT");
-        when(redisTokenStoreService.generateToken(any(OAuth2Authentication.class))).thenReturn(auth2AccessToken);
+        when(redisTokenStoreService.generateToken(any(OAuth2Authentication.class), anyBoolean())).thenReturn(auth2AccessToken);
 
         CustomAuthenticationSuccessHandler handler = new CustomAuthenticationSuccessHandler(authenticationCommonRepository, redisTokenStoreService);
 

@@ -40,7 +40,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             true, (findByEmail.isPresent() ? findByEmail.get().getScopes() : null), null, null, null, null);
         OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
 
-        OAuth2AccessToken token = oauth2TokenStoreService.generateToken(oAuth2Authentication);
+        OAuth2AccessToken token = oauth2TokenStoreService.generateToken(oAuth2Authentication, true);
         response.addHeader(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
 
         super.onAuthenticationSuccess(request, response, authentication);

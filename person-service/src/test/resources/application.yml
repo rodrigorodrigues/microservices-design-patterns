@@ -39,4 +39,5 @@ com:
 logging:
     level:
         com.microservice: trace
-
+    pattern:
+        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"

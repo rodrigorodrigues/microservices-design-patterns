@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +26,8 @@ public class AccountController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public UserDto index(Authentication authentication) {
-        OAuth2AccessToken token = oauth2TokenStoreService.getToken(authentication);
+        boolean oauth2Login = authentication.getPrincipal() instanceof OidcUser;
+        OAuth2AccessToken token = oauth2TokenStoreService.getToken(authentication, oauth2Login);
         Map<String, Object> additionalInformation = token.getAdditionalInformation();
         HashSet<String> authorities = new HashSet<>(Arrays.asList(additionalInformation.get("auth")
             .toString().split(",")));

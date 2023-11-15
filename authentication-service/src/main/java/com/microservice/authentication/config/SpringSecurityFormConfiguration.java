@@ -145,7 +145,7 @@ public class SpringSecurityFormConfiguration {
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
                 OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
-                OAuth2AccessToken token = oauth2TokenStoreService.generateToken(oAuth2Authentication);
+                OAuth2AccessToken token = oauth2TokenStoreService.generateToken(oAuth2Authentication, false);
                 response.addHeader(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 response.addHeader("sessionId", request.getSession().getId());

@@ -36,7 +36,7 @@ class Oauth2TokenStoreServiceTest {
         OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
 
         Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.generateToken(oAuth2Authentication);
+        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.generateToken(oAuth2Authentication, false);
 
         assertThat(oAuth2AccessToken).isNotNull();
     }
@@ -49,7 +49,7 @@ class Oauth2TokenStoreServiceTest {
         when(redisTokenStore.findTokensByClientId(anyString())).thenReturn(Collections.singletonList(accessToken));
 
         Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""));
+        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""), false);
         assertThat(oAuth2AccessToken).isNotNull();
 
         verifyNoInteractions(defaultTokenServices);
@@ -62,7 +62,7 @@ class Oauth2TokenStoreServiceTest {
         when(defaultTokenServices.createAccessToken(any(OAuth2Authentication.class))).thenReturn(accessToken);
 
         Oauth2TokenStoreService oauth2TokenStoreService = new RedisOauth2TokenStoreServiceImpl(defaultTokenServices, redisTokenStore);
-        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""));
+        OAuth2AccessToken oAuth2AccessToken = oauth2TokenStoreService.getToken(new UsernamePasswordAuthenticationToken("", ""), false);
         assertThat(oAuth2AccessToken).isNotNull();
 
         verify(defaultTokenServices).createAccessToken(any(OAuth2Authentication.class));

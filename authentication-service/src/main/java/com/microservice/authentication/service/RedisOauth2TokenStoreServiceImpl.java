@@ -27,7 +27,12 @@ public class RedisOauth2TokenStoreServiceImpl implements Oauth2TokenStoreService
     private final RedisTokenStore redisTokenStore;
 
     @Override
-    public OAuth2AccessToken generateToken(OAuth2Authentication oAuth2Authentication) {
+    public OAuth2AccessToken generateToken(OAuth2Authentication oAuth2Authentication, boolean oauth2Login) {
+        if (oauth2Login) {
+            defaultTokenServices.setAccessTokenValiditySeconds(-1);
+        } else {
+            defaultTokenServices.setAccessTokenValiditySeconds(60 * 30);
+        }
         OAuth2AccessToken accessToken = defaultTokenServices.createAccessToken(oAuth2Authentication);
         log.debug("Created new token for: {}", oAuth2Authentication.getName());
         return accessToken;
@@ -47,7 +52,7 @@ public class RedisOauth2TokenStoreServiceImpl implements Oauth2TokenStoreService
     }
 
     @Override
-    public OAuth2AccessToken getToken(Authentication authentication) {
+    public OAuth2AccessToken getToken(Authentication authentication, boolean oauth2Login) {
         return redisTokenStore.findTokensByClientId(authentication.getName())
             .stream()
             .sorted(Comparator.comparing(OAuth2AccessToken::getExpiration).reversed())
@@ -57,7 +62,7 @@ public class RedisOauth2TokenStoreServiceImpl implements Oauth2TokenStoreService
                 OAuth2Request oAuth2Request = new OAuth2Request(null, authentication.getName(), authentication.getAuthorities(),
                     true, Collections.singleton("read"), null, null, null, null);
                 OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
-                return generateToken(oAuth2Authentication);
+                return generateToken(oAuth2Authentication, oauth2Login);
             });
     }
 }

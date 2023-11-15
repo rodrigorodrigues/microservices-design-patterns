@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +34,8 @@ public class AuthenticatedUserController {
     public ResponseEntity<OAuth2AccessToken> authenticatedUser(Authentication authentication) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        OAuth2AccessToken token = oauth2TokenStoreService.getToken(authentication);
+        boolean oauth2Login = authentication.getPrincipal() instanceof OidcUser;
+        OAuth2AccessToken token = oauth2TokenStoreService.getToken(authentication, oauth2Login);
         httpHeaders.add(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType(), token.getValue()));
         return ResponseEntity
             .status(HttpStatus.OK)
