@@ -45,6 +45,16 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build Docker image
+      - name: Create Custom settings.xml
+        uses: s4u/maven-settings-action@v3.0.0
+        with:
+          servers: |
+            [{
+                "id": "github",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            }]
+
       - name: Build Service using docker:build
         run: |
           mvn clean package -DskipTests -q -pl quarkus-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
