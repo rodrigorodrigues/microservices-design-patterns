@@ -182,7 +182,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
     public void shouldWorkLogoutUrl() throws Exception {
 
         mockMvc.perform(get("/api/logout"))
-//            .andDo(print())
             .andExpect(status().isOk());
     }
 

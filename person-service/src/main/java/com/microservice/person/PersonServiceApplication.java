@@ -30,6 +30,7 @@ import com.microservice.web.common.util.ChangeQueryStringFilter;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -122,7 +123,7 @@ public class PersonServiceApplication implements ApplicationContextAware {
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
         log.debug("jwtDecoder:properties: {}", properties);
         AuthenticationProperties.Jwt jwt = properties.getJwt();
-        if (jwt != null && jwt.getKeyValue() != null) {
+        if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
         } else {

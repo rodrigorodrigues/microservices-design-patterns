@@ -14,6 +14,7 @@ import javax.crypto.spec.SecretKeySpec;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,7 +104,7 @@ public class UserServiceApplication implements ApplicationContextAware {
     @Bean
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
         AuthenticationProperties.Jwt jwt = properties.getJwt();
-        if (jwt != null && jwt.getKeyValue() != null) {
+        if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
         } else {

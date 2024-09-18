@@ -76,7 +76,10 @@ spring:
                                 - "email"
                         require-authorization-consent: true
                         require-proof-key: true
-
+server:
+    servlet:
+        session:
+            timeout: 365d
 ---
 spring:
     config:

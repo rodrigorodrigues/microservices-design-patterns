@@ -22,3 +22,9 @@ com:
 logging:
     level:
       com.microservice.kotlin: trace
+
+de:
+    flapdoodle:
+        mongodb:
+            embedded:
+                version: ${spring.mongodb.embedded.version}

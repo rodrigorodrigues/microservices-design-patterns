@@ -6,7 +6,7 @@
   <artifactId>quarkus-service</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <properties>
-    <compiler-plugin.version>3.11.0</compiler-plugin.version>
+    <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <docker.env.JAVA_OPTS>-Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
     <docker.image.from.fabric8>openjdk:21-jdk</docker.image.from.fabric8>
     <docker.image.name>${project.artifactId}</docker.image.name>
@@ -16,9 +16,10 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.4.1</quarkus.platform.version>
+    <quarkus.platform.version>3.14.4</quarkus.platform.version>
     <skipITs>true</skipITs>
-    <surefire-plugin.version>3.1.2</surefire-plugin.version>
+    <surefire-plugin.version>3.3.1</surefire-plugin.version>
+    <mapstruct.version>1.6.2</mapstruct.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -39,7 +40,7 @@
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-commons</artifactId>
-      <version>2.7.5</version>
+      <version>3.4.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -72,12 +73,12 @@
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
-      <version>1.5.5.Final</version>
+      <version>${mapstruct.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct-processor</artifactId>
-      <version>1.5.5.Final</version>
+      <version>${mapstruct.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -181,6 +182,7 @@
               <goal>build</goal>
               <goal>generate-code</goal>
               <goal>generate-code-tests</goal>
+              <goal>native-image-agent</goal>
             </goals>
           </execution>
         </executions>
@@ -189,9 +191,12 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
         <configuration>
+          <parameters>true</parameters>
+<!--
           <compilerArgs>
             <arg>-parameters</arg>
           </compilerArgs>
+-->
         </configuration>
       </plugin>
       <plugin>

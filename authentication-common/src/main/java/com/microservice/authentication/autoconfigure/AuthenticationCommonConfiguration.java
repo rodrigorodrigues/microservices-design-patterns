@@ -108,6 +108,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
             public OAuth2AccessToken enhance(
                     OAuth2AccessToken accessToken,
                     OAuth2Authentication authentication) {
+
                 OAuth2AccessToken enhance = super.enhance(accessToken, authentication);
                 Map<String, Object> additionalInfo = new HashMap<>();
                 if (authentication.getPrincipal() instanceof Authentication auth) {

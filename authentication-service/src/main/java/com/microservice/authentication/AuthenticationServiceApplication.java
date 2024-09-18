@@ -18,6 +18,7 @@ import com.microservice.authentication.service.Oauth2TokenStoreService;
 import com.microservice.web.common.util.constants.DefaultUsers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -106,7 +107,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
     @Bean
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
         AuthenticationProperties.Jwt jwt = properties.getJwt();
-        if (jwt != null && jwt.getKeyValue() != null) {
+        if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
         } else {

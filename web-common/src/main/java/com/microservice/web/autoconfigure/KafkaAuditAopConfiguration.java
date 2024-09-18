@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Configuration
 @EnableAspectJAutoProxy
-public class AopConfiguration {
+public class KafkaAuditAopConfiguration {
     @Primary
     @Bean
     public ProducerFactory<String, Object> producerFactory(KafkaProperties kafkaProperties) {
