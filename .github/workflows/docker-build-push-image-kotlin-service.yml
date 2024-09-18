@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -44,15 +44,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Putback JDK version to 17 because Kotlin limitation support
-        run: |
-          sed -i 's/<java\.version>21<\/java\.version>/<java\.version>17<\/java\.version>/g' pom.xml
+#      - name: Putback JDK version to 17 because Kotlin limitation support
+#        run: |
+#          sed -i 's/<java\.version>21<\/java\.version>/<java\.version>17<\/java\.version>/g' pom.xml
 
-      - name: Install Custom Spring Data Common Jar
-        run: |
-          mvn install:install-file -Dfile=docs/spring-data-commons-3.2.1-SNAPSHOT.jar -DgroupId=org.springframework.data -DartifactId=spring-data-commons -Dversion=3.2.1-SNAPSHOT -Dpackaging=jar
+#      - name: Install Custom Spring Data Common Jar
+#        run: |
+#          mvn install:install-file -Dfile=docs/spring-data-commons-3.2.1-SNAPSHOT.jar -DgroupId=org.springframework.data -DartifactId=spring-data-commons -Dversion=3.2.1-SNAPSHOT -Dpackaging=jar
 
       # Build Docker image using docker:build
+
+      - name: Create Custom settings.xml
+        uses: s4u/maven-settings-action@v3.0.0
+        with:
+          servers: |
+            [{
+                "id": "github",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            }]
+
       - name: Build Service using docker:build
         run: |
           mvn clean package -DskipTests -q -pl kotlin-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
