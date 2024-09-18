@@ -289,6 +289,14 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+
+		<repository>
+			<id>github</id>
+			<url>https://maven.pkg.github.com/rodrigorodrigues/spring-data-commons</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
