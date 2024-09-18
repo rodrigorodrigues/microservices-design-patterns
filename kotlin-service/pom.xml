@@ -34,6 +34,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.data</groupId>
+                    <artifactId>spring-data-commons</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -62,7 +68,7 @@
 -->
 
         <dependency>
-            <groupId>org.springframework.data</groupId>
+            <groupId>com.github.rodrigorodrigues</groupId>
             <artifactId>spring-data-commons</artifactId>
         </dependency>
 

@@ -84,7 +84,7 @@ class ServiceConfiguration {
 
     @ConditionalOnMissingBean
     @Bean
-    fun querydslPredicateBuilderCustomizer(querydslBindingsFactory: QuerydslBindingsFactory): QuerydslPredicateBuilderCustomizer? {
+    fun querydslPredicateBuilderCustomizer(querydslBindingsFactory: QuerydslBindingsFactory): QuerydslPredicateBuilder {
         return object : QuerydslPredicateBuilder(
             DefaultConversionService.getSharedInstance(),
             querydslBindingsFactory.entityPathResolver

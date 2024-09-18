@@ -56,7 +56,7 @@
 -->
 
         <dependency>
-            <groupId>org.springframework.data</groupId>
+            <groupId>com.github.rodrigorodrigues</groupId>
             <artifactId>spring-data-commons</artifactId>
         </dependency>
 
