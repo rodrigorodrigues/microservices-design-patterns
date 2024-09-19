@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./quarkus-service
-          file: ./quarkus-service/src/main/docker/Dockerfile.jvm21
+          file: ./quarkus-service/src/main/docker/Dockerfile.jvm
           platforms: linux/amd64,linux/arm64
           push: true
           tags: fielcapao/microservices-design-patterns-quarkus-service:latest
