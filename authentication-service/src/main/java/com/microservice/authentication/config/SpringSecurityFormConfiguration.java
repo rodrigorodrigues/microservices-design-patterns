@@ -10,8 +10,10 @@ import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
@@ -38,17 +40,19 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.request.ServletWebRequest;
 
 /**
  * Spring Security Configuration for form
  */
+@ConditionalOnProperty(prefix = "form", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @Order(302)
+@Slf4j
 public class SpringSecurityFormConfiguration {
     private final ObjectMapper objectMapper;
 
@@ -76,17 +80,21 @@ public class SpringSecurityFormConfiguration {
         "/actuator/health/**",
         "/actuator/prometheus",
         "/error",
-        "/.well-known/jwks.json",
-        "/api/refreshToken"
+        "/.well-known/**",
+        "/api/refreshToken",
+        "/api/csrf",
+        "/ott/generate",
+        "/webauthn/**"
     };
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("SpringSecurityFormConfiguration:securityFilterChain");
         return http
             .securityMatcher("/api/**", "/", "/error", "/actuator/**")
             .authorizeHttpRequests(a -> a.requestMatchers(WHITELIST).permitAll()
                     .requestMatchers("/actuator/**").hasRole("ADMIN")
-                    .anyRequest().authenticated())
+                .anyRequest().authenticated())
             .formLogin(f -> f.loginProcessingUrl("/api/authenticate").permitAll()
                 .successHandler(successHandler())
                 .failureHandler(authenticationFailureHandler()))
@@ -101,7 +109,7 @@ public class SpringSecurityFormConfiguration {
                 .invalidateHttpSession(true))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.NEVER))
             .csrf(c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()))
             .exceptionHandling(e -> e.authenticationEntryPoint(this::handleErrorResponse))
             .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)
@@ -111,6 +119,7 @@ public class SpringSecurityFormConfiguration {
     }
 
     private void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {
+        log.error("Exception Handler - Error response", exception);
         HttpStatusCode status = customDefaultErrorAttributes.getHttpStatusError(exception);
         Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
         errorAttributes.put("message", exception.getLocalizedMessage());
@@ -122,6 +131,7 @@ public class SpringSecurityFormConfiguration {
 
     private AuthenticationFailureHandler authenticationFailureHandler() {
         return (request, response, exception) -> {
+            log.error("API - Error response", exception);
             request.setAttribute(DefaultErrorAttributes.class.getName() + ".ERROR", exception);
             if (validateApiPath(request)) {
                 Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());

@@ -90,6 +90,7 @@ public class EdgeServerApplication {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 		serializer.setCookieName("SESSIONID");
 		serializer.setCookiePath("/");
+		serializer.setUseBase64Encoding(false);
 		return serializer;
 	}
 

@@ -66,7 +66,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
         log.info("VerifyTokenRedisGlobalPreFilter:filter:gatewayProperties:routes {}", gatewayProperties.getRoutes());
         if (StringUtils.startsWithAny(path.value(), "/admin", "/api/logout", "/login/oauth2/", "/oauth2/",
                 "/api/authenticate", "/api/authenticatedUser", "/oauth/", "/swagger/", "/swagger-ui/", "/.well-known/jwks.json",
-                "/v3/api-docs", "/public/build/")) {
+                "/v3/api-docs", "/public/build/", "/api/csrf", "/login", "/default-ui.css", "/webauthn")) {
             log.debug("Skip token redis validation for following path: {}", path);
             String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             if (StringUtils.isBlank(authorizationHeader)) {
@@ -76,10 +76,10 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                             Authentication authentication = s.getAuthentication();
                             if (authentication != null && authentication.isAuthenticated()) {
                                 log.debug("User is authenticated:");
-                                Optional<OAuth2AccessToken> oAuth2AccessToken = tokenStore.findTokensByClientId(authentication.getName()).stream()
+                                Optional<OAuth2AccessToken> oAuth2AccessToken = tokenStore.findTokensByClientId(authentication.getName())
+                                        .stream()
                                         .filter(a -> !a.isExpired())
-                                        .sorted(Comparator.comparing(OAuth2AccessToken::getExpiration).reversed())
-                                        .findFirst();
+                                        .max(Comparator.comparing(OAuth2AccessToken::getExpiration));
                                 if (oAuth2AccessToken.isPresent()) {
                                     log.debug("verifyTokenRedis:Set authorization header from redis session");
                                     OAuth2AccessToken oAuth2AccessTokenValue = oAuth2AccessToken.get();

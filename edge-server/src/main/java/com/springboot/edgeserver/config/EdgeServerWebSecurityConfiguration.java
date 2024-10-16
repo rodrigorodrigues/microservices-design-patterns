@@ -2,22 +2,16 @@ package com.springboot.edgeserver.config;
 
 import com.springboot.edgeserver.util.HandleResponseError;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.WebFilterExchange;
-import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
-import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
-import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
 
 /**
  * Spring Security Configuration
@@ -59,7 +53,10 @@ public class EdgeServerWebSecurityConfiguration {
             "/.well-known/jwks.json",
             "/swagger/**",
             "/login",
-            "/admin/**"
+            "/admin/**",
+            "/login/**",
+            "/webauthn/**",
+            "/"
     };
 
     public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError, TokenStore tokenStore) {
@@ -78,6 +75,10 @@ public class EdgeServerWebSecurityConfiguration {
                 .authorizeExchange(a -> a.pathMatchers(WHITELIST).permitAll()
                         .pathMatchers("/actuator/**").hasRole("ADMIN")
                         .anyExchange().authenticated())
+
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .exceptionHandling(c -> c.authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
+/*Ï
                 .formLogin(c -> c.authenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain()
                                 .filter(webFilterExchange.getExchange())
                                 .contextWrite(context -> ReactiveSecurityContextHolder.withAuthentication(authentication)))
@@ -94,6 +95,7 @@ public class EdgeServerWebSecurityConfiguration {
                         return super.onLogoutSuccess(exchange, authentication);
                     }
                 }))
+*/
                 .build();
     }
 

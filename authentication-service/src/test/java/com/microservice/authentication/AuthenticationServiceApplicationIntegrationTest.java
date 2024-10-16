@@ -17,8 +17,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jakarta.annotation.PostConstruct;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
@@ -30,6 +28,8 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +51,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.DefaultCsrfToken;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -77,7 +79,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     properties = {"configuration.swagger=false",
         "logging.level.com.microservice=debug",
         "spring.cloud.consul.config.enabled=false",
-        "de.flapdoodle.mongodb.embedded.version=5.0.5"})
+        "de.flapdoodle.mongodb.embedded.version=5.0.5",
+    "logging.level.org.springframework.security=trace"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
 @AutoConfigureMockMvc
@@ -233,6 +236,40 @@ public class AuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(get("/")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    public void shouldWorkLoginWithoutCsrf() throws Exception {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("username", "master@gmail.com");
+        formData.add("password", "password123");
+
+        String content = mockMvc.perform(get("/api/csrf"))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(print())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.headerName", is(notNullValue())))
+                .andExpect(jsonPath("$.parameterName", is(notNullValue())))
+                .andExpect(jsonPath("$.token", is(notNullValue())))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(content).isNotEmpty();
+
+        CsrfToken csrfToken = objectMapper.readValue(content, DefaultCsrfToken.class);
+
+        assertThat(csrfToken).isNotNull();
+
+        mockMvc.perform(post("/api/authenticate")
+                .params(formData)
+                .with(csrf()))
+                //.header(csrfToken.getHeaderName(), csrfToken.getToken()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.access_token", is(notNullValue())))
+            .andExpect(cookie().doesNotExist("SESSIONID"));
     }
 
     @Test
