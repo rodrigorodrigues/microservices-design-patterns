@@ -1,4 +1,4 @@
-version: '3.2'
+version: '3.5'
 services:
   service-discovery:
     image: hashicorp/consul:latest
@@ -34,7 +34,7 @@ services:
     container_name: gateway
     environment:
       - SPRING_DATA_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=consul,dev,auth
+      - SPRING_PROFILES_ACTIVE=prod,auth,consul,cors
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
@@ -45,12 +45,18 @@ services:
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
 #      - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY=trace
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - SPRING_MAIN_WEB_APPLICATION_TYPE=reactive
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
       - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+#      - MANAGEMENT_HEALTH_REDIS_ENABLED=false
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+#      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - SPRING_CLOUD_GATEWAY_GLOBAL_CORS_ADD_TO_SIMPLE_URL_HANDLER_MAPPING=true
     depends_on:
       - service-discovery
@@ -58,6 +64,7 @@ services:
       - 8080:8080
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
@@ -69,7 +76,7 @@ services:
     container_name: monitoring
     environment:
       - SPRING_DATA_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=consul,auth,dev
+      - SPRING_PROFILES_ACTIVE=consul,auth,prod
 #      - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
@@ -83,10 +90,18 @@ services:
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - SPRING_CLOUD_KUBERNETES_LOADBALANCER_ENABLED=false
+      - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
     depends_on:
       - service-discovery
     ports:
       - 9002:9002
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
     networks:
       net:
         aliases:
@@ -202,7 +217,7 @@ services:
     image: person-service:0.0.1-SNAPSHOT
     container_name: person-api
     environment:
-      - SPRING_PROFILES_ACTIVE=consul,dev,kafka,callPostApi
+      - SPRING_PROFILES_ACTIVE=consul,prod #,kafka,callPostApi
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
@@ -218,16 +233,21 @@ services:
       - JAVA_OPTS=--enable-preview
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
       - LOGGING_LEVEL_ORG_APACHE_COYOTE_HTTP11=trace
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+      - com.microservice.authentication.jwt.publicKeyStore=file:/www.spendingbetter.com.pub
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
     depends_on:
       - service-discovery
       - mongodb-datasource
       - jaeger
       - service-discovery-load-configuration
-      - kafka
+#      - kafka
     ports:
       - 8082:8082
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.pub:/www.spendingbetter.com.pub
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
@@ -281,15 +301,23 @@ services:
       - QUARKUS_LOG_CATEGORY_COM_ORBITZ_CONSUL=DEBUG
       - PUBLIC_KEY_PATH=/jwks.json
       - QUARKUS_CONSUL_CONFIG_PROPERTIES_VALUE_KEYS=config/quarkus-service/data
+      - MP_JWT_VERIFY_PUBLICKEY_LOCATION=http://gateway:8080/.well-known/jwks.json
 #      - QUARKUS_SMALLRYE_HEALTH_ROOT_PATH=/actuator/health
     depends_on:
       - service-discovery
       - mongodb-datasource
+    restart: on-failure
+    healthcheck:
+      test: "curl --fail --silent localhost:8085/actuator/health | grep true || exit 1"
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
     ports:
       - 8085:8085
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-      - ./jwks.json:/jwks.json
+#      - ./jwks.json:/jwks.json
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
@@ -334,7 +362,7 @@ services:
     #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
-      - SPRING_PROFILES_ACTIVE=consul,dev,auth
+      - SPRING_PROFILES_ACTIVE=consul,prod,auth
       - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
@@ -342,30 +370,41 @@ services:
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
-#      - DEBUG=true
+      - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=trace
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
+#      - LOGIN_ENABLED=false
+      - LOGIN_PORT=8080
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS=true
       - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      #      - MANAGEMENT_HEALTH_REDIS_ENABLED=false
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
       - service-discovery
       - mongodb-datasource
       - gateway
-      - monitoring
+#      - monitoring
       - redisdb
-      - jaeger
+#      - jaeger
       - service-discovery-load-configuration
     ports:
       - 9999:9999
+      - 5005:5005
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
@@ -378,6 +417,11 @@ services:
     container_name: mongodb-datasource
     ports:
       - 27017:27017
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "512MB"
     networks:
       net:
         aliases:

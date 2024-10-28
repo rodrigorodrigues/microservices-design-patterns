@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Button, Container, Form, FormGroup, Input, Label } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
-import { postWithHeaders } from '../services/ApiService';
+import { postWithHeaders, getWithCredentials } from '../services/ApiService';
 import MessageAlert from '../MessageAlert';
 import { errorMessage, marginLeft } from '../common/Util';
 import Cookies from 'js-cookie';
@@ -54,21 +54,25 @@ class Login extends Component {
 
   async handleSubmit(event) {
     event.preventDefault();
-    const { login } = this.state;
+    const { login, csrf } = this.state;
     const { setAuthentication, history } = this.props;
     const loginSubmit = "username=" + encodeURIComponent(login.username) + '&password=' + encodeURIComponent(login.password);
 
     try {
       this.setLoading(true);
+
+      let csrfData = await getWithCredentials('csrf', false);
+      const csrfToken = csrfData.token;
+
       const redirectToPreviousPage = window.localStorage.getItem('redirectToPreviousPage');
       console.log("redirectToPreviousPage: ", redirectToPreviousPage);
       const data = await postWithHeaders('authenticate', loginSubmit, 
         { 
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 
-          'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN'), 
+          'X-XSRF-TOKEN': csrfToken,//Cookies.get('XSRF-TOKEN'), 
           'requestId': uuid() 
         });
-      if (data.access_token) {
+      if (data.tokenValue) {
         setAuthentication(data);
         if (redirectToPreviousPage !== null) {
           window.localStorage.removeItem('redirectToPreviousPage');

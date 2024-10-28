@@ -1,23 +1,42 @@
 package com.springboot.edgeserver.config;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+
 import com.springboot.edgeserver.util.HandleResponseError;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
-import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
-import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.session.ReactiveSessionRepository;
+import org.springframework.session.SessionRepository;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Spring Security Configuration
@@ -29,10 +48,9 @@ import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttrib
 public class EdgeServerWebSecurityConfiguration {
     private final HandleResponseError handleResponseError;
 
-//    private final DefaultTokenServices defaultTokenServices;
-
-    private final TokenStore tokenStore;
-
+    private final OAuth2ClientProperties clientProperties;
+    private final RegistrationProperties registrationProperties;
+    private final ReactiveSessionRepository sessionRepository;
     private static final String[] WHITELIST = {
             // -- swagger ui
             "/v3/api-docs/**",
@@ -56,28 +74,106 @@ public class EdgeServerWebSecurityConfiguration {
             "/error",
             "/api/**",
             "/oauth2/**",
-            "/.well-known/jwks.json",
+            "/.well-known/**",
             "/swagger/**",
             "/login",
-            "/admin/**"
+            "/admin/**",
+            "/login/**",
+            "/webauthn/**",
+            "/ott/**",
+            "/"
     };
 
-    public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError, TokenStore tokenStore) {
+    @ConfigurationProperties(prefix = "baeldung.security.client.registration")
+    public record RegistrationProperties (
+        URI registrationEndpoint,
+        String registrationUsername,
+        String registrationPassword,
+        List<String> registrationScopes,
+        List<String> grantTypes,
+        List<String> redirectUris,
+        URI tokenEndpoint
+    ) {}
+
+    public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError,
+            OAuth2ClientProperties clientProperties,
+            RegistrationProperties registrationProperties,
+            ReactiveSessionRepository sessionRepository) {
         this.handleResponseError = handleResponseError;
-        this.tokenStore = tokenStore;
+        this.clientProperties = clientProperties;
+        this.registrationProperties = registrationProperties;
+        this.sessionRepository = sessionRepository;
     }
 
     @Bean
-    public SecurityWebFilterChain configure(ServerHttpSecurity http) {
+    ReactiveClientRegistrationRepository dynamicClientRegistrationRepository( WebClient webClient) {
+
+        log.info("Creating a dynamic client registration repository");
+
+        var registrationDetails = new DynamicClientRegistrationRepository.RegistrationDetails(
+                registrationProperties.registrationEndpoint(),
+                registrationProperties.registrationUsername(),
+                registrationProperties.registrationPassword(),
+                registrationProperties.registrationScopes(),
+                registrationProperties.grantTypes(),
+                registrationProperties.redirectUris(),
+                registrationProperties.tokenEndpoint());
+
+        // Use standard client registrations as
+        Map<String, ClientRegistration> staticClients = (new OAuth2ClientPropertiesMapper(clientProperties)).asClientRegistrations();
+        var repo = new DynamicClientRegistrationRepository(registrationDetails, staticClients, webClient);
+        repo.doRegistrations();
+        return repo;
+    }
+
+    @Bean
+    WebClient registrationRestTemplate(WebClient.Builder webClientBuilder) {
+        return webClientBuilder.build();
+    }
+
+    /*@Bean
+    public OAuth2AuthorizationRequestResolver pkceResolver(ClientRegistrationRepository repo) {
+        var resolver = new DefaultOAuth2AuthorizationRequestResolver(repo, "/oauth2/authorization");
+        resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+        return resolver;
+    }*/
+
+    @Bean
+    public ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(ReactiveClientRegistrationRepository dynamicClientRegistrationRepository) {
+        ServerWebExchangeMatcher authorizationRequestMatcher =
+                new PathPatternParserServerWebExchangeMatcher(
+                        "/login/oauth2/authorization/{registrationId}");
+
+        return new DefaultServerOAuth2AuthorizationRequestResolver(dynamicClientRegistrationRepository, authorizationRequestMatcher);
+    }
+
+    @Bean
+    public SecurityWebFilterChain configure(ServerHttpSecurity http, @Value("${TOKEN_HOST:http://localhost:8081}") String tokenHost,
+            ServerOAuth2AuthorizationRequestResolver resolver) {
         return http
                 .csrf(c -> c.disable().headers(h -> h.frameOptions(f -> f.disable().cache(ServerHttpSecurity.HeaderSpec.CacheSpec::disable))))
-/*
-                .csrf(c -> c.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new ServerCsrfTokenRequestAttributeHandler()))
-*/
                 .authorizeExchange(a -> a.pathMatchers(WHITELIST).permitAll()
                         .pathMatchers("/actuator/**").hasRole("ADMIN")
                         .anyExchange().authenticated())
+                .oneTimeTokenLogin(c -> c.tokenGenerationSuccessHandler((exchange, oneTimeToken) -> {
+                    var msg = String.format("go to %s/login/ott?token=%s<br>you've got console mail!", tokenHost, oneTimeToken.getTokenValue());
+                    System.out.println(msg);
+                    ServerHttpResponse response = exchange.getResponse();
+                    response.setStatusCode(HttpStatus.OK);
+                    byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
+                    DataBuffer buffer = response.bufferFactory().wrap(bytes);
+                    return response.writeAndFlushWith(Flux.just(Mono.just(buffer)));
+                }))
+                .oauth2Login(a -> a.authorizationRequestResolver(resolver))
+                .oauth2Client(Customizer.withDefaults())
+                .exceptionHandling(exception -> exception.accessDeniedHandler((exchange, denied) -> handleResponseError.handle(exchange, denied, true)))
+/*
+                .with(webauthn() ,c -> c
+                        .allowedOrigins("*")
+                        .rpId("localhost")
+                        .rpName("Bootiful Passkeys")
+                )
+*/
                 .formLogin(c -> c.authenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain()
                                 .filter(webFilterExchange.getExchange())
                                 .contextWrite(context -> ReactiveSecurityContextHolder.withAuthentication(authentication)))
@@ -87,11 +183,8 @@ public class EdgeServerWebSecurityConfiguration {
                     @Override
                     public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
                         log.info("Logout success! authType: {}", authentication.getClass().getName());
-                        if (authentication instanceof OAuth2AuthenticationToken) {
-                            tokenStore.findTokensByClientId(authentication.getName())
-                                    .forEach(tokenStore::removeAccessToken);
-                        }
-                        return super.onLogoutSuccess(exchange, authentication);
+                        return sessionRepository.deleteById(exchange.getExchange().getRequest().getId())
+                                .then(super.onLogoutSuccess(exchange, authentication));
                     }
                 }))
                 .build();

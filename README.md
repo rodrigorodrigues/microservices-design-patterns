@@ -375,6 +375,11 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] PHP - Add Service using PHP/Laravel
 * [X] Java - Migrate JDK 21 - Spring Boot 3
 * [X] Java - Migrate JDK 21 - Quarkus 3
+* [X] Java - Add Passkeys - Spring Boot 3
+* [X] Java - Add One Time Token - Spring Boot 3
+* [X] Java - Add JWKS Multiple Validation - Spring Boot 3
+* [X] Java - Add Authorization Server - Spring Boot 3
+* [X] Java - Removed Spring Oauth2 - Spring Boot 3
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

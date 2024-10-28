@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.error.ErrorAttributeOptions
-import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationContextAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -18,24 +16,19 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.context.request.ServletWebRequest
 import java.io.IOException
-import java.nio.charset.StandardCharsets
-import java.security.interfaces.RSAPublicKey
-import javax.crypto.spec.SecretKeySpec
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: CustomDefaultErrorAttributes,
                                   @Autowired val objectMapper: ObjectMapper,
-                                  @Autowired val properties: AuthenticationProperties) : ApplicationContextAware {
-    private lateinit var applicationContext: ApplicationContext
-
+                                  @Autowired val jwtDecoder: JwtDecoder,
+                                  @Autowired val properties: AuthenticationProperties) {
     private val WHITE_LIST = arrayOf(
         // -- swagger ui
         // -- swagger ui
@@ -58,38 +51,17 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .csrf{ it.disable() }
-            .headers()
-            .frameOptions().disable()
-            .cacheControl().disable()
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .formLogin().disable()
-            .httpBasic().disable()
-            .logout().disable()
-            .authorizeHttpRequests()
-            .requestMatchers(*WHITE_LIST).permitAll()
-            .anyRequest().authenticated()
-            .and()
-            .oauth2ResourceServer()
-            .accessDeniedHandler(this::handleErrorResponse)
-            .authenticationEntryPoint(this::handleErrorResponse)
-            .jwt {
-                val jwtDecoder = jwtDecoder(properties)
-                it.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())
-            }.and().build()
-    }
-
-    @Bean
-    fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder? {
-        val jwt = properties.jwt
-        return if (jwt != null && jwt.keyValue != null) {
-            val secretKeySpec = SecretKeySpec(jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
-            NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
-        } else {
-            val publicKey = applicationContext.getBean(RSAPublicKey::class.java)
-            NimbusJwtDecoder.withPublicKey(publicKey).build()
-        }
+            .headers { it -> it.frameOptions { it.disable() }.cacheControl { it.disable() } }
+            .sessionManagement{ it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .logout { it.disable() }
+            .authorizeHttpRequests { it.requestMatchers(*WHITE_LIST).permitAll()
+                .anyRequest().authenticated() }
+            .oauth2ResourceServer { it.accessDeniedHandler(this::handleErrorResponse)
+                .authenticationEntryPoint(this::handleErrorResponse)
+                .jwt { it.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()) }}
+            .build()
     }
 
     @Throws(IOException::class)
@@ -110,10 +82,6 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
         val jwtAuthenticationConverter = JwtAuthenticationConverter()
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter)
         return jwtAuthenticationConverter
-    }
-
-    override fun setApplicationContext(applicationContext: ApplicationContext) {
-        this.applicationContext = applicationContext
     }
 
 }

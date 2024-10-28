@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.context.request.ServletWebRequest;
 
@@ -66,6 +67,11 @@ public class SpringSecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+/*
+        JwtIssuerAuthenticationManagerResolver authenticationManagerResolver = JwtIssuerAuthenticationManagerResolver
+            .fromTrustedIssuers("https://spendingbetter.com", "http://localhost:9991", "http://localhost:9998", "http://localhost:8081");
+*/
+
         return http
             .csrf(AbstractHttpConfigurer::disable)
             .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
@@ -78,6 +84,7 @@ public class SpringSecurityConfiguration {
                 .anyRequest().authenticated())
             .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)
+                //.authenticationManagerResolver(authenticationManagerResolver))
                 .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())))
             .build();
     }

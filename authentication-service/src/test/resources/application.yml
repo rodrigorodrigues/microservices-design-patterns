@@ -42,6 +42,8 @@ spring:
             resourceserver:
                 jwt:
                     jwk-set-uri: http://localhost:${server.port}/.well-known/jwks.json
+                opaquetoken:
+                    client-id:
     data:
         redis:
             repositories:
@@ -59,3 +61,14 @@ com:
         authentication:
             redis:
                 enabled: false
+        web:
+            tenants:
+                '[http://localhost]': http://localhost:${wiremock.server.port}/.well-known/jwks.json
+                '[https://spendingbetter.com]': http://localhost:${wiremock.server.port}/.well-known/jwks.json
+
+baeldung:
+    security:
+        server:
+            registration:
+                registrar-client-id: registrar-client
+                registrar-client-secret: "{noop}secret"

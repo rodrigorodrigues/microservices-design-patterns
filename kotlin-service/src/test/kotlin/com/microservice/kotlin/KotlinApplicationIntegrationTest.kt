@@ -13,6 +13,8 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -24,6 +26,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.test.context.ContextConfiguration
 import java.nio.charset.StandardCharsets
+import java.security.interfaces.RSAPublicKey
 import javax.crypto.spec.SecretKeySpec
 
 @SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
@@ -36,7 +39,8 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     var jwtTokenUtil = JwtTokenUtil(authenticationProperties)
 
     @TestConfiguration
-    class PopulateDbConfiguration {
+    class PopulateDbConfiguration : ApplicationContextAware {
+        private lateinit var applicationContext: ApplicationContext
 
         @Bean
         fun loadInitialData(taskRepository: TaskRepository): CommandLineRunner {
@@ -54,8 +58,18 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
 
         @Bean
         fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder? {
-            val secretKeySpec = SecretKeySpec(properties.jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
-            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
+            val jwt = properties.jwt
+            return if (jwt != null && jwt.keyValue != null) {
+                val secretKeySpec = SecretKeySpec(jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
+                NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
+            } else {
+                val publicKey = applicationContext.getBean(RSAPublicKey::class.java)
+                NimbusJwtDecoder.withPublicKey(publicKey).build()
+            }
+        }
+
+        override fun setApplicationContext(applicationContext: ApplicationContext) {
+            this.applicationContext = applicationContext
         }
     }
 

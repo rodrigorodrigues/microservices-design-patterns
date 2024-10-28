@@ -12,7 +12,6 @@ import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -56,7 +55,7 @@ public class CustomReactiveDefaultErrorAttributes extends DefaultErrorAttributes
             httpStatus = e.getStatusCode();
         } else if (ex instanceof ResponseStatusException e) {
             httpStatus = e.getStatusCode();
-        } else if (ex instanceof AuthenticationException || ex instanceof OAuth2Exception) {
+        } else if (ex instanceof AuthenticationException) {
             httpStatus = HttpStatus.UNAUTHORIZED;
         } else if (ex instanceof ConstraintViolationException) {
             httpStatus = HttpStatus.BAD_REQUEST;

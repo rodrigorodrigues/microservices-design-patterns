@@ -1,5 +1,7 @@
 package com.microservice.user;
 
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -9,6 +11,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,14 +29,18 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.minidev.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -40,6 +48,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -62,6 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
 @AutoConfigureMockMvc
 public class UserServiceApplicationIntegrationTest {
+
     @Autowired
     MockMvc client;
 
@@ -72,7 +83,9 @@ public class UserServiceApplicationIntegrationTest {
     AuthenticationProperties authenticationProperties;
 
     @TestConfiguration
-    static class PopulateDbConfiguration {
+    public static class PopulateDbConfiguration implements ApplicationContextAware {
+        private ApplicationContext applicationContext;
+
         @Bean
         CommandLineRunner runner(PasswordEncoder passwordEncoder, UserRepository userRepository) {
             return args -> {
@@ -96,6 +109,23 @@ public class UserServiceApplicationIntegrationTest {
             return Stream.of(permissions)
                     .map(Authority::new)
                     .collect(Collectors.toList());
+        }
+
+        @Bean
+        public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+            AuthenticationProperties.Jwt jwt = properties.getJwt();
+            if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
+                SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+                return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+            } else {
+                RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
+                return NimbusJwtDecoder.withPublicKey(publicKey).build();
+            }
+        }
+
+        @Override
+        public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+            this.applicationContext = applicationContext;
         }
     }
 

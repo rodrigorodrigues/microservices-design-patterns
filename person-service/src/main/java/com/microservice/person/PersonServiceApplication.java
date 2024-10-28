@@ -1,7 +1,6 @@
 package com.microservice.person;
 
 import java.lang.annotation.Annotation;
-import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -12,15 +11,12 @@ import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
-import javax.crypto.spec.SecretKeySpec;
-
 import brave.baggage.BaggageField;
 import brave.baggage.CorrelationScopeConfig;
 import brave.context.slf4j.MDCScopeDecorator;
 import brave.propagation.CurrentTraceContext;
 import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
-import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.person.config.ConfigProperties;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
@@ -30,9 +26,7 @@ import com.microservice.web.common.util.ChangeQueryStringFilter;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -47,8 +41,6 @@ import org.springframework.boot.info.GitProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -69,8 +61,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -81,9 +71,8 @@ import org.springframework.web.client.RestTemplate;
 @EnableAsync
 @EnableScheduling
 @EnableConfigurationProperties(ConfigProperties.class)
-public class PersonServiceApplication implements ApplicationContextAware {
+public class PersonServiceApplication {
     Faker faker = new Faker();
-    private ApplicationContext applicationContext;
 
     public static void main(String[] args) {
 		SpringApplication.run(PersonServiceApplication.class, args);
@@ -116,25 +105,6 @@ public class PersonServiceApplication implements ApplicationContextAware {
     @Bean
     RSAPublicKey publicKeyStore(@Value("${com.microservice.authentication.jwt.publicKeyStore}") RSAPublicKey key) {
         return key;
-    }
-
-    @Primary
-    @Bean
-    public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
-        log.debug("jwtDecoder:properties: {}", properties);
-        AuthenticationProperties.Jwt jwt = properties.getJwt();
-        if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
-            return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
-        } else {
-            RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
-            return NimbusJwtDecoder.withPublicKey(publicKey).build();
-        }
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     /*@Configuration

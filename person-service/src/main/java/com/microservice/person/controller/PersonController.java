@@ -64,7 +64,7 @@ public class PersonController {
 
     @Operation(description = "Api for return list of persons", security = { @SecurityRequirement(name = "bearer-key") })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_READ', 'PERSON_SAVE', 'PERSON_DELETE', 'PERSON_CREATE') or hasAnyAuthority('SCOPE_openid', 'client.create')")
     public ResponseEntity<Page<PersonDto>> findAll(@Parameter(hidden = true) Authentication authentication,
                                                    @RequestParam(name = "page", defaultValue = "0", required = false) Integer page,
                                                    @RequestParam(name = "size", defaultValue = "10", required = false) Integer size,

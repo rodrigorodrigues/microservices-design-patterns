@@ -31,7 +31,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
@@ -72,9 +71,6 @@ public class PersonControllerTest {
 
     @MockBean
     KafkaTemplate<String, String> template;
-
-    @MockBean
-    TokenStore tokenStore;
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;

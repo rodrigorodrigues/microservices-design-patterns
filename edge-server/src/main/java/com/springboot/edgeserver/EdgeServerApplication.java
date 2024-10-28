@@ -3,9 +3,11 @@ package com.springboot.edgeserver;
 import java.net.URI;
 import java.security.Principal;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
+import com.springboot.edgeserver.config.EdgeServerWebSecurityConfiguration;
 import com.springboot.edgeserver.filters.AdminResourcesFilter;
 import com.springboot.edgeserver.filters.AuthenticationPostFilter;
 import com.springboot.edgeserver.filters.LogoutPostFilter;
@@ -20,6 +22,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.config.GatewayProperties;
@@ -34,9 +37,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.session.MapSessionRepository;
+import org.springframework.session.ReactiveSessionRepository;
+import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
+import org.springframework.session.web.server.session.SpringSessionWebSessionStore;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -50,6 +56,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @SpringBootApplication
 @EnableWebFlux
 @EnableDiscoveryClient
+@EnableConfigurationProperties(EdgeServerWebSecurityConfiguration.RegistrationProperties.class)
 public class EdgeServerApplication {
 
 	public static void main(String[] args) {
@@ -60,7 +67,13 @@ public class EdgeServerApplication {
 	@Bean
 	@ConditionalOnMissingBean
 	public SessionRepository defaultSessionRepository() {
-		return new MapSessionRepository(Collections.emptyMap());
+		return new MapSessionRepository(new HashMap<>());
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public SpringSessionWebSessionStore<Session> springSessionWebSessionStore(ReactiveSessionRepository reactiveSessionRepository) {
+		return new SpringSessionWebSessionStore<>(reactiveSessionRepository);
 	}
 
 	@Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
@@ -90,6 +103,7 @@ public class EdgeServerApplication {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 		serializer.setCookieName("SESSIONID");
 		serializer.setCookiePath("/");
+		serializer.setUseBase64Encoding(false);
 		return serializer;
 	}
 

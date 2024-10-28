@@ -9,10 +9,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.session.SessionRepository;
 
 @Slf4j
 @Configuration
@@ -33,7 +32,7 @@ public class AdminServerWebSecurityConfiguration {
 
     private final AdminServerProperties adminServerProperties;
 
-    private final TokenStore tokenStore;
+    private final SessionRepository sessionRepository;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,10 +49,7 @@ public class AdminServerWebSecurityConfiguration {
             .logout(l -> l.logoutUrl(adminContextPath + "/logout").deleteCookies("SESSIONID")
                 .logoutSuccessHandler((request, response, authentication) -> {
                     log.info("Logout success!");
-                    if (authentication instanceof OAuth2AuthenticationToken) {
-                        tokenStore.findTokensByClientId(authentication.getName())
-                            .forEach(tokenStore::removeAccessToken);
-                    }
+                    sessionRepository.deleteById(request.getSession(false).getId());
                     new SimpleUrlLogoutSuccessHandler();
                 })
                 .invalidateHttpSession(true))

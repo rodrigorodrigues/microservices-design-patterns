@@ -63,7 +63,7 @@ class App extends Component {
       }
       if (!this.state.isAuthenticated) {
           let data = await getWithCredentials('authenticatedUser', false);
-          if (data.access_token) {
+          if (data.tokenValue) {
             window.localStorage.removeItem('redirectToPreviousPage');
             this.setAuthentication(data);
           } else {
@@ -71,7 +71,7 @@ class App extends Component {
               console.log(`Token is expired trying to refresh_token:`);
               const body = "refresh_token=" + encodeURIComponent(this.state.refreshToken);
               data = await post('refreshToken', body);
-              if (data.access_token) {
+              if (data.tokenValue) {
                 window.localStorage.removeItem('redirectToPreviousPage');
                 this.setAuthentication(data);
                 return;
@@ -104,7 +104,7 @@ class App extends Component {
   }
 
   setAuthentication = (data) => {
-    let token = data.access_token;
+    let token = data.tokenValue;
     this.setState({ displayError: null });
     this.decodeJwt(`Bearer ${token}`, data.refresh_token, data.expires_in);
     window.localStorage.setItem('jhi-isAuthenticated', true);
@@ -150,7 +150,7 @@ class App extends Component {
     
   onActive = async () => {
     const { expiresIn, refreshToken, jwt } = this.state;
-    if (expiresIn != null && refreshToken != null) {
+    if (expiresIn !== null && refreshToken !== null && refreshToken !== "undefined") {
       const expIn = moment(expiresIn).subtract(1, 'minute');
       if (moment().isSameOrAfter(expIn)) {
         console.log("Refreshing Token");
@@ -166,7 +166,7 @@ class App extends Component {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 
         'Authorization': jwt
       });
-      if (data.access_token) {
+      if (data.tokenValue) {
         this.setAuthentication(data);
       } else {
         this.setState({ displayError: errorMessage(data) });
