@@ -6,7 +6,9 @@ spring:
     mvc:
         pathmatch:
             matching-strategy: ant_path_matcher
-
+    session:
+        redis:
+            repository-type: indexed
 management:
     endpoints:
         web:
@@ -27,6 +29,13 @@ management:
 logging:
     pattern:
         level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
+
+baeldung:
+    security:
+        server:
+            registration:
+                registrar-client-id: registrar-client
+                registrar-client-secret: "{noop}secret"
 
 ---
 spring:
@@ -76,6 +85,28 @@ spring:
                                 - "email"
                         require-authorization-consent: true
                         require-proof-key: true
+                    spring:
+                        registration:
+                            client-id: "spring-test" #The name to be used in different configurations to refer this client.
+                            client-secret: "sMJ1ltm5wxdcOeEJGaE6WdFj9ArR75wkBqUgVE7vwwo="  ##Using D3PasswordEncoder
+                            client-authentication-methods: #methods supported to authenticate the client
+                                - "client_secret_basic"
+                                - "client_secret_post"
+                            authorization-grant-types: #The flows this client support
+                                - "authorization_code"
+                                - "refresh_token"
+                                - "client_credentials"
+                            redirect-uris:  # The Url to be used at the end of successful authentication
+                                - "https://127.0.0.1:9443/"
+                                - "https://127.0.0.1:9443/login/oauth2/code/spring"
+                                - "http://127.0.0.1:8081/"
+                            post-logout-redirect-uris:
+                                - "http://127.0.0.1:8081/"
+                            scopes:
+                                - "openid"
+                                - "profile"
+                                - "email"
+                        require-authorization-consent: true
 server:
     servlet:
         session:

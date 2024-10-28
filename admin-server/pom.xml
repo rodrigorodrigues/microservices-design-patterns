@@ -18,10 +18,12 @@
     </properties>
 
     <dependencies>
+<!--
         <dependency>
             <groupId>io.github.rwinch.webauthn</groupId>
             <artifactId>spring-security-webauthn</artifactId>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>

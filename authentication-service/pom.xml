@@ -19,14 +19,22 @@
         <code-coverage>0.6</code-coverage>
         <docker.image-tag>${project.version}</docker.image-tag>
         <spring-security.version>6.4.0-SNAPSHOT</spring-security.version>
+        <wiremock-jre8-standalone.version>2.32.0</wiremock-jre8-standalone.version>
 	</properties>
 
 	<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.webauthn4j</groupId>
             <artifactId>webauthn4j-spring-security-core</artifactId>
             <version>0.10.0.RELEASE</version>
         </dependency>
+<!--
+
 
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -39,11 +47,14 @@
             <artifactId>spring-security-config</artifactId>
             <version>${spring-security.version}</version>
         </dependency>
+-->
 
+<!--
         <dependency>
             <groupId>io.github.rwinch.webauthn</groupId>
             <artifactId>spring-security-webauthn</artifactId>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -196,6 +207,19 @@
             <groupId>it.ozimov</groupId>
             <artifactId>embedded-redis</artifactId>
             <version>0.7.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8-standalone</artifactId>
+            <version>${wiremock-jre8-standalone.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

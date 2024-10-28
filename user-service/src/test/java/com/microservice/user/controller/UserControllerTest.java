@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
+import com.microservice.user.UserServiceApplicationIntegrationTest;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.config.SpringSecurityConfiguration;
 import com.microservice.user.dto.UserDto;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -30,7 +30,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -52,8 +51,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(properties = "configuration.initialLoad=false",
         controllers = UserController.class)
-@Import({ WebCommonAutoConfiguration.class, SpringSecurityConfiguration.class})
-@EnableConfigurationProperties({ResourceServerProperties.class, AuthenticationProperties.class})
+@Import({ WebCommonAutoConfiguration.class, SpringSecurityConfiguration.class, UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class})
+@EnableConfigurationProperties(AuthenticationProperties.class)
 public class UserControllerTest {
 
     @Autowired
@@ -61,9 +60,6 @@ public class UserControllerTest {
 
     @MockBean
     UserService userService;
-
-    @MockBean
-    TokenStore tokenStore;
 
     @MockBean
     SpringSecurityAuditorAware springSecurityAuditorAware;

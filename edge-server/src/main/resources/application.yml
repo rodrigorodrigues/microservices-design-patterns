@@ -8,6 +8,27 @@ spring:
             filter:
                 secure-headers:
                     disable: x-frame-options
+
+    security:
+      oauth2:
+        client:
+          provider:
+            spring-auth-server:
+              issuer-uri: http://localhost:9991
+          registration:
+            test-client:
+              provider: spring-auth-server
+              client-name: test-client
+              client-id: ignored  # Dynamically set
+              client-secret: ignored # Dynamically set
+              authorization-grant-type:
+                - authorization_code
+                - refresh_token
+                - client_credentials
+              scope:
+                - openid
+                - email
+                - profile
 management:
     endpoints:
         web:
@@ -29,6 +50,17 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
 
+baeldung:
+  security:
+    client:
+      registration:
+        registration-endpoint: http://localhost:9991/connect/register
+        registration-username: client
+        registration-password: secret
+        token-endpoint: http://localhost:9991/oauth2/token
+        registration-scopes: client.create
+        grant-types: client_credentials
+
 ---
 spring:
     config:
@@ -45,12 +77,11 @@ spring:
                 cors-configurations:
                     '[/**]':
                         allowedOrigins:
-#                            - "http://localhost:3000"
-#                            - "http://localhost:3001"
-#                            - "http://localhost:8080"
-#                            - "http://192.168.1.16:3000"
-#                            - "http://192.168.1.17:3000"
-                          - "*"
+                          - "http://localhost:3000"
+#                          - "http://localhost:3001"
+#                          - "http://localhost:8080"
+#                          - "http://192.168.1.16:3000"
+#                          - "http://192.168.1.17:3000"
                         allowedHeaders: "*"
                         allowedMethods:
                           - "GET"
@@ -58,7 +89,7 @@ spring:
                           - "PUT"
                         allowCredentials: true
             default-filters:
-                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
     autoconfigure:
         exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
 
@@ -80,7 +111,7 @@ spring:
             allowedMethods: "*"
             allowCredentials: true
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
   autoconfigure:
     exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
 
@@ -95,13 +126,16 @@ spring:
                 cors-configurations:
                     '[/**]':
                         allowedOrigins:
-                          - "https://spendingbetter.com"
-#                        allowedOrigins: "https://spendingbetter.com"
+#                          - "https://spendingbetter.com"
+                          - "http://localhost:3000"
+#                          - "http://localhost:3001"
+#                          - "http://localhost:8080"
+
                         allowedHeaders: "*"
                         allowedMethods: "*"
                         allowCredentials: true
             default-filters:
-                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
             discovery:
                 locator:
                     enabled: true
@@ -193,7 +227,7 @@ spring:
                   allowedMethods: "*"
                   allowCredentials: true
             default-filters:
-              - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+              - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
 #            discovery:
 #              locator:
 #                enabled: true

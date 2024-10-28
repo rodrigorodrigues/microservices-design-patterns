@@ -1,8 +1,10 @@
 package com.microservice.authentication;
 
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
@@ -14,8 +16,14 @@ import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.microservice.authentication.service.Oauth2TokenStoreService;
+import com.microservice.authentication.config.SpringSecurityConfiguration;
 import com.microservice.web.common.util.constants.DefaultUsers;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +36,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.session.RedisSessionProperties;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
@@ -44,14 +54,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.TokenRequest;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.session.MapSessionRepository;
@@ -67,6 +74,7 @@ import org.springframework.web.server.ResponseStatusException;
 @EnableAsync
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties({SpringSecurityConfiguration.RegistrationProperties.class, RedisSessionProperties.class})
 public class AuthenticationServiceApplication implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
@@ -77,7 +85,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
     @Bean
     @ConditionalOnMissingBean
     public SessionRepository defaultSessionRepository() {
-        return new MapSessionRepository(Collections.emptyMap());
+        return new MapSessionRepository(new HashMap<>());
     }
 
     @Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
@@ -104,7 +112,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
         };
     }
 
-    @Bean
+    /*@Bean
     public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
         AuthenticationProperties.Jwt jwt = properties.getJwt();
         if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
@@ -114,6 +122,17 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
             RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
             return NimbusJwtDecoder.withPublicKey(publicKey).build();
         }
+    }*/
+
+    @Bean
+    JwtEncoder jwtEncoder() {
+        KeyPair keyPair = applicationContext.getBean(KeyPair.class);
+
+        JWK jwk = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+            .privateKey(keyPair.getPrivate())
+            .build();
+        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+        return new NimbusJwtEncoder(jwks);
     }
 
     @Bean
@@ -187,7 +206,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
         return new GitProperties(new Properties());
     }
 
-    @ConditionalOnMissingBean
+    /*@ConditionalOnMissingBean
     @Bean
     Oauth2TokenStoreService redisTokenStoreService(DefaultTokenServices defaultTokenServices) {
         return new Oauth2TokenStoreService() {
@@ -219,7 +238,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
                 return generateToken(oAuth2Authentication, oauth2Login);
             }
         };
-    }
+    }*/
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

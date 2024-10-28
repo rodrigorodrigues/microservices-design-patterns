@@ -13,52 +13,40 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.microservice.authentication.common.model.Authentication;
+import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
-import com.nimbusds.oauth2.sdk.GrantType;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.JwtAccessTokenConverterConfigurer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.crypto.encrypt.KeyStoreKeyFactory;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
-import org.springframework.util.CollectionUtils;
-
-import static java.util.stream.Collectors.joining;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 @Slf4j
 @Configuration
@@ -67,18 +55,19 @@ import static java.util.stream.Collectors.joining;
 @EnableMongoRepositories(basePackageClasses = AuthenticationCommonRepository.class)
 public class AuthenticationCommonConfiguration implements ApplicationContextAware {
 
-    private final List<JwtAccessTokenConverterConfigurer> configurers;
+    //private final List<JwtAccessTokenConverterConfigurer> configurers;
 
     private final AuthenticationProperties authenticationProperties;
 
     private ApplicationContext applicationContext;
 
-    public AuthenticationCommonConfiguration(ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers, AuthenticationProperties authenticationProperties) {
-        this.configurers = configurers.getIfAvailable();
+    public AuthenticationCommonConfiguration(//ObjectProvider<List<JwtAccessTokenConverterConfigurer>> configurers,
+        AuthenticationProperties authenticationProperties) {
+        //this.configurers = configurers.getIfAvailable();
         this.authenticationProperties = authenticationProperties;
     }
 
-    @Profile("auth")
+    /*@Profile("auth")
     @Primary
     @Bean
     @ConditionalOnMissingBean(ResourceServerTokenServices.class)
@@ -97,9 +86,63 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
     @ConditionalOnMissingBean(TokenStore.class)
     public TokenStore jwtTokenStore(JwtAccessTokenConverter jwtAccessTokenConverter) {
         return new JwtTokenStore(jwtAccessTokenConverter);
-    }
+    }*/
 
     @Profile("auth")
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
+        return (context) -> {
+            log.info("jwtTokenCustomizer:tokenType: {}", context.getTokenType());
+            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+                context.getClaims().claims((claims) -> {
+
+                    if (context.getPrincipal() instanceof Authentication auth) {
+                        claims.put("name", auth.getFullName());
+                        claims.put("sub", auth.getId());
+                        claims.put("fullName", auth.getFullName());
+                        Set<String> roles = auth.getAuthorities()
+                            .stream()
+                            .map(Authority::getAuthority)
+                            .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+                        claims.put("authorities", roles);
+                    } else if (context.getPrincipal() instanceof OidcUser oidcUser) {
+                        claims.put("name", oidcUser.getEmail());
+                        claims.put("sub", oidcUser.getEmail());
+                        claims.put("fullName", oidcUser.getFullName());
+                        claims.put("imageUrl", oidcUser.getPicture());
+
+                        Set<String> roles = AuthorityUtils.authorityListToSet(oidcUser.getAuthorities())
+                            .stream()
+                            .map(c -> c.replaceFirst("^ROLE_", ""))
+                            .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+                        claims.put("authorities", roles);
+                    } else if (context.getPrincipal() instanceof Jwt jwt) {
+                        claims.put("sub", jwt.getSubject());
+                        claims.put("name", jwt.getClaimAsString("name"));
+                        claims.put("fullName", jwt.getClaimAsString("fullName"));
+                    }
+/*
+                    claims.put("auth", context.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(joining(",")));
+*/
+                    claims.put("type", "access");
+                    claims.put("fresh", true);
+                    long currentTime = new Date().getTime() / 1000;
+                    claims.put("iat", currentTime);
+                    claims.put("nbf", currentTime);
+                    claims.put("iss", authenticationProperties.getIssuer());
+                    claims.put("aud", authenticationProperties.getAud());
+                    claims.put("jti", UUID.randomUUID().toString());
+                    //claims.put(JwtAccessTokenConverter.ACCESS_TOKEN_ID, GrantType.REFRESH_TOKEN.getValue());
+
+                    log.info("jwtTokenCustomizer:claims: {}", claims);
+                });
+            }
+        };
+    }
+
+    /*@Profile("auth")
     @Primary
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() throws Exception {
@@ -145,7 +188,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
             }
         };
         AuthenticationProperties.Jwt jwt = this.authenticationProperties.getJwt();
-        String keyValue = jwt.getKeyValue();
+        String keyValue = jwt. getKeyValue();
         if (StringUtils.isNotBlank(keyValue)) {
             if (!keyValue.startsWith("-----BEGIN")) {
                 converter.setSigningKey(keyValue);
@@ -167,7 +210,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
             }
         }
         return converter;
-    }
+    }*/
 
     @Profile({"!dev & auth"})
     @ConditionalOnMissingBean

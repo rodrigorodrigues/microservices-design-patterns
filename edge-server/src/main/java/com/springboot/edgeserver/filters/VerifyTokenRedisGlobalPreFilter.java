@@ -1,9 +1,7 @@
 package com.springboot.edgeserver.filters;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.tracing.BaggageInScope;
@@ -27,15 +25,15 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.session.web.server.session.SpringSessionWebSessionStore;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebSession;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR;
 
@@ -47,7 +45,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Component
 public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
-    private final TokenStore tokenStore;
+    private final SpringSessionWebSessionStore springSessionWebSessionStore;
 
     private final Tracer tracer;
 
@@ -59,23 +57,39 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private final String REQUEST_ID_HEADER = "requestId";
 
+    private final String[] skipPaths = {"/admin", "/api/logout", "/login/oauth2/", "/oauth2/",
+            "/api/authenticate", "/api/authenticatedUser", "/oauth/", "/swagger/", "/swagger-ui/", "/.well-known",
+            "/v3/api-docs", "/public/build/", "/api/csrf", "/login", "/default-ui.css", "/webauthn"};
+
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         RequestPath path = request.getPath();
-        log.info("VerifyTokenRedisGlobalPreFilter:filter:gatewayProperties:routes {}", gatewayProperties.getRoutes());
-        if (StringUtils.startsWithAny(path.value(), "/admin", "/api/logout", "/login/oauth2/", "/oauth2/",
-                "/api/authenticate", "/api/authenticatedUser", "/oauth/", "/swagger/", "/swagger-ui/", "/.well-known/jwks.json",
-                "/v3/api-docs", "/public/build/", "/api/csrf", "/login", "/default-ui.css", "/webauthn")) {
+        log.info("VerifyTokenRedisGlobalPreFilter:filter:gatewayProperties:path {}", path.value());
+        if (StringUtils.startsWithAny(path.value(), skipPaths)) {
             log.debug("Skip token redis validation for following path: {}", path);
             String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            if (StringUtils.isBlank(authorizationHeader)) {
+            if (StringUtils.isBlank(authorizationHeader) && !path.value().startsWith("/swagger/")) {
                 log.debug("Trying to set authorization header if user is authenticated.");
                 return ReactiveSecurityContextHolder.getContext()
-                        .flatMap(s -> {
-                            Authentication authentication = s.getAuthentication();
+                        .flatMap(securityContext -> {
+                            Authentication authentication = securityContext.getAuthentication();
                             if (authentication != null && authentication.isAuthenticated()) {
                                 log.debug("User is authenticated:");
+                                return exchange.getSession()
+                                        .flatMap(session -> springSessionWebSessionStore.retrieveSession(session.getId())
+                                                .flatMap(sessionObj -> {
+                                                    WebSession sessionRepository = (WebSession) sessionObj;
+                                                    OAuth2AccessToken accessToken = sessionRepository.getAttribute("token");
+                                                    log.debug("verifyTokenRedis:Set authorization header from redis session");
+                                                    ServerHttpRequest build = exchange.getRequest().mutate()
+                                                            .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()))
+                                                            .build();
+                                                    return chain.filter(exchange.mutate()
+                                                            .request(build).build());
+                                                }));
+                                /*
                                 Optional<OAuth2AccessToken> oAuth2AccessToken = tokenStore.findTokensByClientId(authentication.getName())
                                         .stream()
                                         .filter(a -> !a.isExpired())
@@ -84,14 +98,13 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                     log.debug("verifyTokenRedis:Set authorization header from redis session");
                                     OAuth2AccessToken oAuth2AccessTokenValue = oAuth2AccessToken.get();
                                     ServerHttpRequest build = exchange.getRequest().mutate()
-                                            .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", oAuth2AccessTokenValue.getTokenType(), oAuth2AccessTokenValue.getValue()))
+                                            .header(HttpHeaders.AUTHORIZATION, String.format("%securityContext %securityContext", oAuth2AccessTokenValue.getTokenType(), oAuth2AccessTokenValue.getValue()))
                                             .build();
                                     return chain.filter(exchange.mutate().request(build).build());
-                                }
+                                }*/
                             }
                             return chain.filter(exchange);
-                        })
-                        .switchIfEmpty(chain.filter(exchange));
+                        }).switchIfEmpty(chain.filter(exchange));
             } else {
                 return chain.filter(exchange);
             }
@@ -102,10 +115,10 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
             log.debug("Authorization Header not found reject the request!");
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization Header not found."));
         }
-        OAuth2Authentication oAuth2Authentication = tokenStore.readAuthentication(authorizationHeader.replaceFirst("(?i)Bearer ", ""));
+        /*OAuth2Authentication oAuth2Authentication = tokenStore.readAuthentication(authorizationHeader.replaceFirst("(?i)Bearer ", ""));
         if (oAuth2Authentication == null) {
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token not found in redis."));
-        }
+        }*/
         log.debug("Found valid redis for a given token");
         if (request.getHeaders().containsKey(REQUEST_ID_HEADER) || request.getMethod() == HttpMethod.GET || request.getMethod() == HttpMethod.HEAD) {
             return chain.filter(exchange);

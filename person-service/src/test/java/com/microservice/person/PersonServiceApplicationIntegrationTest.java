@@ -1,6 +1,8 @@
 package com.microservice.person;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -14,6 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +41,7 @@ import com.nimbusds.jwt.SignedJWT;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.jupiter.api.AfterEach;
@@ -45,12 +50,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
@@ -62,6 +70,8 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
@@ -124,11 +134,31 @@ public class PersonServiceApplicationIntegrationTest {
 	AtomicBoolean runAtOnce = new AtomicBoolean(true);
 
 	@TestConfiguration
-	static class PopulateDbConfiguration {
+	static class PopulateDbConfiguration implements ApplicationContextAware {
+        private ApplicationContext applicationContext;
+
+        @Override
+        public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+            this.applicationContext = applicationContext;
+        }
+
         @Primary
         @Bean
         RestTemplate restTemplate() {
             return new RestTemplate();
+        }
+
+        @Bean
+        public JwtDecoder jwtDecoder(AuthenticationProperties properties) {
+            log.debug("jwtDecoder:properties: {}", properties);
+            AuthenticationProperties.Jwt jwt = properties.getJwt();
+            if (jwt != null && StringUtils.isNotBlank(jwt.getKeyValue())) {
+                SecretKeySpec secretKeySpec = new SecretKeySpec(jwt.getKeyValue().getBytes(StandardCharsets.UTF_8), "HS256");
+                return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+            } else {
+                RSAPublicKey publicKey = applicationContext.getBean(RSAPublicKey.class);
+                return NimbusJwtDecoder.withPublicKey(publicKey).build();
+            }
         }
     }
 
@@ -227,7 +257,7 @@ public class PersonServiceApplicationIntegrationTest {
             .andExpect(jsonPath("$.content[*].posts[*].id", hasSize(6)))
             .andExpect(jsonPath("$.content[*].posts[*].createdDate", hasSize(6)))
             .andDo(print());
-	}
+    }
 
     @Test
     @DisplayName("Test - When Calling GET - /api/people should return list of people and response 200 - OK")
