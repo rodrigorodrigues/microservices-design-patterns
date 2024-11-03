@@ -21,8 +21,6 @@
         <kotlin.version>1.9.25</kotlin.version>
         <code-coverage>0.6</code-coverage>
         <java.version>21</java.version>
-        <docker.image.from>openjdk:17.0.1</docker.image.from>
-        <docker.image.from.fabric8>openjdk:17.0.1</docker.image.from.fabric8>
     </properties>
 
     <dependencies>
