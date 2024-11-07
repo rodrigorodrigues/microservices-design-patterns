@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "repos": [
+    {
+      "name": "config",
+      "url": "https://github.com/jhipster/generator-jhipster.git",
+      "branches": ["main"],
+      "include_branch_name": false,
+      "source_root": "generators/server/src/main/docker/config/consul-config/",
+      "hooks": [
+        {
+          "type": "polling",
+          "interval": "1"
+        }
+      ]
+    }
+  ]
+}
