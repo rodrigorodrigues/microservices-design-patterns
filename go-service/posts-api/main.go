@@ -205,20 +205,7 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 	//JWT
 	middlewareObj := echojwt.JWT([]byte("secret"))
 	profile := util.GetEnv("SPRING_PROFILES_ACTIVE")
-	if strings.Contains(profile, "prod") {
-		bytes, err := os.ReadFile(util.GetEnv("JWT_PUBLIC_KEY"))
-		if err != nil {
-			panic(err)
-		}
-		pem, err := jwt.ParseRSAPublicKeyFromPEM(bytes)
-		if err != nil {
-			panic(err)
-		}
-		middlewareObj = echojwt.WithConfig(echojwt.Config{
-			SigningKey:    pem,
-			SigningMethod: "RS256",
-		})
-	} else if strings.Contains(profile, "jwks") {
+	if strings.Contains(profile, "jwks") {
 		issuers := map[string]string{"http://localhost:8080": "http://localhost:8080/.well-known/jwks.json", "https://spendingbetter.com": "https://spendingbetter.com/.well-known/jwks.json"}
 
 		funcK := func(token *jwt.Token) (interface{}, error) {
@@ -232,6 +219,19 @@ func processJwt(config *api.Client) echo.MiddlewareFunc {
 
 		middlewareObj = echojwt.WithConfig(echojwt.Config{
 			KeyFunc:       funcK,
+			SigningMethod: "RS256",
+		})
+	} else if strings.Contains(profile, "prod") {
+		bytes, err := os.ReadFile(util.GetEnv("JWT_PUBLIC_KEY"))
+		if err != nil {
+			panic(err)
+		}
+		pem, err := jwt.ParseRSAPublicKeyFromPEM(bytes)
+		if err != nil {
+			panic(err)
+		}
+		middlewareObj = echojwt.WithConfig(echojwt.Config{
+			SigningKey:    pem,
 			SigningMethod: "RS256",
 		})
 	} else {

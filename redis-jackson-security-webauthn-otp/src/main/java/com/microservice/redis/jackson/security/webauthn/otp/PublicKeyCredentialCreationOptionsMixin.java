@@ -118,7 +118,7 @@ abstract class PublicKeyCredentialCreationOptionsMixin {
             }
 
             if (treeNode.has("timeout")) {
-                keyCredentialCreationOptionsBuilder.timeout(Duration.parse(treeNode.get("timeout").asText()));
+                keyCredentialCreationOptionsBuilder.timeout(Duration.ofSeconds(treeNode.get("timeout").asLong()));
             }
 
             if (treeNode.has("extensions")) {

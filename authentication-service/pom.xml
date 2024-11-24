@@ -18,7 +18,6 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <code-coverage>0.6</code-coverage>
         <docker.image-tag>${project.version}</docker.image-tag>
-        <!--<spring-security.version>6.4.0-SNAPSHOT</spring-security.version>-->
         <wiremock-jre8-standalone.version>2.32.0</wiremock-jre8-standalone.version>
 	</properties>
 
@@ -31,6 +30,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
         </dependency>
 
         <dependency>

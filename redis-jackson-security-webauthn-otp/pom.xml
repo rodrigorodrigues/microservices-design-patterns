@@ -14,7 +14,6 @@
 	<description>redis-jackson-security-webauthn-otp</description>
 	<properties>
 		<java.version>21</java.version>
-		<spring-security.version>6.4.0-SNAPSHOT</spring-security.version>
 	</properties>
 	<dependencies>
 		<dependency>
