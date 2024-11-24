@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
+import {Feedback, Form, FormGroup, Input} from '@availity/form';
+import * as yup from 'yup';
 import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
@@ -71,7 +72,6 @@ class CategoryEdit extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
     const {category, jwt} = this.state;
 
     await fetch('/api/week-menu/v2/category', {
@@ -112,29 +112,39 @@ class CategoryEdit extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
-            <AvGroup>
+          <Form onSubmit={this.handleSubmit}
+            enableReinitialize={true}
+            initialValues={{
+              name: category?.name || '',
+              products: category?.products || ''
+            }}
+            validationSchema={yup.object().shape({
+              name: yup.string().trim().required('This field is required.'),
+              products: yup.string().trim().required('This field is required.')
+            })}
+          >
+            <FormGroup>
               <Label for="name">Name</Label>
-              <AvInput type="text" name="name" id="name" value={category.name || ''}
+              <Input type="text" name="name" id="name" value={category.name || ''}
                     onChange={this.handleChange} placeholder="Name"
                       required/>
-              <AvFeedback>
+              <Feedback>
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Label for="products">Products</Label>
-              <AvInput type="text" name="products" id="products" value={category.products || ''}
+              <Input type="text" name="products" id="products" value={category.products || ''}
                     onChange={this.handleChange} placeholder="Products" />
-              <AvFeedback>
+              <Feedback>
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{category._id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/categories">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
         </div>
       }
     }

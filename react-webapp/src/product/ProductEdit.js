@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
-import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
+import {Feedback, Form, FormGroup, Input, Label} from '@availity/form';
+import * as yup from 'yup';
+import {Button, Container, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
@@ -73,7 +74,6 @@ class ProductEdit extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
     const {product, jwt} = this.state;
     const productCopy = {
       name: product.name,
@@ -119,37 +119,69 @@ class ProductEdit extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
-            <AvGroup>
+          <Form onSubmit={this.handleSubmit}
+            enableReinitialize={true}
+            initialValues={{
+              name: product?.name || '',
+              category: product?.catch || '',
+              quantity: product?.quantity || '',
+              currency: product?.currency || '',
+              price: product?.price || ''
+            }}
+            validationSchema={yup.object().shape({
+              name: yup.string().trim().required('This field is required.'),
+              category: yup.string().trim().required('This field is required.'),
+              quantity: yup.number().positive().required('This field is required.'),
+              currency: yup.string().trim().required('This field is required.'),
+              price: yup.number().positive().required('This field is required.')
+            })}
+          >
+            <FormGroup>
               <Label for="name">Name</Label>
-              <AvInput type="text" name="name" id="name" value={product.name || ''}
+              <Input type="text" name="name" id="name" value={product.name || ''}
                     onChange={this.handleChange} placeholder="Name"
                       required/>
-              <AvFeedback>
+              <Feedback>
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Label for="category">Category</Label>
-              <AvInput type="text" name="category" id="category" value={product.category || ''}
+              <Input type="text" name="category" id="category" value={product.category || ''}
                     onChange={this.handleChange} placeholder="Category" required />
-              <AvFeedback>
+              <Feedback>
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Label for="quantity">Quantity</Label>
-              <AvInput type="number" name="quantity" id="quantity" value={product.quantity || ''}
+              <Input type="number" name="quantity" id="quantity" value={product.quantity || ''}
                     onChange={this.handleChange} placeholder="Quantity" required />
-              <AvFeedback>
+              <Feedback>
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
+              <Label for="price">Price</Label>
+              <Input type="number" name="price" id="price" value={product.price || ''}
+                    onChange={this.handleChange} placeholder="Price" required />
+              <Feedback>
+                This field is invalid
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
+              <Label for="currency">Currency</Label>
+              <Input type="text" name="currency" id="currency" value={product.currency || ''}
+                    onChange={this.handleChange} placeholder="Currency" required />
+              <Feedback>
+                This field is invalid
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{product._id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/products">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
         </div>
       }
     }

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
+import {Feedback, Form, FormGroup, Input} from '@availity/form';
+import * as yup from 'yup';
 import {Row, Col, Button, Container, Label, UncontrolledAlert, Card, CardBody, CardTitle, CardSubtitle, CardText, CardLink} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
@@ -122,7 +123,6 @@ class CreateAll extends Component {
 
   async handleSubmit(event) {
     try {
-      event.preventDefault();
       const {task, jwt} = this.state;
       console.log("Task", task);
 
@@ -193,14 +193,23 @@ class CreateAll extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
+          <Form 
+            onSubmit={this.handleSubmit}
+            initialValues={{ 
+              fullName: task?.fullName || ''
+            }}
+            validationSchema={yup.object().shape({
+              fullName: yup.string().trim().required(),
+              dateOfBirth: yup.string().trim().required()
+            })}
+          >
           <Row>
   <Col>
      <Card>
       <CardBody>
         <CardTitle tag="h5">Add Person</CardTitle>
         <CardSubtitle className="mb-2 text-muted">
-          <AvGroup>
+          <FormGroup>
             <Label for="person">Copy Person:</Label>
             <AsyncSelect
               cacheOptions
@@ -212,55 +221,56 @@ class CreateAll extends Component {
               onInputChange={this.handlePersonChange}
               onChange={this.handlePersonInputChange}
             />
-          </AvGroup>
+          </FormGroup>
         </CardSubtitle>
         <CardText>
-        <AvGroup>
+        <FormGroup>
               <Label for="fullName">Full Name</Label>
-              <AvInput type="text" name="fullName" id="fullName" value={task.fullName || ''}
+              <Input type="text" name="fullName" id="fullName" 
                     onChange={this.handleChange} placeholder="Full Name"
                       required
                       minLength="5"
                       maxLength="200"
                       pattern="^[A-Za-z0-9\s+]+$" />
-              <AvFeedback>
+              <Feedback name="fullName">
                 This field is invalid - Your Full Name must be between 5 and 100 characters.
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Label for="dateOfBirth">Date Of Birth</Label>
               <DatePicker
+                name="dateOfBirth"
                 selected={task.dateOfBirth !== '' ? moment(task.dateOfBirth).toDate() : ''}
                 onChange={this.handleDateChange}
                 required
               />
-            </AvGroup>
-            <AvGroup>
+            </FormGroup>
+            <FormGroup>
               <Label for="address">Address</Label>
-              <AvInput type="text" name="address" id="address" value={task.address.address || ''}
+              <Input type="text" name="address" id="address" value={task.address.address || ''}
                     onChange={this.handleAddressChange} placeholder="Address"/>
-            </AvGroup>
+            </FormGroup>
             <div className="row">
-              <AvGroup className="col-md-4 mb-3">
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="city">City</Label>
-                <AvInput type="text" name="city" id="city" value={task.address.city || ''}
+                <Input type="text" name="city" id="city" value={task.address.city || ''}
                       onChange={this.handleAddressChange} placeholder="City"/>
-              </AvGroup>
-              <AvGroup className="col-md-4 mb-3">
+              </FormGroup>
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="stateOrProvince">State/Province</Label>
-                <AvInput type="text" name="stateOrProvince" id="stateOrProvince" value={task.address.stateOrProvince || ''}
+                <Input type="text" name="stateOrProvince" id="stateOrProvince" value={task.address.stateOrProvince || ''}
                       onChange={this.handleAddressChange} placeholder="State/Province"/>
-              </AvGroup>
-              <AvGroup className="col-md-4 mb-3">
+              </FormGroup>
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="country">Country</Label>
-                <AvInput type="text" name="country" id="country" value={task.address.country || ''}
+                <Input type="text" name="country" id="country" value={task.address.country || ''}
                       onChange={this.handleAddressChange} placeholder="Country"/>
-              </AvGroup>
-              <AvGroup className="col-md-4 mb-3">
+              </FormGroup>
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="country">Postal Code</Label>
-                <AvInput type="text" name="postalCode" id="postalCode" value={task.address.postalCode || ''}
+                <Input type="text" name="postalCode" id="postalCode" value={task.address.postalCode || ''}
                       onChange={this.handleAddressChange} placeholder="Postal Code"/>
-              </AvGroup>
+              </FormGroup>
             </div>
         </CardText>
       </CardBody>
@@ -277,18 +287,18 @@ class CreateAll extends Component {
           className="mb-2 text-muted"
           tag="h6"
         >
-          <AvGroup>
+          <FormGroup>
             <Label for="name">Task Name</Label>
-            <AvInput type="text" name="name" id="name" value={task.name || ''}
+            <Input type="text" name="name" id="name" value={task.name || ''}
                   onChange={this.handleChange} placeholder="Name"
                     required/>
-            <AvFeedback>
+            <Feedback>
               This field is invalid
-            </AvFeedback>
-          </AvGroup>
+            </Feedback>
+          </FormGroup>
         </CardSubtitle>
         <CardText>
-        <AvGroup>
+        <FormGroup>
             <Label for="post">Select Post:</Label>
             <AsyncSelect
               cacheOptions
@@ -300,7 +310,7 @@ class CreateAll extends Component {
               onInputChange={this.handlePostChange}
               onChange={this.handlePostChange}
             />
-          </AvGroup>
+          </FormGroup>
         </CardText>
       </CardBody>
     </Card>
@@ -308,11 +318,11 @@ class CreateAll extends Component {
     </Col>
 </Row>
 
-            <AvGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{task.id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/tasks">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
           </div>
       }
     }

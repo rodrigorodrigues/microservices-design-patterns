@@ -20,7 +20,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.microservice.authentication.common.model.Authentication;
-import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.common.service.Base64DecodeUtil;
 import com.microservice.authentication.common.service.SharedAuthenticationServiceImpl;
@@ -38,6 +37,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.encrypt.KeyStoreKeyFactory;
@@ -46,10 +46,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AuthenticationProperties.class)
 @EnableMongoAuditing
 @EnableMongoRepositories(basePackageClasses = AuthenticationCommonRepository.class)
@@ -102,7 +101,7 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
                         claims.put("fullName", auth.getFullName());
                         Set<String> roles = auth.getAuthorities()
                             .stream()
-                            .map(Authority::getAuthority)
+                            .map(GrantedAuthority::getAuthority)
                             .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
                         claims.put("authorities", roles);
                     } else if (context.getPrincipal() instanceof OidcUser oidcUser) {

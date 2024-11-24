@@ -72,7 +72,6 @@ class TaskList extends Component {
   async handleSubmit(event) {
     try {
       this.setLoading(true);
-      event.preventDefault();
       await this.findAllTasks();
     } finally {
       this.setLoading(false);

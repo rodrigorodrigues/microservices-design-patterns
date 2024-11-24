@@ -18,11 +18,16 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <code-coverage>0.6</code-coverage>
         <docker.image-tag>${project.version}</docker.image-tag>
-        <spring-security.version>6.4.0-SNAPSHOT</spring-security.version>
+        <!--<spring-security.version>6.4.0-SNAPSHOT</spring-security.version>-->
         <wiremock-jre8-standalone.version>2.32.0</wiremock-jre8-standalone.version>
 	</properties>
 
 	<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
@@ -30,8 +35,8 @@
 
         <dependency>
             <groupId>com.webauthn4j</groupId>
-            <artifactId>webauthn4j-spring-security-core</artifactId>
-            <version>0.10.0.RELEASE</version>
+            <artifactId>webauthn4j-core</artifactId>
+            <version>0.28.2.RELEASE</version>
         </dependency>
 <!--
 
@@ -128,10 +133,10 @@
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
         </dependency>
 
-		<dependency>
+		<!--<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-rsa</artifactId>
-		</dependency>
+		</dependency>-->
 
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -152,6 +157,12 @@
         <dependency>
             <groupId>com.springboot</groupId>
             <artifactId>web-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>redis-jackson-security-webauthn-otp</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
@@ -317,7 +328,7 @@
             <id>native</id>
             <properties>
                 <repackage.classifier>exec</repackage.classifier>
-                <native-buildtools.version>0.9.11</native-buildtools.version>
+                <native-buildtools.version>0.10.3</native-buildtools.version>
             </properties>
             <dependencies>
                 <dependency>

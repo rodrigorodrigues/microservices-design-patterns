@@ -2,6 +2,7 @@ package com.microservice.authentication.controller;
 
 import java.util.Collections;
 
+import com.microservice.authentication.service.GenerateToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,11 +37,14 @@ class AuthenticatedUserControllerTest {
     @Mock
     SessionRepository sessionRepository;;
 
+    @Mock
+    GenerateToken generateToken;;
+
     AuthenticatedUserController authenticatedUserController;
 
     @BeforeEach
     public void setup() {
-        authenticatedUserController = new AuthenticatedUserController(sessionRepository);
+        authenticatedUserController = new AuthenticatedUserController(sessionRepository, generateToken);
     }
 
     @Test

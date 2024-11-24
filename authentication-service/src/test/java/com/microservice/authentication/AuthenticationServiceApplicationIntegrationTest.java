@@ -48,15 +48,21 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.security.web.webauthn.management.MapPublicKeyCredentialUserEntityRepository;
+import org.springframework.security.web.webauthn.management.MapUserCredentialRepository;
+import org.springframework.security.web.webauthn.management.PublicKeyCredentialUserEntityRepository;
+import org.springframework.security.web.webauthn.management.UserCredentialRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -89,7 +95,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "de.flapdoodle.mongodb.embedded.version=5.0.5",
     "logging.level.org.springframework.security=trace"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
-    classes = {AuthenticationServiceApplicationIntegrationTest.UserMockConfiguration.class})
+    classes = {AuthenticationServiceApplicationIntegrationTest.MockConfiguration.class})
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
 public class AuthenticationServiceApplicationIntegrationTest {
@@ -120,7 +126,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
     @TestConfiguration
     @AllArgsConstructor
-    static class UserMockConfiguration {
+    static class MockConfiguration {
         private final AuthenticationCommonRepository authenticationRepository;
 
         private final PasswordEncoder passwordEncoder;
@@ -144,6 +150,21 @@ public class AuthenticationServiceApplicationIntegrationTest {
             return Stream.of(permissions)
                 .map(Authority::new)
                 .collect(Collectors.toList());
+        }
+
+        @Bean
+        JavaMailSender javaMailSender() {
+            return mock(JavaMailSender.class);
+        }
+
+        @Bean
+        PublicKeyCredentialUserEntityRepository publicKeyCredentialUserEntityRepository() {
+            return new MapPublicKeyCredentialUserEntityRepository();
+        }
+
+        @Bean
+        UserCredentialRepository userCredentialRepository() {
+            return new MapUserCredentialRepository();
         }
     }
 

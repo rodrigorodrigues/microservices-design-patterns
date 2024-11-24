@@ -4,32 +4,38 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
+import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
+import com.microservice.authentication.service.GenerateToken;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Disabled
 class AccountControllerTest {
 
     @Test
     void testIndex() {
         SessionRepository sessionRepository = mock(SessionRepository.class);
-        List<Authority> authorities = Arrays.asList(new Authority("TEST"), new Authority("DELETE_TASK"));
+        GenerateToken generateToken = mock(GenerateToken.class);
+        List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("TEST"), new SimpleGrantedAuthority("DELETE_TASK"));
         OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+        AuthenticationCommonRepository authenticationCommonRepository = mock(AuthenticationCommonRepository.class);
         Map<String, Object> map = new HashMap<>();
         map.put("fullName", "Test");
         map.put("name", "test@gmail.com");
@@ -42,12 +48,18 @@ class AccountControllerTest {
         when(sessionRepository.findById(anyString())).thenReturn(session);
         when(session.getAttribute(anyString())).thenReturn(accessToken);
 
-        AccountController accountController = new AccountController(sessionRepository);
+        AccountController accountController = new AccountController(sessionRepository, generateToken, authenticationCommonRepository);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpSession mockHttpSession = new MockHttpSession();
         request.setSession(mockHttpSession);
-        AccountController.UserDto userDto = accountController.index(new AnonymousAuthenticationToken("test", "test", authorities), request);
+        Authentication principal = new Authentication();
+        principal.setFullName("Test");
+        principal.setEmail("test@gmail.com");
+        principal.setAuthorities(authorities.stream().map(a -> new Authority(a.getAuthority())).collect(Collectors.toList()));
+        when(authenticationCommonRepository.findByEmail(anyString())).thenReturn(Optional.of(principal));
+
+        AccountController.UserDto userDto = accountController.index(new AnonymousAuthenticationToken("Test", principal, authorities), request);
 
         Assertions.assertThat(userDto).isNotNull();
         Assertions.assertThat(userDto.fullName()).isEqualTo("Test");

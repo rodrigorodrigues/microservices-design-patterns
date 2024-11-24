@@ -72,7 +72,6 @@ class CompanyList extends Component {
   async handleSubmit(event) {
     try {
       this.setLoading(true);
-      event.preventDefault();
       await this.findAllCompanies();
     } finally {
       this.setLoading(false);

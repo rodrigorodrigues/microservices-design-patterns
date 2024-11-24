@@ -2,9 +2,9 @@ package com.microservice.authentication.controller;
 
 import java.util.Map;
 
+import com.microservice.authentication.service.GenerateToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpHeaders;
@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.session.Session;
@@ -26,11 +25,17 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller for authenticated user.
  */
 @Slf4j
-@AllArgsConstructor
 @RestController
 public class AuthenticatedUserController {
 
     private final SessionRepository sessionRepository;
+
+    private final GenerateToken generateToken;
+
+    public AuthenticatedUserController(SessionRepository sessionRepository, GenerateToken generateToken) {
+        this.sessionRepository = sessionRepository;
+        this.generateToken = generateToken;
+    }
 
     @GetMapping("/api/authenticatedUser")
     public ResponseEntity<OAuth2AccessToken> authenticatedUser(Authentication authentication, HttpServletRequest request) {
@@ -38,14 +43,29 @@ public class AuthenticatedUserController {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
-        HttpSession httpSession = request.getSession(false);
+        HttpSession httpSession = request.getSession();
         Session session;
+        OAuth2AccessToken accessToken = null;
         if (httpSession != null) {
             session = sessionRepository.findById(httpSession.getId());
+            if (session != null) {
+                accessToken = session.getAttribute("token");
+            }
+            httpHeaders.add("sessionId", httpSession.getId());
         } else {
             session = sessionRepository.findById(request.getHeader("sessionId"));
+            if (session != null) {
+                accessToken = session.getAttribute("token");
+            }
+            httpHeaders.add("sessionId", request.getHeader("sessionId"));
         }
-        OAuth2AccessToken accessToken = session.getAttribute("token");
+
+        if (accessToken == null) {
+            accessToken = generateToken.generateToken(authentication);
+            if (session != null) {
+                session.setAttribute("token", accessToken);
+            }
+        }
 
         httpHeaders.add(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()));
         return ResponseEntity

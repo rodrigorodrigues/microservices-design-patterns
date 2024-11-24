@@ -71,7 +71,6 @@ class PersonList extends Component {
   async handleSubmit(event) {
     try {
       this.setLoading(true);
-      event.preventDefault();
       await this.findAllPeople();
     } finally {
       this.setLoading(false);
@@ -272,7 +271,8 @@ class PersonList extends Component {
                   position="relative"
                   width="100%"
                   id="myId"
-                  height="100%" />
+                  height="100%"
+                  styles={{height: "25pc"}} />
                 : null}
             </TabPane>
           </TabContent>

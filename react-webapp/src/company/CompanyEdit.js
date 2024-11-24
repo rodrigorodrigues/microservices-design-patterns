@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
-import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
+import {Feedback, Form, FormGroup, Input, Label} from '@availity/form';
+import {Button, Container, UncontrolledAlert} from 'reactstrap';
+import * as yup from 'yup';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
@@ -78,7 +79,6 @@ class CompanyEdit extends Component {
 
   async handleSubmit(event) {
     try {
-      event.preventDefault();
       const {company, jwt} = this.state;
 
       const url = '/api/companies' + (company.id ? '/' + company.id : '');
@@ -124,21 +124,29 @@ class CompanyEdit extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
-            <AvGroup>
+          <Form onSubmit={this.handleSubmit}
+            enableReinitialize={true}
+            initialValues={{
+              name: company?.name || ''
+            }}
+            validationSchema={yup.object().shape({
+              name: yup.string().trim().required('This field is required.')
+            })}
+          >
+            <FormGroup>
               <Label for="name">Name</Label>
-              <AvInput type="text" name="name" id="name" value={company.name || ''}
+              <Input type="text" name="name" id="name" value={company.name || ''}
                     onChange={this.handleChange} placeholder="Name"
                       required/>
-              <AvFeedback>
+              <Feedback name="name">
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{company.id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/companies">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
           </div>
       }
     }

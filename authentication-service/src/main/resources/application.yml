@@ -9,6 +9,19 @@ spring:
     session:
         redis:
             repository-type: indexed
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${EMAIL_USERNAME}
+        password: ${EMAIL_PASSWORD}
+        properties:
+          mail:
+              smtp:
+                  auth: true
+                  starttls:
+                      required: true
+    jackson:
+
 management:
     endpoints:
         web:

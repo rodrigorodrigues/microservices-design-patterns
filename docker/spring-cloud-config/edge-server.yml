@@ -26,7 +26,7 @@ spring:
                 - id: authentication-service
                   uri: lb://authentication-service
                   predicates:
-                      - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/**,/api/csrf,/ott/**,/webauthn/**,/default-ui.css
+                      - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/**,/api/csrf,/ott/**,/webauthn/**,/default-ui.css,/login/webauthn,/api/webauthns
                 - id: authentication-service-swagger
                   uri: lb://authentication-service
                   predicates:

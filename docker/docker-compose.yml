@@ -52,11 +52,11 @@ services:
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
       - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
 #      - MANAGEMENT_HEALTH_REDIS_ENABLED=false
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
-#      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - SPRING_CLOUD_GATEWAY_GLOBAL_CORS_ADD_TO_SIMPLE_URL_HANDLER_MAPPING=true
     depends_on:
       - service-discovery
@@ -64,7 +64,7 @@ services:
       - 8080:8080
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
+#      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
@@ -91,17 +91,17 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - SPRING_CLOUD_KUBERNETES_LOADBALANCER_ENABLED=false
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
     depends_on:
       - service-discovery
     ports:
       - 9002:9002
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
+#      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
     networks:
       net:
         aliases:
@@ -119,13 +119,13 @@ services:
       - NODE_ENV=development
     ports:
       - 3003:3003
-    links:
-      - gateway
+#    links:
+#      - gateway
     volumes:
       - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
     #            - .:/usr/src/app
     #            - ./node_modules:/usr/src/app/node_modules
-    command: sh /tmp/docker-entrypoint.sh gateway:8080
+    command: sh /tmp/docker-entrypoint.sh service-discovery:8500
     networks:
       net:
         aliases:
@@ -235,7 +235,7 @@ services:
       - LOGGING_LEVEL_ORG_APACHE_COYOTE_HTTP11=trace
       - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
       - com.microservice.authentication.jwt.publicKeyStore=file:/www.spendingbetter.com.pub
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
+      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${
       - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
     depends_on:
       - service-discovery
@@ -255,7 +255,7 @@ services:
           - person-api
 
   task-api:
-    image: fielcapao/microservices-design-patterns-kotlin-service:latest #kotlin-service:0.0.1-SNAPSHOT
+    image: kotlin-service:0.0.1-SNAPSHOT
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -269,7 +269,7 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - LOGGING_LEVEL_COM_MICROSERVICE=trace
       #- DEBUG=true
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -372,7 +372,7 @@ services:
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
       - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=trace
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
@@ -385,10 +385,10 @@ services:
       - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       #      - MANAGEMENT_HEALTH_REDIS_ENABLED=false
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=Cert202!
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
     depends_on:
@@ -404,7 +404,7 @@ services:
       - 5005:5005
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
+#      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:

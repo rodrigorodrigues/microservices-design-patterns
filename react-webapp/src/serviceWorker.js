@@ -10,11 +10,11 @@
 // To learn more about the benefits of this model and instructions on how to
 // opt-in, read http://bit.ly/CRA-PWA
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
-var dotenv = require('dotenv')
-var dotenvExpand = require('dotenv-expand')
+/*var dotenv = require('dotenv');
+var dotenvExpand = require('dotenv-expand');
 
-var myEnv = dotenv.config()
-dotenvExpand(myEnv);
+var myEnv = dotenv.config();
+dotenvExpand(myEnv);*/
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||

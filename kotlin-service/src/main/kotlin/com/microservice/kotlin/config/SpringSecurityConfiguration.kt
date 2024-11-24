@@ -24,7 +24,7 @@ import java.io.IOException
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(proxyTargetClass = true)
 class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: CustomDefaultErrorAttributes,
                                   @Autowired val objectMapper: ObjectMapper,
                                   @Autowired val jwtDecoder: JwtDecoder,

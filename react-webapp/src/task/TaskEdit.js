@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
-import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
+import {Feedback, Form, FormGroup, Input, Label} from '@availity/form';
+import * as yup from 'yup';
+import {Button, Container, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import {errorMessage} from '../common/Util';
@@ -80,7 +81,6 @@ class TaskEdit extends Component {
 
   async handleSubmit(event) {
     try {
-      event.preventDefault();
       const {task, jwt} = this.state;
       console.log("Task", task);
 
@@ -126,21 +126,25 @@ class TaskEdit extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
-            <AvGroup>
+          <Form onSubmit={this.handleSubmit}
+            enableReinitialize={true}
+            initialValues={{
+              name: task?.name || ''
+            }}
+            validationSchema={yup.object().shape({
+              name: yup.string().trim().required('This field is required.')
+            })}
+          >
+            <FormGroup>
               <Label for="name">Name</Label>
-              <AvInput type="text" name="name" id="name" value={task.name || ''}
-                    onChange={this.handleChange} placeholder="Name"
-                      required/>
-              <AvFeedback>
-                This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              <Input type="text" name="name" id="name" onChange={this.handleChange} placeholder="Name" />
+              <Feedback name="name" />
+            </FormGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{task.id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/tasks">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
           </div>
       }
     }

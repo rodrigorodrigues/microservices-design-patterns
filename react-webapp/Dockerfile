@@ -1,4 +1,4 @@
-FROM node:12-buster-slim as builder
+FROM node:22-slim as builder
 ARG PORT
 ARG NODE_ENV
 
@@ -17,8 +17,8 @@ COPY package*.json ./
 
 RUN apt-get update && apt-get install npm nodejs -y && apt-get install netcat-openbsd -y
 
-RUN npm install
-RUN npm install react-scripts -g
+RUN npm install --legacy-peer-dep
+RUN npm install react-scripts -g --legacy-peer-dep
 
 # Bundle app source
 

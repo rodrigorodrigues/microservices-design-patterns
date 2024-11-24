@@ -1,7 +1,7 @@
 import React from 'react';
-import ReactJson from 'react-json-view';
+import ReactJson from 'react18-json-view';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import 'react18-json-view/src/style.css';
 
 function MessageAlert({ typeError, message }) {
     if (typeError === undefined) {
@@ -14,11 +14,9 @@ function MessageAlert({ typeError, message }) {
     const notify = (message, options) => toast(message, options);
     return message ? notify(<div>Response Error:
         <ReactJson
-            enableClipboard={false}
-            displayObjectSize={false}
-            name={false}
-            displayDataTypes={false}
-            theme="bright"
+            enableClipboard={true}
+            dark={true}
+            theme='github'
             src={message} />
         </div>, options) : '';
 }

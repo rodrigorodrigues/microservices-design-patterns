@@ -26,6 +26,23 @@ func GetEnv(key string) string {
 	return value
 }
 
+func GetEnvDefaultValue(key string, defaultValue string) string {
+	if loadEnvFlag {
+		loadEnv()
+		loadEnvFlag = false
+	}
+	value := os.Getenv(key)
+	if "" == value {
+		valueEnv, exists := os.LookupEnv(key)
+		if !exists {
+			valueEnv = defaultValue
+		}
+		value = valueEnv
+	}
+	fmt.Print(fmt.Sprintf("Env = %+v\tvalue = %v\n", key, value))
+	return value
+}
+
 func GetEnvAsBool(key string) bool {
 	value, err := strconv.ParseBool(GetEnv(key))
 	if err != nil {

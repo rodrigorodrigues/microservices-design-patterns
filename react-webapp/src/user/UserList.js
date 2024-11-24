@@ -66,7 +66,6 @@ class UserList extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
     await this.findAllUsers();
   }
 

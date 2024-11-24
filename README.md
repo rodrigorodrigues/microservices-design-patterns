@@ -380,6 +380,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Add JWKS Multiple Validation - Spring Boot 3
 * [X] Java - Add Authorization Server - Spring Boot 3
 * [X] Java - Removed Spring Oauth2 - Spring Boot 3
+* [] BFF - Implement BFF Pattern
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

@@ -2,14 +2,11 @@ package com.springboot.edgeserver;
 
 import java.net.URI;
 import java.security.Principal;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.concurrent.Executors;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
-import com.springboot.edgeserver.config.EdgeServerWebSecurityConfiguration;
 import com.springboot.edgeserver.filters.AdminResourcesFilter;
-import com.springboot.edgeserver.filters.AuthenticationPostFilter;
+import com.springboot.edgeserver.filters.AuthenticationSessionFilter;
 import com.springboot.edgeserver.filters.LogoutPostFilter;
 import com.springboot.edgeserver.util.ReactivePreAuthenticatedAuthenticationManagerCustom;
 import com.springboot.edgeserver.util.ReactiveSharedAuthenticationServiceImpl;
@@ -22,7 +19,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.config.GatewayProperties;
@@ -36,10 +32,8 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
-import org.springframework.session.MapSessionRepository;
 import org.springframework.session.ReactiveSessionRepository;
 import org.springframework.session.Session;
-import org.springframework.session.SessionRepository;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.session.web.server.session.SpringSessionWebSessionStore;
@@ -56,18 +50,11 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @SpringBootApplication
 @EnableWebFlux
 @EnableDiscoveryClient
-@EnableConfigurationProperties(EdgeServerWebSecurityConfiguration.RegistrationProperties.class)
 public class EdgeServerApplication {
 
 	public static void main(String[] args) {
 		Hooks.enableAutomaticContextPropagation();
 		SpringApplication.run(EdgeServerApplication.class, args);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public SessionRepository defaultSessionRepository() {
-		return new MapSessionRepository(new HashMap<>());
 	}
 
 	@Bean
@@ -122,7 +109,7 @@ public class EdgeServerApplication {
         @Value("${grafanaUrl:http://localhost:3000/admin/grafana}") String grafanaUrl,
         @Value("${prometheusUrl:http://localhost:9090/amin/prometheus/graph}") String prometheusUrl,
         @Value("${jaegerUrl:http://localhost:16686/admin/jaeger}") String jaegerUrl,
-			AuthenticationPostFilter authenticationPostFilter,
+			AuthenticationSessionFilter authenticationSessionFilter,
 			AdminResourcesFilter adminResourcesFilter,
 			LogoutPostFilter logoutPostFilter,
 			WebsocketRoutingFilter websocketRoutingFilter) {
@@ -157,8 +144,8 @@ public class EdgeServerApplication {
 							.addResponseHeader("X-Frame-Options", "sameorigin"))
 						.uri(jaegerUrl))
                 .route("adminResourcesFilterAuth", p -> p
-                    .path("/login/oauth2/**", "/oauth2/**", "/api/authenticate", "/oauth/**")
-                    .filters(f -> f.filter(authenticationPostFilter))
+                    .path("/login/oauth2/**", "/oauth2/**", "/api/authenticate", "/api/authenticatedUser", "/oauth/**")
+                    .filters(f -> f.filter(authenticationSessionFilter))
                     .uri("lb://authentication-service"))
 				.route("logoutPostFilter", p -> p
 						.path("/api/logout")

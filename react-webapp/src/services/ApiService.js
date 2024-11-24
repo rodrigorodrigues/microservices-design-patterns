@@ -1,5 +1,4 @@
 import constants from '../constants/AppConstant';
-import Cookies from 'js-cookie';
 
 const { API_V1 } = constants;
 const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
@@ -21,16 +20,12 @@ export async function getResponse(resource, isCredential, isWithoutApi, jwt, ret
             response = await fetch(url, {
                 credentials: 'include',
                 headers: {
-                    'Authorization': jwt,
-                    'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')
+                    'Authorization': jwt
                 }
             });
         } else {
             response = await fetch(url, {
-                credentials: 'include',
-                headers: {
-                    'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')
-                }
+                credentials: 'include'
             });
         }
         if (!returnResponseObject) {
@@ -51,16 +46,20 @@ export async function getResponse(resource, isCredential, isWithoutApi, jwt, ret
 }
 
 export async function postWithHeaders(resource, payload, headers) {
-    return processPost(resource, headers, payload);
+    return processPost(resource, headers, payload, false);
+}
+
+export async function postWithHeadersAndApi(resource, payload, headers, isWithoutApi) {
+    return processPost(resource, headers, payload, isWithoutApi);
 }
 
 export async function post(resource, payload) {
-    return processPost(resource, {'Content-Type': 'application/json', 'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN')}, JSON.stringify(payload));
+    return processPost(resource, {'Content-Type': 'application/json'}, JSON.stringify(payload), true);
 }
 
-async function processPost(resource, headers, body) {
+async function processPost(resource, headers, body, isWithoutApi) {
     try {
-        const url = `${gatewayUrl}/${API_V1}/${resource}`;
+        const url = (isWithoutApi ? `${gatewayUrl}/${resource}` : `${gatewayUrl}/${API_V1}/${resource}`);
         console.log("API Url: ", url);
         const response = await fetch(url, {
             credentials: 'include',

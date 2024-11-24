@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
-import { AvFeedback, AvForm, AvGroup, AvInput } from 'availity-reactstrap-validation';
+import { Feedback, Form, FormGroup, Input } from '@availity/form';
+import * as yup from 'yup';
 import { Button, Container, Label, UncontrolledAlert } from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
@@ -79,7 +80,6 @@ class PostEdit extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
     const { post, jwt } = this.state;
     console.log("Post", post);
 
@@ -123,21 +123,27 @@ class PostEdit extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
-            <AvGroup>
+          <Form onSubmit={this.handleSubmit}
+            enableReinitialize={true}
+            initialValues={{
+              name: post?.name || ''
+            }}
+            validationSchema={yup.object().shape({
+              name: yup.string().trim().required()
+            })}
+          >
+            <FormGroup>
               <Label for="name">Name</Label>
-              <AvInput type="text" name="name" id="name" value={post.name || ''}
-                       onChange={this.handleChange} placeholder="Name"
-                       required />
-              <AvFeedback>
+              <Input type="text" name="name" id="name" onChange={this.handleChange} placeholder="Name" />
+              <Feedback name="name">
                 This field is invalid
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{post.id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/posts">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
         </div>
       }
     }

@@ -25,7 +25,8 @@ public class WebConfigurationProperties implements InitializingBean {
     public void afterPropertiesSet() {
         if (tenants.isEmpty()) {
             tenants.putAll(Map.ofEntries(
-                entry("https://spendingbetter.com", "https://spendingbetter.com/.well-known/jwks.json")
+                entry("https://spendingbetter.com", "https://spendingbetter.com/.well-known/jwks.json"),
+                entry("http://localhost:8080", "http://localhost:8080/.well-known/jwks.json")
             ));
         }
     }

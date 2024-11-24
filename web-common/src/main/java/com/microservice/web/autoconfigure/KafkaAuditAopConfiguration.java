@@ -16,6 +16,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.ssl.DefaultSslBundleRegistry;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +43,7 @@ public class KafkaAuditAopConfiguration {
     @Bean
     public ProducerFactory<String, Object> producerFactory(KafkaProperties kafkaProperties) {
         log.debug("AopConfiguration:producerFactory:kafkaProperties: {}", kafkaProperties);
-        return new DefaultKafkaProducerFactory<>(kafkaProperties.buildProducerProperties());
+        return new DefaultKafkaProducerFactory<>(kafkaProperties.buildProducerProperties(new DefaultSslBundleRegistry()));
     }
 
     @Primary

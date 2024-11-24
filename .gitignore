@@ -61,9 +61,9 @@ docker/jwks.json
 access_token.json
 docker/mongo_bkpk
 *.log
-php-service
 Quick*.java
 *.env
 valid_token_google_oauth
 *.java-version
 quarkus-service/.java-version
+input.json

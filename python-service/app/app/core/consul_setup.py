@@ -3,10 +3,12 @@ import logging.config
 import os
 
 import consul
+import requests
 import yaml
 from flask_consulate import Consul
 from flask_consulate.decorators import with_retry_connections
 from flask_prometheus_metrics import register_metrics
+from jwt.algorithms import RSAAlgorithm
 from prometheus_client import make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
@@ -91,18 +93,39 @@ def initialize_consul_client(app):
     )
 
     if profile != 'prod':
-        jwt_secret = ""
-        for data in yaml.load_all(app.config[''], Loader=yaml.BaseLoader):
-            try:
-                jwt_secret = data['com']['microservice']['authentication']['jwt']['keyValue']
-                break
-            except Exception:
-                log.warning("Not found jwt_secret")
+        if app.config['JWKS_URL'] is not None:
+            # retrieve master openid-configuration endpoint for issuer realm
+            jwks_url = requests.get(app.config['JWKS_URL']).json()
 
-        if jwt_secret == "":
-            raise Exception("jwt_secret not found")
-        log.debug('Jwt Secret: %s', jwt_secret)
-        app.config['JWT_SECRET_KEY'] = jwt_secret
+            # retrieve first jwk entry from jwks_uri endpoint and use it to construct the
+            # RSA public key
+            app.config["JWT_PUBLIC_KEY"] = RSAAlgorithm.from_jwk(
+                json.dumps(jwks_url["keys"][0])
+            )
+        else:
+
+            jwt_secret = ""
+            for data in yaml.load_all(app.config[''], Loader=yaml.BaseLoader):
+                try:
+                    jwt_secret = data['com']['microservice']['authentication']['jwt']['keyValue']
+                    break
+                except Exception:
+                    log.warning("Not found jwt_secret")
+
+            if jwt_secret == "":
+                raise Exception("jwt_secret not found")
+            log.debug('Jwt Secret: %s', jwt_secret)
+            app.config['JWT_SECRET_KEY'] = jwt_secret
+
+    elif app.config['JWKS_URL'] is not None:
+        # retrieve master openid-configuration endpoint for issuer realm
+        jwks_url = requests.get(app.config['JWKS_URL']).json()
+
+        # retrieve first jwk entry from jwks_uri endpoint and use it to construct the
+        # RSA public key
+        app.config["JWT_PUBLIC_KEY"] = RSAAlgorithm.from_jwk(
+            json.dumps(jwks_url["keys"][0])
+        )
 
     else:
         app.config['JWT_PUBLIC_KEY'] = open(app.config['JWT_PUBLIC_KEY'], "r").read()

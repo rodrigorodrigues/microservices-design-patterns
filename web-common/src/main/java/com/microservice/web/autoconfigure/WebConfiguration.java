@@ -44,7 +44,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebMvc
 public class WebConfiguration implements WebMvcConfigurer {
     @Autowired

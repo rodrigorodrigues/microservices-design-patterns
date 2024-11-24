@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -59,7 +60,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private final String[] skipPaths = {"/admin", "/api/logout", "/login/oauth2/", "/oauth2/",
             "/api/authenticate", "/api/authenticatedUser", "/oauth/", "/swagger/", "/swagger-ui/", "/.well-known",
-            "/v3/api-docs", "/public/build/", "/api/csrf", "/login", "/default-ui.css", "/webauthn"};
+            "/v3/api-docs", "/public/build/", "/api/csrf", "/login", "/default-ui.css", "/webauthn", "/ott"};
 
 
     @Override
@@ -70,7 +71,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
         if (StringUtils.startsWithAny(path.value(), skipPaths)) {
             log.debug("Skip token redis validation for following path: {}", path);
             String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            if (StringUtils.isBlank(authorizationHeader) && !path.value().startsWith("/swagger/")) {
+            if (StringUtils.isBlank(authorizationHeader)) {
                 log.debug("Trying to set authorization header if user is authenticated.");
                 return ReactiveSecurityContextHolder.getContext()
                         .flatMap(securityContext -> {
@@ -83,25 +84,24 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                                     WebSession sessionRepository = (WebSession) sessionObj;
                                                     OAuth2AccessToken accessToken = sessionRepository.getAttribute("token");
                                                     log.debug("verifyTokenRedis:Set authorization header from redis session");
-                                                    ServerHttpRequest build = exchange.getRequest().mutate()
-                                                            .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()))
+
+                                                    HttpHeaders writeableHeaders = HttpHeaders.writableHttpHeaders(
+                                                            exchange.getRequest().getHeaders());
+                                                    ServerHttpRequestDecorator writeableRequest = new ServerHttpRequestDecorator(
+                                                            exchange.getRequest()) {
+                                                        @Override
+                                                        public HttpHeaders getHeaders() {
+                                                            return writeableHeaders;
+                                                        }
+                                                    };
+                                                    //TODO Cannot add new header for the moment - https://github.com/spring-projects/spring-security/issues/15989#issuecomment-2442660753
+                                                    //writeableRequest.getHeaders().add(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()));
+                                                    ServerWebExchange writeableExchange = exchange.mutate()
+                                                            .request(writeableRequest)
                                                             .build();
-                                                    return chain.filter(exchange.mutate()
-                                                            .request(build).build());
+
+                                                    return chain.filter(writeableExchange);
                                                 }));
-                                /*
-                                Optional<OAuth2AccessToken> oAuth2AccessToken = tokenStore.findTokensByClientId(authentication.getName())
-                                        .stream()
-                                        .filter(a -> !a.isExpired())
-                                        .max(Comparator.comparing(OAuth2AccessToken::getExpiration));
-                                if (oAuth2AccessToken.isPresent()) {
-                                    log.debug("verifyTokenRedis:Set authorization header from redis session");
-                                    OAuth2AccessToken oAuth2AccessTokenValue = oAuth2AccessToken.get();
-                                    ServerHttpRequest build = exchange.getRequest().mutate()
-                                            .header(HttpHeaders.AUTHORIZATION, String.format("%securityContext %securityContext", oAuth2AccessTokenValue.getTokenType(), oAuth2AccessTokenValue.getValue()))
-                                            .build();
-                                    return chain.filter(exchange.mutate().request(build).build());
-                                }*/
                             }
                             return chain.filter(exchange);
                         }).switchIfEmpty(chain.filter(exchange));
@@ -120,13 +120,16 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token not found in redis."));
         }*/
         log.debug("Found valid redis for a given token");
-        if (request.getHeaders().containsKey(REQUEST_ID_HEADER) || request.getMethod() == HttpMethod.GET || request.getMethod() == HttpMethod.HEAD) {
+        return chain.filter(exchange);
+        /*if (request.getHeaders().containsKey(REQUEST_ID_HEADER) || request.getMethod() == HttpMethod.GET || request.getMethod() == HttpMethod.HEAD) {
             return chain.filter(exchange);
         } else {
             return addRequestIdHeader(chain, exchange);
-        }
+        }*/
     }
 
+    //TODO Cannot add new header for the moment - https://github.com/spring-projects/spring-security/issues/15989#issuecomment-2442660753
+    @Deprecated
     private Mono<Void> addRequestIdHeader(GatewayFilterChain chain, ServerWebExchange exchange) {
         return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> {
             final ServerRequest serverRequest = ServerRequest

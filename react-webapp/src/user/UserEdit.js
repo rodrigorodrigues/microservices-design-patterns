@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvGroup, AvInput} from 'availity-reactstrap-validation';
+import {Feedback, Form, FormGroup, Input} from '@availity/form';
+import * as yup from 'yup';
 import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
@@ -102,7 +103,6 @@ class UserEdit extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
     const {user, jwt} = this.state;
     console.log("handleSubmit:user", user);
     const url = '/api/users' + (user.id ? '/' + user.id : '');
@@ -136,13 +136,13 @@ class UserEdit extends Component {
     const switchToggle = (permissions, user) => {
       return permissions.map(e => 
         <div>
-          <AvGroup>
+          <FormGroup>
             <p><b>{e.type}: </b></p>
             {e.permissions.map((p, k) => <label>
             <span>{p}</span>
             <Switch onChange={this.handleAuthorityChange} id={p} checked={user.authorities && user.authorities.some(item => item === p)} />
             </label>)}
-          </AvGroup>
+          </FormGroup>
         </div>);
     }
 
@@ -154,61 +154,76 @@ class UserEdit extends Component {
       } else {
         return <div>
                   {title}
-        <AvForm onValidSubmit={this.handleSubmit}>
-          <AvGroup>
+        <Form onSubmit={this.handleSubmit}
+          enableReinitialize={true}
+          initialValues={{
+            fullName: user?.name || '',
+            password: user?.password || '',
+            confirmPassword: user?.confirmPassword || '',
+            email: user?.email || ''
+          }}
+          validationSchema={yup.object().shape({
+            fullName: yup.string().trim().required('This field is required.'),
+            currentPassword: yup.string().trim().required('This field is required.'),
+            password: yup.string().trim().required('This field is required.'),
+            confirmPassword: yup.string().trim().required('This field is required.'),
+            email: yup.string().trim().email().required('This field is required.')
+          })}
+        >
+          <FormGroup>
             <Label for="fullName">Full Name</Label>
-            <AvInput type="text" name="fullName" id="fullName" value={user.fullName || ''}
+            <Input type="text" name="fullName" id="fullName" value={user.fullName || ''}
                    onChange={this.handleChange} placeholder="Full Name"
                      required
                      minLength="5"
                      maxLength="100"
                      pattern="^[A-Za-z0-9\s+]+$" />
-            <AvFeedback>
+            <Feedback>
               This field is invalid - Your Full Name must be between 5 and 100 characters.
-            </AvFeedback>
-          </AvGroup>
+            </Feedback>
+          </FormGroup>
           {user.id ?
-          <AvGroup>
+          <FormGroup>
             <Label for="currentPassword">Current Password</Label>
-            <AvInput type="password" name="currentPassword" id="currentPassword" 
+            <Input type="password" name="currentPassword" id="currentPassword" 
                      onChange={this.handleChange} placeholder="Current Password"
                      />
-          </AvGroup>
+          </FormGroup>
           : ''}
-          <AvGroup>
+          <FormGroup>
             <Label for="password">Password</Label>
-            <AvInput type="password" name="password" id="password" value={user.password || ''}
+            <Input type="password" name="password" id="password" value={user.password || ''}
                      onChange={this.handleChange} placeholder="Password"
                      required={!user.id} />
-            <AvFeedback>
+            <Feedback>
               This field is invalid - Required
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
+            </Feedback>
+          </FormGroup>
+          <FormGroup>
             <Label for="confirmPassword">Confirm Password</Label>
-            <AvInput type="password" name="confirmPassword" id="confirmPassword" value={user.confirmPassword || ''}
+            <Input type="password" name="confirmPassword" id="confirmPassword" value={user.confirmPassword || ''}
                      onChange={this.handleChange} placeholder="Confirm Password"
                      required={!user.id} />
-            <AvFeedback>
+            <Feedback>
               This field is invalid - Required
-            </AvFeedback>
-          </AvGroup>
-          <AvGroup>
+            </Feedback>
+          </FormGroup>
+          <FormGroup>
             <Label for="name">Email</Label>
-            <AvInput type="email" name="email" id="email" value={user.email || ''}
+            <Input type="email" name="email" id="email" value={user.email || ''}
                      required
                      validate={{email: true}}
                      onChange={this.handleChange} placeholder="your_email@email.com"/>
-            <AvFeedback>
+            <Feedback>
               This field is invalid - Please enter a correct email.
-            </AvFeedback>
-          </AvGroup>
+            </Feedback>
+          </FormGroup>
             {switchToggle(permissions, user)}
-          <AvGroup>
+          <FormGroup>
             <Button color="primary" type="submit">{user.id ? 'Save' : 'Create'}</Button>{' '}
             <Button color="secondary" tag={Link} to="/users">Cancel</Button>
-          </AvGroup>
-        </AvForm>
+          </FormGroup>
+        </Form>
         </div>
       }
     }

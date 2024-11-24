@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
  * Swagger Configuration
  */
 @ConditionalOnProperty(prefix = "configuration", name = "swagger", havingValue = "true", matchIfMissing = true)
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @AllArgsConstructor
 public class SwaggerConfiguration {
 

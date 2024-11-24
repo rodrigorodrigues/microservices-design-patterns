@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
-import {AvFeedback, AvForm, AvInput, AvGroup} from 'availity-reactstrap-validation';
-import {Button, Container, Label, UncontrolledAlert} from 'reactstrap';
+import {Feedback, Form, Input, FormGroup, Label} from '@availity/form';
+import * as yup from 'yup';
+import {Button, Container, UncontrolledAlert} from 'reactstrap';
 import AppNavbar from '../home/AppNavbar';
 import MessageAlert from '../MessageAlert';
 import { errorMessage } from '../common/Util';
@@ -107,7 +108,6 @@ class PersonEdit extends Component {
   }
 
   async handleSubmit(event) {
-    event.preventDefault();
     const {person, jwt} = this.state;
     console.log("handleSubmit:person", person);
     const url = '/api/people' + (person.id ? '/' + person.id : '');
@@ -146,59 +146,79 @@ class PersonEdit extends Component {
       } else {
         return <div>
           {title}
-          <AvForm onValidSubmit={this.handleSubmit}>
-            <AvGroup>
+          <Form onSubmit={this.handleSubmit}
+            enableReinitialize={true}
+            initialValues={{
+              fullName: person?.fullName || '',
+              dateOfBirth: moment(person.dateOfBirth).toDate(),
+              address: person?.address?.address || '',
+              city: person?.address?.city || '',
+              stateOrProvince: person?.address?.stateOrProvince || '',
+              country: person?.address?.country || ''
+            }}
+            validationSchema={yup.object().shape({
+              fullName: yup.string().trim().required()
+                .matches('^[A-Za-z0-9\s+]+$')
+                .min(5)
+                .max(200),
+              dateOfBirth: yup.date().required(),
+              address: yup.string().trim().required(),
+              city: yup.string().trim().required(),
+              stateOrProvince: yup.string().trim().required(),
+              country: yup.string().trim().required(),
+              postalCode: yup.string().trim().required()
+            })}
+          >
+            <FormGroup>
               <Label for="fullName">Full Name</Label>
-              <AvInput type="text" name="fullName" id="fullName" value={person.fullName || ''}
-                    onChange={this.handleChange} placeholder="Full Name"
-                      required
-                      minLength="5"
-                      maxLength="200"
-                      pattern="^[A-Za-z0-9\s+]+$" />
-              <AvFeedback>
-                This field is invalid - Your Full Name must be between 5 and 100 characters.
-              </AvFeedback>
-            </AvGroup>
-            <AvGroup>
+              <Input type="text" name="fullName" id="fullName" 
+                    onChange={this.handleChange} placeholder="Full Name" />
+              <Feedback name="fullName">
+                This field is invalid - Your Full Name must be between 5 and 200 characters.
+              </Feedback>
+            </FormGroup>
+            <FormGroup>
               <Label for="dateOfBirth">Date Of Birth</Label>
               <DatePicker
+                name ="dateOfBirth"
                 selected={moment(person.dateOfBirth).toDate()}
                 onChange={this.handleDateChange}
-                required
               />
-            </AvGroup>
-            <AvGroup>
+              <Feedback name="dateOfBirth" />
+            </FormGroup>
+            <FormGroup>
               <Label for="address">Address</Label>
-              <AvInput type="text" name="address" id="address" value={person.address.address || ''}
-                    onChange={this.handleAddressChange} placeholder="Address"/>
-            </AvGroup>
+              <Input type="text" name="address" id="address" onChange={this.handleAddressChange} placeholder="Address"/>
+              <Feedback name="address" />
+            </FormGroup>
             <div className="row">
-              <AvGroup className="col-md-4 mb-3">
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="city">City</Label>
-                <AvInput type="text" name="city" id="city" value={person.address.city || ''}
-                      onChange={this.handleAddressChange} placeholder="City"/>
-              </AvGroup>
-              <AvGroup className="col-md-4 mb-3">
+                <Input type="text" name="city" id="city" onChange={this.handleAddressChange} placeholder="City"/>
+                <Feedback name="city" />
+              </FormGroup>
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="stateOrProvince">State/Province</Label>
-                <AvInput type="text" name="stateOrProvince" id="stateOrProvince" value={person.address.stateOrProvince || ''}
-                      onChange={this.handleAddressChange} placeholder="State/Province"/>
-              </AvGroup>
-              <AvGroup className="col-md-4 mb-3">
+                <Input type="text" name="stateOrProvince" id="stateOrProvince" onChange={this.handleAddressChange} placeholder="State/Province"/>
+                <Feedback name="stateOrProvince" />
+              </FormGroup>
+              <FormGroup className="col-md-4 mb-3">
                 <Label for="country">Country</Label>
-                <AvInput type="text" name="country" id="country" value={person.address.country || ''}
-                      onChange={this.handleAddressChange} placeholder="Country"/>
-              </AvGroup>
-              <AvGroup className="col-md-4 mb-3">
-                <Label for="country">Postal Code</Label>
-                <AvInput type="text" name="postalCode" id="postalCode" value={person.address.postalCode || ''}
+                <Input type="text" name="country" id="country" onChange={this.handleAddressChange} placeholder="Country"/>
+                <Feedback name="country" />
+              </FormGroup>
+              <FormGroup className="col-md-4 mb-3">
+                <Label for="postalCode">Postal Code</Label>
+                <Input type="text" name="postalCode" id="postalCode" value={person.address.postalCode || ''}
                       onChange={this.handleAddressChange} placeholder="Postal Code"/>
-              </AvGroup>
+                <Feedback name="postalCode" />
+              </FormGroup>
             </div>
-            <AvGroup>
+            <FormGroup>
               <Button color="primary" type="submit">{person.id ? 'Save' : 'Create'}</Button>{' '}
               <Button color="secondary" tag={Link} to="/people">Cancel</Button>
-            </AvGroup>
-          </AvForm>
+            </FormGroup>
+          </Form>
           </div>
       }
     }

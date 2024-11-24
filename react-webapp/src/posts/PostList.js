@@ -62,7 +62,6 @@ class PostList extends Component {
   async handleSubmit(event) {
     try {
       this.setLoading(true);
-      event.preventDefault();
       await this.findAllPosts();
     } finally {
       this.setLoading(false);

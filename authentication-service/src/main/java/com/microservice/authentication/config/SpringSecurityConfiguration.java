@@ -1,17 +1,15 @@
 package com.microservice.authentication.config;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservice.authentication.autoconfigure.AuthenticationProperties;
-import com.microservice.authentication.service.CustomAuthenticationSuccessHandler;
+import com.microservice.authentication.common.model.Authentication;
+import com.microservice.authentication.repository.WebauthnRegistrationRepository;
 import com.microservice.authentication.service.CustomOidcUserService;
+import com.microservice.authentication.service.GenerateToken;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,31 +18,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.session.RedisSessionProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.WebAuthnConfigurer;
+import org.springframework.security.config.annotation.web.configurers.ott.OneTimeTokenLoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -68,10 +66,11 @@ import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 import org.springframework.web.context.request.ServletWebRequest;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Slf4j
+@EnableMongoRepositories(basePackageClasses = WebauthnRegistrationRepository.class)
 public class SpringSecurityConfiguration {
     private final ObjectMapper objectMapper;
 
@@ -79,19 +78,17 @@ public class SpringSecurityConfiguration {
 
     private final JwtDecoder jwtDecoder;
 
-    private final JwtEncoder jwtEncoder;
-
     private final CustomOidcUserService customOidcUserService;
 
-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-
-    private final LogoutSuccessHandler customLogoutSuccessHandler;
-
-    private final AuthenticationProperties properties;
-
-    private final RedisSessionProperties redisSessionProperties;
+    private final LogoutSuccessHandler logoutSuccessHandler;
 
     private final SessionRepository sessionRepository;
+
+    private final UserDetailsService userDetailsService;
+
+    private final JavaMailSender javaMailSender;
+
+    private final GenerateToken generateToken;
 
     static final String[] WHITELIST = {
         // -- swagger ui
@@ -115,10 +112,11 @@ public class SpringSecurityConfiguration {
         "/api/refreshToken",
         "/api/csrf",
         "/ott/generate",
-        "/webauthn/**",
+        "/webauthn/options",
         "oauth2/**",
         "/connect/**",
-        "/userInfo"
+        "/userInfo",
+        "/login/**"
     };
 
     @Order(1)
@@ -199,7 +197,9 @@ public class SpringSecurityConfiguration {
 
     @Bean
     @Order(3)
-    public SecurityFilterChain loginSecurityFilterChain(HttpSecurity http, @Value("${TOKEN_HOST:http://localhost:9998}") String tokenHost)
+    public SecurityFilterChain loginSecurityFilterChain(HttpSecurity http,
+        @Value("${TOKEN_HOST:http://localhost:9998}") String tokenHost,
+        WebAuthnProperties webAuthnProperties)
         throws Exception {
         log.info("loginSecurityFilterChain");
         return http
@@ -208,24 +208,11 @@ public class SpringSecurityConfiguration {
                 .requestMatchers(WHITELIST).permitAll()
                 .anyRequest().authenticated()
             )
-            //.csrf(c -> c.ignoringRequestMatchers("/connect/register", "/oauth2/token"))
-            .oneTimeTokenLogin(c -> c.tokenGenerationSuccessHandler((request, response, oneTimeToken) -> {
-                var msg = String.format("go to %s/login/ott?token=%s", tokenHost, oneTimeToken.getTokenValue());
-                System.out.println(msg);
-                response.setContentType(MediaType.TEXT_PLAIN_VALUE);
-                response.getWriter().print("you've got console mail!");
-            }))
-            /*.oneTimeTokenLogin(configurer -> configurer.generatedOneTimeTokenSuccessHandler((request, response, oneTimeToken) -> {
-                var msg = String.format("go to http://localhost:%s/login/ott?token=%s", port, oneTimeToken.getTokenValue());
-                System.out.println(msg);
-                response.setContentType(MediaType.TEXT_PLAIN_VALUE);
-                response.getWriter().print("you've got console mail!");
-            }))*/
-            .webAuthn(c -> c
-                .allowedOrigins("*")
-                .rpId("localhost")
-                .rpName("Bootiful Passkeys")
-            )
+            //.csrf(c -> c.ignoringRequestMatchers("/webauthn/**"))
+            .csrf(c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+            .oneTimeTokenLogin(oneTimeTokenLogin(tokenHost))
+            .webAuthn(webAuthnConfigurer(webAuthnProperties))
             .oauth2Login(o -> o.successHandler(successHandler())
                 .userInfoEndpoint(u -> u.oidcUserService(customOidcUserService)))
             // Form login handles the redirect to the login page from the
@@ -234,10 +221,34 @@ public class SpringSecurityConfiguration {
                 .failureHandler(authenticationFailureHandler()))
             .logout(l -> l.logoutSuccessUrl("/logout")
                 .deleteCookies("SESSIONID")
-                .logoutSuccessHandler(customLogoutSuccessHandler)
+                .logoutSuccessHandler(logoutSuccessHandler)
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout", HttpMethod.GET.name()))
                 .invalidateHttpSession(true))
             .build();
+    }
+
+    private Customizer<WebAuthnConfigurer<HttpSecurity>> webAuthnConfigurer(WebAuthnProperties webAuthnProperties) {
+        return c -> c
+            .allowedOrigins(webAuthnProperties.allowedOrigins())
+            .rpId(webAuthnProperties.rpId())
+            .rpName(webAuthnProperties.rpName());
+    }
+
+    private Customizer<OneTimeTokenLoginConfigurer<HttpSecurity>> oneTimeTokenLogin(String tokenHost) {
+        return c -> c.tokenGenerationSuccessHandler((request, response, oneTimeToken) -> {
+            Authentication authentication = (Authentication) userDetailsService.loadUserByUsername(oneTimeToken.getUsername());
+            var msg = String.format("go to %s/login/ott?token=%s", tokenHost, oneTimeToken.getTokenValue());
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@spendingbetter.com");
+            message.setTo(authentication.getEmail());
+            message.setSubject("One Time Login");
+            message.setText(msg);
+            javaMailSender.send(message);
+
+            System.out.println(msg);
+            response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+            response.getWriter().print("you've got console mail!");
+        });
     }
 
     @Bean
@@ -264,6 +275,25 @@ public class SpringSecurityConfiguration {
         String registrarClientId,
         String registrarClientSecret
     ) {}
+
+    @ConfigurationProperties(prefix = "com.microservice.authentication.webauthn")
+    public record WebAuthnProperties (
+        String rpName,
+        String rpId,
+        Set<String> allowedOrigins
+    ) {
+        public WebAuthnProperties {
+            if (rpName == null) {
+                rpName = "Bootiful Passkeys";
+            }
+            if (rpId == null) {
+                rpId = "localhost";
+            }
+            if (allowedOrigins == null) {
+                allowedOrigins = Set.of("http://localhost:9998", "http://localhost:8080", "http://localhost:9000", "http://192.168.12:9000", "http://localhost:3000");
+            }
+        }
+    }
 
     private void handleErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {
         log.error("Exception Handler - Error response", exception);
@@ -298,8 +328,7 @@ public class SpringSecurityConfiguration {
 
     private AuthenticationSuccessHandler successHandler() {
         return (request, response, authentication) -> {
-            Jwt jwt = generateToken(authentication);
-            OAuth2AccessToken token = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, jwt.getTokenValue(), jwt.getIssuedAt(), jwt.getExpiresAt(), new HashSet<>(jwt.getClaimAsStringList("scopes")));
+            OAuth2AccessToken token = generateToken.generateToken(authentication);
             String sessionId = request.getSession().getId();
             Session session = sessionRepository.findById(sessionId);
             if (session == null) {
@@ -319,23 +348,6 @@ public class SpringSecurityConfiguration {
                 new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
             }
         };
-    }
-
-    private Jwt generateToken(org.springframework.security.core.Authentication authentication) {
-        Instant now = Instant.now();
-        long expiry = 36000L;
-        Set<String> scopes = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toSet());
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-            .issuer(properties.getIssuer())
-            .issuedAt(now)
-            .expiresAt(now.plusSeconds(expiry))
-            .subject(authentication.getName())
-            .claim("scopes", scopes)
-            .claim("authorities", scopes)
-            .build();
-        return jwtEncoder.encode(JwtEncoderParameters.from(claims));
     }
 
     private JwtAuthenticationConverter jwtAuthenticationConverter() {

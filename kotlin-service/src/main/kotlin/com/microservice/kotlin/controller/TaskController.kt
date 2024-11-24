@@ -51,7 +51,7 @@ class TaskController(@Autowired val taskService: TaskService) {
                 @RequestParam(name = "size", defaultValue = "10", required = false) size: Int,
                 @RequestParam(name = "sort-dir", defaultValue = "desc", required = false) sortDirection: String,
                 @RequestParam(name = "sort-idx", defaultValue = "createdDate", required = false) sortIdx: List<String>,
-                @Parameter(hidden = true)@QuerydslPredicate(root = Task::class, bindings = TaskRepository::class) predicate: Predicate,
+                @Parameter(hidden = true) @QuerydslPredicate(root = Task::class, bindings = TaskRepository::class) predicate: Predicate,
                 @Parameter(hidden = true) authentication: Authentication,
                 @RequestParam(required = false, name = "postId") postId: String?): ResponseEntity<Page<TaskDto>> {
         log.debug("Predicate: {}", predicate)
