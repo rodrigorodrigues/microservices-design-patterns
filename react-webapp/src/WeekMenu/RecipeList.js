@@ -29,7 +29,8 @@ class RecipeList extends Component {
       activeTab: '1',
       authorities: props.authorities,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.remove = this.remove.bind(this);
   }
@@ -77,8 +78,8 @@ class RecipeList extends Component {
     let confirm = await confirmDialog(`Delete Recipe ${recipe.name}`, "Are you sure you want to delete this?", "Delete Recipe");
     if (confirm) {
       let id = recipe.id;
-      let jwt = this.state.jwt;
-      await fetch(`/api/week-menu/v2/recipe/${id}`, {
+      const { jwt, gatewayUrl } = this.state;
+      await fetch(`${gatewayUrl}/api/week-menu/v2/recipe/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt,

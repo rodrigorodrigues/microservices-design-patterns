@@ -92,7 +92,7 @@ class HomeContent extends Component {
         || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'ROLE_PERSON_DELETE' || item === 'SCOPE_openid'));
         return (<NavItem eventKey="people" disabled={(!hasManageReadAccess)}>
             <NavIcon>
-                <i className="fa fa-fw fa-user" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                <i className="fa fa-fw fa-user" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="java service - people" />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="People">
                 People
@@ -105,7 +105,7 @@ class HomeContent extends Component {
         || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'ROLE_TASK_DELETE' || item === 'SCOPE_openid'));
         return (<NavItem eventKey="tasks" disabled={(!hasTaskPermission)}>
             <NavIcon>
-                <i className="fa fa-fw fa-tasks" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                <i className="fa fa-fw fa-tasks" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="kotlin service - tasks" />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="Tasks">
                 Tasks
@@ -118,7 +118,7 @@ class HomeContent extends Component {
         || item === 'ROLE_POST_CREATE' || item === 'ROLE_POST_SAVE' || item === 'ROLE_POST_DELETE' || item === 'SCOPE_openid'));
         return (<NavItem eventKey="posts" disabled={(!hasPostPermission)}>
             <NavIcon>
-                <i className="fa fa-fw fa-comments" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                <i className="fa fa-fw fa-comments" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="golang service - posts" />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="Posts">
                 Posts
@@ -131,7 +131,7 @@ class HomeContent extends Component {
         || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'ROLE_PRODUCT_DELETE' || item === 'SCOPE_openid'));
         return (<NavItem eventKey="products" disabled={(!hasProductPermission)}>
             <NavIcon>
-                <i className="fa fa-fw fa-truck" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                <i className="fa fa-fw fa-truck" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="python service - products" />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="Products">
                 Products
@@ -150,7 +150,7 @@ class HomeContent extends Component {
             </NavText>
             <NavItem eventKey="users" disabled={(!isAdmin)}>
                 <NavIcon>
-                    <i className="fa fa-fw fa-users" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                    <i className="fa fa-fw fa-users" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Admin - List of Users" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Users">
                     Users
@@ -158,7 +158,7 @@ class HomeContent extends Component {
             </NavItem>
             <NavItem eventKey="consul" disabled={(!isAdmin)}>
                 <NavIcon>
-                    <i className="fa fa-fw fa-codepen" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                    <i className="fa fa-fw fa-codepen" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Service Discovery - Consul" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Consul - Discovery Server">
                     Consul
@@ -166,7 +166,7 @@ class HomeContent extends Component {
             </NavItem>
             <NavItem eventKey="monitoring" disabled={(!isAdmin)}>
                 <NavIcon title="Monitoring - Spring Boot Admin">
-                    <i className="fa fa-fw fa-exclamation-triangle" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                    <i className="fa fa-fw fa-exclamation-triangle" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Monitoring" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Monitoring - Spring Boot Admin">
                     Monitoring
@@ -174,7 +174,7 @@ class HomeContent extends Component {
             </NavItem>
             <NavItem eventKey="grafana" disabled={(!isAdmin)}>
                 <NavIcon>
-                    <i className="fa fa-fw fa-pie-chart" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                    <i className="fa fa-fw fa-pie-chart" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Dashboard - Grafana" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Grafana">
                     Grafana
@@ -182,7 +182,7 @@ class HomeContent extends Component {
             </NavItem>
             <NavItem eventKey="prometheus" disabled={(!isAdmin)}>
                 <NavIcon>
-                    <i className="fa fa-fw fa-free-code-camp" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                    <i className="fa fa-fw fa-free-code-camp" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Metrics - Prometheus" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Prometheus">
                     Prometheus
@@ -190,7 +190,7 @@ class HomeContent extends Component {
             </NavItem>
             <NavItem eventKey="jaeger" disabled={(!isAdmin)}>
                 <NavIcon>
-                    <i className="fa fa-fw fa-bug" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                    <i className="fa fa-fw fa-bug" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Tracing - Jaeger" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Jaeger">
                     Jaeger
@@ -207,7 +207,7 @@ class HomeContent extends Component {
         if (this.state.isAuthenticated) {
             return (<NavItem eventKey="logout">
             <NavIcon>
-                <i className="fa fa-fw fa-power-off" style={{ fontSize: '1.5em' }} />
+                <i className="fa fa-fw fa-power-off" style={{ fontSize: '1.5em' }} title="Sign-out" />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="Sign-out">
                 Sign-out
@@ -218,11 +218,26 @@ class HomeContent extends Component {
         }
     }
 
+    displayPasskeyButton() {
+        if (this.state.isAuthenticated) {
+            return (<NavItem eventKey="passkeys">
+            <NavIcon>
+                <i className="fa fa-fw fa-user-secret" style={{ fontSize: '1.5em' }} title="Passkeys" />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Passkeys">
+                Passkeys
+            </NavText>
+        </NavItem>);
+        } else {
+            return null;
+        }
+    }
+
     displayLoginButton() {
         if (!this.state.isAuthenticated) {
-            return (                        <NavItem eventKey="login">
+            return (<NavItem eventKey="login">
             <NavIcon>
-                <i className="fa fa-fw fa-sign-in" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} />
+                <i className="fa fa-fw fa-sign-in" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Sign-in" />
             </NavIcon>
             <NavText style={{ paddingRight: 32 }} title="Sign-in">
                 Sign-in
@@ -238,43 +253,43 @@ class HomeContent extends Component {
         return (
             <Breadcrumbs showLineSeparator>
                 <Breadcrumbs.Item>
-                    <Anchor href="/home">Home</Anchor>
+                    <Anchor href="./home">Home</Anchor>
                 </Breadcrumbs.Item>
                 {!isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/login">Login</Anchor>
+                    <Anchor href="./login">Login</Anchor>
                 </Breadcrumbs.Item>}
                 {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/users">Manage Users</Anchor>
+                    <Anchor href="./users">Manage Users</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/people">Manage People</Anchor>
+                    <Anchor href="./people">Manage People</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/tasks">Manage Tasks</Anchor>
+                    <Anchor href="./tasks">Manage Tasks</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/companies">Manage Companies</Anchor>
+                    <Anchor href="./companies">Manage Companies</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/posts">Manage Posts</Anchor>
+                    <Anchor href="./posts">Manage Posts</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/products">Manage Products</Anchor>
+                    <Anchor href="./products">Manage Products</Anchor>
                 </Breadcrumbs.Item>}
                 {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/admin/createAll">Admin - Create All</Anchor>
+                    <Anchor href="./admin/createAll">Admin - Create All</Anchor>
                 </Breadcrumbs.Item>}
                 {isAuthenticated &&
                 <Breadcrumbs.Item>
-                    <Anchor href="/logout">Logout</Anchor>
+                    <Anchor href="./logout">Logout</Anchor>
                 </Breadcrumbs.Item>}
             </Breadcrumbs>            
         );
@@ -343,6 +358,7 @@ class HomeContent extends Component {
                         {this.displayProductsButton(authorities)}
                         <Separator />
                         {this.displayLogoutButton()}
+                        {this.displayPasskeyButton()}
                     </Nav>
                 </SideNav>
                 </div>

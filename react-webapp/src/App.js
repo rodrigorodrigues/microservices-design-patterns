@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import Home from './home/Home';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Router, Route, Switch } from 'react-router-dom';
 import PersonList from './person/PersonList';
 import PersonEdit from './person/PersonEdit';
 import Login from './login/Login';
@@ -30,6 +30,12 @@ import ModalPopup from './common/Modal';
 import CreateAll from "./admin/CreateAll";
 import ActivityDetector from 'react-activity-detector';
 import { postWithHeaders } from './services/ApiService';
+import PasskeyList from './passkeys/PasskeyList';
+import PasskeyEdit from './passkeys/PasskeyEdit';
+import { createBrowserHistory } from 'history';
+
+const history = createBrowserHistory({ basename: process.env.PUBLIC_URL });
+const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
 const moment = require('moment');
 
@@ -38,6 +44,7 @@ const monitoringUrl = process.env.REACT_APP_MONITORING_URL;
 const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
 const jaegerUrl = process.env.REACT_APP_JAEGER_URL;
 const prometheusUrl = process.env.REACT_APP_PROMETHEUS_URL;
+const gatewayUrl = process.env.REACT_APP_GATEWAY_URL;
 
 class App extends Component {
   state = {
@@ -50,7 +57,8 @@ class App extends Component {
     displayError: null,
     imageUrl: window.localStorage.getItem('jhi-imageUrl'),
     refreshToken: window.localStorage.getItem('jhi-refreshToken'),
-    expiresIn: window.localStorage.getItem('jhi-expiresIn')
+    expiresIn: window.localStorage.getItem('jhi-expiresIn'),
+    gatewayUrl: gatewayUrl
   };
 
   async componentDidMount() {
@@ -150,10 +158,10 @@ class App extends Component {
     
   onActive = async () => {
     const { expiresIn, refreshToken, jwt } = this.state;
-    if (expiresIn !== null && refreshToken !== null && refreshToken !== "undefined") {
+    if (expiresIn !== null && refreshToken !== null && refreshToken !== "undefined" && refreshToken !== undefined) {
       const expIn = moment(expiresIn).subtract(1, 'minute');
       if (moment().isSameOrAfter(expIn)) {
-        console.log("Refreshing Token");
+        console.log("Refreshing Token: " + refreshToken);
         await this.refreshTokenCall(refreshToken, jwt);
       }
     }
@@ -182,18 +190,19 @@ class App extends Component {
 
     return (
       <UserContext.Provider value={this.state}>
-        <Router>
+        <BrowserRouter basename={baseHref}>
+          <Router history={history}>
           <Switch>
-            <Route path='/' exact={true} 
+            <Route path='/' exact={true}
               component={() =><Home {...this.state} error={this.state.error} onRemoveAuthentication={this.removeAuthentication} />} />
-            <Route path='/home' exact={true} 
+            <Route path='/home' exact={true}
               component={() =><Home {...this.state} error={this.state.error} onRemoveAuthentication={this.removeAuthentication} />} />
-            <Route path='/login' exact={true} 
-              component={() => <Login {...this.state} 
+            <Route path='/login' exact={true}
+              component={() => <Login {...this.state}
                 setAuthentication={this.setAuthentication} />} />
-            <Route path='/logout' exact={true} 
+            <Route path='/logout' exact={true}
               component={() => <Logout {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
-            <Route path='/people' exact={true} 
+            <Route path='/people' exact={true}
               component={() => <PersonList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/people/:id'
               component={() => <PersonEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
@@ -232,8 +241,13 @@ class App extends Component {
                    component={() => <IngredientList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/admin/createAll'
                    component={() => <CreateAll {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/passkeys' exact={true}
+              component={() => <PasskeyList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/passkeys/:id'
+              component={() => <PasskeyEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
           </Switch>
-        </Router>
+          </Router>
+        </BrowserRouter>
         <div>
           <MessageAlert {...displayError}></MessageAlert>
         </div>

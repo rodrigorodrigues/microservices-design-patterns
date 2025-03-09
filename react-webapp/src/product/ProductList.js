@@ -29,7 +29,8 @@ class ProductList extends Component {
       activeTab: '1',
       authorities: props.authorities,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -77,8 +78,8 @@ class ProductList extends Component {
     let confirm = await confirmDialog(`Delete Product ${product.name}`, "Are you sure you want to delete this?", "Delete Product");
     if (confirm) {
       let id = product.id;
-      let jwt = this.state.jwt;
-      await fetch(`/api/products/${id}`, {
+      const { jwt, gatewayUrl } = this.state;
+      await fetch(`${gatewayUrl}/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt,

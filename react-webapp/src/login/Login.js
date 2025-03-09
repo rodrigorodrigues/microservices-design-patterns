@@ -13,6 +13,7 @@ import HomeContent from '../home/HomeContent';
 import { loading } from '../common/Loading';
 import uuid from 'react-uuid';
 const {client, parsers} = require('@passwordless-id/webauthn');
+var Buffer = require('buffer/').Buffer;
 
 const googleOauthUrl = process.env.REACT_APP_GOOGLE_OAUTH_URL;
 console.log("googleOauthUrl: " + googleOauthUrl);

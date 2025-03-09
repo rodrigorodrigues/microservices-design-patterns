@@ -40,7 +40,8 @@ class TaskList extends Component {
       totalPages: null,
       itemsCountPerPage: null,
       totalItemsCount: null,
-      pageSize: 10
+      pageSize: 10,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -155,8 +156,8 @@ class TaskList extends Component {
     let confirm = await confirmDialog(`Delete Task ${task.name}`, "Are you sure you want to delete this?", "Delete Task");
     if (confirm) {
       let id = task.id;
-      let jwt = this.state.jwt;
-      await fetch(`/api/tasks/${id}`, {
+      const { jwt, gatewayUrl } = this.state;
+      await fetch(`${gatewayUrl}/api/tasks/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt,

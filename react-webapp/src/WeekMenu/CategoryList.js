@@ -29,7 +29,8 @@ class CategoryList extends Component {
       activeTab: '1',
       authorities: props.authorities,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -77,8 +78,8 @@ class CategoryList extends Component {
     let confirm = await confirmDialog(`Delete Category ${category.name}`, "Are you sure you want to delete this?", "Delete Category");
     if (confirm) {
       let id = category.id;
-      let jwt = this.state.jwt;
-      await fetch(`/api/week-menu/v2/category/${id}`, {
+      const { jwt, gatewayUrl } = this.state;
+      await fetch(`${gatewayUrl}/api/week-menu/v2/category/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt,

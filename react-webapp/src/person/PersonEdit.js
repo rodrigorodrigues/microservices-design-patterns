@@ -41,7 +41,8 @@ class PersonEdit extends Component {
       displayAlert: false,
       authorities: props.authorities,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleDateChange = this.handleDateChange.bind(this);
@@ -54,17 +55,15 @@ class PersonEdit extends Component {
   }
 
   async componentDidMount() {
-    let jwt = this.state.jwt;
-    let permissions = this.state.authorities;
-    if (jwt && permissions) {
-
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'SCOPE_openid')) {
+    const { jwt, authorities, gatewayUrl } = this.state;
+    if (jwt && authorities) {
+      if (!authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PERSON_CREATE' || item === 'ROLE_PERSON_SAVE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
         if (this.props.match.params.id !== 'new') {
           try {
-            const person = await (await fetch(`/api/people/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            const person = await (await fetch(`${gatewayUrl}/api/people/${this.props.match.params.id}`, { method: 'GET',      headers: {
               'Content-Type': 'application/json',
               'Authorization': jwt
             }})).json();
@@ -108,9 +107,9 @@ class PersonEdit extends Component {
   }
 
   async handleSubmit(event) {
-    const {person, jwt} = this.state;
+    const {person, jwt, gatewayUrl} = this.state;
     console.log("handleSubmit:person", person);
-    const url = '/api/people' + (person.id ? '/' + person.id : '');
+    const url = `${gatewayUrl}/api/people` + (person.id ? '/' + person.id : '');
 
     await fetch(url, {
       method: (person.id) ? 'PUT' : 'POST',

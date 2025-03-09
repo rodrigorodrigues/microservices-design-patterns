@@ -28,7 +28,8 @@ class TaskEdit extends Component {
       authorities: props.authorities,
       isLoading: false,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -41,17 +42,15 @@ class TaskEdit extends Component {
   async componentDidMount() {
     try {
       this.setLoading(true);
-      let jwt = this.state.jwt;
-      let permissions = this.state.authorities;
-      if (jwt && permissions) {
-
-        if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'SCOPE_openid')) {
+      const { jwt, authorities, gatewayUrl } = this.state;
+      if (jwt && authorities) {
+        if (!authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_TASK_CREATE' || item === 'ROLE_TASK_SAVE' || item === 'SCOPE_openid')) {
           const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
         } else {
           if (this.props.match.params.id !== 'new') {
             try {
-              const task = await (await fetch(`/api/tasks/${this.props.match.params.id}`, { method: 'GET',      headers: {
+              const task = await (await fetch(`${gatewayUrl}/api/tasks/${this.props.match.params.id}`, { method: 'GET',      headers: {
                 'Content-Type': 'application/json',
                 'Authorization': jwt,
                 'requestId': uuid()
@@ -81,10 +80,10 @@ class TaskEdit extends Component {
 
   async handleSubmit(event) {
     try {
-      const {task, jwt} = this.state;
+      const { task, jwt, gatewayUrl }  = this.state;
       console.log("Task", task);
 
-      const url = '/api/tasks' + (task.id ? '/' + task.id : '');
+      const url = `${gatewayUrl}/api/tasks` + (task.id ? '/' + task.id : '');
       await fetch(url, {
         method: (task.id) ? 'PUT' : 'POST',
         headers: {

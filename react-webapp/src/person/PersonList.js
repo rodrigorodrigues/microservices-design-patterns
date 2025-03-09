@@ -39,7 +39,8 @@ class PersonList extends Component {
       totalPages: null,
       itemsCountPerPage: null,
       totalItemsCount: null,
-      pageSize: 10
+      pageSize: 10,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -148,8 +149,8 @@ class PersonList extends Component {
     let confirm = await confirmDialog(`Delete Person ${person.name}`, "Are you sure you want to delete this?", "Delete Person");
     if (confirm) {
       let id = person.id;
-      let jwt = this.state.jwt;
-      await fetch(`/api/people/${id}`, {
+      const { jwt, gatewayUrl } = this.state;
+      await fetch(`${gatewayUrl}/api/people/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt,

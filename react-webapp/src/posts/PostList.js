@@ -40,7 +40,8 @@ class PostList extends Component {
       totalPages: null,
       itemsCountPerPage: null,
       totalItemsCount: null,
-      pageSize: 10
+      pageSize: 10,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -155,8 +156,8 @@ class PostList extends Component {
     let confirm = await confirmDialog(`Delete Post ${post.name}`, "Are you sure you want to delete this?", "Delete Post");
     if (confirm) {
       let id = post.id;
-      let jwt = this.state.jwt;
-      await fetch(`/api/posts/${id}`, {
+      const { jwt, gatewayUrl } = this.state;
+      await fetch(`${gatewayUrl}/api/posts/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': jwt,

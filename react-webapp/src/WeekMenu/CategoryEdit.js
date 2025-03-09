@@ -26,7 +26,8 @@ class CategoryEdit extends Component {
       isLoading: true,
       displayAlert: false,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -37,17 +38,15 @@ class CategoryEdit extends Component {
   }
 
   async componentDidMount() {
-    let jwt = this.state.jwt;
-    let permissions = this.state.authorities;
-    if (jwt && permissions) {
-
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'SCOPE_openid')) {
+    const { jwt, authorities, gatewayUrl } = this.state;
+    if (jwt && authorities) {
+      if (!authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
         if (this.props.match.params.id !== 'new') {
           try {
-            const category = await (await fetch(`/api/week-menu/v2/category/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            const category = await (await fetch(`${gatewayUrl}/api/week-menu/v2/category/${this.props.match.params.id}`, { method: 'GET',      headers: {
               'Content-Type': 'application/json',
               'Authorization': jwt
             }})).json();
@@ -72,9 +71,9 @@ class CategoryEdit extends Component {
   }
 
   async handleSubmit(event) {
-    const {category, jwt} = this.state;
+    const { category, jwt, gatewayUrl } = this.state;
 
-    await fetch('/api/week-menu/v2/category', {
+    await fetch(`${gatewayUrl}/api/week-menu/v2/category`, {
       method: (category._id) ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',

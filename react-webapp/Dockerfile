@@ -26,7 +26,7 @@ COPY . .
 
 RUN if ["$NODE_ENV" = "development"]; then mv .env .env.production & echo .env.production; fi
 
-RUN npm run build
+RUN PUBLIC_URL=/react-webapp npm run build
 
 ### STAGE 2: Production Environment ###
 FROM nginx:stable-alpine

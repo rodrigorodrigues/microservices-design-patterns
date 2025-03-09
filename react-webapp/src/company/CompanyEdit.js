@@ -27,7 +27,8 @@ class CompanyEdit extends Component {
       authorities: props.authorities,
       isLoading: false,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -40,17 +41,15 @@ class CompanyEdit extends Component {
   async componentDidMount() {
     try {
       this.setLoading(true);
-      let jwt = this.state.jwt;
-      let permissions = this.state.authorities;
-      if (jwt && permissions) {
-
-        if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_CREATE' || item === 'ROLE_COMPANY_SAVE' || item === 'SCOPE_openid')) {
+      const { jwt, authorities, gatewayUrl } = this.state;
+      if (jwt && authorities) {
+        if (!authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_COMPANY_CREATE' || item === 'ROLE_COMPANY_SAVE' || item === 'SCOPE_openid')) {
           const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
         } else {
           if (this.props.match.params.id !== 'new') {
             try {
-              const company = await (await fetch(`/api/companies/${this.props.match.params.id}`, { method: 'GET',      headers: {
+              const company = await (await fetch(`${gatewayUrl}/api/companies/${this.props.match.params.id}`, { method: 'GET',      headers: {
                 'Content-Type': 'application/json',
                 'Authorization': jwt
               }})).json();

@@ -31,7 +31,8 @@ class UserEdit extends Component {
       isLoading: true,
       displayAlert: false,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -43,17 +44,15 @@ class UserEdit extends Component {
   }
 
   async componentDidMount() {
-    let jwt = this.state.jwt;
-    let permissions = this.state.authorities;
-    if (jwt && permissions) {
-
-      if (!permissions.some(item => item === 'ROLE_ADMIN')) {
+    const { jwt, authorities, gatewayUrl } = this.state.jwt;
+    if (jwt && authorities) {
+      if (!authorities.some(item => item === 'ROLE_ADMIN')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
         if (this.props.match.params.id !== 'new') {
           try {
-            const user = await (await fetch(`/api/users/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            const user = await (await fetch(`${gatewayUrl}/api/users/${this.props.match.params.id}`, { method: 'GET',      headers: {
               'Content-Type': 'application/json',
               'Authorization': jwt
             }})).json();
@@ -68,7 +67,7 @@ class UserEdit extends Component {
           this.setState({isLoading: false});
         }
         try {
-          const permissions = await (await fetch('/api/users/permissions', {      headers: {
+          const permissions = await (await fetch(`${gatewayUrl}/api/users/permissions`, {      headers: {
             'Content-Type': 'application/json',
             'Authorization': jwt
           }})).json();
@@ -103,9 +102,9 @@ class UserEdit extends Component {
   }
 
   async handleSubmit(event) {
-    const {user, jwt} = this.state;
+    const { user, jwt, gatewayUrl } = this.state;
     console.log("handleSubmit:user", user);
-    const url = '/api/users' + (user.id ? '/' + user.id : '');
+    const url = `${gatewayUrl}/api/users` + (user.id ? '/' + user.id : '');
 
     await fetch(url, {
       method: (user.id) ? 'PUT' : 'POST',
@@ -157,7 +156,7 @@ class UserEdit extends Component {
         <Form onSubmit={this.handleSubmit}
           enableReinitialize={true}
           initialValues={{
-            fullName: user?.name || '',
+            fullName: user?.fullName || '',
             password: user?.password || '',
             confirmPassword: user?.confirmPassword || '',
             email: user?.email || ''
@@ -209,7 +208,7 @@ class UserEdit extends Component {
             </Feedback>
           </FormGroup>
           <FormGroup>
-            <Label for="name">Email</Label>
+            <Label for="email">Email</Label>
             <Input type="email" name="email" id="email" value={user.email || ''}
                      required
                      validate={{email: true}}

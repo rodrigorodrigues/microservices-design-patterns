@@ -28,7 +28,8 @@ class ProductEdit extends Component {
       isLoading: true,
       displayAlert: false,
       expanded: false,
-      isAuthenticated: props.isAuthenticated
+      isAuthenticated: props.isAuthenticated,
+      gatewayUrl: props.gatewayUrl
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -39,17 +40,15 @@ class ProductEdit extends Component {
   }
 
   async componentDidMount() {
-    let jwt = this.state.jwt;
-    let permissions = this.state.authorities;
-    if (jwt && permissions) {
-
-      if (!permissions.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'SCOPE_openid')) {
+    const { jwt, authorities, gatewayUrl } = this.state;
+    if (jwt && authorities) {
+      if (!authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_PRODUCT_CREATE' || item === 'ROLE_PRODUCT_SAVE' || item === 'SCOPE_openid')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
         this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
       } else {
         if (this.props.match.params.id !== 'new') {
           try {
-            const product = await (await fetch(`/api/products/${this.props.match.params.id}`, { method: 'GET',      headers: {
+            const product = await (await fetch(`${gatewayUrl}/api/products/${this.props.match.params.id}`, { method: 'GET',      headers: {
               'Content-Type': 'application/json',
               'Authorization': jwt
             }})).json();
@@ -74,14 +73,14 @@ class ProductEdit extends Component {
   }
 
   async handleSubmit(event) {
-    const {product, jwt} = this.state;
+    const { product, jwt, gatewayUrl } = this.state;
     const productCopy = {
       name: product.name,
       category: product.category,
       quantity: product.quantity
     };
 
-    await fetch(`/api/products${product._id ? '/' + product._id.$oid : ''}`, {
+    await fetch(`${gatewayUrl}/api/products${product._id ? '/' + product._id.$oid : ''}`, {
       method: (product._id ? 'PUT' : 'POST'),
       headers: {
         'Content-Type': 'application/json',
