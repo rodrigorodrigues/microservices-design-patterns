@@ -54,7 +54,7 @@ services:
 #      - MANAGEMENT_HEALTH_REDIS_ENABLED=false
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
-#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - SPRING_CLOUD_GATEWAY_GLOBAL_CORS_ADD_TO_SIMPLE_URL_HANDLER_MAPPING=true
@@ -93,7 +93,7 @@ services:
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
-#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
     depends_on:
       - service-discovery
@@ -233,10 +233,10 @@ services:
       - JAVA_OPTS=--enable-preview
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
       - LOGGING_LEVEL_ORG_APACHE_COYOTE_HTTP11=trace
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
-      - com.microservice.authentication.jwt.publicKeyStore=file:/www.spendingbetter.com.pub
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${
-      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
+#      - com.microservice.authentication.jwt.publicKeyStore=file:/www.spendingbetter.com.pub
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
+#      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -247,7 +247,7 @@ services:
       - 8082:8082
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.pub:/www.spendingbetter.com.pub
+#      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.pub:/www.spendingbetter.com.pub
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
