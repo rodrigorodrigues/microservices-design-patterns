@@ -18,10 +18,15 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <code-coverage>0.6</code-coverage>
         <docker.image-tag>${project.version}</docker.image-tag>
-        <wiremock-jre8-standalone.version>2.32.0</wiremock-jre8-standalone.version>
 	</properties>
 
 	<dependencies>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -232,9 +237,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8-standalone</artifactId>
-            <version>${wiremock-jre8-standalone.version}</version>
+            <groupId>org.wiremock.integrations</groupId>
+            <artifactId>wiremock-spring-boot</artifactId>
+            <version>3.3.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import com.microservice.authentication.model.WebauthnRegistration;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.security.core.Authentication;
@@ -19,7 +18,6 @@ import org.springframework.security.web.webauthn.management.UserCredentialReposi
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true")
 @Component
 public class MongoUserCredentialRepository implements UserCredentialRepository {
     private final WebauthnRegistrationRepository registrationRepository;

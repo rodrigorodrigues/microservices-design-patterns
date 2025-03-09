@@ -40,12 +40,12 @@ import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.wiremock.spring.EnableWireMock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
@@ -97,7 +97,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.MockConfiguration.class})
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
+@EnableWireMock
 public class AuthenticationServiceApplicationIntegrationTest {
 
     @Autowired

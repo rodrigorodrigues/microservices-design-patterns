@@ -4,6 +4,7 @@
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
     <springProperty scope="local" name="APP_NAME" source="spring.application.name" defaultValue="spring"/>
+    <springProperty name="GRAFANA_LOKI" source="${GRAFANA_LOKI}" defaultValue="http://localhost:3100"/>
     <springProperty name="LOGSTASH_URL" source="${LOGSTASH_URL}" defaultValue="localhost:5001"/>
     <property name="LOGGING_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/${APP_NAME}.log}"/>
 
@@ -34,10 +35,28 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>${GRAFANA_LOKI}/loki/api/v1/push</url>
+        </http>
+        <format>
+            <label>
+                <pattern>
+                    app=${APP_NAME},host=${HOSTNAME},requestId=%X{requestId:%X{x-request-id:-NONE}},level=%level
+                </pattern>
+            </label>
+            <message>
+                <pattern>${FILE_LOG_PATTERN}</pattern>
+            </message>
+            <sortByTime>true</sortByTime>
+        </format>
+    </appender>
+
     <springProfile name="!prod">
         <root level="info">
             <appender-ref ref="RollingFile" />
             <appender-ref ref="CONSOLE" />
+            <appender-ref ref="LOKI" />
             <appender-ref ref="stash" />
         </root>
     </springProfile>
@@ -45,6 +64,7 @@
     <springProfile name="prod">
         <root level="info">
             <appender-ref ref="CONSOLE" />
+            <appender-ref ref="LOKI" />
             <appender-ref ref="stash" />
         </root>
     </springProfile>

@@ -72,3 +72,7 @@ baeldung:
             registration:
                 registrar-client-id: registrar-client
                 registrar-client-secret: "{noop}secret"
+
+logging:
+    pattern:
+        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:%X{x-request-id:-}}]"

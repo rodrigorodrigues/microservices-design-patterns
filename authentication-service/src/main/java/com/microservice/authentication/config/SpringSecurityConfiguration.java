@@ -290,7 +290,7 @@ public class SpringSecurityConfiguration {
                 rpId = "localhost";
             }
             if (allowedOrigins == null) {
-                allowedOrigins = Set.of("http://localhost:9998", "http://localhost:8080", "http://localhost:9000", "http://192.168.12:9000", "http://localhost:3000");
+                allowedOrigins = Set.of("http://localhost:9998", "http://localhost:8080", "http://localhost:9000", "http://192.168.12:9000", "http://localhost:3000", "http://localhost:3003");
             }
         }
     }

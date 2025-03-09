@@ -10,11 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.web.webauthn.api.Bytes;
 import org.springframework.security.web.webauthn.api.CredentialRecord;
 import org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity;
 import org.springframework.security.web.webauthn.management.PublicKeyCredentialUserEntityRepository;
 import org.springframework.security.web.webauthn.management.UserCredentialRepository;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,6 +57,11 @@ public class WebauthnController {
                 .toArray(new CredentialRecordDto[] {});
         }
         return credentialRecords;
+    }
+
+    @DeleteMapping("/{credentialId}")
+    public void deletePasskey(@PathVariable("credentialId") String credentialId) {
+        userCredentialRepository.delete(Bytes.fromBase64(credentialId));
     }
 
     public record CredentialRecordDto(String id, String label, Instant created, Instant lastUsed, long signatureCount) {
