@@ -245,4 +245,13 @@
       </properties>
     </profile>
   </profiles>
+  <repositories>
+    <repository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/rodrigorodrigues/spring-data-commons</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 </project>
