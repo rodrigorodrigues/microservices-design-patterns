@@ -6,6 +6,16 @@
   <springProperty scope="local" name="APP_NAME" source="spring.application.name" defaultValue="spring"/>
   <property name="LOGGING_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/${APP_NAME}.log}"/>
 
+<!--
+    <appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5001</destination>
+        <param name="Encoding" value="UTF-8"/>
+
+        &lt;!&ndash; encoder is required &ndash;&gt;
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+-->
+
     <appender name="RollingFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGGING_FILE}</file>
@@ -29,12 +39,14 @@
         <root level="info">
             <appender-ref ref="RollingFile" />
             <appender-ref ref="CONSOLE" />
+<!--            <appender-ref ref="stash" />-->
         </root>
     </springProfile>
 
     <springProfile name="prod">
         <root level="info">
             <appender-ref ref="CONSOLE" />
+<!--            <appender-ref ref="stash" />-->
         </root>
     </springProfile>
 

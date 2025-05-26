@@ -22,7 +22,7 @@ management:
 
 logging:
     pattern:
-        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
+        level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:%X{x-request-id:-}}]"
 ---
 spring:
     config:

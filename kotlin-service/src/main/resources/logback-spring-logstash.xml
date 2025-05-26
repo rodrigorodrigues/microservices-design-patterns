@@ -33,7 +33,7 @@
         <format>
             <label>
                 <pattern>
-                    app=${APP_NAME},host=${HOSTNAME},requestId=%X{requestId:-NONE},level=%level
+                    app=${APP_NAME},host=${HOSTNAME},requestId=%X{requestId:%X{x-request-id:-NONE}},level=%level
                 </pattern>
             </label>
             <message>

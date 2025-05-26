@@ -206,10 +206,14 @@ public class AuthenticationServiceApplicationIntegrationTest {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
-        mockMvc.perform(post("/login")
+        var response = mockMvc.perform(post("/login")
             .params(formData)
             .with(csrf()))
-            .andExpect(status().is3xxRedirection());
+            .andExpect(status().is3xxRedirection())
+            .andReturn()
+            .getResponse();
+
+        assertThat(response.getCookies()).isNotEmpty();
     }
 
     @Test
@@ -337,6 +341,16 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
         assertThat(accessToken).isNotEmpty();
         assertThat(accessToken.get("tokenValue")).isNotNull();
+
+        mockMvc.perform(get("/api/authenticatedUser")
+                .with(csrf())
+                .cookie(response.getCookies())
+                .header("sessionId", response.getHeader("sessionId")))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+            .andExpect(jsonPath("$.tokenValue", is(notNullValue())));
 
         String authorization = "Bearer " + accessToken.get("tokenValue").toString();
         mockMvc.perform(get("/api/authenticatedUser")

@@ -2,6 +2,7 @@ package com.microservice.authentication;
 
 import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.servlet.http.Cookie;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,6 +51,8 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.session.MapSessionRepository;
@@ -71,6 +75,23 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
+
+    @Bean
+    BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver defaultBearerTokenResolver = new DefaultBearerTokenResolver();
+        return request -> {
+            var cookies = request.getCookies();
+            log.debug("Getting Bearer Token resolver: cookies: {}", cookies);
+            if (cookies == null) {
+                cookies = new Cookie[] {};
+            }
+            return Arrays
+                    .stream(cookies)
+                    .filter(c -> c.getName().equals("SESSIONID"))
+                    .map(Cookie::getValue)
+                    .findFirst().orElseGet(() -> defaultBearerTokenResolver.resolve(request));
+        };
+    }
 
     @Bean
     @ConditionalOnMissingBean

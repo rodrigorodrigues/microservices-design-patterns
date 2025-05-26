@@ -412,7 +412,7 @@ services:
           - authentication-api
 
   mongodb-datasource:
-    image: mongo
+    image: mongo:4.4.18
     command: mongod --port 27017
     container_name: mongodb-datasource
     ports:

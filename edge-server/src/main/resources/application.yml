@@ -19,7 +19,6 @@ spring:
             starttls:
               enabled: true
             auth: true
-
 #    security:
 #      oauth2:
 #        client:
@@ -88,7 +87,7 @@ spring:
                 cors-configurations:
                     '[/**]':
                         allowedOrigins:
-                          - "http://localhost:3000"
+                          - "http://localhost:3003"
 #                          - "http://localhost:3001"
 #                          - "http://localhost:8080"
 #                          - "http://192.168.1.16:3000"
@@ -115,6 +114,7 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins:
+              - "http://localhost:3003"
               - "http://localhost:3000"
               - "http://localhost:3001"
               - "http://localhost:8080"

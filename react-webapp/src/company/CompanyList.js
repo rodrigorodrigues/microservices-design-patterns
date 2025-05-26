@@ -111,7 +111,7 @@ class CompanyList extends Component {
   async findAllCompanies(pageNumber) {
     try {
       const { pageSize, activePage, search, jwt, gatewayUrl } = this.state;
-      let url = `${gatewayUrl}/companies?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&size='+pageSize: ''}`;
+      let url = `companies?${search ? search : ''}${pageNumber !== undefined ? '&page='+pageNumber : activePage ? '&page='+activePage : ''}${pageSize ? '&size='+pageSize: ''}`;
       console.log("URL: {}", url);
       let data = await get(url, true, false, jwt);
       if (data) {
