@@ -40,7 +40,7 @@
     <dependency>
       <groupId>com.github.rodrigorodrigues</groupId>
       <artifactId>spring-data-commons</artifactId>
-      <version>4.0.0-SNAPSHOT</version>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -245,13 +245,4 @@
       </properties>
     </profile>
   </profiles>
-  <repositories>
-    <repository>
-      <id>github</id>
-      <url>https://maven.pkg.github.com/rodrigorodrigues/spring-data-commons</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 </project>
