@@ -39,11 +39,6 @@ spring:
                     google:
                         client-id: test
                         client-secret: test
-            resourceserver:
-                jwt:
-                    jwk-set-uri: http://localhost:${server.port}/.well-known/jwks.json
-                opaquetoken:
-                    client-id:
     data:
         redis:
             repositories:

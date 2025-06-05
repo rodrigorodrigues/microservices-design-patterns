@@ -34,7 +34,7 @@ services:
     container_name: gateway
     environment:
       - SPRING_DATA_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=prod,auth,consul,cors
+      - SPRING_PROFILES_ACTIVE=dev,auth,consul,cors
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
@@ -58,12 +58,17 @@ services:
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - SPRING_CLOUD_GATEWAY_GLOBAL_CORS_ADD_TO_SIMPLE_URL_HANDLER_MAPPING=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_JAVAAGENT_DEBUG=false
+      - OTEL_PROPAGATORS=tracecontext,b3
+      - OTEL_PROPAGATORS_ENABLED=true
     depends_on:
       - service-discovery
     ports:
       - 8080:8080
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - ./opentelemetry-javaagent.jar:/opt/opentelemetry-javaagent.jar
 #      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
@@ -268,8 +273,14 @@ services:
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - LOGGING_LEVEL_COM_MICROSERVICE=trace
+#      - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_JAVAAGENT_DEBUG=false
+      - OTEL_PROPAGATORS=tracecontext,b3
+      - OTEL_PROPAGATORS_ENABLED=true
       #- DEBUG=true
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -277,8 +288,10 @@ services:
       - service-discovery-load-configuration
     ports:
       - 8084:8084
+      - 5006:5006
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - ./opentelemetry-javaagent.jar:/opt/opentelemetry-javaagent.jar
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
       net:
@@ -362,7 +375,7 @@ services:
     #image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
-      - SPRING_PROFILES_ACTIVE=consul,prod,auth
+      - SPRING_PROFILES_ACTIVE=consul,dev,auth
       - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
       - SERVER_PORT=9999
@@ -391,6 +404,10 @@ services:
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_JAVAAGENT_DEBUG=false
+      - OTEL_PROPAGATORS=tracecontext,b3
+      - OTEL_PROPAGATORS_ENABLED=true
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -404,6 +421,7 @@ services:
       - 5005:5005
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - ./opentelemetry-javaagent.jar:/opt/opentelemetry-javaagent.jar
 #      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
@@ -562,7 +580,7 @@ services:
           - setup_grafana_datasource
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest #otel/opentelemetry-collector-contrib:0.9.0 #logzio/otel-collector-traces
+    image: otel/opentelemetry-collector-contrib:0.127.0 #otel/opentelemetry-collector:latest #otel/opentelemetry-collector-contrib:0.9.0 #logzio/otel-collector-traces
     container_name: otel-collector
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:
@@ -574,7 +592,9 @@ services:
         - "1888:1888"   # pprof extension
         - "13133:13133" # health_check extension
         - "4317:4317"   # OTLP gRPC receiver
+        - "4318:4318"   # OTLP HTTP receiver
         - "55679:55679" # zpages extension
+        - '8889:8889' # Prometheus exporter metrics
     networks:
       net:
         aliases:

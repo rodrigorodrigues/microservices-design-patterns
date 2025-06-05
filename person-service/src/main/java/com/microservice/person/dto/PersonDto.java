@@ -31,6 +31,7 @@ public class PersonDto {
     private String lastModifiedByUser;
     private Instant lastModifiedDate;
     private List<Post> posts;
+    private User user;
 
     @Data
     @NoArgsConstructor
@@ -64,5 +65,14 @@ public class PersonDto {
         private String createdDate;
         private String lastModifiedByUser;
         private String lastModifiedDate;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class User {
+        private String status;
+        private String name;
+        private String requestId;
     }
 }

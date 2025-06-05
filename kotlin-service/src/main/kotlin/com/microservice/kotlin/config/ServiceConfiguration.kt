@@ -1,9 +1,12 @@
 package com.microservice.kotlin.config
 
 import com.github.javafaker.Faker
+import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.model.Task
 import com.microservice.kotlin.repository.TaskRepository
 import com.microservice.web.common.util.ChangeQueryStringFilter
+import com.nimbusds.jose.JOSEException
+import com.nimbusds.jose.crypto.MACSigner
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Predicate
 import org.slf4j.LoggerFactory
@@ -24,11 +27,16 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
-import org.springframework.data.querydsl.binding.*
+import org.springframework.data.querydsl.binding.QuerydslBindings
+import org.springframework.data.querydsl.binding.QuerydslBindingsFactory
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder
 import org.springframework.data.util.TypeInformation
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.util.Assert
 import org.springframework.util.MultiValueMap
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
+import java.nio.charset.StandardCharsets
 import java.security.interfaces.RSAPublicKey
 import java.util.*
 import java.util.stream.IntStream
@@ -95,29 +103,37 @@ class ServiceConfiguration {
                 bindings: QuerydslBindings
             ): Predicate {
                 Assert.notNull(bindings, "Context must not be null")
+
                 val builder = BooleanBuilder()
+
                 if (values.isEmpty()) {
                     return getPredicate(builder)
                 }
 
-                for (entry in values.entries.iterator()) {
-                    val path = entry.key
-                    val value1 = entry.value
-                    if (isSingleElementCollectionWithEmptyItem(value1)) {
+                for ((path, value1) in values) {
+                    if (isSingleElementCollectionWithEmptyItem(
+                            value1
+                        )
+                    ) {
                         continue
                     }
+
                     if (!bindings.isPathAvailable(path, type)) {
                         continue
                     }
+
                     val propertyPath = bindings.getPropertyPath(path, type) ?: continue
+
                     val value = convertToPropertyPathSpecificType(value1, propertyPath, conversionService)
                     val predicate = invokeBinding(propertyPath, bindings, value, resolver, defaultBinding)
+
                     predicate.ifPresent { right: Predicate? ->
                         builder.or(
                             right
                         )
                     }
                 }
+
                 return getPredicate(builder)
             }
         }
@@ -135,5 +151,20 @@ class ServiceConfiguration {
                 return Document::class.java
             }
         }
+    }
+
+    @ConditionalOnProperty(prefix = "com.microservice.authentication.jwt", name = ["key-value"])
+    @Primary
+    @ConditionalOnMissingBean
+    @Bean
+    @Throws(
+        JOSEException::class
+    )
+    fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder {
+        val jwt = properties.jwt
+        val secret = jwt.keyValue.toByteArray(StandardCharsets.UTF_8)
+
+        val macSigner = MACSigner(secret)
+        return NimbusJwtDecoder.withSecretKey(macSigner.secretKey).build()
     }
 }

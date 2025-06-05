@@ -106,7 +106,6 @@ public class WebConfiguration implements WebMvcConfigurer {
     }
 
     @ConditionalOnMissingBean
-    @Primary
     @Bean
     JwtDecoder jwtDecoder(JWTProcessor jwtProcessor, OAuth2TokenValidator<Jwt> jwtValidator) {
         NimbusJwtDecoder decoder = new NimbusJwtDecoder(jwtProcessor);

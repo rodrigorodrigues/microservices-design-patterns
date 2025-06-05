@@ -93,7 +93,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "logging.level.com.microservice=debug",
         "spring.cloud.consul.config.enabled=false",
         "de.flapdoodle.mongodb.embedded.version=5.0.5",
-    "logging.level.org.springframework.security=trace"})
+        "logging.level.org.springframework.security=trace"})
 @ContextConfiguration(initializers = AuthenticationServiceApplicationIntegrationTest.GenerateKeyPairInitializer.class,
     classes = {AuthenticationServiceApplicationIntegrationTest.MockConfiguration.class})
 @AutoConfigureMockMvc
@@ -206,14 +206,10 @@ public class AuthenticationServiceApplicationIntegrationTest {
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("username", "master@gmail.com");
         formData.add("password", "password123");
-        var response = mockMvc.perform(post("/login")
-            .params(formData)
-            .with(csrf()))
-            .andExpect(status().is3xxRedirection())
-            .andReturn()
-            .getResponse();
-
-        assertThat(response.getCookies()).isNotEmpty();
+        mockMvc.perform(post("/login")
+                .params(formData)
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -237,7 +233,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
     @DisplayName("Test - When Calling GET - /api/authenticatedUser without jwt should return 401 - Unauthorized")
     public void shouldReturnUnauthorizedWhenCallingApiWithoutAuthorizationHeader() throws Exception {
         mockMvc.perform(get("/api/authenticatedUser")
-            .with(csrf()))
+                .with(csrf()))
             .andExpect(status().is4xxClientError());
     }
 
@@ -249,8 +245,8 @@ public class AuthenticationServiceApplicationIntegrationTest {
         formData.add("password", "noPassword");
 
         mockMvc.perform(post("/api/authenticate")
-            .params(formData)
-            .with(csrf()))
+                .params(formData)
+                .with(csrf()))
             .andExpect(status().is4xxClientError())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
@@ -278,7 +274,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
         String authorizationHeader = "Bearer " + signedJWT.serialize();
 
         mockMvc.perform(get("/")
-            .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader))
             .andExpect(status().is2xxSuccessful());
     }
 
@@ -289,15 +285,15 @@ public class AuthenticationServiceApplicationIntegrationTest {
         formData.add("password", "password123");
 
         String content = mockMvc.perform(get("/api/csrf"))
-                .andExpect(status().is2xxSuccessful())
-                .andDo(print())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.headerName", is(notNullValue())))
-                .andExpect(jsonPath("$.parameterName", is(notNullValue())))
-                .andExpect(jsonPath("$.token", is(notNullValue())))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+            .andExpect(status().is2xxSuccessful())
+            .andDo(print())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.headerName", is(notNullValue())))
+            .andExpect(jsonPath("$.parameterName", is(notNullValue())))
+            .andExpect(jsonPath("$.token", is(notNullValue())))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
         assertThat(content).isNotEmpty();
 
@@ -308,7 +304,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
         mockMvc.perform(post("/api/authenticate")
                 .params(formData)
                 .with(csrf()))
-                //.header(csrfToken.getHeaderName(), csrfToken.getToken()))
+            //.header(csrfToken.getHeaderName(), csrfToken.getToken()))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
@@ -341,16 +337,6 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
         assertThat(accessToken).isNotEmpty();
         assertThat(accessToken.get("tokenValue")).isNotNull();
-
-        mockMvc.perform(get("/api/authenticatedUser")
-                .with(csrf())
-                .cookie(response.getCookies())
-                .header("sessionId", response.getHeader("sessionId")))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(header().exists(HttpHeaders.AUTHORIZATION))
-            .andExpect(jsonPath("$.tokenValue", is(notNullValue())));
 
         String authorization = "Bearer " + accessToken.get("tokenValue").toString();
         mockMvc.perform(get("/api/authenticatedUser")

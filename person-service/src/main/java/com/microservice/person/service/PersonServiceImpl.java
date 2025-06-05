@@ -64,6 +64,22 @@ public class PersonServiceImpl implements PersonService {
         }
     }
 
+    private void processUser(Page<PersonDto> page) {
+        if (environment.acceptsProfiles(Profiles.of("callUserApi")) && !page.isEmpty()) {
+            try {
+                for (PersonDto person : page.getContent()) {
+                    HttpHeaders httpHeaders = new HttpHeaders();
+                    HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                    ResponseEntity<PersonDto.User> entity = restTemplate.exchange(configProperties.getUserApi() + "?personId="+person.getId(), HttpMethod.GET, httpEntity, PersonDto.User.class);
+                    person.setUser(entity.getBody());
+                }
+            }
+            catch (Exception e) {
+                log.warn("Could not process user api", e);
+            }
+        }
+    }
+
     @Override
     public PersonDto save(PersonDto personDto) {
         Person person = personMapper.dtoToEntity(personDto);
@@ -79,6 +95,7 @@ public class PersonServiceImpl implements PersonService {
     public Page<PersonDto> findAll(Pageable pageable, Predicate predicate, String authorization) {
         Page<PersonDto> people = personMapper.entityToDto(personRepository.findAll(predicate, pageable), personRepository.count(predicate));
         processPost(people, authorization);
+        processUser(people);
         return people;
     }
 
@@ -86,6 +103,7 @@ public class PersonServiceImpl implements PersonService {
     public Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate, String authorization) {
         Page<PersonDto> people = personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser, pageable, predicate), personRepository.count(predicate));
         processPost(people, authorization);
+        processUser(people);
         return people;
     }
 

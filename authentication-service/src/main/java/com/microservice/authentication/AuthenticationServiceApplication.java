@@ -1,29 +1,42 @@
 package com.microservice.authentication;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
+import javax.crypto.spec.SecretKeySpec;
+
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
 import com.microservice.authentication.config.SpringSecurityConfiguration;
 import com.microservice.web.common.util.constants.DefaultUsers;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import jakarta.servlet.http.Cookie;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.CommandLineRunner;
@@ -39,6 +52,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomi
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -49,10 +63,11 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
-import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.session.MapSessionRepository;
@@ -77,23 +92,6 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
 	}
 
     @Bean
-    BearerTokenResolver bearerTokenResolver() {
-        DefaultBearerTokenResolver defaultBearerTokenResolver = new DefaultBearerTokenResolver();
-        return request -> {
-            var cookies = request.getCookies();
-            log.debug("Getting Bearer Token resolver: cookies: {}", cookies);
-            if (cookies == null) {
-                cookies = new Cookie[] {};
-            }
-            return Arrays
-                    .stream(cookies)
-                    .filter(c -> c.getName().equals("SESSIONID"))
-                    .map(Cookie::getValue)
-                    .findFirst().orElseGet(() -> defaultBearerTokenResolver.resolve(request));
-        };
-    }
-
-    @Bean
     @ConditionalOnMissingBean
     public SessionRepository defaultSessionRepository() {
         return new MapSessionRepository(new HashMap<>());
@@ -114,16 +112,85 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+    @ConditionalOnProperty(prefix = "com.microservice.authentication.jwt", name = "key-value")
+    @Primary
+    @ConditionalOnMissingBean
+    @Bean
+    public JwtDecoder jwtDecoder(AuthenticationProperties properties) throws JOSEException {
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
+        byte[] secret = jwt.getKeyValue().getBytes(StandardCharsets.UTF_8);
+
+        MACSigner macSigner = new MACSigner(secret);
+        return NimbusJwtDecoder.withSecretKey(macSigner.getSecretKey()).build();
+    }
+
     @Bean
     @ConditionalOnMissingBean
-    JwtEncoder jwtEncoder() {
-        KeyPair keyPair = applicationContext.getBean(KeyPair.class);
+    JwtEncoder jwtEncoder(AuthenticationProperties properties) {
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
+        String keyValue = jwt.getKeyValue();
+        if (StringUtils.isNotBlank(keyValue)) {
+            return parameters -> {
+                byte[] secret = jwt.getKeyValue().getBytes(StandardCharsets.UTF_8);
+                SecretKeySpec secretKeySpec = new SecretKeySpec(secret, "HMACSHA256");
 
-        JWK jwk = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-            .privateKey(keyPair.getPrivate())
+                try {
+                    MACSigner signer = new MACSigner(secretKeySpec);
+
+                    JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
+                    parameters.getClaims().getClaims().forEach((key, value) ->
+                        claimsSetBuilder.claim(key, value instanceof Instant ? Date.from((Instant) value) : value)
+                    );
+                    JWTClaimsSet claimsSet = claimsSetBuilder.build();
+
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("alg", JWSAlgorithm.HS256.getName());
+                    jsonObject.put("typ", "JWT");
+
+                    JWSHeader header = JWSHeader.parse(jsonObject);
+                    SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+                    signedJWT.sign(signer);
+
+                    return Jwt.withTokenValue(signedJWT.serialize())
+                        .header("alg", header.getAlgorithm().getName())
+                        .header("typ", "JWT")
+                        .subject(claimsSet.getSubject())
+                        .issuer(claimsSet.getIssuer())
+                        .claims(claims -> claims.putAll(claimsSet.getClaims()))
+                        .issuedAt(claimsSet.getIssueTime().toInstant())
+                        .expiresAt(claimsSet.getExpirationTime().toInstant())
+                        .build();
+                }
+                catch (Exception e) {
+                    throw new IllegalStateException("Error while signing the JWT", e);
+                }
+            };
+        } else {
+            KeyPair keyPair = applicationContext.getBean(KeyPair.class);
+
+            JWK jwk = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+                .privateKey(keyPair.getPrivate())
+                .build();
+            JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+            return new NimbusJwtEncoder(jwks);
+        }
+    }
+
+    @ConditionalOnProperty(prefix = "com.microservice.authentication.jwt", name = "key-value")
+    @Bean
+    @ConditionalOnMissingBean
+    public JWKSource<SecurityContext> jwkSource(AuthenticationProperties properties) {
+        AuthenticationProperties.Jwt jwt = properties.getJwt();
+        byte[] secret = jwt.getKeyValue().getBytes(StandardCharsets.UTF_8);
+
+        OctetSequenceKey octetKey = new OctetSequenceKey.Builder(secret)
+            .keyID(UUID.randomUUID().toString())
+            .algorithm(JWSAlgorithm.HS256)
             .build();
-        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
-        return new NimbusJwtEncoder(jwks);
+
+        JWKSet jwkSet = new JWKSet(octetKey);
+
+        return (jwkSelector, context) -> jwkSelector.select(jwkSet);
     }
 
     @Bean

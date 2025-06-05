@@ -11,4 +11,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ConfigProperties {
     @NotBlank
     private String postApi = "http://go-service/api/posts";
+    @NotBlank
+    private String userApi = "http://user-service/api/posts";
 }

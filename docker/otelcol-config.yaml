@@ -1,6 +1,4 @@
 extensions:
-    memory_ballast:
-        size_mib: 512
     zpages:
         endpoint: 0.0.0.0:55679
 
@@ -10,18 +8,43 @@ receivers:
     otlp:
         protocols:
             grpc:
+                endpoint: '0.0.0.0:4317'
             http:
+                endpoint: '0.0.0.0:4318'
+    prometheus:
+        config:
+            global:
+                external_labels:
+                    microservices_name: microservices-otel
+            scrape_configs:
+                - job_name: 'microservices-otel'
+                  scrape_interval: 15s
+                  static_configs:
+                      - targets: [ "0.0.0.0:8889" ]
+
 #    fluentforward:
 #        endpoint: fluentd:24224
 
 processors:
     batch:
 
+    filter/drop-traces:
+        error_mode: ignore
+        traces:
+            span:
+                - IsMatch(attributes["http.route"], "^/actuator")
+                - IsMatch(attributes["url.path"], "^/actuator")
+                - IsMatch(attributes["server.address"], "service-discovery")
+                - IsMatch(attributes["code.namespace"], "^org.springframework.cloud.consul.discovery.Consul")
+                - IsMatch(attributes["db.system"], "redis")
+                - IsMatch(attributes["db.system"], "mysql")
+                - IsMatch(attributes["db.operation"], "hello")
+
 exporters:
-    logging:
-        logLevel: debug
-    jaeger:
-        endpoint: jaeger:14250
+    debug:
+        verbosity: detailed
+    otlp/jaeger:
+        endpoint: jaeger:4317
         tls:
             insecure: true
 #    loki:
@@ -31,11 +54,14 @@ exporters:
 #            attributes:
 #                container_name: ""
 #                container_id: ""
+    # metric exporter
+    prometheus:
+        endpoint: "0.0.0.0:8889"
 
 service:
     pipelines:
         traces:
             receivers: [ otlp ]
-            processors: [ batch ]
-            exporters: [ jaeger, logging ]
-    extensions: [ memory_ballast, zpages ]
+            processors: [ filter/drop-traces, batch ]
+            exporters: [ otlp/jaeger, debug ]
+    extensions: [ zpages ]
