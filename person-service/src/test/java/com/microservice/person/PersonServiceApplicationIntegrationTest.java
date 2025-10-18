@@ -1,6 +1,5 @@
 package com.microservice.person;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
@@ -19,8 +18,6 @@ import java.util.stream.Collectors;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authentication;
@@ -50,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.wiremock.spring.EnableWireMock;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +58,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -95,6 +94,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(TestcontainersConfiguration.class)
 @Slf4j
 @AutoConfigureDataMongo
 @SpringBootTest(classes = PersonServiceApplication.class, properties = "de.flapdoodle.mongodb.embedded.version=5.0.5")
@@ -219,7 +219,7 @@ public class PersonServiceApplicationIntegrationTest {
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("{\"page\": 0,\"size\": 10,\"totalPages\": 1,\"totalElements\": 2,\"content\":[{\"id\":\"1\",\"name\":\"Post 1\",\"createdDate\": \"2023-10-26 12:24:01\"},{\"id\":\"2\",\"name\":\"Post 2\",\"createdDate\": \"2023-10-26 12:24:01\"}]}")));
+                .withBody("{\"page\":0,\"number\":0,\"last\":false,\"size\":10,\"totalPages\":1,\"numberOfElements\":2,\"totalElements\":2,\"content\":[{\"id\":\"1\",\"name\":\"Post 1\",\"createdDate\": \"2023-10-26 12:24:01\"},{\"id\":\"2\",\"name\":\"Post 2\",\"createdDate\": \"2023-10-26 12:24:01\"}]}")));
 
         person.setCreatedByUser("master@gmail.com");
 	    personRepository.save(person);
@@ -342,11 +342,7 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
     private void setId(PersonDto person, String c) {
-        try {
-            person.setId(objectMapper.readValue(c, PersonDto.class).getId());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        person.setId(objectMapper.readValue(c, PersonDto.class).getId());
     }
 
     @Test
@@ -426,7 +422,7 @@ public class PersonServiceApplicationIntegrationTest {
 			.build();
 	}
 
-	private String convertToJson(PersonDto person) throws JsonProcessingException {
+	private String convertToJson(PersonDto person) {
         return objectMapper.writeValueAsString(person);
 	}
 

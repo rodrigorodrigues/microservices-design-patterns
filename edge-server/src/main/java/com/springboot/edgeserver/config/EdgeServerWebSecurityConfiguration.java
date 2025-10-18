@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -30,7 +29,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableReactiveMethodSecurity
 public class EdgeServerWebSecurityConfiguration {
     private final HandleResponseError handleResponseError;
-    private final OAuth2ClientProperties clientProperties;
     private final ReactiveSessionRepository sessionRepository;
     private final UserDetailsService userDetailsService;
     private final JavaMailSender javaMailSender;
@@ -78,12 +76,10 @@ public class EdgeServerWebSecurityConfiguration {
     ) {}*/
 
     public EdgeServerWebSecurityConfiguration(HandleResponseError handleResponseError,
-            OAuth2ClientProperties clientProperties,
             ReactiveSessionRepository sessionRepository,
             UserDetailsService userDetailsService,
             JavaMailSender javaMailSender) {
         this.handleResponseError = handleResponseError;
-        this.clientProperties = clientProperties;
         this.sessionRepository = sessionRepository;
         this.userDetailsService = userDetailsService;
         this.javaMailSender = javaMailSender;

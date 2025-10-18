@@ -260,7 +260,7 @@ services:
           - person-api
 
   task-api:
-    image: kotlin-service:0.0.1-SNAPSHOT
+    image: docker.io/library/kotlin-service:0.0.1-SNAPSHOT
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -279,13 +279,14 @@ services:
       - OTEL_PROPAGATORS=tracecontext,b3
       - OTEL_PROPAGATORS_ENABLED=true
       #- DEBUG=true
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
     depends_on:
       - service-discovery
       - mongodb-datasource
       - jaeger
       - service-discovery-load-configuration
+      - otel-collector
     ports:
       - 8084:8084
       - 5006:5006

@@ -4,13 +4,12 @@ package com.springboot.edgeserver.util;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatusCode;
@@ -51,11 +50,6 @@ public class HandleResponseError {
     }
 
     private byte[] getBytes(Throwable ex) {
-        try {
-            return objectMapper.writeValueAsString(Collections.singletonMap("message", ExceptionUtils.getMessage(ex))).getBytes(StandardCharsets.UTF_8);
-        } catch (JsonProcessingException e) {
-            log.error("Error converting to bytes", e);
-            throw new RuntimeException(e);
-        }
+        return objectMapper.writeValueAsString(Collections.singletonMap("message", ExceptionUtils.getMessage(ex))).getBytes(StandardCharsets.UTF_8);
     }
 }

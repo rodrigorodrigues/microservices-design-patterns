@@ -24,10 +24,17 @@ spring:
                 enabled: false
     main:
         allow-bean-definition-overriding: true
+    autoconfigure:
+        exclude:
+            - org.springdoc.core.configuration.SpringDocConfiguration
+    jackson:
+        deserialization:
+          fail-on-null-for-primitives: false
 server:
     error:
         include-message: always
-
+        include-exception: true
+        include-stacktrace: always
 com:
     microservice:
         person:
@@ -41,3 +48,6 @@ logging:
         com.microservice: trace
     pattern:
         level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
+springdoc:
+    swagger-ui:
+        enabled: false

@@ -26,6 +26,7 @@ import com.microservice.web.common.util.ChangeQueryStringFilter;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.DeserializationFeature;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,8 +39,9 @@ import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguratio
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
+import org.springframework.boot.restclient.RestTemplateBuilder;
+import org.springframework.boot.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -169,6 +171,11 @@ public class PersonServiceApplication {
         return new BuildProperties(new Properties());
     }
 
+    @Bean
+    JsonMapperBuilderCustomizer jacksonCustomizer() {
+        return builder -> builder.disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
+    }
+
     @ConditionalOnProperty(prefix = "load.data", name = "people", havingValue = "true")
     @Bean
     CommandLineRunner runner(PersonService personService, @Value("${load.data.people.total:40}") Integer total, PersonRepository personRepository) {
@@ -225,10 +232,11 @@ public class PersonServiceApplication {
         };
     }
 
-    @ConditionalOnMissingBean
+    @Primary
     @Bean
     QuerydslPredicateBuilderCustomizer querydslPredicateBuilderCustomizer(QuerydslBindingsFactory querydslBindingsFactory) {
         return new QuerydslPredicateBuilder(DefaultConversionService.getSharedInstance(), querydslBindingsFactory.getEntityPathResolver()) {
+
             @Override
             public Predicate getPredicate(TypeInformation<?> type, MultiValueMap<String, ?> values, QuerydslBindings bindings) {
                 Assert.notNull(bindings, "Context must not be null");

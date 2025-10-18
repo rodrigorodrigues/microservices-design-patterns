@@ -14,8 +14,6 @@ import java.util.stream.Stream;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.authentication.common.model.Authority;
 import com.microservice.user.dto.UserDto;
@@ -32,6 +30,7 @@ import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -67,6 +67,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(TestcontainersConfiguration.class)
 @SpringBootTest(classes = UserServiceApplication.class,
         properties = {"configuration.swagger=false", "de.flapdoodle.mongodb.embedded.version=5.0.5"})
 @ContextConfiguration(classes = UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class)
@@ -249,7 +250,7 @@ public class UserServiceApplicationIntegrationTest {
         return "Bearer " + signedJWT.serialize();
     }
 
-    private String convertToJson(Object object) throws JsonProcessingException {
+    private String convertToJson(Object object) {
         return objectMapper.writeValueAsString(object);
     }
 

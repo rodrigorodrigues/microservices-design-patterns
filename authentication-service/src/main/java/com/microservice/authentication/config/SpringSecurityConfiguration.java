@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.repository.WebauthnRegistrationRepository;
 import com.microservice.authentication.service.CustomOidcUserService;
@@ -16,11 +15,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.security.oauth2.server.authorization.autoconfigure.servlet.OAuth2AuthorizationServerAutoConfiguration;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.boot.webmvc.error.DefaultErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -35,7 +36,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.WebAuthnConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.annotation.web.configurers.ott.OneTimeTokenLoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -46,8 +49,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -60,11 +61,15 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
 import org.springframework.web.context.request.ServletWebRequest;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -113,7 +118,7 @@ public class SpringSecurityConfiguration {
         "/api/csrf",
         "/ott/generate",
         "/webauthn/options",
-        "oauth2/**",
+        "/oauth2/**",
         "/connect/**",
         "/userInfo",
         "/login/**"
@@ -123,11 +128,8 @@ public class SpringSecurityConfiguration {
     @Bean
     public SecurityFilterChain oauth2ServerSecurityFilterChain(HttpSecurity http) throws Exception {
         log.info("oauth2ServerSecurityFilterChain");
-
-/*
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
         RequestMatcher endpointMatchers = authorizationServerConfigurer.getEndpointsMatcher();
-
 
         http
             .securityMatcher(new OrRequestMatcher(endpointMatchers))
@@ -145,13 +147,14 @@ public class SpringSecurityConfiguration {
             // Accept access tokens for User Info and/or Client Registration
             .oauth2ResourceServer(resourceServer -> resourceServer.jwt(withDefaults()))
             .build();
-*/
 
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        //OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        /*http.with(OAuth2AuthorizationServerConfigurer.authorizationServer(), Customizer.withDefaults());
+
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-            .oidc(oidc -> oidc.clientRegistrationEndpoint(Customizer.withDefaults()));
+            .oidc(oidc -> oidc.clientRegistrationEndpoint(Customizer.withDefaults()));*/
 
-        return http
+        /*return http
             // Redirect to the login page when not authenticated from the
             // authorization endpoint
             .exceptionHandling((exceptions) -> exceptions
@@ -160,8 +163,8 @@ public class SpringSecurityConfiguration {
                     new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                 ))
             // Accept access tokens for User Info and/or Client Registration
-            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
-            .build();
+            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(withDefaults()))
+            .build();*/
     }
 
     @Bean
@@ -182,7 +185,7 @@ public class SpringSecurityConfiguration {
                     response.setStatus(HttpStatus.OK.value());
                     response.getWriter().flush();
                 })
-                .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout", HttpMethod.GET.name()))
+                .logoutRequestMatcher(PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/logout"))
                 .invalidateHttpSession(true))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.NEVER))
             .csrf(c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -191,7 +194,7 @@ public class SpringSecurityConfiguration {
             .oauth2ResourceServer(o -> o.accessDeniedHandler(this::handleErrorResponse)
                 .authenticationEntryPoint(this::handleErrorResponse)
                 .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter())))
-            .cors(Customizer.withDefaults())
+            .cors(withDefaults())
             .build();
     }
 
@@ -222,7 +225,7 @@ public class SpringSecurityConfiguration {
             .logout(l -> l.logoutSuccessUrl("/logout")
                 .deleteCookies("SESSIONID")
                 .logoutSuccessHandler(logoutSuccessHandler)
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", HttpMethod.GET.name()))
+                .logoutRequestMatcher(PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout"))
                 .invalidateHttpSession(true))
             .build();
     }

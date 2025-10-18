@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.person.config.SpringSecurityAuditorAware;
 import com.microservice.person.config.SpringSecurityConfiguration;
 import com.microservice.person.dto.PersonDto;
@@ -17,11 +15,11 @@ import com.querydsl.core.types.Predicate;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
@@ -32,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,17 +65,17 @@ public class PersonControllerTest {
     @Autowired
     MockMvc client;
 
-    @MockBean
+    @MockitoBean
     PersonService personService;
 
-    @MockBean
+    @MockitoBean
     KafkaTemplate<String, String> template;
 
-    @MockBean
+    @MockitoBean
     SpringSecurityAuditorAware springSecurityAuditorAware;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper jsonMapper;
 
     @TestConfiguration
     static class MockConfiguration {
@@ -119,7 +118,7 @@ public class PersonControllerTest {
     @DisplayName("Test - When Calling GET - /api/people with different user should return empty list and response 200 - OK")
     @WithMockUser(roles = "PERSON_READ", username = "test")
     public void whenCallFindAllShouldReturnEmptyList() throws Exception {
-        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.EMPTY_LIST));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.EMPTY_LIST, Pageable.ofSize(1), 0));
 
         client.perform(get("/api/people").with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
@@ -136,7 +135,7 @@ public class PersonControllerTest {
         person.setId("100");
         PersonDto person2 = new PersonDto();
         person2.setId("200");
-        when(personService.findAll(any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Arrays.asList(person, person2)));
+        when(personService.findAll(any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl<>(Arrays.asList(person, person2), Pageable.ofSize(2), 2));
 
         client.perform(get("/api/people").with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
@@ -152,7 +151,7 @@ public class PersonControllerTest {
         PersonDto person = new PersonDto();
         person.setId("100");
         person.setCreatedByUser("me");
-        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.singletonList(person)));
+        when(personService.findAllByCreatedByUser(anyString(), any(Pageable.class), any(Predicate.class), anyString())).thenReturn(new PageImpl(Collections.singletonList(person), Pageable.ofSize(1), 1));
 
         client.perform(get("/api/people").with(csrf())
             .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
@@ -310,8 +309,8 @@ public class PersonControllerTest {
         verify(personService, never()).deleteById(anyString());
     }
 
-    private String convertToJson(Object object) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(object);
+    private String convertToJson(Object object) {
+        return jsonMapper.writeValueAsString(object);
     }
 
     private PersonDto createPersonDto() {

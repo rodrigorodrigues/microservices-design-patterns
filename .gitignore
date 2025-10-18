@@ -67,3 +67,5 @@ valid_token_google_oauth
 *.java-version
 quarkus-service/.java-version
 input.json
+docker/opentelemetry-javaagent.jar
+docker/package*

@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -58,7 +57,7 @@ abstract class PublicKeyCredentialCreationOptionsMixin {
     public static class PublicKeyCredentialCreationOptionsDeserializer extends JsonDeserializer<PublicKeyCredentialCreationOptions> {
 
         @Override
-        public PublicKeyCredentialCreationOptions deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException, JacksonException {
+        public PublicKeyCredentialCreationOptions deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
             JsonNode treeNode = parser.getCodec().readTree(parser);
             PublicKeyCredentialCreationOptions.PublicKeyCredentialCreationOptionsBuilder keyCredentialCreationOptionsBuilder = PublicKeyCredentialCreationOptions.builder();
 

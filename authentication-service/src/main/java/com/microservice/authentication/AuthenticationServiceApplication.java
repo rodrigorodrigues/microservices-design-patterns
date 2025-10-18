@@ -48,16 +48,21 @@ import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguratio
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
-import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
+import org.springframework.boot.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.ip.dsl.Tcp;
+import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -81,6 +86,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 @EnableAsync
+@ImportRuntimeHints(AuthenticationRuntimeHints.class)
 @Slf4j
 @SpringBootApplication
 @EnableConfigurationProperties({SpringSecurityConfiguration.RegistrationProperties.class, SpringSecurityConfiguration.WebAuthnProperties.class})
@@ -90,6 +96,27 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
     public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
+
+    @Bean
+    public IntegrationFlow client() {
+        return f -> f.handle(Tcp.outboundGateway(Tcp.netClient("localhost", 1234)
+            .deserializer(TcpCodecs.lengthHeader1())
+            .serializer(TcpCodecs.lengthHeader1())))
+            .transform(Transformers.objectToString())
+            .handle(msg -> log.info("Transforming message: {}", msg));
+    }
+
+    /*@Bean
+    public IntegrationFlow server() {
+        return IntegrationFlow.from(Tcp.inboundAdapter(Tcp.netClient("localhost",8081)
+                    .deserializer(TcpCodecs.lengthHeader1()))
+//                .errorChannel("tcpIn.errorChannel")
+                .id("tcpIn"))
+            .transform(Transformers.objectToString())
+            .handle(msg -> log.info("Transforming message: {}", msg))
+//            .channel("tcpInbound")
+            .get();
+    }*/
 
     @Bean
     @ConditionalOnMissingBean

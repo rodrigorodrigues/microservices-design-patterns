@@ -1,5 +1,6 @@
 package com.microservice.authentication.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ import org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEnti
 @Document(collection = "users_login_webauthn")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WebauthnRegistration {
+public class WebauthnRegistration implements Serializable {
     @Id
     private String id;
 

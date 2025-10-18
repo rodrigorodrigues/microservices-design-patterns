@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.3</version>
+		<version>4.0.0-M3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.springboot</groupId>
@@ -18,20 +18,18 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>21</java.version>
-		<mapstruct.version>1.6.2</mapstruct.version>
-		<spring-cloud.version>2024.0.0</spring-cloud.version>
+		<java.version>25</java.version>
+		<mapstruct.version>1.6.3</mapstruct.version>
+		<spring-cloud.version>2025.1.0-M3</spring-cloud.version>
 		<docker.image.name>${project.artifactId}</docker.image.name>
-		<docker.image.from>openjdk:21-jdk</docker.image.from>
+		<docker.image.from>openjdk:25-jdk</docker.image.from>
 		<!-- Not working on mac m1 -->
 		<!-- <docker.image.from.fabric8>ghcr.io/graalvm/graalvm-ce:java17-21</docker.image.from.fabric8> -->
-		<docker.image.from.fabric8>openjdk:21-jdk</docker.image.from.fabric8>
+		<docker.image.from.fabric8>openjdk:25-jdk</docker.image.from.fabric8>
 		<code-coverage>0.8</code-coverage>
 		<dockerfile-maven-plugin.version>1.3.4</dockerfile-maven-plugin.version>
 		<docker.env.JAVA_OPTS>--enable-preview -javaagent:/opt/opentelemetry-javaagent.jar -Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
-		<spring-native.version>0.12.1</spring-native.version>
 		<repackage.classifier/>
-		<micrometer.version>1.15.0-M3</micrometer.version>
 	</properties>
 
 	<modules>
@@ -72,7 +70,7 @@
 			<dependency>
 				<groupId>com.github.rodrigorodrigues</groupId>
 				<artifactId>spring-data-commons</artifactId>
-				<version>3.5.0-SNAPSHOT</version>
+				<version>4.0.0-M5</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -80,6 +78,25 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>io.github.git-commit-id</groupId>
+					<artifactId>git-commit-id-maven-plugin</artifactId>
+					<version>9.0.2</version>
+					<executions>
+						<execution>
+							<id>get-the-git-infos</id>
+							<goals>
+								<goal>revision</goal>
+							</goals>
+							<phase>initialize</phase>
+						</execution>
+					</executions>
+					<configuration>
+						<generateGitPropertiesFile>true</generateGitPropertiesFile>
+						<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+						<commitIdGenerationMode>full</commitIdGenerationMode>
+					</configuration>
+				</plugin>
 				<!--<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-install-plugin</artifactId>
@@ -106,7 +123,6 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.11.0</version>
 					<configuration>
 						<release>${java.version}</release>
 						<enablePreview>true</enablePreview>
@@ -132,14 +148,6 @@
 					</configuration>
 				</plugin>
 
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.22.2</version>
-					<configuration>
-						<argLine>--enable-preview</argLine>
-					</configuration>
-				</plugin>
 				<plugin>
 					<groupId>io.fabric8</groupId>
 					<artifactId>docker-maven-plugin</artifactId>
@@ -209,11 +217,6 @@
 				</plugin>
 
 				<plugin>
-					<groupId>org.graalvm.buildtools</groupId>
-					<artifactId>native-maven-plugin</artifactId>
-				</plugin>
-
-				<plugin>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
 					<configuration>
@@ -224,6 +227,11 @@
 							</exclude>
 						</excludes>
 					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.graalvm.buildtools</groupId>
+					<artifactId>native-maven-plugin</artifactId>
 				</plugin>
 			</plugins>
 		</pluginManagement>

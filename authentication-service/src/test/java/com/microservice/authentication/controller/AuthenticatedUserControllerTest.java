@@ -63,7 +63,8 @@ class AuthenticatedUserControllerTest {
         ResponseEntity<OAuth2AccessToken> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(new UsernamePasswordAuthenticationToken("user", "password"), request);
 
         assertThat(jwtTokenDtoResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(jwtTokenDtoResponseEntity.getHeaders()).containsKeys(HttpHeaders.CONTENT_TYPE, HttpHeaders.AUTHORIZATION);
+        assertThat(jwtTokenDtoResponseEntity.getHeaders().containsHeader(HttpHeaders.CONTENT_TYPE)).isTrue();
+        assertThat(jwtTokenDtoResponseEntity.getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)).isTrue();
         assertThat(jwtTokenDtoResponseEntity.getBody()).isNotNull();
     }
 
@@ -89,7 +90,8 @@ class AuthenticatedUserControllerTest {
         ResponseEntity<OAuth2AccessToken> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(oAuth2AuthenticationToken, request);
 
         assertThat(jwtTokenDtoResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(jwtTokenDtoResponseEntity.getHeaders()).containsKeys(HttpHeaders.CONTENT_TYPE, HttpHeaders.AUTHORIZATION);
+        assertThat(jwtTokenDtoResponseEntity.getHeaders().containsHeader(HttpHeaders.CONTENT_TYPE)).isTrue();
+        assertThat(jwtTokenDtoResponseEntity.getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)).isTrue();
         assertThat(jwtTokenDtoResponseEntity.getBody()).isNotNull();
     }
 }

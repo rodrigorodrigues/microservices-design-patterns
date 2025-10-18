@@ -3,8 +3,6 @@ package com.microservice.user.controller;
 import java.util.Arrays;
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.microservice.user.UserServiceApplicationIntegrationTest;
 import com.microservice.user.config.SpringSecurityAuditorAware;
@@ -16,21 +14,23 @@ import com.microservice.web.autoconfigure.WebCommonAutoConfiguration;
 import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -58,10 +58,10 @@ public class UserControllerTest {
     @Autowired
     MockMvc client;
 
-    @MockBean
+    @MockitoBean
     UserService userService;
 
-    @MockBean
+    @MockitoBean
     SpringSecurityAuditorAware springSecurityAuditorAware;
 
     @Autowired
@@ -100,7 +100,7 @@ public class UserControllerTest {
         userDto.setId("100");
         UserDto userDto1 = new UserDto();
         userDto1.setId("200");
-        when(userService.findAll(any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl<>(Arrays.asList(userDto, userDto1)));
+        when(userService.findAll(any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl<>(Arrays.asList(userDto, userDto1), PageRequest.ofSize(2), 2));
 
         ParameterizedTypeReference<ServerSentEvent<UserDto>> type = new ParameterizedTypeReference<ServerSentEvent<UserDto>>() {};
 
@@ -200,7 +200,7 @@ public class UserControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    private String convertToJson(Object object) throws JsonProcessingException {
+    private String convertToJson(Object object) {
         return objectMapper.writeValueAsString(object);
     }
 

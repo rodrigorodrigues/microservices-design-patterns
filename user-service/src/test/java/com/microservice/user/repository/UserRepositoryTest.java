@@ -3,8 +3,8 @@ package com.microservice.user.repository;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.authentication.common.model.Authority;
+import com.microservice.user.TestcontainersConfiguration;
 import com.microservice.user.model.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,8 +21,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+@Import(TestcontainersConfiguration.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false", "logging.level.com.microservice.person.util=debug"})
-@Import(ObjectMapper.class)
 class UserRepositoryTest {
 
     @Autowired

@@ -1,6 +1,6 @@
 package com.microservice.kotlin.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.web.common.util.CustomDefaultErrorAttributes
 import jakarta.servlet.http.HttpServletRequest

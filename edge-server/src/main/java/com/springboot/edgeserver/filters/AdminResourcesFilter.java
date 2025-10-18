@@ -55,7 +55,7 @@ public class AdminResourcesFilter implements GatewayFilter {
                         return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, message));
                     } else if (authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch("ROLE_ADMIN"::equals)) {
                         log.debug("User has admin role: {}", authentication.getAuthorities());
-                        if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+                        if (!exchange.getRequest().getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)) {
                             return exchange.getSession()
                                     .flatMap(session -> {
                                         log.info("adminResourcesFilter:Set authorization header from redis session");

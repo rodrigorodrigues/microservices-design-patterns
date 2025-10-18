@@ -47,6 +47,9 @@ spring:
         include: auth
     session:
         store-type: none
+    autoconfigure:
+        exclude:
+            - org.springdoc.core.configuration.SpringDocConfiguration
 management:
     health:
         redis:

@@ -3,12 +3,12 @@ package com.microservice.person.config;
 import java.io.IOException;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +24,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.context.request.ServletWebRequest;
 
@@ -39,7 +38,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 public class SpringSecurityConfiguration {
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final JwtDecoder jwtDecoder;
 
@@ -96,7 +95,7 @@ public class SpringSecurityConfiguration {
         errorAttributes.put("status", status.value());
         response.setStatus(status.value());
         response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().append(objectMapper.writeValueAsString(errorAttributes));
+        response.getWriter().append(jsonMapper.writeValueAsString(errorAttributes));
     }
 
     private JwtAuthenticationConverter jwtAuthenticationConverter() {

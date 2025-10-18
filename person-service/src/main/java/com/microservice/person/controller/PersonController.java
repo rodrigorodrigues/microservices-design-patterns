@@ -3,7 +3,6 @@ package com.microservice.person.controller;
 import java.net.URI;
 import java.util.Collection;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microservice.person.dto.PersonDto;
 import com.microservice.person.model.Person;
 import com.microservice.person.repository.PersonRepository;
@@ -100,7 +99,7 @@ public class PersonController {
     @Operation(description = "Api for creating a person", security = { @SecurityRequirement(name = "bearer-key") })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'PERSON_CREATE') or hasAuthority('SCOPE_openid')")
-    public ResponseEntity<PersonDto> create(@RequestBody @Parameter(required = true) PersonDto person) throws JsonProcessingException {
+    public ResponseEntity<PersonDto> create(@RequestBody @Parameter(required = true) PersonDto person) {
         PersonDto save = personService.save(person);
         return ResponseEntity.created(URI.create(String.format("/api/people/%s", save.getId()))).body(save);
     }

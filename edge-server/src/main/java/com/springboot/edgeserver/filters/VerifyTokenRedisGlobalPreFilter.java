@@ -3,7 +3,7 @@ package com.springboot.edgeserver.filters;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Tracer;
 import lombok.AllArgsConstructor;
@@ -85,7 +85,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                                     OAuth2AccessToken accessToken = sessionRepository.getAttribute("token");
                                                     log.debug("verifyTokenRedis:Set authorization header from redis session");
 
-                                                    HttpHeaders writeableHeaders = HttpHeaders.writableHttpHeaders(
+                                                    HttpHeaders writeableHeaders = HttpHeaders.readOnlyHttpHeaders(
                                                             exchange.getRequest().getHeaders());
                                                     ServerHttpRequestDecorator writeableRequest = new ServerHttpRequestDecorator(
                                                             exchange.getRequest()) {
@@ -95,7 +95,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                                         }
                                                     };
                                                     //TODO Cannot add new header for the moment - https://github.com/spring-projects/spring-security/issues/15989#issuecomment-2442660753
-                                                    //writeableRequest.getHeaders().add(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()));
+                                                    writeableRequest.getHeaders().add(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()));
                                                     ServerWebExchange writeableExchange = exchange.mutate()
                                                             .request(writeableRequest)
                                                             .build();

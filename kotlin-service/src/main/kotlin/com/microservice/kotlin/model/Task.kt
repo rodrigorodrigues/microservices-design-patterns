@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Size
 
 @Document(collection = "tasks")
-data class Task(
+data class Task (
     @Id
     var id: String? = null,
 

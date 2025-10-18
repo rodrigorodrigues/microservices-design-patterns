@@ -13,6 +13,9 @@ spring:
   mongodb:
     embedded:
       version: "4.0.2"
+  autoconfigure:
+    exclude:
+      - org.springdoc.core.configuration.SpringDocConfiguration
 com:
   microservice:
     authentication:

@@ -5,11 +5,11 @@ import java.time.Month;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import com.microservice.person.TestcontainersConfiguration;
 import com.microservice.person.model.Address;
 import com.microservice.person.model.Child;
 import com.microservice.person.model.Person;
 import com.microservice.person.model.QPerson;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-@Slf4j
+@Import(TestcontainersConfiguration.class)
 @DataMongoTest(properties = {"configuration.initialLoad=false",
     "logging.level.com.microservice.person.util=debug",
     "spring.cloud.consul.config.enabled=false",
