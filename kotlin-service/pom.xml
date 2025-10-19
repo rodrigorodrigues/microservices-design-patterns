@@ -18,9 +18,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <repackage.classifier/>
-        <kotlin.version>1.9.25</kotlin.version>
+        <kotlin.version>2.2.10</kotlin.version>
         <code-coverage>0.6</code-coverage>
-        <java.version>21</java.version>
+        <java.version>24</java.version>
     </properties>
 
     <dependencies>
@@ -194,7 +194,8 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <configuration>
                     <args>
-                        <arg>-Xjvm-default=all</arg>
+                        <arg>-Xjsr305=strict</arg>
+                        <arg>-Xannotation-default-target=param-property</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
