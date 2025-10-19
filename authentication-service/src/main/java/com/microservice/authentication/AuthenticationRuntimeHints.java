@@ -22,7 +22,6 @@ import com.microservice.authentication.model.WebauthnRegistration;
 
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 
 public class AuthenticationRuntimeHints implements RuntimeHintsRegistrar {
 

@@ -68,7 +68,7 @@ services:
       - 8080:8080
     volumes:
       - ./docker-entrypoint.sh:/docker-entrypoint.sh
-      - ./opentelemetry-javaagent.jar:/opt/opentelemetry-javaagent.jar
+#      - ./opentelemetry-javaagent.jar:/opt/opentelemetry-javaagent.jar
 #      - /Users/rodrigo/Downloads/ssl/old/www.spendingbetter.com.jks:/www.spendingbetter.com.jks
 #    command: sh ./docker-entrypoint.sh service-discovery:8500
     networks:
@@ -373,19 +373,23 @@ services:
     # Using docker local jib maven
     #image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
     # Using docker raspberry pi image
-    #image: fielcapao/microservices-design-patterns-authentication-service
+#    image: fielcapao/microservices-design-patterns-authentication-service
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev,auth
       - SPRING_DATA_REDIS_HOST=redisdb
       - CONSUL_URL=service-discovery:8500
+      - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=9999
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_HOST=mongodb-datasource
+      - SPRING_MONGODB_DATABASE=docker
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
       - DEBUG=true
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
+      - MANAGEMENT_HEALTH_MAIL_ENABLED=false
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=trace
       - LOGGING_LEVEL_COM_MICROSERVICE=debug
@@ -397,18 +401,20 @@ services:
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS=true
       - JAVA_OPTS=--enable-preview -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+#      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       #      - MANAGEMENT_HEALTH_REDIS_ENABLED=false
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
+      - OTEL_SDK_DISABLED=true
+      - SPRING_AUTOCONFIGURE_EXCLUDE_0=org.springdoc.core.configuration.SpringDocConfiguration
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - OTEL_JAVAAGENT_DEBUG=false
-      - OTEL_PROPAGATORS=tracecontext,b3
-      - OTEL_PROPAGATORS_ENABLED=true
+#      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+#      - OTEL_JAVAAGENT_DEBUG=false
+#      - OTEL_PROPAGATORS=tracecontext,b3
+#      - OTEL_PROPAGATORS_ENABLED=true
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -417,6 +423,7 @@ services:
       - redisdb
 #      - jaeger
       - service-discovery-load-configuration
+      - otel-collector
     ports:
       - 9999:9999
       - 5005:5005
