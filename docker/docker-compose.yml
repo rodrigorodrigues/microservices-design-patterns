@@ -373,7 +373,7 @@ services:
     # Using docker local jib maven
     #image: authentication-service:latest #fielcapao/microservices-design-patterns-authentication-service
     # Using docker raspberry pi image
-#    image: fielcapao/microservices-design-patterns-authentication-service
+#    image: fielcapao/microservices-design-patterns-authentication-service:latest
     container_name: authentication-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev,auth
