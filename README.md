@@ -383,6 +383,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [] BFF - Implement BFF Pattern
 * [X] Java - Spring Boot 4/JDK 25
 * [X] Java - Add TestContainers
+* [] Add Open Telemetry
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
