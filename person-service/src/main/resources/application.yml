@@ -24,7 +24,25 @@ management:
 logging:
     pattern:
         level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-},requestId=%X{requestId:-}]"
+---
+spring:
+    config:
+        activate:
+            on-profile: ssl
 
+    ssl:
+        bundle:
+            jks:
+                web-server:
+                    key:
+                        alias: ${SSL_KEY_ALIAS}
+                    keystore:
+                        location: ${SSL_KEYSTORE_LOCATION}
+                        password: ${SSL_KEYSTORE_PASSWORD}
+server:
+    ssl:
+        bundle: "web-server"
+        client-auth: NONE
 ---
 spring:
     config:

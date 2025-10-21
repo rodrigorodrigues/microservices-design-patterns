@@ -220,9 +220,10 @@ services:
 
   person-api:
     image: person-service:0.0.1-SNAPSHOT
+#    image: fielcapao/microservices-design-patterns-person-service:latest
     container_name: person-api
     environment:
-      - SPRING_PROFILES_ACTIVE=consul,prod #,kafka,callPostApi
+      - SPRING_PROFILES_ACTIVE=consul,dev #,kafka,callPostApi
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
@@ -242,6 +243,11 @@ services:
 #      - com.microservice.authentication.jwt.publicKeyStore=file:/www.spendingbetter.com.pub
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_HOST=mongodb-datasource
+      - SPRING_MONGODB_DATABASE=docker
+      - SPRING_AUTOCONFIGURE_EXCLUDE_0=org.springdoc.core.configuration.SpringDocConfiguration
+      - SPRING_CLOUD_CONSUL_HOST=service-discovery
     depends_on:
       - service-discovery
       - mongodb-datasource
@@ -384,6 +390,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - SPRING_MONGODB_HOST=mongodb-datasource
       - SPRING_MONGODB_DATABASE=docker
+      - SPRING_AUTOCONFIGURE_EXCLUDE_0=org.springdoc.core.configuration.SpringDocConfiguration
       - SPRING_DATA_MONGODB_DATABASE=docker
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
@@ -409,7 +416,6 @@ services:
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:9999/.well-known/jwks.json
       - OTEL_SDK_DISABLED=true
-      - SPRING_AUTOCONFIGURE_EXCLUDE_0=org.springdoc.core.configuration.SpringDocConfiguration
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=debug
 #      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 #      - OTEL_JAVAAGENT_DEBUG=false
