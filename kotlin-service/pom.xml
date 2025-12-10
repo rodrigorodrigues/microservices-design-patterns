@@ -9,7 +9,6 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>kotlin-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>kotlin-service</name>
     <description>Spring Boot - Kotlin Service</description>
@@ -18,7 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <repackage.classifier/>
-        <kotlin.version>2.2.10</kotlin.version>
+        <kotlin.version>2.2.21</kotlin.version>
         <code-coverage>0.6</code-coverage>
         <java.version>24</java.version>
     </properties>
@@ -321,6 +320,7 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>process-aot</goal>
                             <goal>repackage</goal>
                             <goal>build-info</goal>
                         </goals>

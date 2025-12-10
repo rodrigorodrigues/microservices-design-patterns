@@ -10,12 +10,13 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.resttestclient.TestRestTemplate
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets
 import java.security.interfaces.RSAPublicKey
 import javax.crypto.spec.SecretKeySpec
 
+@Import(TestcontainersConfiguration::class)
 @SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = [KotlinApplicationIntegrationTest.PopulateDbConfiguration::class])
@@ -162,7 +164,7 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
     @Test
     @DisplayName("Test - When Calling GET - /api/tasks/{id} without valid authorization should response 403 - Forbidden")
     fun shouldResponseForbiddenWhenCallGetApiWithoutRightPermission() {
-        val id = taskRepository.findAll().iterator().next().id
+        val id: String? = taskRepository.findAll().iterator().next().id
         val headers = HttpHeaders()
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_TASK_READ")))
         headers.add(HttpHeaders.AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))

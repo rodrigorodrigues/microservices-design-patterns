@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.core.convert.support.DefaultConversionService
+import org.springframework.data.core.TypeInformation
 import org.springframework.data.mongodb.config.EnableMongoAuditing
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener
@@ -30,7 +31,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.data.querydsl.binding.QuerydslBindings
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory
 import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder
-import org.springframework.data.util.TypeInformation
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.util.Assert
@@ -98,8 +98,8 @@ class ServiceConfiguration {
             querydslBindingsFactory.entityPathResolver
         ) {
             override fun getPredicate(
-                type: TypeInformation<*>?,
-                values: MultiValueMap<String?, *>,
+                type: TypeInformation<*>,
+                values: MultiValueMap<String, *>,
                 bindings: QuerydslBindings
             ): Predicate {
                 Assert.notNull(bindings, "Context must not be null")
