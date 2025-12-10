@@ -8,13 +8,13 @@ ENV NGINX_MAX_UPLOAD 10m
 
 EXPOSE $PORT
 
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 tesseract-ocr libtesseract-dev -y
+#RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 tesseract-ocr libtesseract-dev -y
 
-#RUN apk --update add --no-cache tesseract-ocr-dev
+RUN apk --update add --no-cache tesseract-ocr-dev
 
-#RUN apk add build-base python-dev py-pip jpeg-dev zlib-dev
+RUN apk add build-base python-dev py-pip jpeg-dev zlib-dev
 
-#ENV LIBRARY_PATH=/lib:/usr/lib
+ENV LIBRARY_PATH=/lib:/usr/lib
 
 COPY ./app /app
 

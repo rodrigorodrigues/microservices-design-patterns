@@ -42,7 +42,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Tag(name = "users", description = "Methods for managing users")
 @RequestMapping("/api/users")
 @AllArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('ADMIN')")
 public class UserController {
     private final UserService userService;
 

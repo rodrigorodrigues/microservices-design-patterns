@@ -167,6 +167,7 @@ services:
           - week-menu-api
 
   receipt-api:
+#    image: fielcapao/microservices-design-patterns-python-service:latest
     build:
       args:
         - PORT=8086

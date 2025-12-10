@@ -83,75 +83,102 @@ spring:
                 fail-fast: ${FAIL_FAST:true}
                 format: yaml
         gateway:
-            globalcors:
-                cors-configurations:
-                    '[/**]':
-                        allowedOrigins:
-                          - "http://localhost:3003"
-#                          - "http://localhost:3001"
-#                          - "http://localhost:8080"
-#                          - "http://192.168.1.16:3000"
-#                          - "http://192.168.1.17:3000"
-                        allowedHeaders: "*"
-                        allowedMethods:
-                          - "GET"
-                          - "POST"
-                          - "PUT"
-                        allowCredentials: true
-            default-filters:
-                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
+          server:
+            webflux:
+              globalcors:
+                  cors-configurations:
+                      '[/**]':
+                          allowedOrigins:
+                            - "http://localhost:3000"
+  #                          - "http://localhost:3001"
+  #                          - "http://localhost:8080"
+  #                          - "http://192.168.1.16:3000"
+  #                          - "http://192.168.1.17:3000"
+                          allowedHeaders: "*"
+                          allowedMethods:
+                            - "GET"
+                            - "POST"
+                            - "PUT"
+                          allowCredentials: true
+              default-filters:
+                  - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
     autoconfigure:
         exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
 
----
-spring:
-  config:
-    activate:
-      on-profile: dev
-  cloud:
-    gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:3003"
-              - "http://localhost:3000"
-              - "http://localhost:3001"
-              - "http://localhost:8080"
-            allowedHeaders: "*"
-            allowedMethods: "*"
-            allowCredentials: true
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
-  autoconfigure:
-    exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
+#---
+#spring:
+#  config:
+#    activate:
+#      on-profile: dev
+#  cloud:
+#    gateway:
+#      server:
+#        webflux:
+#          globalcors:
+#            cors-configurations:
+#              '[/**]':
+#                allowedOrigins:
+#    #              - "http://localhost:3003"
+#                  - "http://localhost:3000"
+#    #              - "http://localhost:3001"
+#    #              - "http://localhost:8080"
+#                allowedHeaders: "*"
+#                allowedMethods: "*"
+#                allowCredentials: true
+#          default-filters:
+#            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
+#  autoconfigure:
+#    exclude: org.springframework.cloud.consul.config.ConsulConfigAutoConfiguration
+#
 
+data:
+  application.yml: |-
+    spring:
+      security:
+        oauth2:
+          client:
+            registration:
+              google:
+                client-id: ${CLIENT_ID:646370370811-lh2drkd14outujo23q01jdgj5k7u38gp.apps.googleusercontent.com}
+                client-secret: ${CLIENT_SECRET:zllbqfwctOHmVw5XGInTnrvX}
+    ---
+    
+      com:
+        microservice:
+          authentication:
+            jwt:
+              keyStore: ${KEYSTORE:}
+              keyStorePassword: ${KEYSTORE_PASSWORD:}
+              keyAlias: ${KEYSTORE_ALIAS:}
 ---
 spring:
+    profilles: prod
     config:
         activate:
             on-profile: prod
     cloud:
         gateway:
-            globalcors:
-                cors-configurations:
-                    '[/**]':
-                        allowedOrigins:
-#                          - "https://spendingbetter.com"
-                          - "http://localhost:3000"
-#                          - "http://localhost:3001"
-#                          - "http://localhost:8080"
+          server:
+            webflux:
+              globalcors:
+                  cors-configurations:
+                      '[/**]':
+                          allowedOrigins:
+                            - "https://spendingbetter.com"
+  #                          - "http://localhost:3000"
+  #                          - "http://localhost:3001"
+  #                          - "http://localhost:8080"
 
-                        allowedHeaders: "*"
-                        allowedMethods: "*"
-                        allowCredentials: true
-            default-filters:
-                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
-            discovery:
-                locator:
-                    enabled: true
-                    url-expression: "'http://'+serviceId+':'+getPort()"
-                    lower-case-service-id: true
+                          allowedHeaders: "*"
+                          allowedMethods: "*"
+                          allowCredentials: true
+              default-filters:
+                  - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
+              discovery:
+                  locator:
+                      enabled: true
+                      url-expression: "'http://'+serviceId+':'+getPort()"
+                      lower-case-service-id: true
 ---
 spring:
     config:
@@ -164,81 +191,83 @@ spring:
             discovery:
                 all-namespaces: true
         gateway:
-            routes:
-                - id: authentication-service
-                  uri: lb://authentication-service
-                  predicates:
-                      - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/jwks.json,/api/csrf
-                  filters:
-                      - SaveSession
-                - id: authentication-service-swagger
-                  uri: lb://authentication-service
-                  predicates:
-                      - Path=/swagger/authentication-service/**
-                  filters:
-                      - StripPrefix=2
-                      #- RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
-                - id: user-service
-                  uri: lb://user-service
-                  predicates:
-                      - Path=/api/users/**
-                - id: user-service-swagger
-                  uri: lb://user-service
-                  predicates:
-                      - Path=/swagger/user-service/**
-                  filters:
-                      - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-                - id: person-service
-                  uri: lb://person-service
-                  predicates:
-                      - Path=/api/people/**
-                - id: person-service-swagger
-                  uri: lb://person-service
-                  predicates:
-                      - Path=/swagger/person-service/**
-                  filters:
-                      - RewritePath=/person-service/(?<segment>.*), /$\{segment}
-                - id: nodejs-service
-                  uri: lb://week-menu-api
-                  predicates:
-                      - Path=/api/week-menu/**
-                - id: kotlin-service
-                  uri: lb://kotlin-service
-                  predicates:
-                      - Path=/api/tasks/**
-                - id: kotlin-service-swagger
-                  uri: lb://kotlin-service
-                  predicates:
-                      - Path=/swagger/kotlin-service/**
-                  filters:
-                      - RewritePath=/kotlin-service/(?<segment>.*), /$\{segment}
-                - id: python-service
-                  uri: lb://python-service
-                  predicates:
-                      - Path=/api/products/**,/api/receipts/**
-                - id: kotlin-service-swagger
-                  uri: lb://kotlin-service
-                  predicates:
-                      - Path=/swagger/python-service/**
-                  filters:
-                      - RewritePath=/python-service/(?<segment>.*), /$\{segment}
-                - id: go-service
-                  uri: lb://go-service
-                  predicates:
-                      - Path=/api/posts/**
+          server:
+            webflux:
+              routes:
+                  - id: authentication-service
+                    uri: lb://authentication-service
+                    predicates:
+                        - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/jwks.json,/api/csrf
+                    filters:
+                        - SaveSession
+                  - id: authentication-service-swagger
+                    uri: lb://authentication-service
+                    predicates:
+                        - Path=/swagger/authentication-service/**
+                    filters:
+                        - StripPrefix=2
+                        #- RewritePath=/authentication-service/(?<segment>.*), /$\{segment}
+                  - id: user-service
+                    uri: lb://user-service
+                    predicates:
+                        - Path=/api/users/**
+                  - id: user-service-swagger
+                    uri: lb://user-service
+                    predicates:
+                        - Path=/swagger/user-service/**
+                    filters:
+                        - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+                  - id: person-service
+                    uri: lb://person-service
+                    predicates:
+                        - Path=/api/people/**
+                  - id: person-service-swagger
+                    uri: lb://person-service
+                    predicates:
+                        - Path=/swagger/person-service/**
+                    filters:
+                        - RewritePath=/person-service/(?<segment>.*), /$\{segment}
+                  - id: nodejs-service
+                    uri: lb://week-menu-api
+                    predicates:
+                        - Path=/api/week-menu/**
+                  - id: kotlin-service
+                    uri: lb://kotlin-service
+                    predicates:
+                        - Path=/api/tasks/**
+                  - id: kotlin-service-swagger
+                    uri: lb://kotlin-service
+                    predicates:
+                        - Path=/swagger/kotlin-service/**
+                    filters:
+                        - RewritePath=/kotlin-service/(?<segment>.*), /$\{segment}
+                  - id: python-service
+                    uri: lb://python-service
+                    predicates:
+                        - Path=/api/products/**,/api/receipts/**
+                  - id: kotlin-service-swagger
+                    uri: lb://kotlin-service
+                    predicates:
+                        - Path=/swagger/python-service/**
+                    filters:
+                        - RewritePath=/python-service/(?<segment>.*), /$\{segment}
+                  - id: go-service
+                    uri: lb://go-service
+                    predicates:
+                        - Path=/api/posts/**
 
-            globalcors:
-              cors-configurations:
-                '[/**]':
-                  allowedOrigins:
-                    - "http://localhost:3000"
-                    - "http://localhost:3001"
-                    - "http://localhost:8080"
-                  allowedHeaders: "*"
-                  allowedMethods: "*"
-                  allowCredentials: true
-            default-filters:
-              - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
+              globalcors:
+                cors-configurations:
+                  '[/**]':
+                    allowedOrigins:
+                      - "http://localhost:3000"
+                      - "http://localhost:3001"
+                      - "http://localhost:8080"
+                    allowedHeaders: "*"
+                    allowedMethods: "*"
+                    allowCredentials: true
+              default-filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_UNIQUE
 #            discovery:
 #              locator:
 #                enabled: true

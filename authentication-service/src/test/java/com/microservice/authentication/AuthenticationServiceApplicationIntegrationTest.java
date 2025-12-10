@@ -40,12 +40,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.wiremock.spring.EnableWireMock;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
@@ -109,7 +109,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
     MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper jsonMapper;
 
     @Autowired
     KeyPair keyPair;
@@ -299,7 +299,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
         assertThat(content).isNotEmpty();
 
-        CsrfToken csrfToken = objectMapper.readValue(content, DefaultCsrfToken.class);
+        CsrfToken csrfToken = jsonMapper.readValue(content, DefaultCsrfToken.class);
 
         assertThat(csrfToken).isNotNull();
 
@@ -335,7 +335,7 @@ public class AuthenticationServiceApplicationIntegrationTest {
         MockHttpServletResponse response = mvcResult.getResponse();
         String responseBody = response.getContentAsString();
 
-        Map<String, Object> accessToken = objectMapper.readValue(responseBody, Map.class);
+        Map<String, Object> accessToken = jsonMapper.readValue(responseBody, Map.class);
 
         assertThat(accessToken).isNotEmpty();
         assertThat(accessToken.get("tokenValue")).isNotNull();

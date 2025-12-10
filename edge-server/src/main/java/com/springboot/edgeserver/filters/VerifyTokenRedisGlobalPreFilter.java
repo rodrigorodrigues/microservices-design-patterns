@@ -3,13 +3,13 @@ package com.springboot.edgeserver.filters;
 import java.util.List;
 import java.util.Map;
 
-import tools.jackson.databind.ObjectMapper;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Tracer;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -18,7 +18,6 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.RequestPath;
@@ -50,7 +49,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private final Tracer tracer;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final GatewayProperties gatewayProperties;
 
@@ -161,7 +160,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
 
     private String getRequestIdFromPayload(String payload) {
         try {
-            Map map = objectMapper.readValue(payload, Map.class);
+            Map map = jsonMapper.readValue(payload, Map.class);
             if (!map.containsKey(REQUEST_ID_HEADER)) {
                 return null;
             }

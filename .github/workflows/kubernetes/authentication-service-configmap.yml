@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: authentication-service
 data:
-  application.yml: |-
+  application.yaml: |-
     spring:
       security:
         oauth2:

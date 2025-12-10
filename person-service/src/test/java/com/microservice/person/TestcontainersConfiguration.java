@@ -1,7 +1,7 @@
 package com.microservice.person;
 
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.boot.test.context.TestConfiguration;

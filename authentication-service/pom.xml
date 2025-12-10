@@ -212,13 +212,6 @@
 		</dependency>
 
         <dependency>
-            <groupId>it.ozimov</groupId>
-            <artifactId>embedded-redis</artifactId>
-            <version>0.7.3</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
             <scope>test</scope>
@@ -238,17 +231,27 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>mongodb</artifactId>
+            <artifactId>testcontainers-mongodb</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-security-oauth2-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-session-data-redis-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -331,6 +334,7 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>process-aot</goal>
                             <goal>repackage</goal>
                             <goal>build-info</goal>
                         </goals>

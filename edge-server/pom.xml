@@ -17,6 +17,11 @@
     </properties>
 
     <dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webclient</artifactId>
+		</dependency>
+
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
@@ -269,6 +274,7 @@
                 <executions>
                     <execution>
                         <goals>
+							<goal>process-aot</goal>
                             <goal>repackage</goal>
                             <goal>build-info</goal>
                         </goals>

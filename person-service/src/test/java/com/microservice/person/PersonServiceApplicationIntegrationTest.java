@@ -47,14 +47,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.wiremock.spring.EnableWireMock;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.data.mongodb.test.autoconfigure.AutoConfigureDataMongo;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -108,7 +108,7 @@ public class PersonServiceApplicationIntegrationTest {
     MockMvc client;
 
 	@Autowired
-    ObjectMapper objectMapper;
+    JsonMapper jsonMapper;
 
 	@Autowired
     AuthenticationCommonRepository authenticationRepository;
@@ -342,7 +342,7 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
     private void setId(PersonDto person, String c) {
-        person.setId(objectMapper.readValue(c, PersonDto.class).getId());
+        person.setId(jsonMapper.readValue(c, PersonDto.class).getId());
     }
 
     @Test
@@ -423,7 +423,7 @@ public class PersonServiceApplicationIntegrationTest {
 	}
 
 	private String convertToJson(PersonDto person) {
-        return objectMapper.writeValueAsString(person);
+        return jsonMapper.writeValueAsString(person);
 	}
 
 }

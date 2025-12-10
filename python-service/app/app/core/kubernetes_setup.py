@@ -30,7 +30,7 @@ def initialize_kubernetes_client(app):
         log.debug('Jwt Secret: %s', jwt_secret)
         app.config['JWT_SECRET_KEY'] = jwt_secret
 
-    elif app.config['JWKS_URL'] is not None:
+    elif app.config.get('JWKS_URL') is not None:
         # retrieve master openid-configuration endpoint for issuer realm
         jwks_url = requests.get(app.config['JWKS_URL']).json()
 

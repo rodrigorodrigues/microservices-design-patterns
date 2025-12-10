@@ -3,8 +3,6 @@ package com.microservice.user.controller;
 import java.util.Arrays;
 import java.util.UUID;
 
-import com.microservice.authentication.autoconfigure.AuthenticationProperties;
-import com.microservice.user.UserServiceApplicationIntegrationTest;
 import com.microservice.user.config.SpringSecurityAuditorAware;
 import com.microservice.user.config.SpringSecurityConfiguration;
 import com.microservice.user.dto.UserDto;
@@ -14,21 +12,19 @@ import com.microservice.web.autoconfigure.WebCommonAutoConfiguration;
 import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,6 +38,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -49,10 +46,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(properties = "configuration.initialLoad=false",
+@WebMvcTest(properties = {"configuration.initialLoad=false",
+        "spring.cloud.consul.config.enabled=false",
+        "spring.cloud.consul.discovery.enabled=false",
+        "spring.main.allow-bean-definition-overriding=true",
+        "server.error.include-message=always",
+        "server.error.include-exception=true",
+        "server.error.include-stacktrace=always",
+        "logging.level.root=trace"},
         controllers = UserController.class)
-@Import({ WebCommonAutoConfiguration.class, SpringSecurityConfiguration.class, UserServiceApplicationIntegrationTest.PopulateDbConfiguration.class})
-@EnableConfigurationProperties(AuthenticationProperties.class)
+@Import({ WebCommonAutoConfiguration.class, SpringSecurityConfiguration.class})
 public class UserControllerTest {
 
     @Autowired
@@ -65,7 +68,7 @@ public class UserControllerTest {
     SpringSecurityAuditorAware springSecurityAuditorAware;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper jsonMapper;
 
     @TestConfiguration
     static class MockConfiguration {
@@ -73,6 +76,11 @@ public class UserControllerTest {
         @Bean
         public UserRepository personRepository() {
             return mock(UserRepository.class);
+        }
+
+        @Bean
+        public JwtDecoder jwtDecoder() {
+            return mock(JwtDecoder.class);
         }
     }
 
@@ -102,9 +110,7 @@ public class UserControllerTest {
         userDto1.setId("200");
         when(userService.findAll(any(Pageable.class), any(Predicate.class))).thenReturn(new PageImpl<>(Arrays.asList(userDto, userDto1), PageRequest.ofSize(2), 2));
 
-        ParameterizedTypeReference<ServerSentEvent<UserDto>> type = new ParameterizedTypeReference<ServerSentEvent<UserDto>>() {};
-
-        client.perform(get("/api/users")
+        client.perform(get("/api/users").with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -144,15 +150,16 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("Test - When Calling PUT - /api/users/{id} with valid authorization the response should be a user - 200 - OK")
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(roles = "ADMIN", username = "me")
     public void whenCallUpdateShouldUpdateUser() throws Exception {
         UserDto userDto = createUserDto();
         userDto.setId(UUID.randomUUID().toString());
+        userDto.setCreatedByUser("me");
         userDto.setFullName("New Name");
         when(userService.findById(anyString())).thenReturn(userDto);
         when(userService.save(any(UserDto.class))).thenReturn(userDto);
 
-        client.perform(put("/api/users/{id}", userDto.getId())
+        client.perform(put("/api/users/{id}", userDto.getId()).with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertToJson(userDto)))
@@ -169,7 +176,7 @@ public class UserControllerTest {
         UserDto userDto = createUserDto();
         userDto.setId("999");
 
-        client.perform(put("/api/users/{id}", userDto.getId())
+        client.perform(put("/api/users/{id}", userDto.getId()).with(csrf())
                 .header(HttpHeaders.AUTHORIZATION, "MOCK JWT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertToJson(userDto)))
@@ -201,7 +208,7 @@ public class UserControllerTest {
     }
 
     private String convertToJson(Object object) {
-        return objectMapper.writeValueAsString(object);
+        return jsonMapper.writeValueAsString(object);
     }
 
     private UserDto createUserDto() {

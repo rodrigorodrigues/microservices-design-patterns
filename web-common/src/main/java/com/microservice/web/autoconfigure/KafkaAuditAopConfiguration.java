@@ -2,7 +2,6 @@ package com.microservice.web.autoconfigure;
 
 import java.util.Date;
 
-import tools.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +13,7 @@ import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,7 +76,7 @@ public class KafkaAuditAopConfiguration {
     class AsyncEventListener {
         private final KafkaTemplate<String, Object> template;
 
-        private final ObjectMapper objectMapper;
+        private final JsonMapper jsonMapper;
 
         private final WebConfigurationProperties webConfigurationProperties;
 
@@ -85,7 +85,7 @@ public class KafkaAuditAopConfiguration {
         @EventListener
         public void itemEventListener(ItemEvent itemEvent) {
             log.debug("AsyncEventListener:itemEventListener:processing: {}", itemEvent);
-            template.send(webConfigurationProperties.getKafkaTopic(), objectMapper.writeValueAsString(itemEvent));
+            template.send(webConfigurationProperties.getKafkaTopic(), jsonMapper.writeValueAsString(itemEvent));
             log.debug("AsyncEventListener:itemEventListener:processed:");
         }
 

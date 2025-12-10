@@ -39,8 +39,10 @@ public class CustomReactiveDefaultErrorAttributes extends DefaultErrorAttributes
             errorAttributes.put("status", status.value());
             errorAttributes.put("message", ExceptionUtils.getMessage(error));
             errorAttributes.put("error", status);
+            log.error("Found error: {}", errorAttributes, error);
+        } else {
+            log.debug("Default Error Attributes: {}", errorAttributes);
         }
-        log.debug("Default Error Attributes: {}", errorAttributes);
         return errorAttributes;
     }
 

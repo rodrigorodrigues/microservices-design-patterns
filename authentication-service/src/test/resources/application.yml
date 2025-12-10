@@ -43,6 +43,7 @@ spring:
         redis:
             repositories:
                 enabled: false
+            host: localhost
     profiles:
         include: auth
     session:

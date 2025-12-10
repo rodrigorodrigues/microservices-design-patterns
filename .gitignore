@@ -69,3 +69,7 @@ quarkus-service/.java-version
 input.json
 docker/opentelemetry-javaagent.jar
 docker/package*
+docker/confluent*
+docker/producer*
+docker/schema-registry-values.yaml
+docker/kafka-values.yaml

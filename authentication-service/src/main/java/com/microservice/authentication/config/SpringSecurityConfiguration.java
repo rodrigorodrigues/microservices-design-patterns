@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -35,14 +35,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.WebAuthnConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.annotation.web.configurers.ott.OneTimeTokenLoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -78,7 +75,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableMongoRepositories(basePackageClasses = WebauthnRegistrationRepository.class)
 public class SpringSecurityConfiguration {
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
@@ -307,7 +304,7 @@ public class SpringSecurityConfiguration {
         errorAttributes.put("status", status.value());
         response.setStatus(status.value());
         response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().append(objectMapper.writeValueAsString(errorAttributes));
+        response.getWriter().append(jsonMapper.writeValueAsString(errorAttributes));
     }
 
     private AuthenticationFailureHandler authenticationFailureHandler() {
@@ -318,7 +315,7 @@ public class SpringSecurityConfiguration {
                 Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
                 response.setStatus(Integer.parseInt(errorAttributes.get("status").toString()));
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                response.getWriter().append(objectMapper.writeValueAsString(errorAttributes));
+                response.getWriter().append(jsonMapper.writeValueAsString(errorAttributes));
             } else {
                 new SimpleUrlAuthenticationFailureHandler().onAuthenticationFailure(request, response, exception);
             }
@@ -347,7 +344,7 @@ public class SpringSecurityConfiguration {
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 response.addHeader("sessionId", sessionId);
                 response.setStatus(HttpStatus.OK.value());
-                response.getWriter().append(objectMapper.writeValueAsString(token));
+                response.getWriter().append(jsonMapper.writeValueAsString(token));
             } else {
                 new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
             }

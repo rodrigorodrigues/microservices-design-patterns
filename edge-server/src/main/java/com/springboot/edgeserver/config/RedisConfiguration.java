@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.data.redis.autoconfigure.RedisProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -21,7 +21,7 @@ public class RedisConfiguration {
 
     @ConditionalOnMissingBean
     @Bean
-    public LettuceConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
-        return new LettuceConnectionFactory(redisProperties.getHost(), redisProperties.getPort());
+    public LettuceConnectionFactory redisConnectionFactory(DataRedisProperties dataRedisProperties) {
+        return new LettuceConnectionFactory(dataRedisProperties.getHost(), dataRedisProperties.getPort());
     }
 }

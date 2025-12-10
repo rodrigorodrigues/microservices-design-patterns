@@ -6,81 +6,83 @@ spring:
 
     cloud:
         gateway:
-            routes:
-                - id: grafana-ws
-                  uri: ws://localhost:8080
-                  predicates:
-                      - Path=/admin/grafana/api/live/ws
-                  filters:
-                      - RedirectTo=302, ws://localhost:3000/admin/grafana/api/live/ws
-                - id: quarkus-service
-                  uri: lb://quarkus-service
-                  predicates:
-                      - Path=/api/companies/**
-                - id: quarkus-service-swagger
-                  uri: lb://quarkus-service
-                  predicates:
-                      - Path=/swagger/quarkus-service/**
-                  filters:
-                      - RewritePath=/q/swagger-ui/(?<segment>.*), /$\{segment}
-                - id: authentication-service
-                  uri: lb://authentication-service
-                  predicates:
-                      - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/**,/api/csrf,/ott/**,/webauthn/**,/default-ui.css,/login/webauthn,/api/webauthns
-                - id: authentication-service-swagger
-                  uri: lb://authentication-service
-                  predicates:
-                      - Path=/swagger/authentication-service/**
-                  filters:
-                      - StripPrefix=2
-                - id: user-service
-                  uri: lb://user-service
-                  predicates:
-                      - Path=/api/users/**
-                - id: user-service-swagger
-                  uri: lb://user-service
-                  predicates:
-                      - Path=/swagger/user-service/**
-                  filters:
-                      - StripPrefix=2
-                - id: person-service
-                  uri: lb://person-service
-                  predicates:
-                      - Path=/api/people/**
-                - id: person-service-swagger
-                  uri: lb://person-service
-                  predicates:
-                      - Path=/swagger/person-service/**
-                  filters:
-                      - StripPrefix=2
-                - id: nodejs-service
-                  uri: lb://week-menu-api
-                  predicates:
-                      - Path=/api/week-menu/**
-                - id: kotlin-service
-                  uri: lb://kotlin-service
-                  predicates:
-                      - Path=/api/tasks/**
-                - id: kotlin-service-swagger
-                  uri: lb://kotlin-service
-                  predicates:
-                      - Path=/swagger/kotlin-service/**
-                  filters:
-                      - StripPrefix=2
-                - id: python-service
-                  uri: lb://python-service
-                  predicates:
-                      - Path=/api/products/**,/api/receipts/**
-                - id: kotlin-service-swagger
-                  uri: lb://kotlin-service
-                  predicates:
-                      - Path=/swagger/python-service/**
-                  filters:
-                      - RewritePath=/python-service/(?<segment>.*), /$\{segment}
-                - id: go-service
-                  uri: lb://go-service
-                  predicates:
-                      - Path=/api/posts/**
+          server:
+            webflux:
+              routes:
+                  - id: grafana-ws
+                    uri: ws://localhost:8080
+                    predicates:
+                        - Path=/admin/grafana/api/live/ws
+                    filters:
+                        - RedirectTo=302, ws://localhost:3000/admin/grafana/api/live/ws
+                  - id: quarkus-service
+                    uri: lb://quarkus-service
+                    predicates:
+                        - Path=/api/companies/**
+                  - id: quarkus-service-swagger
+                    uri: lb://quarkus-service
+                    predicates:
+                        - Path=/swagger/quarkus-service/**
+                    filters:
+                        - RewritePath=/q/swagger-ui/(?<segment>.*), /$\{segment}
+                  - id: authentication-service
+                    uri: lb://authentication-service
+                    predicates:
+                        - Path=/oauth/**,/api/account,/api/authenticatedUser,/api/authenticate,/api/logout,/api/refreshToken,/login/oauth2/**,/oauth2/**,/.well-known/**,/api/csrf,/ott/**,/webauthn/**,/default-ui.css,/login/webauthn,/api/webauthns
+                  - id: authentication-service-swagger
+                    uri: lb://authentication-service
+                    predicates:
+                        - Path=/swagger/authentication-service/**
+                    filters:
+                        - StripPrefix=2
+                  - id: user-service
+                    uri: lb://user-service
+                    predicates:
+                        - Path=/api/users/**
+                  - id: user-service-swagger
+                    uri: lb://user-service
+                    predicates:
+                        - Path=/swagger/user-service/**
+                    filters:
+                        - StripPrefix=2
+                  - id: person-service
+                    uri: lb://person-service
+                    predicates:
+                        - Path=/api/people/**
+                  - id: person-service-swagger
+                    uri: lb://person-service
+                    predicates:
+                        - Path=/swagger/person-service/**
+                    filters:
+                        - StripPrefix=2
+                  - id: nodejs-service
+                    uri: lb://week-menu-api
+                    predicates:
+                        - Path=/api/week-menu/**
+                  - id: kotlin-service
+                    uri: lb://kotlin-service
+                    predicates:
+                        - Path=/api/tasks/**
+                  - id: kotlin-service-swagger
+                    uri: lb://kotlin-service
+                    predicates:
+                        - Path=/swagger/kotlin-service/**
+                    filters:
+                        - StripPrefix=2
+                  - id: python-service
+                    uri: lb://python-service
+                    predicates:
+                        - Path=/api/products/**,/api/receipts/**
+                  - id: kotlin-service-swagger
+                    uri: lb://kotlin-service
+                    predicates:
+                        - Path=/swagger/python-service/**
+                    filters:
+                        - RewritePath=/python-service/(?<segment>.*), /$\{segment}
+                  - id: go-service
+                    uri: lb://go-service
+                    predicates:
+                        - Path=/api/posts/**
 
 com:
     microservice:

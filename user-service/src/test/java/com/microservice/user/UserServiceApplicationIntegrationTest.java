@@ -30,14 +30,14 @@ import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -78,7 +78,7 @@ public class UserServiceApplicationIntegrationTest {
     MockMvc client;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper jsonMapper;
 
     @Autowired
     AuthenticationProperties authenticationProperties;
@@ -183,7 +183,7 @@ public class UserServiceApplicationIntegrationTest {
         UserDto userDto = createUserDto();
         userDto.setEmail("new@gmail.com");
 
-        UserDto userDtoResponse = objectMapper.readValue(client.perform(MockMvcRequestBuilders.post("/api/users")
+        UserDto userDtoResponse = jsonMapper.readValue(client.perform(MockMvcRequestBuilders.post("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertToJson(userDto)))
@@ -251,7 +251,7 @@ public class UserServiceApplicationIntegrationTest {
     }
 
     private String convertToJson(Object object) {
-        return objectMapper.writeValueAsString(object);
+        return jsonMapper.writeValueAsString(object);
     }
 
     private UserDto createUserDto() {

@@ -3,12 +3,12 @@ package com.microservice.user.config;
 import java.io.IOException;
 import java.util.Map;
 
-import tools.jackson.databind.ObjectMapper;
 import com.microservice.web.common.util.CustomDefaultErrorAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.context.annotation.Bean;
@@ -38,18 +38,19 @@ import org.springframework.web.context.request.ServletWebRequest;
 public class SpringSecurityConfiguration {
     private final CustomDefaultErrorAttributes customDefaultErrorAttributes;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final JwtDecoder jwtDecoder;
 
     private static final String[] WHITELIST = {
         // -- swagger ui
-        "/v3/api-docs/**",
+        "/v*/api-docs/**",
         "/swagger-resources",
         "/swagger-resources/**",
         "/configuration/ui",
         "/configuration/security",
         "/swagger-ui.html",
+        "/swagger/kotlin-service/**",
         "/webjars/**",
         "/*.js",
         "/*.css",
@@ -88,7 +89,7 @@ public class SpringSecurityConfiguration {
         errorAttributes.put("status", status.value());
         response.setStatus(status.value());
         response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().append(objectMapper.writeValueAsString(errorAttributes));
+        response.getWriter().append(jsonMapper.writeValueAsString(errorAttributes));
     }
 
     private JwtAuthenticationConverter jwtAuthenticationConverter() {

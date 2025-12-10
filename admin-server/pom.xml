@@ -180,6 +180,7 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>process-aot</goal>
                             <goal>repackage</goal>
                             <goal>build-info</goal>
                         </goals>

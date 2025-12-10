@@ -1,6 +1,6 @@
 package com.microservice.redis.jackson.security.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.microservice.redis.jackson.security.webauthn.otp.AuthenticationExtensionsClientInputModule;
 import com.microservice.redis.jackson.security.webauthn.otp.AuthenticationExtensionsClientInputsModule;
 import com.microservice.redis.jackson.security.webauthn.otp.AuthenticatorSelectionCriteriaModule;
@@ -32,9 +32,9 @@ public class RedisJacksonSecurityWebAuthnOtpAutoConfiguration implements BeanCla
 
     @Bean
     public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModules(SecurityJackson2Modules.getModules(this.loader));
-        objectMapper.registerModules(new OneTimeTokenAuthenticationTokenModule(),
+        JsonMapper jsonMapper = new JsonMapper();
+        jsonMapper.registerModules(SecurityJackson2Modules.getModules(this.loader));
+        jsonMapper.registerModules(new OneTimeTokenAuthenticationTokenModule(),
                 new WebauthnJackson2Module(),
                 new PublicKeyCredentialRequestOptionsModule(),
                 new AuthenticationExtensionsClientInputsModule(),
@@ -49,7 +49,7 @@ public class RedisJacksonSecurityWebAuthnOtpAutoConfiguration implements BeanCla
                 new WebAuthnAuthenticationModule(),
                 new ImmutableCredentialRecordModule(),
                 new CoreJackson2Module());
-        return new GenericJackson2JsonRedisSerializer(objectMapper);
+        return new GenericJackson2JsonRedisSerializer(jsonMapper);
     }
 
     @Override

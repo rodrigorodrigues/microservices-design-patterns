@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatusCode;
@@ -26,7 +26,7 @@ import org.springframework.web.server.ServerWebExchange;
 public class HandleResponseError {
     private final CustomReactiveDefaultErrorAttributes customReactiveDefaultErrorAttributes;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper;
 
     /**
      * Set http status according to Exception and print exception message when writeToResponse is true.
@@ -50,6 +50,6 @@ public class HandleResponseError {
     }
 
     private byte[] getBytes(Throwable ex) {
-        return objectMapper.writeValueAsString(Collections.singletonMap("message", ExceptionUtils.getMessage(ex))).getBytes(StandardCharsets.UTF_8);
+        return jsonMapper.writeValueAsString(Collections.singletonMap("message", ExceptionUtils.getMessage(ex))).getBytes(StandardCharsets.UTF_8);
     }
 }
