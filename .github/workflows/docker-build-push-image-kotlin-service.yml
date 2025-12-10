@@ -28,8 +28,8 @@ jobs:
       - name: JDK
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
-          java-version: '21'
+          distribution: 'temurin'
+          java-version: '24'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
