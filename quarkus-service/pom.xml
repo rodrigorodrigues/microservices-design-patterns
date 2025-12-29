@@ -6,19 +6,19 @@
   <artifactId>quarkus-service</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <properties>
-    <compiler-plugin.version>3.14.0</compiler-plugin.version>
+    <compiler-plugin.version>3.14.1</compiler-plugin.version>
     <docker.env.JAVA_OPTS>-Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
-    <docker.image.from.fabric8>openjdk:21-jdk</docker.image.from.fabric8>
+    <docker.image.from.fabric8>openjdk:25-jdk</docker.image.from.fabric8>
     <docker.image.name>${project.artifactId}</docker.image.name>
     <maven.compiler.parameters>true</maven.compiler.parameters>
-    <maven.compiler.release>21</maven.compiler.release>
+    <maven.compiler.release>25</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.22.3</quarkus.platform.version>
+    <quarkus.platform.version>3.30.5</quarkus.platform.version>
     <skipITs>true</skipITs>
-    <surefire-plugin.version>3.5.2</surefire-plugin.version>
+    <surefire-plugin.version>3.5.4</surefire-plugin.version>
     <mapstruct.version>1.6.3</mapstruct.version>
   </properties>
   <dependencyManagement>
@@ -192,6 +192,13 @@
         <version>${compiler-plugin.version}</version>
         <configuration>
           <parameters>true</parameters>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.mapstruct</groupId>
+              <artifactId>mapstruct-processor</artifactId>
+              <version>${mapstruct.version}</version>
+            </path>
+          </annotationProcessorPaths>
 <!--
           <compilerArgs>
             <arg>-parameters</arg>
@@ -203,7 +210,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
         <configuration>
-          <argLine>-Djdk.tracePinnedThreads</argLine>
+          <argLine>-Djdk.tracePinnedThreads --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
           <systemPropertyVariables>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
@@ -220,6 +227,7 @@
               <goal>verify</goal>
             </goals>
             <configuration>
+              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
               <systemPropertyVariables>
                 <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -240,8 +248,9 @@
         </property>
       </activation>
       <properties>
+        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
         <skipITs>false</skipITs>
-        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
       </properties>
     </profile>
   </profiles>

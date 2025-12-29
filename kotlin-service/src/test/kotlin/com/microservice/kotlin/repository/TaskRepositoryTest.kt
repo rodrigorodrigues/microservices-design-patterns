@@ -1,5 +1,6 @@
 package com.microservice.kotlin.repository
 
+import com.microservice.kotlin.TestcontainersConfiguration
 import com.microservice.kotlin.model.QTask
 import com.microservice.kotlin.model.Task
 import org.assertj.core.api.Assertions.assertThat
@@ -8,13 +9,15 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.security.oauth2.jwt.JwtDecoder
 
+@Import(TestcontainersConfiguration::class)
 @DataMongoTest
 class TaskRepositoryTest(@Autowired private val taskRepository: TaskRepository) {
     @TestConfiguration

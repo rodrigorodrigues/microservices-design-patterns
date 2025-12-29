@@ -17,9 +17,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <repackage.classifier/>
-        <kotlin.version>2.2.21</kotlin.version>
+        <kotlin.version>2.3.0</kotlin.version>
         <code-coverage>0.6</code-coverage>
-        <java.version>24</java.version>
     </properties>
 
     <dependencies>
@@ -134,7 +133,6 @@
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-mongodb</artifactId>
-            <version>5.1.0</version>
         </dependency>
 
         <dependency>
@@ -191,6 +189,12 @@
             <artifactId>kotlin-test-junit5</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito.kotlin</groupId>
+            <artifactId>mockito-kotlin</artifactId>
+            <version>6.1.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -231,7 +235,7 @@
                                 <annotationProcessorPath>
                                     <groupId>com.querydsl</groupId>
                                     <artifactId>querydsl-apt</artifactId>
-                                    <version>5.1.0</version>
+                                    <version>${querydsl.version}</version>
                                 </annotationProcessorPath>
                                 <annotationProcessorPath>
                                     <groupId>org.mapstruct</groupId>
@@ -240,13 +244,32 @@
                                 </annotationProcessorPath>
                             </annotationProcessorPaths>
                             <annotationProcessors>
-                                <processor>org.springframework.data.mongodb.repository.support.MongoAnnotationProcessor</processor>
-                                <processor>org.mapstruct.ap.MappingProcessor</processor>
+                                <processor>plugin:org.jetbrains.kotlin.kapt3:verbose=true</processor>
+                                <processor>plugin:org.jetbrains.kotlin.kapt3:processors=org.springframework.data.mongodb.repository.support.MongoAnnotationProcessor</processor>
+                                <processor>plugin:org.jetbrains.kotlin.kapt3:processors=org.mapstruct.ap.MappingProcessor</processor>
                             </annotationProcessors>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>src/test/kotlin</sourceDir>
+                                <sourceDir>target/generated-sources/kapt/test</sourceDir>
+                            </sourceDirs>
                         </configuration>
                     </execution>
                 </executions>
                 <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
                     <dependency>
                         <groupId>org.jetbrains.kotlin</groupId>
                         <artifactId>kotlin-maven-allopen</artifactId>

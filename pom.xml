@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.0</version>
+		<version>4.0.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.springboot</groupId>
@@ -29,6 +29,7 @@
 		<code-coverage>0.8</code-coverage>
 		<dockerfile-maven-plugin.version>1.3.4</dockerfile-maven-plugin.version>
 		<docker.env.JAVA_OPTS>--enable-preview -Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
+		<openfeign-query-dsl.version>7.1</openfeign-query-dsl.version>
 		<repackage.classifier/>
 	</properties>
 
@@ -125,7 +126,6 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
 						<release>${java.version}</release>
-						<enablePreview>true</enablePreview>
 						<annotationProcessorPaths>
 							<path>
 								<groupId>org.projectlombok</groupId>
@@ -143,6 +143,12 @@
 								<groupId>org.mapstruct</groupId>
 								<artifactId>mapstruct-processor</artifactId>
 								<version>${mapstruct.version}</version>
+							</path>
+
+							<path>
+								<groupId>com.querydsl</groupId>
+								<artifactId>querydsl-apt</artifactId>
+								<version>${querydsl.version}</version>
 							</path>
 						</annotationProcessorPaths>
 					</configuration>

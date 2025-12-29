@@ -1,5 +1,9 @@
 package com.microservice.quarkus;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.microservice.quarkus.dto.CompanyDto;
 import com.microservice.quarkus.model.Company;
 import io.quarkus.runtime.StartupEvent;
@@ -29,10 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;

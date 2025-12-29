@@ -73,3 +73,5 @@ docker/confluent*
 docker/producer*
 docker/schema-registry-values.yaml
 docker/kafka-values.yaml
+docker/schema.yml
+qodana.yaml

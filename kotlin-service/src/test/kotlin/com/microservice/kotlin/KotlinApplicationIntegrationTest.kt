@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.resttestclient.TestRestTemplate
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
+import org.springframework.boot.resttestclient.exchange
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.ApplicationContext
@@ -34,6 +36,7 @@ import javax.crypto.spec.SecretKeySpec
 @SpringBootTest(classes = [KotlinApplication::class], properties = ["configuration.swagger=false"],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = [KotlinApplicationIntegrationTest.PopulateDbConfiguration::class])
+@AutoConfigureTestRestTemplate
 class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemplate,
                                        @Autowired val authenticationProperties: AuthenticationProperties,
                                        @Autowired val taskRepository: TaskRepository) {
@@ -168,7 +171,7 @@ class KotlinApplicationIntegrationTest(@Autowired val restTemplate: TestRestTemp
         val headers = HttpHeaders()
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("user", null, listOf(SimpleGrantedAuthority("ROLE_TASK_READ")))
         headers.add(HttpHeaders.AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
-        val responseEntity = restTemplate.exchange("/api/tasks/{id}", HttpMethod.GET, HttpEntity(null, headers), String::class.java, id)
+        val responseEntity = restTemplate.exchange<String>("/api/tasks/$id", HttpMethod.GET, HttpEntity(null, headers))
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
         assertThat(read<String>(responseEntity.body, "$.message")).contains("User(user) does not have access to this resource")

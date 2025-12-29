@@ -1,23 +1,23 @@
 package com.microservice.kotlin.controller
 
-import tools.jackson.databind.ObjectMapper
 import com.microservice.authentication.autoconfigure.AuthenticationProperties
 import com.microservice.kotlin.JwtTokenUtil
 import com.microservice.kotlin.config.SpringSecurityConfiguration
 import com.microservice.kotlin.dto.TaskDto
+import com.microservice.kotlin.mapper.TaskMapper
 import com.microservice.kotlin.repository.TaskRepository
 import com.microservice.kotlin.service.TaskService
 import com.microservice.web.autoconfigure.WebCommonAutoConfiguration
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Pageable
@@ -33,6 +33,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import tools.jackson.databind.ObjectMapper
 import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
@@ -43,7 +44,8 @@ import javax.crypto.spec.SecretKeySpec
 internal class TaskControllerTest(@Autowired val client: MockMvc,
                                   @Autowired val objectMapper: ObjectMapper,
                                   @Autowired val authenticationProperties: AuthenticationProperties) {
-    @MockitoBean lateinit var taskService: TaskService
+    @MockitoBean
+    lateinit var taskService: TaskService
 
     var jwtTokenUtil = JwtTokenUtil(authenticationProperties)
 
@@ -58,6 +60,11 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         fun jwtDecoder(properties: AuthenticationProperties): JwtDecoder? {
             val secretKeySpec = SecretKeySpec(properties.jwt.keyValue.toByteArray(StandardCharsets.UTF_8), "HS256")
             return NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
+        }
+
+        @Bean
+        fun taskMapper(): TaskMapper {
+            return mock(TaskMapper::class.java)
         }
     }
 
@@ -106,7 +113,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testFindById() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("test", null, listOf(SimpleGrantedAuthority("ROLE_TASK_READ")))
 
-        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test"))
+        `when`(taskService.findById(anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test"))
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -120,7 +127,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testFindByIdShouldResponseForbidden() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("TASK_READ")))
 
-        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test"))
+        `when`(taskService.findById(anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test", createdByUser = "test"))
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -132,7 +139,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
     fun testFindByIdWithInvalidRoleShouldReturnForbidden() {
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("test", null, listOf(SimpleGrantedAuthority("TASK_CREATE")))
 
-        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test"))
+        `when`(taskService.findById(anyString())).thenReturn(TaskDto(UUID.randomUUID().toString(), name = "Test"))
 
         client.perform(get("/api/tasks/{id}", 999)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
@@ -164,7 +171,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
         val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken("admin", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN")))
 
         val task = TaskDto("999", name = "Test", createdByUser = "test")
-        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(task)
+        `when`(taskService.findById(anyString())).thenReturn(task)
 
         client.perform(post("/api/tasks")
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken))
@@ -233,7 +240,7 @@ internal class TaskControllerTest(@Autowired val client: MockMvc,
 
         val id = UUID.randomUUID().toString()
         val task = TaskDto(id, name = "Test", createdByUser = "newUser")
-        `when`(taskService.findById(ArgumentMatchers.anyString())).thenReturn(task)
+        `when`(taskService.findById(anyString())).thenReturn(task)
 
         client.perform(delete("/api/tasks/{id}", id)
             .header(AUTHORIZATION, jwtTokenUtil.createToken(usernamePasswordAuthenticationToken)))
