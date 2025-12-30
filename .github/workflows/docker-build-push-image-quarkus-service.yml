@@ -53,6 +53,10 @@ jobs:
                 "id": "github",
                 "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
                 "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            },{
+                "id": "github-sba",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
             }]
 
       - name: Build Service using docker:build
