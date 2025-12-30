@@ -278,6 +278,18 @@
 			</snapshots>
 		</repository>
 
+		<repository>
+			<id>sba-snapshot</id>
+			<name>Spring Boot Admin Snapshots</name>
+			<url>https://maven.pkg.github.com/codecentric/spring-boot-admin</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+
 	</repositories>
 
 	<pluginRepositories>
