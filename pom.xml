@@ -310,5 +310,11 @@
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/snapshot</url>
 		</pluginRepository>
+
+		<pluginRepository>
+			<id>sba-snapshot</id>
+			<name>SBA Snapshots</name>
+			<url>https://maven.pkg.github.com/codecentric/spring-boot-admin</url>
+		</pluginRepository>
 	</pluginRepositories>
 </project>
