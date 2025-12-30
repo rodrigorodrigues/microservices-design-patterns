@@ -30,6 +30,7 @@
 		<dockerfile-maven-plugin.version>1.3.4</dockerfile-maven-plugin.version>
 		<docker.env.JAVA_OPTS>--enable-preview -Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
 		<openfeign-query-dsl.version>7.1</openfeign-query-dsl.version>
+		<spring-boot-admin.version>4.0.0-M1</spring-boot-admin.version>
 		<repackage.classifier/>
 	</properties>
 
@@ -72,6 +73,14 @@
 				<groupId>com.github.rodrigorodrigues</groupId>
 				<artifactId>spring-data-commons</artifactId>
 				<version>4.1.0-SNAPSHOT</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.codecentric</groupId>
+				<artifactId>spring-boot-admin-dependencies</artifactId>
+				<version>${spring-boot-admin.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -306,12 +315,6 @@
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/snapshot</url>
-		</pluginRepository>
-
-		<pluginRepository>
-			<id>sba-snapshot</id>
-			<name>SBA Snapshots</name>
-			<url>https://maven.pkg.github.com/codecentric/spring-boot-admin</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>
