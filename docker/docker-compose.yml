@@ -81,13 +81,13 @@ services:
     container_name: monitoring
     environment:
       - SPRING_DATA_REDIS_HOST=redisdb
-      - SPRING_PROFILES_ACTIVE=consul,auth,prod
+      - SPRING_PROFILES_ACTIVE=consul,dev,auth
 #      - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
       - SERVER_PORT=9002
-      - SPRING_DATA_MONGODB_HOST=mongodb-datasource
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MONGODB_HOST=mongodb-datasource
+      - SPRING_MONGODB_DATABASE=docker
       - LOGGING_LEVEL_COM_SPRINGBOOT=debug
       - OAUTH_CLIENT_ID=actuator
       - OAUTH_CLIENT_SECRET=actuator_password
@@ -96,6 +96,7 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - SPRING_CLOUD_KUBERNETES_LOADBALANCER_ENABLED=false
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=trace
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE=
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE=file:/www.spendingbetter.com.jks
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
