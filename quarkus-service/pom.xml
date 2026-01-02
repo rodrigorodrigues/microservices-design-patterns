@@ -38,9 +38,9 @@
       <artifactId>quarkus-opentelemetry</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.rodrigorodrigues</groupId>
+      <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-commons</artifactId>
-	  <version>4.1.0-SNAPSHOT</version>
+      <version>4.0.1</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
