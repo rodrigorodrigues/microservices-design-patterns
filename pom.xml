@@ -22,10 +22,10 @@
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<spring-cloud.version>2025.1.0</spring-cloud.version>
 		<docker.image.name>${project.artifactId}</docker.image.name>
-		<docker.image.from>openjdk:25-jdk</docker.image.from>
+		<docker.image.from>eclipse-temurin:25.0.1_8-jdk-alpine-3.23</docker.image.from>
 		<!-- Not working on mac m1 -->
 		<!-- <docker.image.from.fabric8>ghcr.io/graalvm/graalvm-ce:java17-21</docker.image.from.fabric8> -->
-		<docker.image.from.fabric8>openjdk:25-jdk</docker.image.from.fabric8>
+		<docker.image.from.fabric8>eclipse-temurin:25.0.1_8-jdk-alpine-3.23</docker.image.from.fabric8>
 		<code-coverage>0.8</code-coverage>
 		<dockerfile-maven-plugin.version>1.3.4</dockerfile-maven-plugin.version>
 		<docker.env.JAVA_OPTS>--enable-preview -Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>

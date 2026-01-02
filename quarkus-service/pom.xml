@@ -8,7 +8,7 @@
   <properties>
     <compiler-plugin.version>3.14.1</compiler-plugin.version>
     <docker.env.JAVA_OPTS>-Xmx512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -verbose:gc -XX:+PrintGCDetails -Xloggc:/var/log/gc.log -Djava.security.egd=file:/dev/./urandom</docker.env.JAVA_OPTS>
-    <docker.image.from.fabric8>openjdk:25-jdk</docker.image.from.fabric8>
+    <docker.image.from.fabric8>eclipse-temurin:25.0.1_8-jdk-alpine-3.23</docker.image.from.fabric8>
     <docker.image.name>${project.artifactId}</docker.image.name>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.release>25</maven.compiler.release>
