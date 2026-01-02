@@ -382,6 +382,8 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Removed Spring Oauth2 - Spring Boot 3
 * [] BFF - Implement BFF Pattern
 * [X] Java - Spring Boot 4/JDK 25
+* [X] Java - Kotlin/JDK 25
+* [X] Java - Quarkus/JDK 25
 * [X] Java - Add TestContainers
 * [] Add Open Telemetry
 
