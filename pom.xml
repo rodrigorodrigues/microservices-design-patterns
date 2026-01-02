@@ -290,7 +290,7 @@
 		<repository>
 			<id>github-sba</id>
 			<name>Spring Boot Admin Snapshots</name>
-			<url>https://maven.pkg.github.com/codecentric/spring-boot-admin</url>
+			<url>https://maven.pkg.github.com/rodrigorodrigues/spring-boot-admin</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -315,12 +315,6 @@
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/snapshot</url>
-		</pluginRepository>
-
-		<pluginRepository>
-			<id>github-sba</id>
-			<name>SBA Snapshots</name>
-			<url>https://maven.pkg.github.com/codecentric/spring-boot-admin</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>
