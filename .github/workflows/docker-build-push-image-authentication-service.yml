@@ -83,7 +83,7 @@ jobs:
       # Build Docker image using docker:build
       - name: Build Service using docker:build
         run: |
-           mvn clean package -Ddocker.image-tag=${{ env.GITHUB_SHA }} -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
+          SPRING_CLOUD_CONSUL_CONFIG_ENABLED=false mvn clean package -Ddocker.image-tag=${{ env.GITHUB_SHA }} -DskipTests -q -pl authentication-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
 
 #        run: |
 #          sed -i 's/openjdk:8-jre-alpine/balenalib\/raspberry-pi-alpine-openlighten itjdk:8/g' pom.xml
