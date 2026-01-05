@@ -38,8 +38,8 @@ services:
       - CONSUL_URL=service-discovery:8500
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8080
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_DATABASE=docker
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - DEBUG=true
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
@@ -230,8 +230,8 @@ services:
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8082
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=trace
@@ -245,7 +245,7 @@ services:
 #      - com.microservice.authentication.jwt.publicKeyStore=file:/www.spendingbetter.com.pub
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_STORE_PASSWORD=${CERT_PASSWORD}
 #      - COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_ALIAS=spendingbetter
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - SPRING_MONGODB_HOST=mongodb-datasource
       - SPRING_MONGODB_DATABASE=docker
       - SPRING_AUTOCONFIGURE_EXCLUDE_0=org.springdoc.core.configuration.SpringDocConfiguration
@@ -268,7 +268,7 @@ services:
           - person-api
 
   task-api:
-    image: docker.io/library/kotlin-service:0.0.1-SNAPSHOT
+    image: kotlin-service:0.0.1-SNAPSHOT
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
@@ -276,8 +276,8 @@ services:
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8084
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_MONGODB_DATABASE=docker
       - OPENTRACING_JAEGER_UDP_SENDER_HOST=jaeger
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       - LOGGING_LEVEL_COM_MICROSERVICE=trace
@@ -355,8 +355,8 @@ services:
       - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
       - SERVER_PORT=8083
       - SPRING_CLOUD_KUBERNETES_ENABLED=false
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017
+      - SPRING_MONGODB_DATABASE=docker
       - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
       #- DEBUG=true
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=debug
@@ -389,11 +389,11 @@ services:
       - CONSUL_URL=service-discovery:8500
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
       - SERVER_PORT=9999
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
       - SPRING_MONGODB_HOST=mongodb-datasource
       - SPRING_MONGODB_DATABASE=docker
       - SPRING_AUTOCONFIGURE_EXCLUDE_0=org.springdoc.core.configuration.SpringDocConfiguration
-      - SPRING_DATA_MONGODB_DATABASE=docker
+      - SPRING_MONGODB_DATABASE=docker
       - SPRING_MAIN_ALLOW_CIRCULAR_REFERENCES=true
       - COM_MICROSERVICE_AUTHENTICATION_REDIS_ENABLED=true
       - DEBUG=true
