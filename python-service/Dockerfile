@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.13.11-slim-trixie
 
 ARG PORT
 
@@ -8,11 +8,13 @@ ENV NGINX_MAX_UPLOAD 10m
 
 EXPOSE $PORT
 
-#RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 tesseract-ocr libtesseract-dev -y
+RUN apt-get update -y && apt-get install -y ffmpeg libsm6 libxext6 tesseract-ocr libtesseract-dev python3-opencv -y
 
-RUN apk --update add --no-cache tesseract-ocr-dev
-
-RUN apk add build-base python-dev py-pip jpeg-dev zlib-dev
+#RUN apt-get update -y
+#
+#RUN apk --update add --no-cache tesseract-ocr-dev
+#
+#RUN apk add build-base python-dev py-pip jpeg-dev zlib-dev
 
 ENV LIBRARY_PATH=/lib:/usr/lib
 
