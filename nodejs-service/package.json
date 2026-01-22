@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon --exec 'npm start'",
-        "test": "cross-env EUREKA_ENABLED=false SWAGGER_ENABLED=false SPRING_CONFIG_ENABLED=false NODE_ENV=test jest --forceExit --runInBand --detectOpenHandles",
+        "test": "cross-env SWAGGER_ENABLED=false NODE_ENV=test jest --forceExit --runInBand --detectOpenHandles",
         "pretest": "cross-env NODE_ENV=test",
         "test:watch": "jest --watch"
     },
@@ -19,7 +19,6 @@
         "cookie-parser": "1.4.3",
         "cors": "2.8.5",
         "dotenv": "6.2.0",
-        "eureka-js-client": "4.4.2",
         "express": "^4.16.3",
         "express-actuator": "1.1.0",
         "express-jwt-permissions": "1.2.3",
@@ -34,13 +33,15 @@
         "node-env-run": "3.0.2",
         "prom-client": "11.2.1",
         "q": "^1.4.1",
-        "spring-cloud-config": "2.0.0",
         "swagger-jsdoc": "3.4.0",
         "swagger-tools": "0.10.4",
         "zipkin": "0.16.2",
         "zipkin-context-cls": "0.16.0",
         "zipkin-instrumentation-express": "0.16.2",
-        "zipkin-transport-http": "0.16.2"
+        "zipkin-transport-http": "0.16.2",
+        "consul": "2.0.1",
+        "yaml": "2.8.2",
+        "request": "2.88.2"
     },
     "devDependencies": {
         "@babel/core": "^7.7.4",

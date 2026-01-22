@@ -1,4 +1,4 @@
-FROM node:10.15.3-slim
+FROM node:22-slim
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN apt-get update && apt-get install netcat-openbsd -y
+RUN apt-get update && apt-get install npm nodejs -y && apt-get install netcat-openbsd -y
 
 RUN npm install --only=production
 

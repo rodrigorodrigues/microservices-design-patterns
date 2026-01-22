@@ -25,20 +25,18 @@ const recipe2Router = require('./routes/recipe2.route');
 const shoppingListRouter = require('./routes/shopping.list.route');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const Eureka = require('eureka-js-client').Eureka;
+const consulClient = require("consul");
+const yamlClient = require('yaml');
 
-const { 
-    hostName, 
-    ipAddr, 
-    eurekaServer, 
-    eurekaServerPort, 
-    zipkinHost, 
-    zipkinPort, 
-    restoreMongoDb, 
-    eurekaServerPath, 
-    eurekaEnabled, 
-    swaggerEnabled, 
-    springConfigEnabled } = loadEnvVariables();
+const {
+    hostName,
+    consulServer,
+    consulServerPort,
+    zipkinHost,
+    zipkinPort,
+    restoreMongoDb,
+    consulEnabled,
+    swaggerEnabled} = loadEnvVariables();
 
 if (process.env.NODE_ENV !== 'test') {
     app.emit('ready');
@@ -77,9 +75,7 @@ let server;
 app.on('ready', function() {
     server = app.listen(port, () => {
         console.log("Application started. Listening on port:" + port);
-        if (springConfigEnabled === true) {
-            loadSecretKey();
-        } else {
+        if (!consulEnabled) {
             secretKey = process.env.SECRET_TOKEN;
             console.log(`Using secretKey from env: ${secretKey}`);
         }
@@ -96,16 +92,11 @@ app.on('close', function() {
 });
 
 // Eureka configuration
-if (eurekaEnabled === true) {
-    loadEureka();
+if (consulEnabled === true) {
+    loadConsul();
 }
 
-// Spring Cloud Config
-if (springConfigEnabled === true) {
-    var { springCloudConfig, configOptions } = loadSpringCloudConfig();
-}
-
-// Spring Boot Actuator
+// Health Check Actuator
 loadActuator();
 
 //Spring Cloud Sleuth
@@ -243,79 +234,43 @@ function loadPrometheus() {
 }
 
 function loadEnvVariables() {
-    const eurekaServer = process.env.EUREKA_SERVER || '127.0.0.1';
-    const eurekaServerPort = process.env.EUREKA_PORT || 8761;
-    const eurekaServerPath = process.env.EUREKA_PATH || '/eureka/apps/';
-    const ipAddr = process.env.IP_ADDRESS || '127.0.0.1';
+    const consulServer = process.env.CONSUL_SERVER || '127.0.0.1';
+    const consulServerPort = process.env.CONSUL_PORT || 8500;
     const hostName = process.env.HOST_NAME || 'localhost';
     const zipkinHost = process.env.ZIPKIN_HOST || 'localhost';
     const zipkinPort = process.env.ZIPKIN_PORT || 9411;
-    const restoreMongoDb = process.env.RESTORE_MONGODB || true;
-    const eurekaEnabled = process.env.EUREKA_ENABLED || true;
+    const restoreMongoDb = process.env.RESTORE_MONGODB || false;
+    const consulEnabled = process.env.CONSUL_ENABLED || true;
     const swaggerEnabled = process.env.SWAGGER_ENABLED || true;
-    const springConfigEnabled = process.env.SPRING_CONFIG_ENABLED || true;
-    console.log("eurekaServer: ", eurekaServer);
-    console.log("eurekaServerPort: ", eurekaServerPort);
-    console.log("eurekaServerPath: ", eurekaServerPath);
+    console.log("consulServer: ", consulServer);
+    console.log("consulServerPort: ", consulServerPort);
     console.log("port: ", port);
-    console.log("ipAddr: ", ipAddr);
     console.log("hostName: ", hostName);
     console.log("zipkinHost: ", zipkinHost);
     console.log("zipkinPort: ", zipkinPort);
     console.log("restoreMongoDb: ", restoreMongoDb);
-    console.log("eurekaEnabled: ", eurekaEnabled);
+    console.log("consulEnabled: ", consulEnabled);
     console.log("swaggerEnabled: ", swaggerEnabled);
-    console.log("springConfigEnabled: ", springConfigEnabled);
-    return { hostName, ipAddr, eurekaServer, eurekaServerPath, eurekaServerPort, zipkinHost, zipkinPort, restoreMongoDb, eurekaEnabled, swaggerEnabled, springConfigEnabled };
+    return { hostName, consulServer, consulServerPort, zipkinHost, zipkinPort, restoreMongoDb, consulEnabled, swaggerEnabled };
 }
 
-function loadSpringCloudConfig() {
-    const springCloudConfig = require('spring-cloud-config');
-    const springProfilesActive = [];
-    const profile = (process.env.SPRING_PROFILES_ACTIVE || 'dev');
-    springProfilesActive.push(profile);
-    springProfilesActive.push("?X-Encrypt-Key=b7fc7cec8e7aab24648723258da87a8d09ad7cef7b0a2842738884496a9fbb53");
-    console.log("springProfilesActive: ", springProfilesActive);
-    let configOptions = {
-        configPath: __dirname + '/config',
-        activeProfiles: springProfilesActive,
-        level: 'debug'
-    };
-    return { springCloudConfig, configOptions };
-}
-
-function loadEureka() {
-    const eurekaClient = new Eureka({
-        // application instance information
-        instance: {
-            app: 'WEEK-MENU-API',
-            instanceId: 'WEEK-MENU-API',
-            hostName: hostName,
-            ipAddr: ipAddr,
-            statusPageUrl: `http://${ipAddr}:${port}/actuator/info`,
-            healthCheckUrl: `http://${ipAddr}:${port}/actuator/health`,
-            homePagekUrl: `http://${ipAddr}:${port}`,
-            port: {
-                '$': port,
-                '@enabled': 'true',
-            },
-            vipAddress: 'WEEK-MENU-API',
-            dataCenterInfo: {
-                '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-                name: 'MyOwn',
-            }
-        },
-        eureka: {
-            // eureka server host / port
-            host: eurekaServer,
-            port: eurekaServerPort,
-            servicePath: eurekaServerPath,
-            maxRetries: 10,
-            registerWithEureka: true,
-            fetchRegistry: true
-        }
+async function loadConsul() {
+    const consul = new consulClient({
+        host: consulServer,
+        port: consulServerPort
     });
-    eurekaClient.start();
+    consul.agent.service.register({
+        name: 'WEEK-MENU-API',
+        address: hostName,
+        port: port,
+        check: {
+            http: `http://${hostName}:${port}/actuator/health`,
+            interval: '30s'
+        }
+    }, () => {
+        console.log(`Service WEEK-MENU-API registered`);
+    });
+    await loadSecretKey(consul);
 }
 
 function loadZipkin() {
@@ -343,16 +298,43 @@ function loadZipkin() {
     }
 }
 
-function loadSecretKey() {
-    let configProps = springCloudConfig.load(configOptions);
-    configProps.then((config) => {
-        secretKey = config.configuration.jwt['base64-secret'];
-        if (secretKey === "" || secretKey === null || secretKey === undefined) {
-            const pathPublicKey = process.env.PATH_PUBLIC_KEY;
-            var fs = require('fs');
-            secretKey = fs.readFileSync(pathPublicKey);
-        } 
-    }).catch(err => console.error(err.stack));
+async function loadSecretKey(consul) {
+    const configKey = process.env.CONSUL_CONFIG_KEY || 'config/week-menu-api/data';
+
+    try {
+        const result = await consul.kv.get(configKey);
+
+        if (result && result.Value) {
+            const config = yamlClient.parse(result.Value);
+            secretKey = config['com']['microservice']['authentication']['jwt']['keyValue'];
+
+            if (secretKey) {
+                console.log('secretKey loaded from Consul');
+            } else {
+                console.log('secretKey not found in Consul config, using fallback');
+                fallbackSecretKey();
+            }
+        } else {
+            console.log('No config found in Consul, using fallback');
+            fallbackSecretKey();
+        }
+    } catch (err) {
+        console.error('Error fetching config from Consul:', err);
+        fallbackSecretKey();
+    }
+}
+
+function fallbackSecretKey() {
+    const pathPublicKey = process.env.PATH_PUBLIC_KEY;
+    if (pathPublicKey) {
+        const fs = require('fs');
+        try {
+            secretKey = fs.readFileSync(pathPublicKey, 'utf8');
+            console.log('secretKey loaded from file');
+        } catch (err) {
+            console.error('Error reading secret key from file:', err);
+        }
+    }
 }
 
 function validateJwt(req, res, next) {
@@ -394,23 +376,23 @@ function actuatorRoute(req, res) {
         const jsonMessage = `{
                         "_links": {
                             "self": {
-                                "href": "http://${ipAddr}:${port}/actuator",
+                                "href": "http://${hostName}:${port}/actuator",
                                 "templated": false
                             },
                             "health": {
-                                "href": "http://${ipAddr}:${port}/actuator/health",
+                                "href": "http://${hostName}:${port}/actuator/health",
                                 "templated": false
                             },
                             "info": {
-                                "href": "http://${ipAddr}:${port}/actuator/info",
+                                "href": "http://${hostName}:${port}/actuator/info",
                                 "templated": false
                             },
                             "prometheus": {
-                                "href": "http://${ipAddr}:${port}/actuator/prometheus",
+                                "href": "http://${hostName}:${port}/actuator/prometheus",
                                 "templated": false
                             },
                             "metrics": {
-                                "href": "http://${ipAddr}:${port}/actuator/metrics",
+                                "href": "http://${hostName}:${port}/actuator/metrics",
                                 "templated": false
                             }
                         }

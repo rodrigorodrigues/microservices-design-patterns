@@ -199,6 +199,48 @@ class HomeContent extends Component {
         </NavItem>);
     }
 
+    displayWeekMenuButtons(authorities) {
+        const isAdmin = authorities.some(item => item === 'ROLE_ADMIN');
+        const hasCategoryReadAccess = authorities.some(item => item === 'ROLE_CATEGORY_READ' 
+        || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')
+        const hasRecipeReadAccess = authorities.some(item => item === 'ROLE_RECIPE_READ' 
+        || item === 'ROLE_RECIPE_CREATE' || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')
+        const hasIngredientReadAccess = authorities.some(item => item === 'ROLE_INGREDIENT_READ' 
+        || item === 'ROLE_INGREDIENT_CREATE' || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE')
+        return (<NavItem eventKey="admin" disabled={(!isAdmin)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-cogs" style={{ fontSize: '1.5em' }} />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Admin">
+                Week Menu
+            </NavText>
+            <NavItem eventKey="manageCategories" disabled={(!isAdmin)}>
+                <NavIcon>
+                    <i className="fa fa-fw fa-users" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Categories" />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="manageCategories">
+                    Manage Categories
+                </NavText>
+            </NavItem>
+            <NavItem eventKey="manageReceipts" disabled={(!isAdmin)}>
+                <NavIcon>
+                    <i className="fa fa-fw fa-codepen" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Receipts" />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Manage Receipts">
+                    manageReceipts
+                </NavText>
+            </NavItem>
+            <NavItem eventKey="manageIngredients" disabled={(!isAdmin)}>
+                <NavIcon title="Manage Ingredients">
+                    <i className="fa fa-fw fa-exclamation-triangle" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Ingredients" />
+                </NavIcon>
+                <NavText style={{ paddingRight: 32 }} title="Manage Ingredients">
+                    Manage Ingredients
+                </NavText>
+            </NavItem>
+        </NavItem>);
+    }
+
     hasAdminAccess(authorities) {
         return ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN'));
     }
@@ -279,10 +321,6 @@ class HomeContent extends Component {
                 <Breadcrumbs.Item>
                     <Anchor href="./posts">Manage Posts</Anchor>
                 </Breadcrumbs.Item>}
-                {isAuthenticated &&
-                <Breadcrumbs.Item>
-                    <Anchor href="./products">Manage Products</Anchor>
-                </Breadcrumbs.Item>}
                 {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
                     <Anchor href="./admin/createAll">Admin - Create All</Anchor>
@@ -356,6 +394,7 @@ class HomeContent extends Component {
                         {this.displayCompaniesButton(authorities)}
                         {this.displayPostsButton(authorities)}
                         {this.displayProductsButton(authorities)}
+                        {this.displayWeekMenuButtons(authorities)}
                         <Separator />
                         {this.displayLogoutButton()}
                         {this.displayPasskeyButton()}

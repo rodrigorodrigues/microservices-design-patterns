@@ -144,11 +144,10 @@ services:
     container_name: week-menu-api
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - CONFIG_SERVER=http://localhost:8888
+      - CONSUL_ENABLED=true
       - SERVER_PORT=3002
       - MONGODB_URI=mongodb://mongodb-datasource:27017/docker
-      - CONSUL_URL=service-discovery:8500
-      - EUREKA_PORT=8761
+      - CONSUL_SERVER=service-discovery
       #            - DEBUG=*
       #            - NODE_DEBUG=request
       - HOST_NAME=week-menu-api
@@ -268,7 +267,7 @@ services:
           - person-api
 
   task-api:
-    image: kotlin-service:0.0.1-SNAPSHOT
+    image: fielcapao/microservices-design-patterns-kotlin-service:latest #kotlin-service:0.0.1-SNAPSHOT
     container_name: task-api
     environment:
       - SPRING_PROFILES_ACTIVE=consul,dev
