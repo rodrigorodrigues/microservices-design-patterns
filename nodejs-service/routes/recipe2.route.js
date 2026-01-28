@@ -63,7 +63,7 @@ function deleteById(request, response) {
  *       401:
  *         description: Unauthorized
  */
-router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE']), get);
+router.get("/recipe", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE'], ['SCOPE_openid']]), get);
 
 /**
  * @swagger
@@ -95,7 +95,7 @@ router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE
  *       401:
  *         description: Unauthorized
  */
-router.get("/recipe/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']), getOne);
+router.get("/recipe/:id", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']]), getOne);
 
 /**
  * @swagger
@@ -128,7 +128,7 @@ router.get("/recipe/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['RO
  *       401:
  *         description: Unauthorized
  */
-router.post("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']), save);
+router.post("/recipe", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']]), save);
 
 /**
  * @swagger
@@ -165,7 +165,7 @@ router.post("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']), save
  *       404:
  *         description: Not Found
  */
-router.put("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']), update);
+router.put("/recipe", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']]), update);
 
 /**
  * @swagger
@@ -195,7 +195,7 @@ router.put("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']), update)
  *       404:
  *         description: Not Found
  */
-router.delete('/recipe/:id', guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_DELETE']), deleteById);
+router.delete('/recipe/:id', guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_DELETE']]), deleteById);
 
 checkPermissionRoute(router);
 

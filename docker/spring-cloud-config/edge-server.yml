@@ -59,6 +59,8 @@ spring:
                     uri: lb://week-menu-api
                     predicates:
                         - Path=/api/week-menu/**
+                    filters:
+                      - StripPrefix=2
                   - id: kotlin-service
                     uri: lb://kotlin-service
                     predicates:
@@ -73,7 +75,7 @@ spring:
                     uri: lb://python-service
                     predicates:
                         - Path=/api/products/**,/api/receipts/**
-                  - id: kotlin-service-swagger
+                  - id: python-service-swagger
                     uri: lb://kotlin-service
                     predicates:
                         - Path=/swagger/python-service/**
@@ -83,6 +85,16 @@ spring:
                     uri: lb://go-service
                     predicates:
                         - Path=/api/posts/**
+                  - id: rust-service
+                    uri: lb://rust-service
+                    predicates:
+                      - Path=/api/warehouses/**
+                  - id: rust-service-swagger
+                    uri: lb://rust-service
+                    predicates:
+                      - Path=/swagger/rust-service/**
+                    filters:
+                      - RewritePath=/rust-service/(?<segment>.*), /$\{segment}
 
 com:
     microservice:

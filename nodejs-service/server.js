@@ -24,7 +24,6 @@ const category2Router = require('./routes/category2.route');
 const recipe2Router = require('./routes/recipe2.route');
 const shoppingListRouter = require('./routes/shopping.list.route');
 const jwt = require('jsonwebtoken');
-const cors = require('cors');
 const consulClient = require("consul");
 const yamlClient = require('yaml');
 
@@ -36,7 +35,8 @@ const {
     zipkinPort,
     restoreMongoDb,
     consulEnabled,
-    swaggerEnabled} = loadEnvVariables();
+    swaggerEnabled,
+    jwksValidation} = loadEnvVariables();
 
 if (process.env.NODE_ENV !== 'test') {
     app.emit('ready');
@@ -46,18 +46,14 @@ app.use(bodyParser.json());
 // Create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(cors());
-app.options('*', cors());
-
-
-app.use(function (req, res, next) {
+app.use(async function (req, res, next) {
 
     if (req.path.startsWith('/actuator') || req.path === '/favicon.ico') {
         actuatorRoute(req, res);
     } else if (req.path.startsWith('/docs') || req.path.startsWith('/api-docs')) {
         next();
     } else {
-        validateJwt(req, res, next);
+        await validateJwt(req, res, next);
     }
 
 });
@@ -75,11 +71,11 @@ let server;
 app.on('ready', function() {
     server = app.listen(port, () => {
         console.log("Application started. Listening on port:" + port);
-        if (!consulEnabled) {
+        if (consulEnabled === 'false') {
             secretKey = process.env.SECRET_TOKEN;
             console.log(`Using secretKey from env: ${secretKey}`);
         }
-        if (swaggerEnabled === true) {
+        if (swaggerEnabled === 'true') {
             generateSwaggerJsonFile();
         }
     });
@@ -92,7 +88,7 @@ app.on('close', function() {
 });
 
 // Eureka configuration
-if (consulEnabled === true) {
+if (consulEnabled === 'true') {
     loadConsul();
 }
 
@@ -103,7 +99,7 @@ loadActuator();
 loadSleuth();
 
 //Swagger
-if (swaggerEnabled === true) {
+if (swaggerEnabled === 'true') {
     loadSwagger();
 }
 
@@ -121,7 +117,7 @@ db.connection.on('error', (err) => {
 
 db.connection.once('open', () => {
     console.log("MongoDB successful connected");
-    if (restoreMongoDb) {
+    if (restoreMongoDb === 'true') {
         console.log("Applying Restore MongoDB for connection: ", process.env.MONGODB_URI);
         if (process.env.NODE_ENV !== 'test') {
             try {
@@ -239,9 +235,10 @@ function loadEnvVariables() {
     const hostName = process.env.HOST_NAME || 'localhost';
     const zipkinHost = process.env.ZIPKIN_HOST || 'localhost';
     const zipkinPort = process.env.ZIPKIN_PORT || 9411;
-    const restoreMongoDb = process.env.RESTORE_MONGODB || false;
-    const consulEnabled = process.env.CONSUL_ENABLED || true;
-    const swaggerEnabled = process.env.SWAGGER_ENABLED || true;
+    const restoreMongoDb = process.env.RESTORE_MONGODB || 'false';
+    const consulEnabled = process.env.CONSUL_ENABLED || 'true';
+    const swaggerEnabled = process.env.SWAGGER_ENABLED || 'true';
+    const jwksValidation = process.env.JWKS_VALIDATION || 'false';
     console.log("consulServer: ", consulServer);
     console.log("consulServerPort: ", consulServerPort);
     console.log("port: ", port);
@@ -251,7 +248,8 @@ function loadEnvVariables() {
     console.log("restoreMongoDb: ", restoreMongoDb);
     console.log("consulEnabled: ", consulEnabled);
     console.log("swaggerEnabled: ", swaggerEnabled);
-    return { hostName, consulServer, consulServerPort, zipkinHost, zipkinPort, restoreMongoDb, consulEnabled, swaggerEnabled };
+    console.log("jwksValidation: ", jwksValidation);
+    return { hostName, consulServer, consulServerPort, zipkinHost, zipkinPort, restoreMongoDb, consulEnabled, swaggerEnabled, jwksValidation };
 }
 
 async function loadConsul() {
@@ -337,27 +335,82 @@ function fallbackSecretKey() {
     }
 }
 
-function validateJwt(req, res, next) {
+async function validateJwt(req, res, next) {
     try {
         let token = req.headers.authorization;
         if (!token) {
-            throw Error("Token Not found");
+            res.status(400).send("Token Not found");
+            return;
         }
-        if (!secretKey) {
-            throw Error("secretKey Not found");
-        }
-        if (!token.startsWith("Bearer ")) {
-            throw Error("Invalid Token: it should start with 'Bearer'");
-        }
-        token = token.replace("Bearer ", "");
-        jwt.verify(token, Buffer.from(secretKey, 'base64'), function(err, decoded) {
-            if (err) {
-                throw Error(err);
-            } else {
+
+        if (jwksValidation === 'true') {
+            const jwksClient = require('jwks-rsa');
+            const client = jwksClient({
+                jwksUri: process.env.JWKS_URL
+            });
+
+            const getKey = (header) => {
+                return new Promise((resolve, reject) => {
+                    client.getSigningKey(header.kid, (err, key) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            const signingKey = key.publicKey || key.rsaPublicKey;
+                            resolve(signingKey);
+                        }
+                    });
+                });
+            };
+
+            if (!token.startsWith("Bearer ")) {
+                res.status(400).send("Invalid Token: it should start with 'Bearer'");
+                return;
+            }
+            token = token.replace("Bearer ", "");
+
+            try {
+                const decoded = await new Promise((resolve, reject) => {
+                    jwt.verify(token, async (header, callback) => {
+                        try {
+                            const key = await getKey(header);
+                            callback(null, key);
+                        } catch (err) {
+                            callback(err);
+                        }
+                    }, (err, decoded) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(decoded);
+                        }
+                    });
+                });
                 console.log(`Decoded JWT: ${JSON.stringify(decoded)}`);
                 req.user = decoded;
+            } catch (err) {
+                console.log(err);
+                res.status(401).send(err.message);
+                return;
             }
-        });
+        } else {
+            if (!secretKey) {
+                throw Error("secretKey Not found");
+            }
+            if (!token.startsWith("Bearer ")) {
+                res.status(400).send("Invalid Token: it should start with 'Bearer'");
+                return;
+            }
+            token = token.replace("Bearer ", "");
+            try {
+                const decoded = jwt.verify(token, secretKey);
+                console.log(`Decoded JWT: ${JSON.stringify(decoded)}`);
+                req.user = decoded;
+            } catch (err) {
+                console.log(err);
+                res.status(401).send(err.message);
+                return;
+            }
+        }
 
         if ('OPTIONS' == req.method) {
             res.sendStatus(200);

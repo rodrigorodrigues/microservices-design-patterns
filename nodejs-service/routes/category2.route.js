@@ -117,7 +117,7 @@ function update(request, response) {
  *       401:
  *         description: Unauthorized
  */
-router.get('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), getCategoryRoute);
+router.get('/category', guard.check([['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE'], ['SCOPE_openid']]), getCategoryRoute);
 
 /**
  * @swagger
@@ -149,7 +149,7 @@ router.get('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['
  *       401:
  *         description: Unauthorized
  */
-router.get("/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE']), getCategoryByIdRoute);
+router.get("/category/:id", guard.check([['ROLE_ADMIN'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE']]), getCategoryByIdRoute);
 
 /**
  * @swagger
@@ -182,7 +182,7 @@ router.get("/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_READ'], 
  *       401:
  *         description: Unauthorized
  */
-router.post('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE']), save);
+router.post('/category', guard.check([['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE']]), save);
 
 /**
  * @swagger
@@ -219,7 +219,7 @@ router.post('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE']), 
  *       404:
  *         description: Not Found
  */
-router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), update);
+router.put('/category', guard.check([['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']]), update);
 
 /**
  * @swagger
@@ -249,7 +249,7 @@ router.put('/category', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_SAVE']), upd
  *       404:
  *         description: Not Found
  */
-router.delete('/category/:id', guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_DELETE']), deleteCategoryByIdRoute);
+router.delete('/category/:id', guard.check([['ROLE_ADMIN'], ['ROLE_CATEGORY_DELETE']]), deleteCategoryByIdRoute);
 
 checkPermissionRoute(router);
 

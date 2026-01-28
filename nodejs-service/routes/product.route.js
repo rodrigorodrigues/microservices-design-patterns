@@ -22,8 +22,8 @@ function saveProductRoute(request, response) {
         .catch(reason => responseHandlerService.error(response, reason));
 }
 
-router.put("/product", guard.check(['ROLE_ADMIN'], ['ROLE_PRODUCT_SAVE']), updateProductRoute);
-router.post("/product", guard.check(['ROLE_ADMIN'], ['ROLE_PRODUCT_CREATE']), saveProductRoute);
+router.put("/product", guard.check([['ROLE_ADMIN'], ['ROLE_PRODUCT_SAVE']['ROLE_ADMIN'], ['ROLE_PRODUCT_SAVE']]), updateProductRoute);
+router.post("/product", guard.check([['ROLE_ADMIN'], ['ROLE_ADMIN'], ['ROLE_PRODUCT_CREATE']]), saveProductRoute);
 
 checkPermissionRoute(router);
 

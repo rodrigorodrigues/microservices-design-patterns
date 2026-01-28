@@ -24,8 +24,8 @@ public class JwksSymmetricController {
 	@ResponseBody
 	public Map<String, Object> index() {
 		OctetSequenceKey key = new OctetSequenceKey.Builder(authenticationProperties.getJwt().getKeyValue().getBytes(StandardCharsets.UTF_8))
-//				.algorithm(Algorithm.parse("HS256"))
-//				.keyID("test")
+				.algorithm(Algorithm.parse("HS256"))
+				.keyID("test")
 				.build();
 
 //		return new JWKSet(key).toJSONObject();

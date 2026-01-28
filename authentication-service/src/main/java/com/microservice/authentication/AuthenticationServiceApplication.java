@@ -148,6 +148,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("alg", JWSAlgorithm.HS256.getName());
                     jsonObject.put("typ", "JWT");
+                    jsonObject.put("kid", "test");
 
                     JWSHeader header = JWSHeader.parse(jsonObject);
                     SignedJWT signedJWT = new SignedJWT(header, claimsSet);
@@ -156,6 +157,7 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
                     return Jwt.withTokenValue(signedJWT.serialize())
                         .header("alg", header.getAlgorithm().getName())
                         .header("typ", "JWT")
+                        .header("kid", header.getKeyID())
                         .subject(claimsSet.getSubject())
                         .issuer(claimsSet.getIssuer())
                         .claims(claims -> claims.putAll(claimsSet.getClaims()))

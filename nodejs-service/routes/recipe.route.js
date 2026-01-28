@@ -27,7 +27,7 @@ const utility = require('../utils/utility');
 
 const checkPermissionRoute = require('./checkPermissionRoute');
 
-router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE']), (req, res) => {
+router.get("/recipe", guard.check([['ROLE_ADMIN'], ['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE'], ['SCOPE_openid']]), (req, res) => {
 
     Recipe
         .find()
@@ -39,7 +39,7 @@ router.get("/recipe", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE
         });
 });
 
-router.get("/recipe/week", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ']), (req, res) => {
+router.get("/recipe/week", guard.check([['ROLE_ADMIN'], ['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['SCOPE_openid']]), (req, res) => {
 
     Recipe
         .find({isInMenuWeek: true})
@@ -53,7 +53,7 @@ router.get("/recipe/week", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ']), (r
 });
 
 
-router.get("/recipe/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']), (req, res) => {
+router.get("/recipe/:id", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']]), (req, res) => {
 
     log.logOnRoutes("Recipe name", req.params.id);
 
@@ -67,7 +67,7 @@ router.get("/recipe/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['RO
 });
 
 
-router.get("/recipe/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']), (req, response) => {
+router.get("/recipe/category/:id", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']]), (req, response) => {
 
     Recipe
         .findOne({_id: req.params.id})
@@ -137,7 +137,7 @@ router.get("/recipe/category/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_REA
         });
 });
 
-router.get("/recipe/category/currentAttribute/:id", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']), (req, response) => {
+router.get("/recipe/category/currentAttribute/:id", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE']]), (req, response) => {
 
     Recipe
         .findOne({_id: req.params.id})
@@ -189,7 +189,7 @@ router.get("/recipe/category/currentAttribute/:id", guard.check(['ROLE_ADMIN'], 
 });
 
 
-router.post('/recipe', guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']), (request, res) => {
+router.post('/recipe', guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']]), (request, res) => {
 
     let recipeCommand = request.body;
 
@@ -209,7 +209,7 @@ router.post('/recipe', guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE']), (req
         });
 });
 
-router.put('/recipe', guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']), (request, res) => {
+router.put('/recipe', guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']]), (request, res) => {
     // ** Concept status ** use 204 No Content to indicate to the client that
     //... it doesn't need to change its current "document view".
 
@@ -251,9 +251,9 @@ router.put('/recipe', guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']), (reques
  * there is Attr => push
  * there is not => create, push
 
- save ingredient and recipe arrays
+ save ingredients and recipe arrays
  */
-router.put("/recipe/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']), (request, response) => {
+router.put("/recipe/ingredient", guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE']]), (request, response) => {
 
     //only one ingredient
     // check false or true(checkbox)
@@ -320,7 +320,7 @@ router.put("/recipe/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_SAVE'
         });
 });
 
-router.delete('/recipe', guard.check(['ROLE_ADMIN'], ['ROLE_RECIPE_DELETE']), (req, res) => {
+router.delete('/recipe', guard.check([['ROLE_ADMIN'], ['ROLE_RECIPE_DELETE']]), (req, res) => {
 
     Recipe.findByIdAndRemove(req.body._id)
         .then((doc) => {

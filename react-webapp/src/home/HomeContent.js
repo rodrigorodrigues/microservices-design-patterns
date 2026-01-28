@@ -200,39 +200,38 @@ class HomeContent extends Component {
     }
 
     displayWeekMenuButtons(authorities) {
-        const isAdmin = authorities.some(item => item === 'ROLE_ADMIN');
-        const hasCategoryReadAccess = authorities.some(item => item === 'ROLE_CATEGORY_READ' 
-        || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE')
-        const hasRecipeReadAccess = authorities.some(item => item === 'ROLE_RECIPE_READ' 
-        || item === 'ROLE_RECIPE_CREATE' || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE')
-        const hasIngredientReadAccess = authorities.some(item => item === 'ROLE_INGREDIENT_READ' 
-        || item === 'ROLE_INGREDIENT_CREATE' || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE')
-        return (<NavItem eventKey="admin" disabled={(!isAdmin)}>
+        const hasCategoryPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_READ' 
+        || item === 'ROLE_CATEGORY_CREATE' || item === 'ROLE_CATEGORY_SAVE' || item === 'ROLE_CATEGORY_DELETE' || item === 'SCOPE_openid'));
+        const hasRecipePermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_RECIPE_READ' 
+        || item === 'ROLE_RECIPE_CREATE' || item === 'ROLE_RECIPE_SAVE' || item === 'ROLE_RECIPE_DELETE' || item === 'SCOPE_openid'));
+        const hasIngredientPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_INGREDIENT_READ' 
+        || item === 'ROLE_INGREDIENT_CREATE' || item === 'ROLE_INGREDIENT_SAVE' || item === 'ROLE_INGREDIENT_DELETE' || item === 'SCOPE_openid'));
+        return (<NavItem eventKey="weekMenu" disabled={(authorities === undefined)}>
             <NavIcon>
-                <i className="fa fa-fw fa-cogs" style={{ fontSize: '1.5em' }} />
+                <i className="fa fa-fw fa-wrench" style={{ fontSize: '1.5em' }} />
             </NavIcon>
-            <NavText style={{ paddingRight: 32 }} title="Admin">
+            <NavText style={{ paddingRight: 32 }} title="weekMenu">
                 Week Menu
             </NavText>
-            <NavItem eventKey="manageCategories" disabled={(!isAdmin)}>
+            <NavItem eventKey="categories" disabled={(!hasCategoryPermission)}>
                 <NavIcon>
-                    <i className="fa fa-fw fa-users" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Categories" />
+                    <i className="fa fa-fw fa-cog" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Categories" />
                 </NavIcon>
-                <NavText style={{ paddingRight: 32 }} title="manageCategories">
+                <NavText style={{ paddingRight: 32 }} title="categories">
                     Manage Categories
                 </NavText>
             </NavItem>
-            <NavItem eventKey="manageReceipts" disabled={(!isAdmin)}>
+            <NavItem eventKey="recipes" disabled={(!hasRecipePermission)}>
                 <NavIcon>
                     <i className="fa fa-fw fa-codepen" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Receipts" />
                 </NavIcon>
-                <NavText style={{ paddingRight: 32 }} title="Manage Receipts">
-                    manageReceipts
+                <NavText style={{ paddingRight: 32 }} title="recipes">
+                    Manage Recipes
                 </NavText>
             </NavItem>
-            <NavItem eventKey="manageIngredients" disabled={(!isAdmin)}>
+            <NavItem eventKey="ingredients" disabled={(!hasIngredientPermission)}>
                 <NavIcon title="Manage Ingredients">
-                    <i className="fa fa-fw fa-exclamation-triangle" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Ingredients" />
+                    <i className="fa fa-fw fa-paint-brush" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="Manage Ingredients" />
                 </NavIcon>
                 <NavText style={{ paddingRight: 32 }} title="Manage Ingredients">
                     Manage Ingredients

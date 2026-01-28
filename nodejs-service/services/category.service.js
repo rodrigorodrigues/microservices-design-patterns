@@ -37,6 +37,7 @@ function CategoryService() {
                 });
         },
         get() {
+            console.log("Finding categories...");
             return Category
                 .find()
                 .sort({ 'name': 1 })

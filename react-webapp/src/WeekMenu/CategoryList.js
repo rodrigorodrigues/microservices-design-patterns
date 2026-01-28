@@ -98,7 +98,13 @@ class CategoryList extends Component {
   }
 
   render() {
-    const { categories, isLoading, displayError, displayAlert, displaySwagger, expanded } = this.state;
+    const { categories, isLoading, displayError, authorities, displayAlert, displaySwagger, expanded } = this.state;
+
+    const hasCreateAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_CREATE' || item === 'SCOPE_openid');
+
+    const hasSaveAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_SAVE' || item === 'SCOPE_openid');
+
+    const hasDeleteAccess = authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_CATEGORY_DELETE' || item === 'SCOPE_openid');
 
     const categoryList = categories.map(category => {
       const productName = category.products.map(product => product.name).join(", ");
@@ -110,8 +116,8 @@ class CategoryList extends Component {
         <td>{productQuantities}</td>
         <td>
           <ButtonGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/categories/" + category._id}>Edit</Button>
-            <Button size="sm" color="danger" onClick={() => this.remove({'id': category._id, 'name': category.name})}>Delete</Button>
+            <Button size="sm" color="primary" tag={Link} to={"/categories/" + category._id} disabled={!hasSaveAccess}>Edit</Button>
+            <Button size="sm" color="danger" onClick={() => this.remove({'id': category._id, 'name': category.name})} disabled={!hasDeleteAccess}>Delete</Button>
           </ButtonGroup>
         </td>
       </tr>
@@ -143,7 +149,7 @@ class CategoryList extends Component {
         <TabContent activeTab={this.state.activeTab}>
           <TabPane tabId="1">
             <div className="float-right">
-              <Button color="success" tag={Link} to="/categories/new">Add Category</Button>
+              <Button color="success" tag={Link} to="/categories/new" disabled={!hasCreateAccess || displayAlert}>Add Category</Button>
             </div>
 
             <Table striped responsive>

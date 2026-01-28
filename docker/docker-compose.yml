@@ -192,6 +192,32 @@ services:
         aliases:
           - receipt-api
 
+  warehouse-api:
+    build:
+      args:
+        - PORT=8089
+      context: ../rust-service
+      dockerfile: Dockerfile
+    container_name: warehouse-api
+    environment:
+      - HOST_NAME=warehouse-api
+      - CONSUL_SERVER=service-discovery
+      - MONGODB_URI=mongodb://mongodb-datasource/docker
+      - SERVER_PORT=8089
+      - RUST_LOG=TRACE
+      - APP_NAME=rust-service
+      - CONSUL_ENABLED=true
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - service-discovery
+      - mongodb-datasource
+    ports:
+      - 8089:8089
+    networks:
+      net:
+        aliases:
+          - warehouse-api
+
   post-api:
     build:
       args:

@@ -386,6 +386,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Quarkus/JDK 25
 * [X] Java - Add TestContainers
 * [] Add Open Telemetry
+* [X] Rust – Add Service using Rust/Actix-web
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)
