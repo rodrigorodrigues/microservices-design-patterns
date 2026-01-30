@@ -1,0 +1,193 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-review:
+    # Only run on PR comments that mention @claude
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && 
+       github.event.issue.pull_request && 
+       contains(github.event.comment.body, '@claude'))
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get PR diff
+        id: pr_diff
+        run: |
+          # Get the base branch
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          
+          # Get diff with context
+          git diff $BASE_SHA..$HEAD_SHA > pr_diff.txt
+          
+          # Get changed files list
+          git diff --name-only $BASE_SHA..$HEAD_SHA > changed_files.txt
+          
+          # Get PR size info
+          ADDITIONS=$(git diff --shortstat $BASE_SHA..$HEAD_SHA | grep -oP '\d+(?= insertion)')
+          DELETIONS=$(git diff --shortstat $BASE_SHA..$HEAD_SHA | grep -oP '\d+(?= deletion)')
+          echo "additions=${ADDITIONS:-0}" >> $GITHUB_OUTPUT
+          echo "deletions=${DELETIONS:-0}" >> $GITHUB_OUTPUT
+
+      - name: Get PR and comment context
+        id: pr_context
+        run: |
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "user_question=${{ github.event.comment.body }}" >> $GITHUB_OUTPUT
+            echo "is_comment=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_comment=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Call Claude API for review
+        id: claude_review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # Read the diff and changed files
+          DIFF_CONTENT=$(cat pr_diff.txt | head -c 50000)  # Limit to first 50k chars
+          CHANGED_FILES=$(cat changed_files.txt)
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          USER_QUESTION="${{ steps.pr_context.outputs.user_question }}"
+          IS_COMMENT="${{ steps.pr_context.outputs.is_comment }}"
+          
+          # Build the prompt based on whether this is a comment or initial review
+          if [ "$IS_COMMENT" = "true" ]; then
+            PROMPT="A user asked: ${USER_QUESTION}
+
+Context - This is about PR #${{ github.event.issue.number }}
+Changed files:
+${CHANGED_FILES}
+
+Diff:
+${DIFF_CONTENT}
+
+Please answer the user's question about this PR."
+          else
+            PROMPT="Please review this Pull Request for the microservices-design-patterns repository.
+
+PR Title: ${PR_TITLE}
+PR Description: ${PR_BODY}
+
+Changed files:
+${CHANGED_FILES}
+
+Diff (first 50k characters):
+${DIFF_CONTENT}
+
+This is a microservices project using:
+- Java (Spring Boot 2, MongoDB)
+- Kotlin, Node.js, Python, Go
+- React frontend
+- Docker/Kubernetes deployment
+- Design patterns: API Gateway, Service Discovery (Consul), JWT auth, distributed tracing
+
+Please provide:
+1. **Architecture Review**: Does this align with microservice patterns?
+2. **Code Quality**: Any issues with code structure, naming, or best practices?
+3. **Security**: Any security concerns (auth, secrets, injection risks)?
+4. **Testing**: Are there adequate tests?
+5. **Documentation**: Should README or docs be updated?
+6. **Cross-language concerns**: If multiple languages affected, any integration issues?
+
+Keep it concise and actionable. Focus on significant issues."
+          fi
+
+          # Call Claude API
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -d @- <<EOF
+          {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 2000,
+            "messages": [
+              {
+                "role": "user",
+                "content": "${PROMPT//\"/\\\"}"
+              }
+            ]
+          }
+          EOF
+          )
+          
+          # Extract the text content
+          REVIEW=$(echo "$RESPONSE" | jq -r '.content[0].text // "Error: Could not generate review"')
+          
+          # Save to file for next step
+          echo "$REVIEW" > claude_review.txt
+
+      - name: Post review comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('claude_review.txt', 'utf8');
+            
+            const comment = `## 🤖 Claude AI Review\n\n${review}\n\n---\n*Review powered by Claude Sonnet 4 • Reply with @claude and a question for more details*`;
+            
+            if (context.eventName === 'issue_comment') {
+              // Reply to the comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            } else {
+              // Post review on PR
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: comment
+              });
+            }
+
+      - name: Analyze for critical issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('claude_review.txt', 'utf8');
+            
+            // Check for critical keywords
+            const criticalKeywords = [
+              'security', 'vulnerability', 'critical', 'unsafe', 
+              'sql injection', 'xss', 'hardcoded', 'secret'
+            ];
+            
+            const hasCriticalIssues = criticalKeywords.some(keyword => 
+              review.toLowerCase().includes(keyword)
+            );
+            
+            if (hasCriticalIssues && context.eventName === 'pull_request') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: ['needs-security-review']
+              });
+            }

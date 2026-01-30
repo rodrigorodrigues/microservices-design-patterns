@@ -1,0 +1,169 @@
+name: Claude Issue Assistant
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  claude-issue-help:
+    # Only run if issue has 'help-wanted' or 'question' label, or comment mentions @claude
+    if: |
+      (github.event_name == 'issues' && 
+       (contains(github.event.issue.labels.*.name, 'help-wanted') || 
+        contains(github.event.issue.labels.*.name, 'question'))) ||
+      (github.event_name == 'issue_comment' && 
+       !github.event.issue.pull_request && 
+       contains(github.event.comment.body, '@claude'))
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get relevant code context
+        id: code_context
+        run: |
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          
+          # Try to extract file paths or service names from issue/comment
+          # Look for common patterns like filepath mentions or service names
+          SERVICES="authentication-service person-service user-service nodejs-service kotlin-service python-service go-service quarkus-service"
+          
+          echo "Found services in project structure" > context.txt
+          ls -la >> context.txt
+          
+          # Check if specific service is mentioned
+          for service in $SERVICES; do
+            if echo "$ISSUE_BODY $COMMENT_BODY" | grep -qi "$service"; then
+              echo "=== $service ===" >> context.txt
+              if [ -d "$service" ]; then
+                find "$service" -name "*.md" -o -name "README*" | head -5 | xargs cat >> context.txt 2>/dev/null || true
+              fi
+            fi
+          done
+
+      - name: Call Claude API for issue analysis
+        id: claude_analysis
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          CONTEXT=$(cat context.txt | head -c 10000)
+          
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            PROMPT="A user asked: ${COMMENT_BODY}
+
+Context - This is about issue #${{ github.event.issue.number }}
+Issue title: ${ISSUE_TITLE}
+Original issue: ${ISSUE_BODY}
+
+Project context:
+${CONTEXT}
+
+Please help answer their question about this microservices project."
+          else
+            PROMPT="Please help with this GitHub issue for the microservices-design-patterns repository.
+
+Issue: ${ISSUE_TITLE}
+Description: ${ISSUE_BODY}
+
+Project context:
+${CONTEXT}
+
+This project includes:
+- Multiple microservices in Java, Kotlin, Node.js, Python, Go
+- Spring Boot 2, MongoDB per service
+- Consul for service discovery
+- Docker/Kubernetes deployment
+- React frontend
+- OAuth2/JWT authentication
+
+Please provide:
+1. **Understanding**: What is the user trying to achieve?
+2. **Relevant services/files**: Which parts of the codebase are involved?
+3. **Potential solutions**: Actionable suggestions
+4. **Resources**: Links to relevant docs or patterns
+
+Be helpful and specific to this microservices architecture."
+          fi
+
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -d @- <<EOF
+          {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 2000,
+            "messages": [
+              {
+                "role": "user",
+                "content": "${PROMPT//\"/\\\"}"
+              }
+            ]
+          }
+          EOF
+          )
+          
+          ANALYSIS=$(echo "$RESPONSE" | jq -r '.content[0].text // "Error: Could not generate analysis"')
+          echo "$ANALYSIS" > claude_analysis.txt
+
+      - name: Post analysis comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('claude_analysis.txt', 'utf8');
+            
+            const comment = `## 🤖 Claude AI Assistant\n\n${analysis}\n\n---\n*Powered by Claude Sonnet 4 • Mention @claude in comments for follow-up questions*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Suggest labels
+        uses: actions/github-script@v7
+        if: github.event_name == 'issues'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('claude_analysis.txt', 'utf8').toLowerCase();
+            
+            const labelMap = {
+              'bug': ['error', 'bug', 'issue', 'broken', 'fails'],
+              'enhancement': ['feature', 'improve', 'add', 'enhancement', 'new'],
+              'documentation': ['docs', 'documentation', 'readme', 'guide'],
+              'java': ['java', 'spring', 'maven'],
+              'docker': ['docker', 'container', 'kubernetes', 'k8s'],
+              'security': ['security', 'auth', 'jwt', 'oauth']
+            };
+            
+            const suggestedLabels = [];
+            for (const [label, keywords] of Object.entries(labelMap)) {
+              if (keywords.some(keyword => analysis.includes(keyword))) {
+                suggestedLabels.push(label);
+              }
+            }
+            
+            if (suggestedLabels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: suggestedLabels
+              });
+            }
