@@ -12,11 +12,12 @@ permissions:
 
 jobs:
   claude-issue-help:
-    # Only run if issue has 'help-wanted' or 'question' label, or comment mentions @claude
+    # Run if: issue has labels, issue body mentions @claude, or comment mentions @claude
     if: |
       (github.event_name == 'issues' && 
        (contains(github.event.issue.labels.*.name, 'help-wanted') || 
-        contains(github.event.issue.labels.*.name, 'question'))) ||
+        contains(github.event.issue.labels.*.name, 'question') ||
+        contains(github.event.issue.body, '@claude'))) ||
       (github.event_name == 'issue_comment' && 
        !github.event.issue.pull_request && 
        contains(github.event.comment.body, '@claude'))
