@@ -218,6 +218,38 @@ services:
         aliases:
           - warehouse-api
 
+  stock-api:
+    build:
+      args:
+        - PORT=8087
+      context: ../dotnet-service
+      dockerfile: Dockerfile
+    container_name: stock-api
+    environment:
+      - HOST_NAME=stock-api
+      - CONSUL_SERVER=service-discovery
+      - MONGODB_URI=mongodb://mongodb-datasource:27017/warehousedb
+      - SERVER_PORT=8087
+      - APP_NAME=dotnet-service
+      - CONSUL_ENABLED=true
+      - CONSUL_PORT=8500
+      - CONSUL_KV_PATH=config/dotnet-service
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWKS_VALIDATION=true
+      - JWKS_URL=http://authentication-service:9999/.well-known/jwks.json
+      - JWKS_ALGORITHM=RS256
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8087
+    depends_on:
+      - service-discovery
+      - mongodb-datasource
+    ports:
+      - 8087:8087
+    networks:
+      net:
+        aliases:
+          - stock-api
+
   post-api:
     build:
       args:

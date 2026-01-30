@@ -11,4 +11,5 @@ if ! curl -k --retry 5 --retry-connrefused --retry-delay 5 -H "Content-Type: app
     curl --request PUT --data-binary @spring-cloud-config/authentication-service.yml http://service-discovery:8500/v1/kv/config/authentication-service/data
     curl --request PUT --data-binary @spring-cloud-config/quarkus-service.yml http://service-discovery:8500/v1/kv/config/quarkus-service/data
     curl --request PUT --data-binary @spring-cloud-config/applicationDev.yml http://service-discovery:8500/v1/kv/config/rust-service/dev
+    curl --request PUT --data-binary @spring-cloud-config/applicationDev.yml http://service-discovery:8500/v1/kv/config/dotnet-service/dev
 fi

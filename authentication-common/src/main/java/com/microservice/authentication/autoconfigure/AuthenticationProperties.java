@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AuthenticationProperties {
     private String issuer = "https://spendingbetter.com";
     private String aud = "https://spendingbetter.com";
+    private String kid = "test";
 
     private Jwk jwk = new Jwk();
     private Jwt jwt = new Jwt();

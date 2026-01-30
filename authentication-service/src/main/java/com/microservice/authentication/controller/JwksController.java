@@ -4,6 +4,7 @@ import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
+import com.microservice.authentication.autoconfigure.AuthenticationProperties;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import lombok.AllArgsConstructor;
@@ -18,12 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class JwksController {
 	private final KeyPair keyPair;
+    private final AuthenticationProperties properties;
 
 	@GetMapping("/.well-known/jwks.json")
 	@ResponseBody
 	public Map<String, Object> index() {
 		RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-		RSAKey key = new RSAKey.Builder(publicKey).build();
+		RSAKey key = new RSAKey.Builder(publicKey)
+            .keyID(properties.getKid())
+            .build();
 		return new JWKSet(key).toJSONObject();
 	}
 }

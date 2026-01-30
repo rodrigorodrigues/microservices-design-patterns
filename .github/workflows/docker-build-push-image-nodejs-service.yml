@@ -45,7 +45,7 @@ jobs:
           file: ./nodejs-service/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: fielcapao/microservices-design-patterns-nodejs-service-service:latest
+          tags: fielcapao/microservices-design-patterns-nodejs-service:latest
           build-args: |
             GITHUB_SHA=$GITHUB_SHA
             GITHUB_REF=$GITHUB_REF

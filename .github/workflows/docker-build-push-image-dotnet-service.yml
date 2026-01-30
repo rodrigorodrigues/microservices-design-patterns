@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI - Build and push Docker images - Rust Service
+name: CI - Build and push Docker images - Dotnet Service
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -12,7 +12,7 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    if: contains(toJson(github), 'build rust-service')
+    if: contains(toJson(github), 'build dotnet-service')
     name: Build Jar/Docker Image and Publish to DockerHub
 
     # The type of runner that the job will run on
@@ -41,15 +41,15 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./rust-service
-          file: ./rust-service/Dockerfile
+          context: ./dotnet-service
+          file: ./dotnet-service/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: fielcapao/microservices-design-patterns-rust-service:latest
+          tags: fielcapao/microservices-design-patterns-dotnet-service:latest
           build-args: |
             GITHUB_SHA=$GITHUB_SHA
             GITHUB_REF=$GITHUB_REF
-            PORT=8087
+            PORT=8089
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
