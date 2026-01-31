@@ -95,6 +95,16 @@ spring:
                       - Path=/swagger/rust-service/**
                     filters:
                       - RewritePath=/rust-service/(?<segment>.*), /$\{segment}
+                  - id: dotnet-service
+                    uri: lb://dotnet-service
+                    predicates:
+                      - Path=/api/stocks/**
+                  - id: dotnet-service-swagger
+                    uri: lb://dotnet-service
+                    predicates:
+                      - Path=/swagger/dotnet-service/**
+                    filters:
+                      - RewritePath=/dotnet-service/(?<segment>.*), /$\{segment}
 
 com:
     microservice:
