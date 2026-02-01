@@ -82,7 +82,10 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                                 .flatMap(sessionObj -> {
                                                     WebSession sessionRepository = (WebSession) sessionObj;
                                                     OAuth2AccessToken accessToken = sessionRepository.getAttribute("token");
-                                                    log.debug("verifyTokenRedis:Set authorization header from redis session");
+                                                    if (accessToken == null) {
+                                                        return chain.filter(exchange);
+                                                    }
+                                                    log.debug("verifyTokenRedis:Set authorization header from redis session: {}", accessToken);
 
                                                     HttpHeaders writeableHeaders = HttpHeaders.readOnlyHttpHeaders(
                                                             exchange.getRequest().getHeaders());
