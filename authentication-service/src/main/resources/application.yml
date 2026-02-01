@@ -92,6 +92,8 @@ spring:
                             redirect-uris:
                                 - "http://127.0.0.1:3000"
                                 - "http://127.0.0.1:9999"
+                                - "http://192.168.1.26:8080/android/oauth2/callback"
+                                - "http://192.168.1.26:9999/android/oauth2/callback"
                             scopes:
                                 - "openid"
                                 - "profile"
@@ -149,6 +151,7 @@ spring:
                                 - "refresh_token"
                             redirect-uris:
                                 - "https://spendingbetter.com"
+                                - "https://spendingbetter.com/android/oauth2/callback"
                             scopes:
                                 - "openid"
                                 - "profile"
