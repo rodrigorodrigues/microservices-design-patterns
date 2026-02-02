@@ -388,6 +388,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [ ] Add Open Telemetry
 * [X] Rust – Add Service using Rust/Actix-web - `Used Claude Agent`
 * [X] C# – Add Service using C#/.NET Framework - `Used Claude Agent`
+* [X] Add Android Client - `Used Claude Agent`
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@android:drawable/ic_menu_info_details"
+            android:title="Dashboard" />
+        <item
+            android:id="@+id/nav_companies"
+            android:icon="@android:drawable/ic_menu_sort_by_size"
+            android:title="Companies" />
+        <item
+            android:id="@+id/nav_persons"
+            android:icon="@android:drawable/ic_menu_myplaces"
+            android:title="Persons" />
+        <item
+            android:id="@+id/nav_products"
+            android:icon="@android:drawable/ic_menu_gallery"
+            android:title="Products" />
+        <item
+            android:id="@+id/nav_users"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="Users" />
+        <item
+            android:id="@+id/nav_warehouses"
+            android:icon="@android:drawable/ic_menu_compass"
+            android:title="Warehouses" />
+        <item
+            android:id="@+id/nav_stocks"
+            android:icon="@android:drawable/ic_menu_today"
+            android:title="Stocks" />
+    </group>
+    <item android:title="Account">
+        <menu>
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@android:drawable/ic_menu_close_clear_cancel"
+                android:title="Logout" />
+        </menu>
+    </item>
+</menu>

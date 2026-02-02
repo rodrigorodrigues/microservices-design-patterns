@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".MainApplication"
+        android:allowBackup="true"
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AndroidWebapp"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".ui.DashboardActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar" />
+
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="false"
+            android:label="@string/login"
+            android:theme="@style/Theme.AndroidWebapp" />
+
+        <activity
+            android:name=".ui.OAuth2CallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="spendingbetter.com"
+                    android:pathPrefix="/android/oauth2/callback" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="http"
+                    android:host="192.168.1.26"
+                    android:port="8080"
+                    android:path="/android/oauth2/callback" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.CompanyListActivity"
+            android:exported="false"
+            android:label="Companies"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.CompanyFormActivity"
+            android:exported="false"
+            android:label="Company"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.CompanyListActivity" />
+
+        <activity
+            android:name=".ui.PersonListActivity"
+            android:exported="false"
+            android:label="Persons"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.PersonFormActivity"
+            android:exported="false"
+            android:label="Person"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.PersonListActivity" />
+
+        <activity
+            android:name=".ui.ProductListActivity"
+            android:exported="false"
+            android:label="Products"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.ProductFormActivity"
+            android:exported="false"
+            android:label="Product"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.ProductListActivity" />
+
+        <activity
+            android:name=".ui.UserListActivity"
+            android:exported="false"
+            android:label="Users"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.UserFormActivity"
+            android:exported="false"
+            android:label="User"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.UserListActivity" />
+
+        <activity
+            android:name=".ui.WarehouseListActivity"
+            android:exported="false"
+            android:label="Warehouses"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.WarehouseFormActivity"
+            android:exported="false"
+            android:label="Warehouse"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.WarehouseListActivity" />
+
+        <activity
+            android:name=".ui.StockListActivity"
+            android:exported="false"
+            android:label="Stocks"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.StockFormActivity"
+            android:exported="false"
+            android:label="Stock"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.StockListActivity" />
+    </application>
+
+</manifest>
