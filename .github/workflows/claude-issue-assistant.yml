@@ -1,4 +1,4 @@
-name: Claude Issue Assistant
+name: Claude Issue Assistant (Debug)
 
 "on":
   issues:
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Call Claude API
+      - name: Call Claude API with Debug
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -36,18 +36,25 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          # Build the prompt based on event type
+          echo "🔍 Starting Claude API call..."
+          echo "Event: $EVENT_NAME"
+          echo "Issue: #$ISSUE_NUMBER"
+          
+          # Build prompt
           if [ "$EVENT_NAME" = "issue_comment" ]; then
             PROMPT="A user asked: $COMMENT_BODY. This is about issue #$ISSUE_NUMBER with title: $ISSUE_TITLE. Please help answer their question about this microservices project (Java, Kotlin, Node.js, Python, Go with Spring Boot, MongoDB, Consul, Docker/Kubernetes)."
           else
             PROMPT="Please help with this GitHub issue for microservices-design-patterns. Issue: $ISSUE_TITLE. Description: $ISSUE_BODY. This project includes multiple microservices in Java, Kotlin, Node.js, Python, Go with Spring Boot 2, MongoDB per service, Consul for service discovery, Docker/Kubernetes deployment, React frontend, and OAuth2/JWT authentication. Provide: 1) Understanding of what the user wants, 2) Relevant services/files involved, 3) Actionable solutions, 4) Resources/docs."
           fi
           
-          # Escape quotes in prompt
+          # Escape quotes
           PROMPT=$(echo "$PROMPT" | sed 's/"/\\"/g' | tr '\n' ' ')
           
-          # Call Claude API
-          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+          echo "📝 Prompt length: ${#PROMPT} characters"
+          
+          # Call Claude API with verbose output
+          echo "🌐 Calling Anthropic API..."
+          HTTP_CODE=$(curl -w "%{http_code}" -o response.json \
             -H "Content-Type: application/json" \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -d "{
@@ -57,10 +64,31 @@ jobs:
                 \"role\": \"user\",
                 \"content\": \"$PROMPT\"
               }]
-            }")
+            }" \
+            https://api.anthropic.com/v1/messages)
           
-          # Extract response
-          echo "$RESPONSE" | jq -r '.content[0].text // "Error: Could not generate analysis"' > claude_analysis.txt
+          echo "📊 HTTP Status Code: $HTTP_CODE"
+          echo ""
+          echo "📄 Full API Response:"
+          cat response.json
+          echo ""
+          
+          # Check for success
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ API call successful!"
+            jq -r '.content[0].text // "No text content found"' response.json > claude_analysis.txt
+          else
+            echo "❌ API call failed with status $HTTP_CODE"
+            # Try to extract error message
+            ERROR_MSG=$(jq -r '.error.message // .message // "Unknown error"' response.json 2>/dev/null || echo "Could not parse error")
+            echo "Error: $ERROR_MSG" > claude_analysis.txt
+            echo "Full error details:" >> claude_analysis.txt
+            cat response.json >> claude_analysis.txt
+          fi
+          
+          echo ""
+          echo "📝 Analysis file content:"
+          cat claude_analysis.txt
 
       - name: Post comment
         uses: actions/github-script@v7
@@ -78,41 +106,3 @@ jobs:
               issue_number: context.issue.number,
               body: comment
             });
-
-      - name: Auto-label
-        uses: actions/github-script@v7
-        if: github.event_name == 'issues'
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const analysis = fs.readFileSync('claude_analysis.txt', 'utf8').toLowerCase();
-            
-            const labelMap = {
-              'bug': ['error', 'bug', 'broken', 'fails'],
-              'enhancement': ['feature', 'improve', 'add', 'new'],
-              'documentation': ['docs', 'documentation', 'readme'],
-              'java': ['java', 'spring', 'maven'],
-              'docker': ['docker', 'container', 'kubernetes'],
-              'security': ['security', 'auth', 'jwt']
-            };
-            
-            const suggestedLabels = [];
-            for (const [label, keywords] of Object.entries(labelMap)) {
-              if (keywords.some(keyword => analysis.includes(keyword))) {
-                suggestedLabels.push(label);
-              }
-            }
-            
-            if (suggestedLabels.length > 0) {
-              try {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  labels: suggestedLabels
-                });
-              } catch (error) {
-                console.log('Could not add labels:', error.message);
-              }
-            }
