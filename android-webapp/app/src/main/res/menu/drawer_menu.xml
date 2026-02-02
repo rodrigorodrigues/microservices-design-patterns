@@ -29,6 +29,14 @@
             android:id="@+id/nav_stocks"
             android:icon="@android:drawable/ic_menu_today"
             android:title="Stocks" />
+        <item
+            android:id="@+id/nav_posts"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="Posts" />
+        <item
+            android:id="@+id/nav_tasks"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Tasks" />
     </group>
     <item android:title="Account">
         <menu>

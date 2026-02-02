@@ -54,9 +54,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="http"
-                    android:host="192.168.1.26"
-                    android:port="8080"
+                    android:scheme="https"
+                    android:host="spendingbetter.com"
+                    android:port="443"
                     android:path="/android/oauth2/callback" />
             </intent-filter>
         </activity>
@@ -144,6 +144,34 @@
             android:label="Stock"
             android:theme="@style/Theme.AndroidWebapp.NoActionBar"
             android:parentActivityName=".ui.StockListActivity" />
+
+        <activity
+            android:name=".ui.PostListActivity"
+            android:exported="false"
+            android:label="Posts"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
+            android:name=".ui.PostFormActivity"
+            android:exported="false"
+            android:label="Post"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.PostListActivity" />
+
+        <activity
+            android:name=".ui.TaskListActivity"
+            android:exported="false"
+            android:label="Tasks"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
+            android:name=".ui.TaskFormActivity"
+            android:exported="false"
+            android:label="Task"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.TaskListActivity" />
     </application>
 
 </manifest>

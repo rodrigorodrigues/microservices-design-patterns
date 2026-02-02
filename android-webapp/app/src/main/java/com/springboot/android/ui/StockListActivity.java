@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +17,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.StockService;
+import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Stock;
+import com.springboot.android.util.PaginationHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,8 @@ public class StockListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private StockService stockService;
     private StockAdapter adapter;
+    private PaginationHelper paginationHelper;
+    private int currentPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +65,8 @@ public class StockListActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        loadStocks();
+        View paginationView = findViewById(R.id.pagination);
+        paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
     }
 
     @Override
@@ -71,20 +77,26 @@ public class StockListActivity extends AppCompatActivity {
 
     private void loadStocks() {
         swipeRefresh.setRefreshing(true);
-        stockService.getStocks(0, 100).enqueue(new Callback<List<Stock>>() {
+        stockService.getStocks(currentPage, 10).enqueue(new Callback<PageResponse<Stock>>() {
             @Override
-            public void onResponse(Call<List<Stock>> call, Response<List<Stock>> response) {
+            public void onResponse(Call<PageResponse<Stock>> call, Response<PageResponse<Stock>> response) {
                 swipeRefresh.setRefreshing(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    adapter.updateData(response.body());
-                    Log.d(TAG, "Loaded " + response.body().size() + " stocks");
+                    PageResponse<Stock> pageResponse = response.body();
+                    adapter.updateData(pageResponse.getContent());
+                    paginationHelper.updatePagination(
+                        pageResponse.getNumber(),
+                        pageResponse.getTotalPages(),
+                        pageResponse.getTotalElements()
+                    );
+                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " stocks");
                 } else {
                     Toast.makeText(StockListActivity.this, "Failed to load stocks", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Stock>> call, Throwable t) {
+            public void onFailure(Call<PageResponse<Stock>> call, Throwable t) {
                 swipeRefresh.setRefreshing(false);
                 Toast.makeText(StockListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -126,6 +138,11 @@ public class StockListActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void onPageChange(int page) {
+        currentPage = page;
+        loadStocks();
     }
 
     @Override

@@ -16,32 +16,33 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
-import com.springboot.android.api.ProductService;
+import com.springboot.android.api.TaskService;
+import com.springboot.android.model.Task;
 import com.springboot.android.model.PageResponse;
-import com.springboot.android.model.Product;
 import com.springboot.android.util.PaginationHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ProductListActivity extends AppCompatActivity {
-    private static final String TAG = "ProductListActivity";
+public class TaskListActivity extends AppCompatActivity {
+    private static final String TAG = "TaskListActivity";
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefresh;
-    private ProductService productService;
-    private ProductAdapter adapter;
+    private TaskService taskService;
+    private TaskAdapter adapter;
     private PaginationHelper paginationHelper;
     private int currentPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_product_list);
+        setContentView(R.layout.activity_task_list);
 
-        productService = ApiClient.getClient().create(ProductService.class);
+        taskService = ApiClient.getClient().create(TaskService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -52,15 +53,15 @@ public class ProductListActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new ProductAdapter(new ArrayList<>(), this::onEditProduct, this::onDeleteProduct);
+        adapter = new TaskAdapter(new ArrayList<>(), this::onEditTask, this::onDeleteTask);
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
-        swipeRefresh.setOnRefreshListener(this::loadProducts);
+        swipeRefresh.setOnRefreshListener(this::loadTasks);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
         fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ProductFormActivity.class);
+            Intent intent = new Intent(this, TaskFormActivity.class);
             startActivity(intent);
         });
 
@@ -71,66 +72,64 @@ public class ProductListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadProducts();
+        loadTasks();
     }
 
-    private void loadProducts() {
+    private void loadTasks() {
         swipeRefresh.setRefreshing(true);
-        productService.getProducts(currentPage, 10).enqueue(new Callback<PageResponse<Product>>() {
+        taskService.getTasks(currentPage, 10).enqueue(new Callback<PageResponse<Task>>() {
             @Override
-            public void onResponse(Call<PageResponse<Product>> call, Response<PageResponse<Product>> response) {
+            public void onResponse(Call<PageResponse<Task>> call, Response<PageResponse<Task>> response) {
                 swipeRefresh.setRefreshing(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<Product> pageResponse = response.body();
+                    PageResponse<Task> pageResponse = response.body();
                     adapter.updateData(pageResponse.getContent());
                     paginationHelper.updatePagination(
                         pageResponse.getNumber(),
                         pageResponse.getTotalPages(),
                         pageResponse.getTotalElements()
                     );
-                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " products");
+                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " tasks");
                 } else {
-                    Toast.makeText(ProductListActivity.this, "Failed to load products", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(TaskListActivity.this, "Failed to load tasks", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<PageResponse<Product>> call, Throwable t) {
+            public void onFailure(Call<PageResponse<Task>> call, Throwable t) {
                 swipeRefresh.setRefreshing(false);
-                Toast.makeText(ProductListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(TaskListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void onEditProduct(Product product) {
-        Intent intent = new Intent(this, ProductFormActivity.class);
-        intent.putExtra("product_id", product.getId());
-        intent.putExtra("product_name", product.getName());
-        intent.putExtra("product_description", product.getDescription());
-        intent.putExtra("product_price", product.getPrice());
-        intent.putExtra("product_quantity", product.getQuantity());
+    private void onEditTask(Task task) {
+        Intent intent = new Intent(this, TaskFormActivity.class);
+        intent.putExtra("task_id", task.getId());
+        intent.putExtra("task_name", task.getName());
+        intent.putExtra("task_description", task.getDescription());
         startActivity(intent);
     }
 
-    private void onDeleteProduct(Product product) {
+    private void onDeleteTask(Task task) {
         new AlertDialog.Builder(this)
-            .setTitle("Delete Product")
-            .setMessage("Are you sure you want to delete " + product.getName() + "?")
+            .setTitle("Delete Task")
+            .setMessage("Are you sure you want to delete " + task.getName() + "?")
             .setPositiveButton("Delete", (dialog, which) -> {
-                productService.deleteProduct(product.getId()).enqueue(new Callback<Void>() {
+                taskService.deleteTask(task.getId()).enqueue(new Callback<Void>() {
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
-                            Toast.makeText(ProductListActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
-                            loadProducts();
+                            Toast.makeText(TaskListActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
+                            loadTasks();
                         } else {
-                            Toast.makeText(ProductListActivity.this, "Failed to delete", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TaskListActivity.this, "Failed to delete", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
-                        Toast.makeText(ProductListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TaskListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             })
@@ -140,7 +139,7 @@ public class ProductListActivity extends AppCompatActivity {
 
     private void onPageChange(int page) {
         currentPage = page;
-        loadProducts();
+        loadTasks();
     }
 
     @Override

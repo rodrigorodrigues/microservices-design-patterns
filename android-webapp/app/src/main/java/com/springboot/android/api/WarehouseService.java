@@ -1,5 +1,6 @@
 package com.springboot.android.api;
 
+import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Warehouse;
 
 import java.util.List;
@@ -16,7 +17,7 @@ import retrofit2.http.Query;
 public interface WarehouseService {
 
     @GET("api/warehouses")
-    Call<List<Warehouse>> getWarehouses(
+    Call<PageResponse<Warehouse>> getWarehouses(
             @Query("page") int page,
             @Query("size") int size
     );

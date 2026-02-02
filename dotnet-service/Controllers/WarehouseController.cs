@@ -8,45 +8,45 @@ using System.Security.Claims;
 namespace DotnetService.Controllers;
 
 [ApiController]
-[Route("api/stocks")]
+[Route("api/warehouses")]
 [Authorize]
-public class StockController : ControllerBase
+public class WarehouseController : ControllerBase
 {
     private readonly IMongoDatabase _database;
-    private readonly ILogger<StockController> _logger;
+    private readonly ILogger<WarehouseController> _logger;
 
-    public StockController(IMongoDatabase database, ILogger<StockController> logger)
+    public WarehouseController(IMongoDatabase database, ILogger<WarehouseController> logger)
     {
         _database = database;
         _logger = logger;
     }
 
     [HttpGet]
-    public async Task<ActionResult<PageResponse<StockResponse>>> GetStocks(
+    public async Task<ActionResult<PageResponse<WarehouseResponse>>> GetWarehouses(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10)
     {
-        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_STOCKS_READ", "ROLE_STOCKS_CREATE",
-                                       "ROLE_STOCKS_SAVE", "ROLE_STOCKS_DELETE", "SCOPE_openid" }))
+        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_WAREHOUSES_READ", "ROLE_WAREHOUSES_CREATE",
+                                       "ROLE_WAREHOUSES_SAVE", "ROLE_WAREHOUSES_DELETE", "SCOPE_openid" }))
         {
             return Forbid();
         }
 
-        var collection = _database.GetCollection<Stock>("stocks");
+        var collection = _database.GetCollection<Warehouse>("warehouses");
         var skip = page * size;
 
-        _logger.LogDebug("Get all stocks - page: {Page}\t size: {Size}", page, size);
+        _logger.LogDebug("Get all warehouses - page: {Page}\t size: {Size}", page, size);
 
         var totalElements = await collection.CountDocumentsAsync(_ => true);
-        var stocks = await collection.Find(_ => true)
+        var warehouses = await collection.Find(_ => true)
             .Skip(skip)
             .Limit(size)
             .ToListAsync();
 
-        var content = stocks.Select(StockResponse.FromStock).ToList();
+        var content = warehouses.Select(WarehouseResponse.FromWarehouse).ToList();
         var totalPages = (int)Math.Ceiling((double)totalElements / size);
 
-        var response = new PageResponse<StockResponse>
+        var response = new PageResponse<WarehouseResponse>
         {
             Content = content,
             Number = page,
@@ -61,44 +61,42 @@ public class StockController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<StockResponse>> CreateStock([FromBody] StockRequest request)
+    public async Task<ActionResult<WarehouseResponse>> CreateWarehouse([FromBody] WarehouseRequest request)
     {
-        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_STOCKS_CREATE", "SCOPE_openid" }))
+        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_WAREHOUSES_CREATE", "SCOPE_openid" }))
         {
             return Forbid();
         }
 
-        var collection = _database.GetCollection<Stock>("stocks");
+        var collection = _database.GetCollection<Warehouse>("warehouses");
         var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown";
 
-        var stock = new Stock
+        var warehouse = new Warehouse
         {
             Name = request.Name,
-            Quantity = request.Quantity,
-            Category = request.Category,
+            Location = request.Location,
+            Capacity = request.Capacity,
             CreatedDate = DateTime.UtcNow,
             LastModifiedDate = null,
             CreatedByUser = username,
-            LastModifiedByUser = null,
-            Price = request.Price,
-            Currency = request.Currency
+            LastModifiedByUser = null
         };
 
-        await collection.InsertOneAsync(stock);
+        await collection.InsertOneAsync(warehouse);
 
-        var inserted = await collection.Find(w => w.Id == stock.Id).FirstOrDefaultAsync();
+        var inserted = await collection.Find(w => w.Id == warehouse.Id).FirstOrDefaultAsync();
         if (inserted == null)
         {
-            return StatusCode(500, new ErrorResponse { Error = "Stock created but not found" });
+            return StatusCode(500, new ErrorResponse { Error = "Warehouse created but not found" });
         }
 
-        return CreatedAtAction(nameof(GetStock), new { id = inserted.Id }, StockResponse.FromStock(inserted));
+        return CreatedAtAction(nameof(GetWarehouse), new { id = inserted.Id }, WarehouseResponse.FromWarehouse(inserted));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<StockResponse>> GetStock(string id)
+    public async Task<ActionResult<WarehouseResponse>> GetWarehouse(string id)
     {
-        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_STOCKS_READ", "ROLE_STOCKS_SAVE", "SCOPE_openid" }))
+        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_WAREHOUSES_READ", "ROLE_WAREHOUSES_SAVE", "SCOPE_openid" }))
         {
             return Forbid();
         }
@@ -108,21 +106,21 @@ public class StockController : ControllerBase
             return BadRequest(new ErrorResponse { Error = "Invalid ID format" });
         }
 
-        var collection = _database.GetCollection<Stock>("stocks");
-        var stock = await collection.Find(w => w.Id == id).FirstOrDefaultAsync();
+        var collection = _database.GetCollection<Warehouse>("warehouses");
+        var warehouse = await collection.Find(w => w.Id == id).FirstOrDefaultAsync();
 
-        if (stock == null)
+        if (warehouse == null)
         {
-            return NotFound(new ErrorResponse { Error = "Stock not found" });
+            return NotFound(new ErrorResponse { Error = "Warehouse not found" });
         }
 
-        return Ok(StockResponse.FromStock(stock));
+        return Ok(WarehouseResponse.FromWarehouse(warehouse));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<StockResponse>> UpdateStock(string id, [FromBody] StockRequest request)
+    public async Task<ActionResult<WarehouseResponse>> UpdateWarehouse(string id, [FromBody] WarehouseRequest request)
     {
-        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_STOCKS_SAVE", "SCOPE_openid" }))
+        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_WAREHOUSES_SAVE", "SCOPE_openid" }))
         {
             return Forbid();
         }
@@ -132,15 +130,13 @@ public class StockController : ControllerBase
             return BadRequest(new ErrorResponse { Error = "Invalid ID format" });
         }
 
-        var collection = _database.GetCollection<Stock>("stocks");
+        var collection = _database.GetCollection<Warehouse>("warehouses");
         var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown";
 
-        var update = Builders<Stock>.Update
+        var update = Builders<Warehouse>.Update
             .Set(w => w.Name, request.Name)
-            .Set(w => w.Quantity, request.Quantity)
-            .Set(w => w.Category, request.Category)
-            .Set(w => w.Price, request.Price)
-            .Set(w => w.Currency, request.Currency)
+            .Set(w => w.Location, request.Location)
+            .Set(w => w.Capacity, request.Capacity)
             .Set(w => w.LastModifiedDate, DateTime.UtcNow)
             .Set(w => w.LastModifiedByUser, username);
 
@@ -148,22 +144,22 @@ public class StockController : ControllerBase
 
         if (result.MatchedCount == 0)
         {
-            return NotFound(new ErrorResponse { Error = "Stock not found" });
+            return NotFound(new ErrorResponse { Error = "Warehouse not found" });
         }
 
         var updated = await collection.Find(w => w.Id == id).FirstOrDefaultAsync();
         if (updated == null)
         {
-            return StatusCode(500, new ErrorResponse { Error = "Stock updated but not found" });
+            return StatusCode(500, new ErrorResponse { Error = "Warehouse updated but not found" });
         }
 
-        return Ok(StockResponse.FromStock(updated));
+        return Ok(WarehouseResponse.FromWarehouse(updated));
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<MessageResponse>> DeleteStock(string id)
+    public async Task<ActionResult<MessageResponse>> DeleteWarehouse(string id)
     {
-        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_STOCKS_DELETE", "SCOPE_openid" }))
+        if (!CheckPermissions(new[] { "ROLE_ADMIN", "ROLE_WAREHOUSES_DELETE", "SCOPE_openid" }))
         {
             return Forbid();
         }
@@ -173,15 +169,15 @@ public class StockController : ControllerBase
             return BadRequest(new ErrorResponse { Error = "Invalid ID format" });
         }
 
-        var collection = _database.GetCollection<Stock>("stocks");
+        var collection = _database.GetCollection<Warehouse>("warehouses");
         var result = await collection.DeleteOneAsync(w => w.Id == id);
 
         if (result.DeletedCount == 0)
         {
-            return NotFound(new ErrorResponse { Error = "Stock not found" });
+            return NotFound(new ErrorResponse { Error = "Warehouse not found" });
         }
 
-        return Ok(new MessageResponse { Msg = $"Deleted stock id: {id}" });
+        return Ok(new MessageResponse { Msg = $"Deleted warehouse id: {id}" });
     }
 
     private bool CheckPermissions(string[] requiredRoles)

@@ -1,5 +1,6 @@
 package com.springboot.android.api;
 
+import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Stock;
 
 import java.util.List;
@@ -16,7 +17,7 @@ import retrofit2.http.Query;
 public interface StockService {
 
     @GET("api/stocks")
-    Call<List<Stock>> getStocks(
+    Call<PageResponse<Stock>> getStocks(
             @Query("page") int page,
             @Query("size") int size
     );

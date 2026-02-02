@@ -261,11 +261,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadWarehouses() {
         Log.d(TAG, "Loading warehouses...");
-        warehouseService.getWarehouses(0, 20).enqueue(new Callback<java.util.List<Warehouse>>() {
+        warehouseService.getWarehouses(0, 20).enqueue(new Callback<PageResponse<Warehouse>>() {
             @Override
-            public void onResponse(Call<java.util.List<Warehouse>> call, Response<java.util.List<Warehouse>> response) {
+            public void onResponse(Call<PageResponse<Warehouse>> call, Response<PageResponse<Warehouse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    java.util.List<Warehouse> warehouses = response.body();
+                    java.util.List<Warehouse> warehouses = response.body().getContent();
                     StringBuilder sb = new StringBuilder("Warehouses:\n");
                     for (Warehouse warehouse : warehouses) {
                         sb.append("- ").append(warehouse.getName())
@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<java.util.List<Warehouse>> call, Throwable t) {
+            public void onFailure(Call<PageResponse<Warehouse>> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Error loading warehouses", t);
             }
@@ -292,11 +292,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadStocks() {
         Log.d(TAG, "Loading stocks...");
-        stockService.getStocks(0, 20).enqueue(new Callback<java.util.List<Stock>>() {
+        stockService.getStocks(0, 20).enqueue(new Callback<PageResponse<Stock>>() {
             @Override
-            public void onResponse(Call<java.util.List<Stock>> call, Response<java.util.List<Stock>> response) {
+            public void onResponse(Call<PageResponse<Stock>> call, Response<PageResponse<Stock>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    java.util.List<Stock> stocks = response.body();
+                    java.util.List<Stock> stocks = response.body().getContent();
                     StringBuilder sb = new StringBuilder("Stocks:\n");
                     for (Stock stock : stocks) {
                         sb.append("- ").append(stock.getName())
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<java.util.List<Stock>> call, Throwable t) {
+            public void onFailure(Call<PageResponse<Stock>> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Error loading stocks", t);
             }

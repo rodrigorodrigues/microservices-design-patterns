@@ -1,6 +1,6 @@
 use crate::middleware;
 use crate::middleware::check_permissions;
-use crate::models::{Claims, ErrorResponse, MessageResponse, Warehouse, WarehouseRequest, WarehouseResponse};
+use crate::models::{Claims, ErrorResponse, MessageResponse, PageResponse, Warehouse, WarehouseRequest, WarehouseResponse};
 use actix_web::{web, HttpMessage, HttpRequest, HttpResponse, Responder};
 use log::{debug, error};
 use mongodb::{bson::{doc, oid::ObjectId, DateTime as BsonDateTime, to_document}, Database};
@@ -81,7 +81,7 @@ pub fn config_actuator(cfg: &mut web::ServiceConfig) {
         ("size" = Option<u64>, Query, description = "Page size")
     ),
     responses(
-        (status = 200, description = "List of warehouses", body = Vec<WarehouseResponse>),
+        (status = 200, description = "Paginated list of warehouses", body = PageResponse<WarehouseResponse>),
         (status = 401, description = "Unauthorized", body = ErrorResponse),
         (status = 403, description = "Forbidden", body = ErrorResponse)
     ),
@@ -118,23 +118,54 @@ async fn get_warehouses(
 
     debug!("Get all warehouses - page: {}\t size: {}", page, size);
 
-    match collection.find(None, None).await {
+    // Get total count
+    let total_elements = match collection.count_documents(None, None).await {
+        Ok(count) => count,
+        Err(e) => {
+            error!("Error counting warehouses: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Database error: {}", e),
+            });
+        }
+    };
+
+    // Calculate pagination metadata
+    let total_pages = if size > 0 {
+        (total_elements as f64 / size as f64).ceil() as u64
+    } else {
+        0
+    };
+
+    // Fetch paginated data
+    let find_options = mongodb::options::FindOptions::builder()
+        .skip(skip)
+        .limit(size as i64)
+        .build();
+
+    match collection.find(None, find_options).await {
         Ok(mut cursor) => {
             use futures::stream::StreamExt;
             let mut warehouses = Vec::new();
-            let mut count = 0;
 
             while let Some(result) = cursor.next().await {
-                if count >= skip && warehouses.len() < size as usize {
-                    if let Ok(warehouse) = result {
-                        warehouses.push(warehouse);
-                    }
+                if let Ok(warehouse) = result {
+                    warehouses.push(warehouse);
                 }
-                count += 1;
             }
 
-            let response: Vec<WarehouseResponse> = warehouses.into_iter().map(|w| w.into()).collect();
-            HttpResponse::Ok().json(response)
+            let content: Vec<WarehouseResponse> = warehouses.into_iter().map(|w| w.into()).collect();
+
+            let page_response = PageResponse {
+                content,
+                number: page,
+                size,
+                total_pages,
+                total_elements,
+                first: page == 0,
+                last: page >= total_pages.saturating_sub(1),
+            };
+
+            HttpResponse::Ok().json(page_response)
         }
         Err(e) => {
             error!("Error fetching warehouses: {}", e);

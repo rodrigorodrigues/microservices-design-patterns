@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.UserService;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.User;
+import com.springboot.android.util.PaginationHelper;
 
 import java.util.ArrayList;
 
@@ -31,6 +33,8 @@ public class UserListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private UserService userService;
     private UserAdapter adapter;
+    private PaginationHelper paginationHelper;
+    private int currentPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +64,8 @@ public class UserListActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        loadUsers();
+        View paginationView = findViewById(R.id.pagination);
+        paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
     }
 
     @Override
@@ -71,13 +76,19 @@ public class UserListActivity extends AppCompatActivity {
 
     private void loadUsers() {
         swipeRefresh.setRefreshing(true);
-        userService.getUsers(0, 100).enqueue(new Callback<PageResponse<User>>() {
+        userService.getUsers(currentPage, 10).enqueue(new Callback<PageResponse<User>>() {
             @Override
             public void onResponse(Call<PageResponse<User>> call, Response<PageResponse<User>> response) {
                 swipeRefresh.setRefreshing(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    adapter.updateData(response.body().getContent());
-                    Log.d(TAG, "Loaded " + response.body().getContent().size() + " users");
+                    PageResponse<User> pageResponse = response.body();
+                    adapter.updateData(pageResponse.getContent());
+                    paginationHelper.updatePagination(
+                        pageResponse.getNumber(),
+                        pageResponse.getTotalPages(),
+                        pageResponse.getTotalElements()
+                    );
+                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " users");
                 } else {
                     Toast.makeText(UserListActivity.this, "Failed to load users", Toast.LENGTH_SHORT).show();
                 }
@@ -125,6 +136,11 @@ public class UserListActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void onPageChange(int page) {
+        currentPage = page;
+        loadUsers();
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +17,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.WarehouseService;
+import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Warehouse;
+import com.springboot.android.util.PaginationHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,8 @@ public class WarehouseListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private WarehouseService warehouseService;
     private WarehouseAdapter adapter;
+    private PaginationHelper paginationHelper;
+    private int currentPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +65,8 @@ public class WarehouseListActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        loadWarehouses();
+        View paginationView = findViewById(R.id.pagination);
+        paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
     }
 
     @Override
@@ -71,20 +77,26 @@ public class WarehouseListActivity extends AppCompatActivity {
 
     private void loadWarehouses() {
         swipeRefresh.setRefreshing(true);
-        warehouseService.getWarehouses(0, 100).enqueue(new Callback<List<Warehouse>>() {
+        warehouseService.getWarehouses(currentPage, 10).enqueue(new Callback<PageResponse<Warehouse>>() {
             @Override
-            public void onResponse(Call<List<Warehouse>> call, Response<List<Warehouse>> response) {
+            public void onResponse(Call<PageResponse<Warehouse>> call, Response<PageResponse<Warehouse>> response) {
                 swipeRefresh.setRefreshing(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    adapter.updateData(response.body());
-                    Log.d(TAG, "Loaded " + response.body().size() + " warehouses");
+                    PageResponse<Warehouse> pageResponse = response.body();
+                    adapter.updateData(pageResponse.getContent());
+                    paginationHelper.updatePagination(
+                        pageResponse.getNumber(),
+                        pageResponse.getTotalPages(),
+                        pageResponse.getTotalElements()
+                    );
+                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " warehouses");
                 } else {
                     Toast.makeText(WarehouseListActivity.this, "Failed to load warehouses", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Warehouse>> call, Throwable t) {
+            public void onFailure(Call<PageResponse<Warehouse>> call, Throwable t) {
                 swipeRefresh.setRefreshing(false);
                 Toast.makeText(WarehouseListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -126,6 +138,11 @@ public class WarehouseListActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void onPageChange(int page) {
+        currentPage = page;
+        loadWarehouses();
     }
 
     @Override

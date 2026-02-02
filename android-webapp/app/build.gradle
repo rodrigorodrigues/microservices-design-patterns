@@ -17,17 +17,17 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "BASE_URL", "\"${System.getenv('BASE_URL') ?: 'http://192.168.1.26:8080/'}\""
+        buildConfigField "String", "BASE_URL", "\"${System.getenv('BASE_URL') ?: 'https://spendingbetter.com/'}\""
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField "String", "BASE_URL", "\"${System.getenv('BASE_URL') ?: 'http://localhost:8080/'}\""
+            buildConfigField "String", "BASE_URL", "\"${System.getenv('BASE_URL') ?: 'https://spendingbetter.com/'}\""
         }
         debug {
-            buildConfigField "String", "BASE_URL", "\"${System.getenv('BASE_URL') ?: 'http://192.168.1.26:8080/'}\""
+            buildConfigField "String", "BASE_URL", "\"${System.getenv('BASE_URL') ?: 'https://spendingbetter.com/'}\""
         }
     }
 

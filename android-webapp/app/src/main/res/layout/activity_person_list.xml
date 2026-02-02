@@ -37,4 +37,11 @@
         android:layout_margin="16dp"
         app:srcCompat="@android:drawable/ic_input_add" />
 
+    <include
+        android:id="@+id/pagination"
+        layout="@layout/pagination_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

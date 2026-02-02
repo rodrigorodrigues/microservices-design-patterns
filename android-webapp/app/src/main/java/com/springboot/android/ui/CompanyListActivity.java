@@ -19,6 +19,7 @@ import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.CompanyService;
 import com.springboot.android.model.Company;
 import com.springboot.android.model.PageResponse;
+import com.springboot.android.util.PaginationHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,8 @@ public class CompanyListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private CompanyService companyService;
     private CompanyAdapter adapter;
+    private PaginationHelper paginationHelper;
+    private int currentPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +65,8 @@ public class CompanyListActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        loadCompanies();
+        View paginationView = findViewById(R.id.pagination);
+        paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
     }
 
     @Override
@@ -73,13 +77,19 @@ public class CompanyListActivity extends AppCompatActivity {
 
     private void loadCompanies() {
         swipeRefresh.setRefreshing(true);
-        companyService.getCompanies(0, 100).enqueue(new Callback<PageResponse<Company>>() {
+        companyService.getCompanies(currentPage, 10).enqueue(new Callback<PageResponse<Company>>() {
             @Override
             public void onResponse(Call<PageResponse<Company>> call, Response<PageResponse<Company>> response) {
                 swipeRefresh.setRefreshing(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    adapter.updateData(response.body().getContent());
-                    Log.d(TAG, "Loaded " + response.body().getContent().size() + " companies");
+                    PageResponse<Company> pageResponse = response.body();
+                    adapter.updateData(pageResponse.getContent());
+                    paginationHelper.updatePagination(
+                        pageResponse.getNumber(),
+                        pageResponse.getTotalPages(),
+                        pageResponse.getTotalElements()
+                    );
+                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " companies");
                 } else {
                     Toast.makeText(CompanyListActivity.this, "Failed to load companies", Toast.LENGTH_SHORT).show();
                 }
@@ -127,6 +137,11 @@ public class CompanyListActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void onPageChange(int page) {
+        currentPage = page;
+        loadCompanies();
     }
 
     @Override

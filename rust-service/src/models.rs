@@ -92,6 +92,19 @@ pub struct MessageResponse {
     pub msg: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct PageResponse<T> {
+    pub content: Vec<T>,
+    pub number: u64,
+    pub size: u64,
+    #[serde(rename = "totalPages")]
+    pub total_pages: u64,
+    #[serde(rename = "totalElements")]
+    pub total_elements: u64,
+    pub first: bool,
+    pub last: bool,
+}
+
 // Custom serializer to format BsonDateTime as ISO 8601 string (for JSON responses only)
 pub fn serialize_bson_datetime<S>(
     date: &Option<BsonDateTime>,
