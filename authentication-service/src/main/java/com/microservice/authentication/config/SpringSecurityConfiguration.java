@@ -119,7 +119,8 @@ public class SpringSecurityConfiguration {
         "/oauth2/**",
         "/connect/**",
         "/userInfo",
-        "/login/**"
+        "/login/**",
+        "/android/oauth2/callback"
     };
 
     @Order(1)
@@ -346,7 +347,24 @@ public class SpringSecurityConfiguration {
                 response.setStatus(HttpStatus.OK.value());
                 response.getWriter().append(jsonMapper.writeValueAsString(token));
             } else {
-                new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
+                // Check if this is from Android OAuth2 flow or OAuth2 authentication
+                String referer = request.getHeader("Referer");
+                String userAgent = request.getHeader("User-Agent");
+                boolean isOAuth2 = authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+
+                log.debug("Success handler - User-Agent: {}, Referer: {}, isOAuth2: {}", userAgent, referer, isOAuth2);
+
+                // If coming from Android, OAuth2 login, or explicitly requesting Android callback
+                if ((userAgent != null && userAgent.toLowerCase().contains("android")) ||
+                    (referer != null && referer.contains("android")) ||
+                    request.getParameter("android") != null ||
+                    isOAuth2) {
+                    log.info("Redirecting to Android OAuth2 callback (isOAuth2: {}, userAgent: {})", isOAuth2, userAgent);
+                    response.sendRedirect("/android/oauth2/callback");
+                } else {
+                    log.info("Using default success handler");
+                    new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
+                }
             }
         };
     }
