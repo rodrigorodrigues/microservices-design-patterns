@@ -142,15 +142,43 @@ class ProductsApi(Resource):
     })
     @tracing.trace()
     def get(self):
-        page = request.args.get("page", 0)
-        size = request.args.get("size", 10)
+        page = int(request.args.get("page", 0))
+        size = int(request.args.get("size", 10))
         log.debug(f'Get all products - page: {page}\t size: {size}')
+
         try:
-            products = Product.objects.paginate(page=page, per_page=size, error_out=False).to_json()
+            # MongoEngine pagination is 1-based, so add 1 to page
+            pagination = Product.objects.paginate(page=page + 1, per_page=size)
+
+            # Convert products to dict
+            products_list = [p.to_mongo().to_dict() for p in pagination.items]
+
+            # Convert ObjectId to string for JSON serialization
+            for product in products_list:
+                if '_id' in product:
+                    product['id'] = str(product['_id'])
+                    del product['_id']
+
+            # Calculate total pages
+            total_pages = (pagination.total + size - 1) // size if size > 0 else 0
+
+            # Build PageResponse
+            page_response = {
+                'content': products_list,
+                'number': page,
+                'size': size,
+                'totalPages': total_pages,
+                'totalElements': pagination.total,
+                'first': page == 0,
+                'last': page >= total_pages - 1
+            }
+
+            return Response(jsonify(page_response).data, mimetype="application/json", status=200)
         except Exception as e:
-            log.warn('Did not work pagination', exc_info=e)
+            log.exception('Pagination failed', exc_info=e)
+            # Fallback to non-paginated response
             products = Product.objects().to_json()
-        return Response(products, mimetype="application/json", status=200)
+            return Response(products, mimetype="application/json", status=200)
 
     """Create new product"""
 
