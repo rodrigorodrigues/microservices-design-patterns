@@ -2,6 +2,8 @@ package com.springboot.android.api;
 
 import android.content.Context;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.springboot.android.BuildConfig;
 import com.springboot.android.util.SessionManager;
 
@@ -94,7 +96,20 @@ public class ApiClient {
                     requestBuilder.method(original.method(), original.body());
 
                     Request request = requestBuilder.build();
-                    return chain.proceed(request);
+                    Response response = chain.proceed(request);
+
+                    // Log response body for debugging JSON parsing issues
+                    if (BuildConfig.DEBUG && response.body() != null) {
+                        String responseBody = response.body().string();
+                        android.util.Log.d("ApiClient", "URL: " + request.url());
+                        android.util.Log.d("ApiClient", "Response: " + responseBody.substring(0, Math.min(1000, responseBody.length())));
+                        // Recreate response with the body since we consumed it
+                        return response.newBuilder()
+                                .body(okhttp3.ResponseBody.create(response.body().contentType(), responseBody))
+                                .build();
+                    }
+
+                    return response;
                 }
             });
 
@@ -102,9 +117,14 @@ public class ApiClient {
                 httpClient.addInterceptor(logging);
             }
 
+            // Create lenient Gson instance to handle JSON parsing issues
+            Gson gson = new GsonBuilder()
+                    .setLenient()
+                    .create();
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(BuildConfig.BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .client(httpClient.build())
                     .build();
         }

@@ -27,16 +27,40 @@ const utility = require('../utils/utility');
 
 const checkPermissionRoute = require('./checkPermissionRoute');
 
-router.get("/recipe", guard.check([['ROLE_ADMIN'], ['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE'], ['SCOPE_openid']]), (req, res) => {
+router.get("/recipe", guard.check([['ROLE_ADMIN'], ['ROLE_ADMIN'], ['ROLE_RECIPE_CREATE'], ['ROLE_RECIPE_READ'], ['ROLE_RECIPE_SAVE'], ['ROLE_RECIPE_DELETE'], ['SCOPE_openid']]), async (req, res) => {
 
-    Recipe
-        .find()
-        .sort({name: 1})
-        .then((doc) => {
-            utility.handleResponse(res, doc, 200);
-        }, (reason) => {
-            utility.wmHandleError(res, reason);
-        });
+    const page = parseInt(req.query.page) || 0;
+    const size = parseInt(req.query.size) || 10;
+    const skip = page * size;
+
+    try {
+        // Get total count
+        const totalElements = await Recipe.countDocuments();
+
+        // Get paginated data
+        const docs = await Recipe.find()
+            .sort({name: 1})
+            .skip(skip)
+            .limit(size);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Build page response
+        const pageResponse = {
+            content: docs,
+            number: page,
+            size: size,
+            totalPages: totalPages,
+            totalElements: totalElements,
+            first: page === 0,
+            last: page >= totalPages - 1
+        };
+
+        utility.handleResponse(res, pageResponse, 200);
+    } catch (reason) {
+        utility.wmHandleError(res, reason);
+    }
 });
 
 router.get("/recipe/week", guard.check([['ROLE_ADMIN'], ['ROLE_ADMIN'], ['ROLE_RECIPE_READ'], ['SCOPE_openid']]), (req, res) => {

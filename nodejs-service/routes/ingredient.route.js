@@ -103,15 +103,40 @@ const UtilService = require('../services/util');
  *       401:
  *         description: Unauthorized
  */
-router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE'], ['ROLE_INGREDIENT_DELETE']), (request, response, next) => {
+router.get("/ingredient", guard.check(['ROLE_ADMIN'], ['ROLE_INGREDIENT_CREATE'], ['ROLE_INGREDIENT_READ'], ['ROLE_INGREDIENT_SAVE'], ['ROLE_INGREDIENT_DELETE']), async (request, response, next) => {
 
-    Ingredient.find()
-        .sort({'name': 1})
-        .then((docs) => {
-            UtilService.handleResponse(response, docs, 200);
-        }, (reason) => {
-            UtilService.wmHandleError(response, reason);
-        });
+    const page = parseInt(request.query.page) || 0;
+    const size = parseInt(request.query.size) || 10;
+    const skip = page * size;
+
+    try {
+        // Get total count
+        const totalElements = await Ingredient.countDocuments();
+
+        // Get paginated data
+        const docs = await Ingredient.find()
+            .sort({'name': 1})
+            .skip(skip)
+            .limit(size);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Build page response
+        const pageResponse = {
+            content: docs,
+            number: page,
+            size: size,
+            totalPages: totalPages,
+            totalElements: totalElements,
+            first: page === 0,
+            last: page >= totalPages - 1
+        };
+
+        UtilService.handleResponse(response, pageResponse, 200);
+    } catch (reason) {
+        UtilService.wmHandleError(response, reason);
+    }
 
 });
 

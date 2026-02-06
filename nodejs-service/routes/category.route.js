@@ -61,12 +61,41 @@ router.get("/category/migration/cat/23", (request, response, next) => {
     })
 });
 
-router.get("/category", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), (request, response, next) => {
-    Category.find()
-        .populate('ingredients')
-        .sort({ 'name': 1 })
-        .then(categories => UtilService.handleResponse(response, categories, 200))
-        .catch(reason => UtilService.wmHandleError(response, reason));
+router.get("/category", guard.check(['ROLE_ADMIN'], ['ROLE_CATEGORY_CREATE'], ['ROLE_CATEGORY_READ'], ['ROLE_CATEGORY_SAVE'], ['ROLE_CATEGORY_DELETE']), async (request, response, next) => {
+
+    const page = parseInt(request.query.page) || 0;
+    const size = parseInt(request.query.size) || 10;
+    const skip = page * size;
+
+    try {
+        // Get total count
+        const totalElements = await Category.countDocuments();
+
+        // Get paginated data
+        const categories = await Category.find()
+            .populate('ingredients')
+            .sort({ 'name': 1 })
+            .skip(skip)
+            .limit(size);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Build page response
+        const pageResponse = {
+            content: categories,
+            number: page,
+            size: size,
+            totalPages: totalPages,
+            totalElements: totalElements,
+            first: page === 0,
+            last: page >= totalPages - 1
+        };
+
+        UtilService.handleResponse(response, pageResponse, 200);
+    } catch (reason) {
+        UtilService.wmHandleError(response, reason);
+    }
 });
 
 // ###### improved above 

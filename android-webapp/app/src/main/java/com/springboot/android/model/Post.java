@@ -10,9 +10,9 @@ public class Post {
     @SerializedName("name")
     private String name;
 
-    // Excluded to avoid circular reference
-    // @SerializedName("tasks")
-    private transient List<Task> tasks;
+    // Tasks array is optional in the response
+    @SerializedName("tasks")
+    private List<Task> tasks;
 
     @SerializedName("createdByUser")
     private String createdByUser;

@@ -80,24 +80,36 @@ public class UserListActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<PageResponse<User>> call, Response<PageResponse<User>> response) {
                 swipeRefresh.setRefreshing(false);
+                Log.d(TAG, "Response code: " + response.code());
                 if (response.isSuccessful() && response.body() != null) {
                     PageResponse<User> pageResponse = response.body();
-                    adapter.updateData(pageResponse.getContent());
-                    paginationHelper.updatePagination(
-                        pageResponse.getNumber(),
-                        pageResponse.getTotalPages(),
-                        pageResponse.getTotalElements()
-                    );
-                    Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " users");
+                    if (pageResponse.getContent() != null) {
+                        Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " users out of " + pageResponse.getTotalElements());
+                        adapter.updateData(pageResponse.getContent());
+                        paginationHelper.updatePagination(
+                            pageResponse.getNumber(),
+                            pageResponse.getTotalPages(),
+                            pageResponse.getTotalElements()
+                        );
+                    } else {
+                        Log.e(TAG, "Content is null in PageResponse");
+                        Toast.makeText(UserListActivity.this, "No users data in response", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(UserListActivity.this, "Failed to load users", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Request failed - Code: " + response.code() + ", Message: " + response.message());
+                    if (response.code() == 401) {
+                        Toast.makeText(UserListActivity.this, "Unauthorized - Please login again", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(UserListActivity.this, "Failed to load users: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<PageResponse<User>> call, Throwable t) {
                 swipeRefresh.setRefreshing(false);
-                Toast.makeText(UserListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Request failed with exception", t);
+                Toast.makeText(UserListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }

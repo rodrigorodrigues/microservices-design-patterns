@@ -36,13 +36,40 @@ function CategoryService() {
                     return Promise.reject(reason);
                 });
         },
-        get() {
+        async get(page = 0, size = 10) {
             console.log("Finding categories...");
-            return Category
-                .find()
-                .sort({ 'name': 1 })
-                .then(UtilService.sortAllProductCategory)
-                .catch(reason => Promise.reject(reason));
+            try {
+                const skip = page * size;
+
+                // Get total count
+                const totalElements = await Category.countDocuments();
+
+                // Get paginated data
+                const categories = await Category
+                    .find()
+                    .sort({ 'name': 1 })
+                    .skip(skip)
+                    .limit(size);
+
+                // Sort products within categories
+                const sortedCategories = UtilService.sortAllProductCategory(categories);
+
+                // Calculate total pages
+                const totalPages = Math.ceil(totalElements / size);
+
+                // Build page response
+                return {
+                    content: sortedCategories,
+                    number: page,
+                    size: size,
+                    totalPages: totalPages,
+                    totalElements: totalElements,
+                    first: page === 0,
+                    last: page >= totalPages - 1
+                };
+            } catch (reason) {
+                return Promise.reject(reason);
+            }
         },
         getById(id) {
             return Category

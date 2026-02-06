@@ -28,6 +28,9 @@ public interface AuthService {
     @GET("api/authenticate")
     Call<User> getCurrentUser();
 
+    @GET("api/authenticatedUser")
+    Call<AccountInfo> getAuthenticatedUser();
+
     @POST("api/logout")
     Call<Void> logout();
 }

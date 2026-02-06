@@ -1,12 +1,22 @@
 package com.springboot.android.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 public class PageResponse<T> {
     private List<T> content;
+
+    @SerializedName("totalPages")
     private int totalPages;
+
+    @SerializedName("totalElements")
     private long totalElements;
+
+    // Support both "number" and "page" field names
+    @SerializedName(value = "number", alternate = {"page"})
     private int number;
+
     private int size;
     private boolean first;
     private boolean last;

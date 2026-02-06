@@ -8,8 +8,11 @@ const { STATUS } = require('../constants/status.code');
 const checkPermissionRoute = require('./checkPermissionRoute');
 
 function get(request, response) {
+    const page = parseInt(request.query.page) || 0;
+    const size = parseInt(request.query.size) || 10;
+
     RecipeService
-        .get()
+        .get(page, size)
         .then(doc => responseHandlerService.send(response, { doc, status: STATUS.GET_CODE }))
         .catch(reason => responseHandlerService.error(response, reason));
 }

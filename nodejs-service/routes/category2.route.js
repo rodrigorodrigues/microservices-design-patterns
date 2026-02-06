@@ -21,8 +21,11 @@ function getCategoryByIdRoute(request, response) {
         .catch(reason => responseHandlerService.error(response, reason));
 }
 function getCategoryRoute(request, response) {
+    const page = parseInt(request.query.page) || 0;
+    const size = parseInt(request.query.size) || 10;
+
     CategoryService
-        .get()
+        .get(page, size)
         .then(doc => responseHandlerService.send(response, {doc, status: STATUS.GET_CODE}))
         .catch(reason => responseHandlerService.error(response, reason));
 }

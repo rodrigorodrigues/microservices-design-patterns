@@ -12,6 +12,15 @@ public class Task {
     @SerializedName("description")
     private String description;
 
+    @SerializedName("postId")
+    private String postId;
+
+    @SerializedName("personId")
+    private String personId;
+
+    @SerializedName("requestId")
+    private String requestId;
+
     // Excluded to avoid circular reference
     // @SerializedName("post")
     private transient Post post;
@@ -99,5 +108,29 @@ public class Task {
 
     public void setLastModifiedDate(String lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public String getPostId() {
+        return postId;
+    }
+
+    public void setPostId(String postId) {
+        this.postId = postId;
+    }
+
+    public String getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(String personId) {
+        this.personId = personId;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 }
