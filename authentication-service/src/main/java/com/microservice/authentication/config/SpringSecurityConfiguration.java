@@ -119,8 +119,7 @@ public class SpringSecurityConfiguration {
         "/oauth2/**",
         "/connect/**",
         "/userInfo",
-        "/login/**",
-        "/android/oauth2/callback"
+        "/login/**"
     };
 
     @Order(1)
