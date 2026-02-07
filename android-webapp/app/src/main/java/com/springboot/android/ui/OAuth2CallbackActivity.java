@@ -58,14 +58,18 @@ public class OAuth2CallbackActivity extends AppCompatActivity {
                         android.util.Log.d("OAuth2Callback", "Using session cookie authentication");
                     }
 
+                    android.util.Log.d("OAuth2Callback", "Authentication successful, navigating to dashboard");
+
                     Toast.makeText(OAuth2CallbackActivity.this,
                             "Welcome " + account.getFullName(), Toast.LENGTH_SHORT).show();
 
-                    // Navigate to dashboard home
+                    // Navigate to dashboard home, clearing all previous activities
                     Intent intent = new Intent(OAuth2CallbackActivity.this, DashboardActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
-                    finish();
+
+                    // Finish this activity and all parent activities
+                    finishAffinity();
                 } else {
                     android.util.Log.e("OAuth2Callback", "Authentication failed with code: " + response.code());
                     Toast.makeText(OAuth2CallbackActivity.this,

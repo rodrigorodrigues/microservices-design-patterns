@@ -1,41 +1,48 @@
 package com.microservice.authentication.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Optional;
+
+import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
+
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Slf4j
 @Controller
 public class AndroidOAuth2Controller {
+    private final AuthenticationCommonRepository authenticationCommonRepository;
 
-    @GetMapping(value = "/android/oauth2/callback", produces = MediaType.TEXT_HTML_VALUE)
-    @ResponseBody
-    public String androidOAuth2Callback(HttpServletRequest request) {
+    public AndroidOAuth2Controller(AuthenticationCommonRepository authenticationCommonRepository) {
+        this.authenticationCommonRepository = authenticationCommonRepository;
+    }
+
+    @GetMapping(value = "/android/oauth2/callback")
+    public void androidOAuth2Callback(Authentication authentication, HttpServletResponse response) throws IOException {
         // After successful OAuth2 authentication with Google,
         // Spring Security redirects here with authenticated session
-        // Android app will intercept this URL via intent-filter
-        // and handle the authentication
+        // Redirect to custom scheme so Android app can intercept
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = "Unknown";
-        String sessionId = request.getSession().getId();
+        Optional<com.microservice.authentication.common.model.Authentication> findById = authenticationCommonRepository.findByEmail(authentication.getName());
 
-        if (auth != null && auth.isAuthenticated()) {
-            username = auth.getName();
+        if (findById.isPresent()) {
+            username = findById.get().getFullName();
             log.info("Android OAuth2 callback - User authenticated: {}", username);
         }
 
-        return "<!DOCTYPE html>" +
+        // Return HTML with multiple redirect methods
+        response.setContentType("text/html");
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        String html = "<!DOCTYPE html>" +
                 "<html>" +
                 "<head>" +
                 "    <meta charset=\"UTF-8\">" +
                 "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
-                "    <meta http-equiv=\"refresh\" content=\"0;url=spendingbetter://oauth2callback\">" +
                 "    <title>Authentication Successful</title>" +
                 "    <style>" +
                 "        body {" +
@@ -52,21 +59,36 @@ public class AndroidOAuth2Controller {
                 "        .success-icon { font-size: 4rem; margin-bottom: 1rem; }" +
                 "        h1 { margin: 0 0 1rem 0; font-size: 2rem; }" +
                 "        p { margin: 0; font-size: 1.1rem; opacity: 0.9; }" +
+                "        .button {" +
+                "            display: inline-block;" +
+                "            margin-top: 2rem;" +
+                "            padding: 1rem 2rem;" +
+                "            background: rgba(255,255,255,0.2);" +
+                "            color: white;" +
+                "            text-decoration: none;" +
+                "            border-radius: 8px;" +
+                "            font-size: 1.1rem;" +
+                "        }" +
                 "    </style>" +
                 "    <script>" +
-                "        // Immediately redirect to the app using custom scheme" +
-                "        window.location.href = 'spendingbetter://oauth2callback';" +
+                "        // Try to redirect after a short delay to ensure page loads" +
+                "        setTimeout(function() {" +
+                "            window.location.replace('spendingbetter://oauth2callback');" +
+                "        }, 100);" +
                 "    </script>" +
                 "</head>" +
                 "<body>" +
                 "    <div class=\"container\">" +
                 "        <div class=\"success-icon\">✓</div>" +
                 "        <h1>Authentication Successful</h1>" +
-                "        <p>Redirecting to app...</p>" +
-                "        <p style=\"margin-top: 1rem; opacity: 0.7; font-size: 0.9rem;\">Welcome, " + username + "</p>" +
-                "        <p style=\"margin-top: 2rem; font-size: 0.9rem;\">If you're not redirected, <a href=\"spendingbetter://oauth2callback\" style=\"color: white; text-decoration: underline;\">click here</a></p>" +
+                "        <p>Welcome, " + username + "!</p>" +
+                "        <a href=\"spendingbetter://oauth2callback\" class=\"button\">Return to App</a>" +
+                "        <p style=\"margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;\">Please click the button above to return to the app</p>" +
                 "    </div>" +
                 "</body>" +
                 "</html>";
+
+        response.getWriter().write(html);
+        response.getWriter().flush();
     }
 }

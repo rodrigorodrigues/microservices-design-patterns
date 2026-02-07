@@ -141,11 +141,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onResume();
 
         // Check if user is authenticated after OAuth2 redirect
+        // This handles the case where Chrome Custom Tab closes and returns to LoginActivity
         if (sessionManager.isLoggedIn()) {
+            android.util.Log.d("LoginActivity", "User is logged in, redirecting to dashboard");
             Intent intent = new Intent(this, DashboardActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-            finish();
+            finishAffinity(); // Close this and any parent activities
         }
     }
 }
