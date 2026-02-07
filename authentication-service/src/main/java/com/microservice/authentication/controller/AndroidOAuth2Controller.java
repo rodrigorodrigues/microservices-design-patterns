@@ -1,13 +1,17 @@
 package com.microservice.authentication.controller;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import com.microservice.authentication.common.repository.AuthenticationCommonRepository;
+import com.microservice.authentication.service.GenerateToken;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -15,24 +19,40 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class AndroidOAuth2Controller {
     private final AuthenticationCommonRepository authenticationCommonRepository;
+    private final GenerateToken generateToken;
 
-    public AndroidOAuth2Controller(AuthenticationCommonRepository authenticationCommonRepository) {
+    public AndroidOAuth2Controller(AuthenticationCommonRepository authenticationCommonRepository, GenerateToken generateToken) {
         this.authenticationCommonRepository = authenticationCommonRepository;
+        this.generateToken = generateToken;
     }
 
     @GetMapping(value = "/android/oauth2/callback")
     public void androidOAuth2Callback(Authentication authentication, HttpServletResponse response) throws IOException {
         // After successful OAuth2 authentication with Google,
-        // Spring Security redirects here with authenticated session
-        // Redirect to custom scheme so Android app can intercept
+        // Generate JWT token and pass it via custom scheme URL
 
         String username = "Unknown";
-        Optional<com.microservice.authentication.common.model.Authentication> findById = authenticationCommonRepository.findByEmail(authentication.getName());
+        String email = authentication.getName();
+        Optional<com.microservice.authentication.common.model.Authentication> findById = authenticationCommonRepository.findByEmail(email);
 
         if (findById.isPresent()) {
             username = findById.get().getFullName();
             log.info("Android OAuth2 callback - User authenticated: {}", username);
         }
+
+        // Generate JWT token
+        OAuth2AccessToken accessToken = generateToken.generateToken(authentication);
+        String jwtToken = accessToken.getTokenValue();
+
+        // URL encode the token and username for safe passing via URL
+        String encodedToken = URLEncoder.encode(jwtToken, StandardCharsets.UTF_8);
+        String encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8);
+        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+        // Build custom scheme URL with token as query parameter
+        String redirectUrl = "spendingbetter://oauth2callback?token=" + encodedToken +
+                            "&username=" + encodedUsername +
+                            "&email=" + encodedEmail;
 
         // Return HTML with multiple redirect methods
         response.setContentType("text/html");
@@ -73,7 +93,7 @@ public class AndroidOAuth2Controller {
                 "    <script>" +
                 "        // Try to redirect after a short delay to ensure page loads" +
                 "        setTimeout(function() {" +
-                "            window.location.replace('spendingbetter://oauth2callback');" +
+                "            window.location.replace('" + redirectUrl + "');" +
                 "        }, 100);" +
                 "    </script>" +
                 "</head>" +
@@ -82,7 +102,7 @@ public class AndroidOAuth2Controller {
                 "        <div class=\"success-icon\">✓</div>" +
                 "        <h1>Authentication Successful</h1>" +
                 "        <p>Welcome, " + username + "!</p>" +
-                "        <a href=\"spendingbetter://oauth2callback\" class=\"button\">Return to App</a>" +
+                "        <a href=\"" + redirectUrl + "\" class=\"button\">Return to App</a>" +
                 "        <p style=\"margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;\">Please click the button above to return to the app</p>" +
                 "    </div>" +
                 "</body>" +
