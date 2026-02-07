@@ -35,6 +35,7 @@ public class AndroidOAuth2Controller {
                 "<head>" +
                 "    <meta charset=\"UTF-8\">" +
                 "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                "    <meta http-equiv=\"refresh\" content=\"0;url=spendingbetter://oauth2callback\">" +
                 "    <title>Authentication Successful</title>" +
                 "    <style>" +
                 "        body {" +
@@ -52,13 +53,18 @@ public class AndroidOAuth2Controller {
                 "        h1 { margin: 0 0 1rem 0; font-size: 2rem; }" +
                 "        p { margin: 0; font-size: 1.1rem; opacity: 0.9; }" +
                 "    </style>" +
+                "    <script>" +
+                "        // Immediately redirect to the app using custom scheme" +
+                "        window.location.href = 'spendingbetter://oauth2callback';" +
+                "    </script>" +
                 "</head>" +
                 "<body>" +
                 "    <div class=\"container\">" +
                 "        <div class=\"success-icon\">✓</div>" +
                 "        <h1>Authentication Successful</h1>" +
-                "        <p>You can close this tab and return to the app.</p>" +
+                "        <p>Redirecting to app...</p>" +
                 "        <p style=\"margin-top: 1rem; opacity: 0.7; font-size: 0.9rem;\">Welcome, " + username + "</p>" +
+                "        <p style=\"margin-top: 2rem; font-size: 0.9rem;\">If you're not redirected, <a href=\"spendingbetter://oauth2callback\" style=\"color: white; text-decoration: underline;\">click here</a></p>" +
                 "    </div>" +
                 "</body>" +
                 "</html>";
