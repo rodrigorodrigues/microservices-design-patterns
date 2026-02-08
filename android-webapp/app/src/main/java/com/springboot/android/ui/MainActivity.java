@@ -87,6 +87,9 @@ public class MainActivity extends AppCompatActivity {
         MaterialCardView cardUsers = findViewById(R.id.cardUsers);
         MaterialCardView cardWarehouses = findViewById(R.id.cardWarehouses);
         MaterialCardView cardStocks = findViewById(R.id.cardStocks);
+        MaterialCardView cardCategories = findViewById(R.id.cardCategories);
+        MaterialCardView cardIngredients = findViewById(R.id.cardIngredients);
+        MaterialCardView cardRecipes = findViewById(R.id.cardRecipes);
 
         cardCompanies.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, CompanyListActivity.class);
@@ -118,6 +121,21 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        cardCategories.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, WeekMenuCategoryListActivity.class);
+            startActivity(intent);
+        });
+
+        cardIngredients.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, IngredientListActivity.class);
+            startActivity(intent);
+        });
+
+        cardRecipes.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, RecipeListActivity.class);
+            startActivity(intent);
+        });
+
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view ->
                 Toast.makeText(this, "Add new item", Toast.LENGTH_SHORT).show());
@@ -137,6 +155,18 @@ public class MainActivity extends AppCompatActivity {
             sessionManager.logout();
             startLoginActivity();
             return true;
+        } else if (id == R.id.action_categories) {
+            Intent intent = new Intent(this, WeekMenuCategoryListActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_ingredients) {
+            Intent intent = new Intent(this, IngredientListActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_recipes) {
+            Intent intent = new Intent(this, RecipeListActivity.class);
+            startActivity(intent);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -149,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadCompanies() {
         Log.d(TAG, "Loading companies...");
-        companyService.getCompanies(0, 20).enqueue(new Callback<PageResponse<Company>>() {
+        companyService.getCompanies(0, 20, "").enqueue(new Callback<PageResponse<Company>>() {
             @Override
             public void onResponse(Call<PageResponse<Company>> call, Response<PageResponse<Company>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -176,14 +206,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadPersons() {
         Log.d(TAG, "Loading persons...");
-        personService.getPersons(0, 20).enqueue(new Callback<PageResponse<Person>>() {
+        personService.getPersons(0, 20, "").enqueue(new Callback<PageResponse<Person>>() {
             @Override
             public void onResponse(Call<PageResponse<Person>> call, Response<PageResponse<Person>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     PageResponse<Person> pageResponse = response.body();
                     StringBuilder sb = new StringBuilder("Persons:\n");
                     for (Person person : pageResponse.getContent()) {
-                        sb.append("- ").append(person.getFirstName()).append("\n");
+                        sb.append("- ").append(person.getFullName()).append("\n");
                     }
                     Toast.makeText(MainActivity.this, sb.toString(), Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Loaded " + pageResponse.getContent().size() + " persons");
@@ -203,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadProducts() {
         Log.d(TAG, "Loading products...");
-        productService.getProducts(0, 20).enqueue(new Callback<PageResponse<Product>>() {
+        productService.getProducts(0, 20, "").enqueue(new Callback<PageResponse<Product>>() {
             @Override
             public void onResponse(Call<PageResponse<Product>> call, Response<PageResponse<Product>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -230,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadUsers() {
         Log.d(TAG, "Loading users...");
-        userService.getUsers(0, 20).enqueue(new Callback<PageResponse<User>>() {
+        userService.getUsers(0, 20, "").enqueue(new Callback<PageResponse<User>>() {
             @Override
             public void onResponse(Call<PageResponse<User>> call, Response<PageResponse<User>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -261,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadWarehouses() {
         Log.d(TAG, "Loading warehouses...");
-        warehouseService.getWarehouses(0, 20).enqueue(new Callback<PageResponse<Warehouse>>() {
+        warehouseService.getWarehouses(0, 20, "").enqueue(new Callback<PageResponse<Warehouse>>() {
             @Override
             public void onResponse(Call<PageResponse<Warehouse>> call, Response<PageResponse<Warehouse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -292,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadStocks() {
         Log.d(TAG, "Loading stocks...");
-        stockService.getStocks(0, 20).enqueue(new Callback<PageResponse<Stock>>() {
+        stockService.getStocks(0, 20, "").enqueue(new Callback<PageResponse<Stock>>() {
             @Override
             public void onResponse(Call<PageResponse<Stock>> call, Response<PageResponse<Stock>> response) {
                 if (response.isSuccessful() && response.body() != null) {

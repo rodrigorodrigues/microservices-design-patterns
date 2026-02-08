@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.PersonService;
@@ -31,10 +35,13 @@ public class PersonListActivity extends AppCompatActivity {
     private static final String TAG = "PersonListActivity";
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefresh;
+    private TextInputEditText etSearch;
+    private MaterialButton btnSearch;
     private PersonService personService;
     private PersonAdapter adapter;
     private PaginationHelper paginationHelper;
     private int currentPage = 0;
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,22 @@ public class PersonListActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        // Initialize search components
+        etSearch = findViewById(R.id.etSearch);
+        btnSearch = findViewById(R.id.btnSearch);
+
+        btnSearch.setOnClickListener(v -> performSearch());
+
+        // Allow search on "Enter" key press
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                performSearch();
+                return true;
+            }
+            return false;
+        });
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -68,6 +91,12 @@ public class PersonListActivity extends AppCompatActivity {
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
     }
 
+    private void performSearch() {
+        searchQuery = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
+        currentPage = 0; // Reset to first page when searching
+        loadPersons();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -76,7 +105,7 @@ public class PersonListActivity extends AppCompatActivity {
 
     private void loadPersons() {
         swipeRefresh.setRefreshing(true);
-        personService.getPersons(currentPage, 10).enqueue(new Callback<PageResponse<Person>>() {
+        personService.getPersons(currentPage, 10, searchQuery).enqueue(new Callback<PageResponse<Person>>() {
             @Override
             public void onResponse(Call<PageResponse<Person>> call, Response<PageResponse<Person>> response) {
                 swipeRefresh.setRefreshing(false);
@@ -105,17 +134,25 @@ public class PersonListActivity extends AppCompatActivity {
     private void onEditPerson(Person person) {
         Intent intent = new Intent(this, PersonFormActivity.class);
         intent.putExtra("person_id", person.getId());
-        intent.putExtra("person_first_name", person.getFirstName());
-        intent.putExtra("person_last_name", person.getLastName());
-        intent.putExtra("person_email", person.getEmail());
-        intent.putExtra("person_phone", person.getPhone());
+        intent.putExtra("person_full_name", person.getFullName());
+        intent.putExtra("person_date_of_birth", person.getDateOfBirth());
+
+        // Pass address data if available
+        if (person.getAddress() != null) {
+            Person.Address address = person.getAddress();
+            intent.putExtra("person_address", address.getAddress());
+            intent.putExtra("person_city", address.getCity());
+            intent.putExtra("person_state_or_province", address.getStateOrProvince());
+            intent.putExtra("person_country", address.getCountry());
+            intent.putExtra("person_postal_code", address.getPostalCode());
+        }
         startActivity(intent);
     }
 
     private void onDeletePerson(Person person) {
         new AlertDialog.Builder(this)
             .setTitle("Delete Person")
-            .setMessage("Are you sure you want to delete " + person.getFirstName() + " " + person.getLastName() + "?")
+            .setMessage("Are you sure you want to delete " + person.getFullName() + "?")
             .setPositiveButton("Delete", (dialog, which) -> {
                 personService.deletePerson(person.getId()).enqueue(new Callback<Void>() {
                     @Override

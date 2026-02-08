@@ -42,12 +42,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         Product product = products.get(position);
         holder.tvName.setText(product.getName());
 
-        String priceText = product.getPrice() != null ?
-            String.format(Locale.getDefault(), "$%.2f", product.getPrice()) : "$0.00";
+        String priceText = String.format(Locale.getDefault(), "$%.2f", product.getPrice());
         holder.tvPrice.setText(priceText);
 
-        String quantityText = product.getQuantity() != null ?
-            "Qty: " + product.getQuantity() : "Qty: 0";
+        String quantityText = "Qty: " + product.getQuantity();
         holder.tvQuantity.setText(quantityText);
 
         holder.btnEdit.setOnClickListener(v -> editListener.onClick(product));

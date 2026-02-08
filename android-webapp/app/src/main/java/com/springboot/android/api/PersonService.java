@@ -19,7 +19,8 @@ public interface PersonService {
     @GET("api/people")
     Call<PageResponse<Person>> getPersons(
             @Query("page") int page,
-            @Query("size") int size
+            @Query("size") int size,
+            @Query("search") String search
     );
 
     @GET("api/people/{id}")

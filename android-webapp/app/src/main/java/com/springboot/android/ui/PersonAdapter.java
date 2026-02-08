@@ -39,17 +39,19 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Person person = persons.get(position);
-        String fullName = "";
-        if (person.getFirstName() != null && person.getLastName() != null) {
-            fullName = person.getFirstName() + " " + person.getLastName();
-        } else if (person.getFirstName() != null) {
-            fullName = person.getFirstName();
-        } else if (person.getLastName() != null) {
-            fullName = person.getLastName();
+        holder.tvName.setText(person.getFullName() != null ? person.getFullName() : "");
+        holder.tvEmail.setText(person.getDateOfBirth() != null ? person.getDateOfBirth() : "");
+
+        // Display address if available
+        String addressText = "";
+        if (person.getAddress() != null) {
+            Person.Address address = person.getAddress();
+            if (address.getCity() != null || address.getCountry() != null) {
+                addressText = (address.getCity() != null ? address.getCity() : "") +
+                             (address.getCountry() != null ? ", " + address.getCountry() : "");
+            }
         }
-        holder.tvName.setText(fullName);
-        holder.tvEmail.setText(person.getEmail() != null ? person.getEmail() : "");
-        holder.tvPhone.setText(person.getPhone() != null ? person.getPhone() : "");
+        holder.tvPhone.setText(addressText);
 
         holder.btnEdit.setOnClickListener(v -> editListener.onClick(person));
         holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(person));

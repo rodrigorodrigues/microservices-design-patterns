@@ -19,7 +19,8 @@ public interface WarehouseService {
     @GET("api/warehouses")
     Call<PageResponse<Warehouse>> getWarehouses(
             @Query("page") int page,
-            @Query("size") int size
+            @Query("size") int size,
+            @Query("search") String search
     );
 
     @GET("api/warehouses/{id}")

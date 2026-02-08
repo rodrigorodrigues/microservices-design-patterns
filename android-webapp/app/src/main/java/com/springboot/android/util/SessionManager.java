@@ -56,6 +56,12 @@ public class SessionManager {
         return prefs.getString(KEY_CSRF_HEADER, "X-CSRF-TOKEN");
     }
 
+    public void clearAuthToken() {
+        editor.remove(KEY_TOKEN);
+        editor.putBoolean(KEY_IS_LOGGED_IN, false);
+        editor.apply();
+    }
+
     public void logout() {
         editor.clear();
         editor.apply();

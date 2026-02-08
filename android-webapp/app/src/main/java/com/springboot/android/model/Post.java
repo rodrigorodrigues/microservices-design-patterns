@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Post {
     @SerializedName("id")
-    private Long id;
+    private String id;
 
     @SerializedName("name")
     private String name;
@@ -29,16 +29,16 @@ public class Post {
     public Post() {
     }
 
-    public Post(Long id, String name) {
+    public Post(String id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

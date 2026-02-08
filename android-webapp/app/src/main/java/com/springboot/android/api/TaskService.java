@@ -14,17 +14,21 @@ import retrofit2.http.Query;
 
 public interface TaskService {
     @GET("api/tasks")
-    Call<PageResponse<Task>> getTasks(@Query("page") int page, @Query("size") int size);
+    Call<PageResponse<Task>> getTasks(
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("search") String search
+    );
 
     @GET("api/tasks/{id}")
-    Call<Task> getTask(@Path("id") Long id);
+    Call<Task> getTask(@Path("id") String id);
 
     @POST("api/tasks")
     Call<Task> createTask(@Body Task task);
 
     @PUT("api/tasks/{id}")
-    Call<Task> updateTask(@Path("id") Long id, @Body Task task);
+    Call<Task> updateTask(@Path("id") String id, @Body Task task);
 
     @DELETE("api/tasks/{id}")
-    Call<Void> deleteTask(@Path("id") Long id);
+    Call<Void> deleteTask(@Path("id") String id);
 }

@@ -1,4 +1,8 @@
 spring:
+    cache:
+        caffeine:
+            spec: maximumSize=500,expireAfterAccess=600s
+        cache-names: oauth2-authorization-code-cache
     application:
         name: authentication-service
     main:

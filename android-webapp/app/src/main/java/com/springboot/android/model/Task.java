@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class Task {
     @SerializedName("id")
-    private Long id;
+    private String id;
 
     @SerializedName("name")
     private String name;
@@ -40,17 +40,17 @@ public class Task {
     public Task() {
     }
 
-    public Task(Long id, String name, String description) {
+    public Task(String id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

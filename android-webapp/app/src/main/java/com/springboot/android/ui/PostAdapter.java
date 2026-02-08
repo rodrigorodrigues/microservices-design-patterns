@@ -41,6 +41,19 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         Post post = posts.get(position);
         holder.tvName.setText(post.getName());
 
+        // Display tasks if available
+        if (post.getTasks() != null && !post.getTasks().isEmpty()) {
+            StringBuilder tasksText = new StringBuilder("Tasks: ");
+            for (int i = 0; i < post.getTasks().size(); i++) {
+                if (i > 0) tasksText.append(", ");
+                tasksText.append(post.getTasks().get(i).getName());
+            }
+            holder.tvTasks.setText(tasksText.toString());
+            holder.tvTasks.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvTasks.setVisibility(View.GONE);
+        }
+
         holder.btnEdit.setOnClickListener(v -> editListener.onClick(post));
         holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(post));
     }
@@ -56,12 +69,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName;
+        TextView tvName, tvTasks;
         MaterialButton btnEdit, btnDelete;
 
         ViewHolder(View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvName);
+            tvTasks = itemView.findViewById(R.id.tvTasks);
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }

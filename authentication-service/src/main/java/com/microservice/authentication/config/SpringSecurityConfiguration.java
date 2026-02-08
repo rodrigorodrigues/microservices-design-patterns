@@ -359,7 +359,7 @@ public class SpringSecurityConfiguration {
                     request.getParameter("android") != null ||
                     isOAuth2) {
                     log.info("Redirecting to Android OAuth2 callback (isOAuth2: {}, userAgent: {})", isOAuth2, userAgent);
-                    response.sendRedirect("/android/oauth2/callback");
+                    response.sendRedirect("/api/android/oauth2/callback");
                 } else {
                     log.info("Using default success handler");
                     new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);

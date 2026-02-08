@@ -38,6 +38,22 @@
             android:icon="@android:drawable/ic_menu_agenda"
             android:title="Tasks" />
     </group>
+    <item android:title="Week Menu">
+        <menu>
+            <item
+                android:id="@+id/nav_categories"
+                android:icon="@android:drawable/ic_menu_sort_alphabetically"
+                android:title="Categories" />
+            <item
+                android:id="@+id/nav_ingredients"
+                android:icon="@android:drawable/ic_menu_add"
+                android:title="Ingredients" />
+            <item
+                android:id="@+id/nav_recipes"
+                android:icon="@android:drawable/ic_menu_view"
+                android:title="Recipes" />
+        </menu>
+    </item>
     <item android:title="Account">
         <menu>
             <item

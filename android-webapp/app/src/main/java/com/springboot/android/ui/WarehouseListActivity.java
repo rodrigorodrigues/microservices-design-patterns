@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.WarehouseService;
@@ -36,6 +40,9 @@ public class WarehouseListActivity extends AppCompatActivity {
     private WarehouseAdapter adapter;
     private PaginationHelper paginationHelper;
     private int currentPage = 0;
+    private TextInputEditText etSearch;
+    private MaterialButton btnSearch;
+    private String searchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,22 @@ public class WarehouseListActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        // Initialize search components
+        etSearch = findViewById(R.id.etSearch);
+        btnSearch = findViewById(R.id.btnSearch);
+
+        btnSearch.setOnClickListener(v -> performSearch());
+
+        // Allow search on "Enter" key press
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                performSearch();
+                return true;
+            }
+            return false;
+        });
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -69,6 +92,12 @@ public class WarehouseListActivity extends AppCompatActivity {
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
     }
 
+    private void performSearch() {
+        searchQuery = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
+        currentPage = 0; // Reset to first page when searching
+        loadWarehouses();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -77,7 +106,7 @@ public class WarehouseListActivity extends AppCompatActivity {
 
     private void loadWarehouses() {
         swipeRefresh.setRefreshing(true);
-        warehouseService.getWarehouses(currentPage, 10).enqueue(new Callback<PageResponse<Warehouse>>() {
+        warehouseService.getWarehouses(currentPage, 10, searchQuery).enqueue(new Callback<PageResponse<Warehouse>>() {
             @Override
             public void onResponse(Call<PageResponse<Warehouse>> call, Response<PageResponse<Warehouse>> response) {
                 swipeRefresh.setRefreshing(false);

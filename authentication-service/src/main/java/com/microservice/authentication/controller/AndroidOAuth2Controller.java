@@ -26,7 +26,7 @@ public class AndroidOAuth2Controller {
         this.generateToken = generateToken;
     }
 
-    @GetMapping(value = "/android/oauth2/callback")
+    @GetMapping(value = "/api/android/oauth2/callback")
     public void androidOAuth2Callback(Authentication authentication, HttpServletResponse response) throws IOException {
         // After successful OAuth2 authentication with Google,
         // Generate JWT token and pass it via custom scheme URL

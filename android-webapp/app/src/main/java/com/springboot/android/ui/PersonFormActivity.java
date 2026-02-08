@@ -20,7 +20,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PersonFormActivity extends AppCompatActivity {
-    private TextInputEditText etFirstName, etLastName, etEmail, etPhone;
+    private TextInputEditText etFullName, etDateOfBirth;
+    private TextInputEditText etAddress, etCity, etStateOrProvince, etCountry, etPostalCode;
     private MaterialButton btnSave;
     private ProgressBar progressBar;
     private PersonService personService;
@@ -40,10 +41,13 @@ public class PersonFormActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        etFirstName = findViewById(R.id.etFirstName);
-        etLastName = findViewById(R.id.etLastName);
-        etEmail = findViewById(R.id.etEmail);
-        etPhone = findViewById(R.id.etPhone);
+        etFullName = findViewById(R.id.etFullName);
+        etDateOfBirth = findViewById(R.id.etDateOfBirth);
+        etAddress = findViewById(R.id.etAddress);
+        etCity = findViewById(R.id.etCity);
+        etStateOrProvince = findViewById(R.id.etStateOrProvince);
+        etCountry = findViewById(R.id.etCountry);
+        etPostalCode = findViewById(R.id.etPostalCode);
         btnSave = findViewById(R.id.btnSave);
         progressBar = findViewById(R.id.progressBar);
 
@@ -66,20 +70,29 @@ public class PersonFormActivity extends AppCompatActivity {
     }
 
     private void loadPersonData() {
-        if (etFirstName != null) etFirstName.setText(getIntent().getStringExtra("person_first_name"));
-        if (etLastName != null) etLastName.setText(getIntent().getStringExtra("person_last_name"));
-        if (etEmail != null) etEmail.setText(getIntent().getStringExtra("person_email"));
-        if (etPhone != null) etPhone.setText(getIntent().getStringExtra("person_phone"));
+        if (etFullName != null) etFullName.setText(getIntent().getStringExtra("person_full_name"));
+        if (etDateOfBirth != null) etDateOfBirth.setText(getIntent().getStringExtra("person_date_of_birth"));
+
+        // Load address data
+        if (etAddress != null) etAddress.setText(getIntent().getStringExtra("person_address"));
+        if (etCity != null) etCity.setText(getIntent().getStringExtra("person_city"));
+        if (etStateOrProvince != null) etStateOrProvince.setText(getIntent().getStringExtra("person_state_or_province"));
+        if (etCountry != null) etCountry.setText(getIntent().getStringExtra("person_country"));
+        if (etPostalCode != null) etPostalCode.setText(getIntent().getStringExtra("person_postal_code"));
     }
 
     private void savePerson() {
-        String firstName = etFirstName.getText() != null ? etFirstName.getText().toString().trim() : "";
-        String lastName = etLastName.getText() != null ? etLastName.getText().toString().trim() : "";
-        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
-        String phone = etPhone.getText() != null ? etPhone.getText().toString().trim() : "";
+        String fullName = etFullName.getText() != null ? etFullName.getText().toString().trim() : "";
+        String dateOfBirth = etDateOfBirth.getText() != null ? etDateOfBirth.getText().toString().trim() : "";
 
-        if (firstName.isEmpty()) {
-            Toast.makeText(this, "First name is required", Toast.LENGTH_SHORT).show();
+        String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
+        String city = etCity.getText() != null ? etCity.getText().toString().trim() : "";
+        String stateOrProvince = etStateOrProvince.getText() != null ? etStateOrProvince.getText().toString().trim() : "";
+        String country = etCountry.getText() != null ? etCountry.getText().toString().trim() : "";
+        String postalCode = etPostalCode.getText() != null ? etPostalCode.getText().toString().trim() : "";
+
+        if (fullName.isEmpty()) {
+            Toast.makeText(this, "Full name is required", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -87,10 +100,19 @@ public class PersonFormActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         Person person = new Person();
-        person.setFirstName(firstName);
-        person.setLastName(lastName);
-        person.setEmail(email);
-        person.setPhone(phone);
+        person.setFullName(fullName);
+        person.setDateOfBirth(dateOfBirth);
+
+        // Create and set address if any address field is filled
+        if (!address.isEmpty() || !city.isEmpty() || !stateOrProvince.isEmpty() || !country.isEmpty() || !postalCode.isEmpty()) {
+            Person.Address personAddress = new Person.Address();
+            personAddress.setAddress(address);
+            personAddress.setCity(city);
+            personAddress.setStateOrProvince(stateOrProvince);
+            personAddress.setCountry(country);
+            personAddress.setPostalCode(postalCode);
+            person.setAddress(personAddress);
+        }
 
         Call<Person> call = isEditMode ?
             personService.updatePerson(personId, person) :

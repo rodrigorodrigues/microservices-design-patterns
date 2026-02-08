@@ -24,7 +24,7 @@ public class TaskFormActivity extends AppCompatActivity {
     private MaterialButton btnSave;
     private ProgressBar progressBar;
     private TaskService taskService;
-    private Long taskId;
+    private String taskId;
     private boolean isEditMode;
 
     @Override
@@ -46,8 +46,8 @@ public class TaskFormActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
         // Check if editing existing task
-        taskId = getIntent().getLongExtra("task_id", -1);
-        isEditMode = taskId != -1;
+        taskId = getIntent().getStringExtra("task_id");
+        isEditMode = taskId != null && !taskId.isEmpty();
 
         if (isEditMode) {
             if (getSupportActionBar() != null) {

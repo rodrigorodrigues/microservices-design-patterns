@@ -19,7 +19,8 @@ public interface StockService {
     @GET("api/stocks")
     Call<PageResponse<Stock>> getStocks(
             @Query("page") int page,
-            @Query("size") int size
+            @Query("size") int size,
+            @Query("search") String search
     );
 
     @GET("api/stocks/{id}")

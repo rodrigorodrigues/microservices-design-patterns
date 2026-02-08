@@ -58,7 +58,7 @@
                 <data
                     android:scheme="https"
                     android:host="spendingbetter.com"
-                    android:pathPrefix="/android/oauth2/callback" />
+                    android:pathPrefix="/api/android/oauth2/callback" />
             </intent-filter>
         </activity>
 
@@ -173,6 +173,27 @@
             android:label="Task"
             android:theme="@style/Theme.AndroidWebapp.NoActionBar"
             android:parentActivityName=".ui.TaskListActivity" />
+
+        <activity
+            android:name=".ui.WeekMenuCategoryListActivity"
+            android:exported="false"
+            android:label="Categories"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
+            android:name=".ui.IngredientListActivity"
+            android:exported="false"
+            android:label="Ingredients"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
+            android:name=".ui.RecipeListActivity"
+            android:exported="false"
+            android:label="Recipes"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
     </application>
 
 </manifest>

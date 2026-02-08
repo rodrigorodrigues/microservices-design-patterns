@@ -1,11 +1,32 @@
 package com.springboot.android.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Product {
+    @SerializedName("id")
     private String id;
+
+    @SerializedName("name")
     private String name;
+
+    @SerializedName("description")
     private String description;
-    private Double price;
-    private Integer quantity;
+
+    @SerializedName("price")
+    private double price;
+
+    @SerializedName("quantity")
+    private int quantity;
+
+    public Product() {}
+
+    public Product(String id, String name, String description, double price, int quantity) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+    }
 
     public String getId() {
         return id;
@@ -31,19 +52,19 @@ public class Product {
         this.description = description;
     }
 
-    public Double getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
-    public Integer getQuantity() {
+    public int getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Integer quantity) {
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 }

@@ -19,7 +19,8 @@ public interface ProductService {
     @GET("api/products")
     Call<PageResponse<Product>> getProducts(
             @Query("page") int page,
-            @Query("size") int size
+            @Query("size") int size,
+            @Query("search") String search
     );
 
     @GET("api/products/{id}")

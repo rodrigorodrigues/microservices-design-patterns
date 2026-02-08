@@ -19,7 +19,8 @@ public interface CompanyService {
     @GET("api/companies")
     Call<PageResponse<Company>> getCompanies(
             @Query("page") int page,
-            @Query("size") int size
+            @Query("size") int size,
+            @Query("search") String search
     );
 
     @GET("api/companies/{id}")

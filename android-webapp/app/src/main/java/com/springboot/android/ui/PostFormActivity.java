@@ -24,7 +24,7 @@ public class PostFormActivity extends AppCompatActivity {
     private MaterialButton btnSave;
     private ProgressBar progressBar;
     private PostService postService;
-    private Long postId;
+    private String postId;
     private boolean isEditMode;
 
     @Override
@@ -45,8 +45,8 @@ public class PostFormActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
         // Check if editing existing post
-        postId = getIntent().getLongExtra("post_id", -1);
-        isEditMode = postId != -1;
+        postId = getIntent().getStringExtra("post_id");
+        isEditMode = postId != null && !postId.isEmpty();
 
         if (isEditMode) {
             if (getSupportActionBar() != null) {
