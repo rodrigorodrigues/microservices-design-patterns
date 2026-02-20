@@ -24,6 +24,8 @@ import com.springboot.android.api.CompanyService;
 import com.springboot.android.model.Company;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,8 @@ public class CompanyListActivity extends AppCompatActivity {
     private CompanyService companyService;
     private CompanyAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private String searchQuery = "";
 
@@ -49,6 +53,8 @@ public class CompanyListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_company_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         companyService = ApiClient.getClient().create(CompanyService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,16 +83,25 @@ public class CompanyListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new CompanyAdapter(new ArrayList<>(), this::onEditCompany, this::onDeleteCompany);
+        adapter.setPermissions(
+            PermissionHelper.hasCompanySaveAccess(authorities),
+            PermissionHelper.hasCompanyDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadCompanies);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, CompanyFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasCompanyCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, CompanyFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -133,6 +148,10 @@ public class CompanyListActivity extends AppCompatActivity {
     }
 
     private void onEditCompany(Company company) {
+        if (!PermissionHelper.hasCompanySaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit companies", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, CompanyFormActivity.class);
         intent.putExtra("company_id", company.getId());
         intent.putExtra("company_name", company.getName());
@@ -143,6 +162,10 @@ public class CompanyListActivity extends AppCompatActivity {
     }
 
     private void onDeleteCompany(Company company) {
+        if (!PermissionHelper.hasCompanyDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete companies", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete Company")
             .setMessage("Are you sure you want to delete " + company.getName() + "?")

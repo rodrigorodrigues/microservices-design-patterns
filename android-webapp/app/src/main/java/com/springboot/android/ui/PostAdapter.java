@@ -18,6 +18,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private List<Post> posts;
     private final OnItemClickListener<Post> editListener;
     private final OnItemClickListener<Post> deleteListener;
+    private boolean hasSaveAccess = true;
+    private boolean hasDeleteAccess = true;
 
     public interface OnItemClickListener<T> {
         void onClick(T item);
@@ -27,6 +29,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         this.posts = posts;
         this.editListener = editListener;
         this.deleteListener = deleteListener;
+    }
+
+    public void setPermissions(boolean hasSaveAccess, boolean hasDeleteAccess) {
+        this.hasSaveAccess = hasSaveAccess;
+        this.hasDeleteAccess = hasDeleteAccess;
     }
 
     @NonNull
@@ -54,8 +61,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             holder.tvTasks.setVisibility(View.GONE);
         }
 
-        holder.btnEdit.setOnClickListener(v -> editListener.onClick(post));
-        holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(post));
+        // Hide/show buttons based on permissions
+        if (hasSaveAccess) {
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnEdit.setOnClickListener(v -> editListener.onClick(post));
+        } else {
+            holder.btnEdit.setVisibility(View.GONE);
+        }
+
+        if (hasDeleteAccess) {
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(post));
+        } else {
+            holder.btnDelete.setVisibility(View.GONE);
+        }
     }
 
     @Override

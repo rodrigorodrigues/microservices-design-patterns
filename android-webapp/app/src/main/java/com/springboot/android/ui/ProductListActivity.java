@@ -24,8 +24,11 @@ import com.springboot.android.api.ProductService;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Product;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -40,6 +43,8 @@ public class ProductListActivity extends AppCompatActivity {
     private ProductService productService;
     private ProductAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private String searchQuery = "";
 
@@ -48,6 +53,8 @@ public class ProductListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         productService = ApiClient.getClient().create(ProductService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -76,16 +83,25 @@ public class ProductListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new ProductAdapter(new ArrayList<>(), this::onEditProduct, this::onDeleteProduct);
+        adapter.setPermissions(
+            PermissionHelper.hasProductSaveAccess(authorities),
+            PermissionHelper.hasProductDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadProducts);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ProductFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasProductCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ProductFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -132,6 +148,10 @@ public class ProductListActivity extends AppCompatActivity {
     }
 
     private void onEditProduct(Product product) {
+        if (!PermissionHelper.hasProductSaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit products", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, ProductFormActivity.class);
         intent.putExtra("product_id", product.getId());
         intent.putExtra("product_name", product.getName());
@@ -142,6 +162,10 @@ public class ProductListActivity extends AppCompatActivity {
     }
 
     private void onDeleteProduct(Product product) {
+        if (!PermissionHelper.hasProductDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete products", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete Product")
             .setMessage("Are you sure you want to delete " + product.getName() + "?")

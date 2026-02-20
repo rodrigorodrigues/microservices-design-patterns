@@ -1,0 +1,4 @@
+{:server {:port 8087}
+ :mongodb {:uri "mongodb://localhost:27017/docker"}
+ :consul {:url "http://localhost:8500"}
+ :jwt {:secret "my-safe-secret"}}

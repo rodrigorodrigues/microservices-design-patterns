@@ -38,9 +38,9 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.session.ReactiveSessionRepository;
 import org.springframework.session.Session;
-import org.springframework.session.web.http.CookieSerializer;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.session.web.server.session.SpringSessionWebSessionStore;
+import org.springframework.web.server.session.CookieWebSessionIdResolver;
+import org.springframework.web.server.session.WebSessionIdResolver;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -112,12 +112,16 @@ public class EdgeServerApplication {
 	}
 
 	@Bean
-	public CookieSerializer cookieSerializer() {
-		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-		serializer.setCookieName("SESSIONID");
-		serializer.setCookiePath("/");
-		serializer.setUseBase64Encoding(false);
-		return serializer;
+	public WebSessionIdResolver webSessionIdResolver() {
+		CookieWebSessionIdResolver resolver = new CookieWebSessionIdResolver();
+		resolver.setCookieName("SESSIONID");
+		resolver.addCookieInitializer(cookie -> {
+			cookie.path("/");
+			cookie.httpOnly(true);
+			cookie.sameSite("Lax");
+			// cookie.secure(true); // Enable in production with HTTPS
+		});
+		return resolver;
 	}
 
     /*@Bean

@@ -18,6 +18,8 @@ public class CompanyAdapter extends RecyclerView.Adapter<CompanyAdapter.ViewHold
     private List<Company> companies;
     private final OnItemClickListener<Company> editListener;
     private final OnItemClickListener<Company> deleteListener;
+    private boolean hasSaveAccess = true;
+    private boolean hasDeleteAccess = true;
 
     public interface OnItemClickListener<T> {
         void onClick(T item);
@@ -27,6 +29,11 @@ public class CompanyAdapter extends RecyclerView.Adapter<CompanyAdapter.ViewHold
         this.companies = companies;
         this.editListener = editListener;
         this.deleteListener = deleteListener;
+    }
+
+    public void setPermissions(boolean hasSaveAccess, boolean hasDeleteAccess) {
+        this.hasSaveAccess = hasSaveAccess;
+        this.hasDeleteAccess = hasDeleteAccess;
     }
 
     @NonNull
@@ -43,8 +50,20 @@ public class CompanyAdapter extends RecyclerView.Adapter<CompanyAdapter.ViewHold
         holder.tvEmail.setText(company.getEmail() != null ? company.getEmail() : "");
         holder.tvPhone.setText(company.getPhone() != null ? company.getPhone() : "");
 
-        holder.btnEdit.setOnClickListener(v -> editListener.onClick(company));
-        holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(company));
+        // Hide/show buttons based on permissions
+        if (hasSaveAccess) {
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnEdit.setOnClickListener(v -> editListener.onClick(company));
+        } else {
+            holder.btnEdit.setVisibility(View.GONE);
+        }
+
+        if (hasDeleteAccess) {
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(company));
+        } else {
+            holder.btnDelete.setVisibility(View.GONE);
+        }
     }
 
     @Override

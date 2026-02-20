@@ -24,6 +24,8 @@ import com.springboot.android.api.PostService;
 import com.springboot.android.model.Post;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,8 @@ public class PostListActivity extends AppCompatActivity {
     private PostService postService;
     private PostAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private String searchQuery = "";
 
@@ -49,6 +53,8 @@ public class PostListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         postService = ApiClient.getClient().create(PostService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,16 +83,25 @@ public class PostListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new PostAdapter(new ArrayList<>(), this::onEditPost, this::onDeletePost);
+        adapter.setPermissions(
+            PermissionHelper.hasPostSaveAccess(authorities),
+            PermissionHelper.hasPostDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadPosts);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, PostFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasPostCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, PostFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -133,6 +148,10 @@ public class PostListActivity extends AppCompatActivity {
     }
 
     private void onEditPost(Post post) {
+        if (!PermissionHelper.hasPostSaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit posts", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, PostFormActivity.class);
         intent.putExtra("post_id", post.getId());
         intent.putExtra("post_name", post.getName());
@@ -140,6 +159,10 @@ public class PostListActivity extends AppCompatActivity {
     }
 
     private void onDeletePost(Post post) {
+        if (!PermissionHelper.hasPostDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete posts", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete Post")
             .setMessage("Are you sure you want to delete " + post.getName() + "?")

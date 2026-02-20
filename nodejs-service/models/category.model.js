@@ -19,7 +19,7 @@ const categorySchema = new mongoose.Schema({
         default: 'default@admin.com'
     }
 });
-categorySchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+categorySchema.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_categories'});
 
 const Category = mongoose.model('Category', categorySchema);
 module.exports = { Category };

@@ -24,6 +24,8 @@ import com.springboot.android.api.WarehouseService;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Warehouse;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,8 @@ public class WarehouseListActivity extends AppCompatActivity {
     private WarehouseService warehouseService;
     private WarehouseAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private TextInputEditText etSearch;
     private MaterialButton btnSearch;
@@ -49,6 +53,8 @@ public class WarehouseListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_warehouse_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         warehouseService = ApiClient.getClient().create(WarehouseService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,16 +83,25 @@ public class WarehouseListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new WarehouseAdapter(new ArrayList<>(), this::onEditWarehouse, this::onDeleteWarehouse);
+        adapter.setPermissions(
+            PermissionHelper.hasWarehouseSaveAccess(authorities),
+            PermissionHelper.hasWarehouseDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadWarehouses);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, WarehouseFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasWarehouseCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, WarehouseFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -133,6 +148,10 @@ public class WarehouseListActivity extends AppCompatActivity {
     }
 
     private void onEditWarehouse(Warehouse warehouse) {
+        if (!PermissionHelper.hasWarehouseSaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit warehouses", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, WarehouseFormActivity.class);
         intent.putExtra("warehouse_id", warehouse.getId());
         intent.putExtra("warehouse_name", warehouse.getName());
@@ -144,6 +163,10 @@ public class WarehouseListActivity extends AppCompatActivity {
     }
 
     private void onDeleteWarehouse(Warehouse warehouse) {
+        if (!PermissionHelper.hasWarehouseDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete warehouses", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete Warehouse")
             .setMessage("Are you sure you want to delete " + warehouse.getName() + "?")

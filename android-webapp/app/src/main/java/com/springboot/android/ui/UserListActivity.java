@@ -24,8 +24,11 @@ import com.springboot.android.api.UserService;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.User;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -40,6 +43,8 @@ public class UserListActivity extends AppCompatActivity {
     private UserService userService;
     private UserAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private String searchQuery = "";
 
@@ -48,6 +53,8 @@ public class UserListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         userService = ApiClient.getClient().create(UserService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -76,16 +83,25 @@ public class UserListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new UserAdapter(new ArrayList<>(), this::onEditUser, this::onDeleteUser);
+        adapter.setPermissions(
+            PermissionHelper.hasUserSaveAccess(authorities),
+            PermissionHelper.hasUserDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadUsers);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, UserFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasUserCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, UserFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -144,6 +160,10 @@ public class UserListActivity extends AppCompatActivity {
     }
 
     private void onEditUser(User user) {
+        if (!PermissionHelper.hasUserSaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit users", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, UserFormActivity.class);
         intent.putExtra("user_id", user.getId());
         intent.putExtra("user_username", user.getUsername());
@@ -154,6 +174,10 @@ public class UserListActivity extends AppCompatActivity {
     }
 
     private void onDeleteUser(User user) {
+        if (!PermissionHelper.hasUserDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete users", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete User")
             .setMessage("Are you sure you want to delete " + user.getUsername() + "?")

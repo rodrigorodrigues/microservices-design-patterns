@@ -87,8 +87,7 @@ public class VerifyTokenRedisGlobalPreFilter implements GlobalFilter {
                                                     }
                                                     log.debug("verifyTokenRedis:Set authorization header from redis session: {}", accessToken);
 
-                                                    HttpHeaders writeableHeaders = HttpHeaders.readOnlyHttpHeaders(
-                                                            exchange.getRequest().getHeaders());
+                                                    HttpHeaders writeableHeaders = new HttpHeaders(exchange.getRequest().getHeaders());
                                                     ServerHttpRequestDecorator writeableRequest = new ServerHttpRequestDecorator(
                                                             exchange.getRequest()) {
                                                         @Override

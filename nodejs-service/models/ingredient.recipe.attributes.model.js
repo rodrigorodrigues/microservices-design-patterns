@@ -34,7 +34,7 @@
             }
         });
 
-    attributesSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+    attributesSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_ingredient_recipe_attributes'});
     const IngredientRecipeAttributes = mongoose.model('IngredientRecipeAttributes', attributesSchema);
     module.exports = {IngredientRecipeAttributes};
 })();

@@ -19,6 +19,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     private List<Product> products;
     private final OnItemClickListener<Product> editListener;
     private final OnItemClickListener<Product> deleteListener;
+    private boolean hasSaveAccess = true;
+    private boolean hasDeleteAccess = true;
 
     public interface OnItemClickListener<T> {
         void onClick(T item);
@@ -28,6 +30,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         this.products = products;
         this.editListener = editListener;
         this.deleteListener = deleteListener;
+    }
+
+    public void setPermissions(boolean hasSaveAccess, boolean hasDeleteAccess) {
+        this.hasSaveAccess = hasSaveAccess;
+        this.hasDeleteAccess = hasDeleteAccess;
     }
 
     @NonNull
@@ -48,8 +55,20 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         String quantityText = "Qty: " + product.getQuantity();
         holder.tvQuantity.setText(quantityText);
 
-        holder.btnEdit.setOnClickListener(v -> editListener.onClick(product));
-        holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(product));
+        // Hide/show buttons based on permissions
+        if (hasSaveAccess) {
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnEdit.setOnClickListener(v -> editListener.onClick(product));
+        } else {
+            holder.btnEdit.setVisibility(View.GONE);
+        }
+
+        if (hasDeleteAccess) {
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(product));
+        } else {
+            holder.btnDelete.setVisibility(View.GONE);
+        }
     }
 
     @Override

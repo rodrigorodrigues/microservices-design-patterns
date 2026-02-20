@@ -41,6 +41,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.encrypt.KeyStoreKeyFactory;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -119,6 +121,13 @@ public class AuthenticationCommonConfiguration implements ApplicationContextAwar
                         claims.put("sub", jwt.getSubject());
                         claims.put("name", jwt.getClaimAsString("name"));
                         claims.put("fullName", jwt.getClaimAsString("fullName"));
+                    } else if (context.getPrincipal() instanceof OAuth2AuthenticationToken oauth2) {
+                        if (oauth2.getPrincipal() instanceof DefaultOidcUser oidcIdToken) {
+                            claims.put("name", oidcIdToken.getEmail());
+                            claims.put("sub", oidcIdToken.getEmail());
+                            claims.put("fullName", oidcIdToken.getFullName());
+                            claims.put("imageUrl", oidcIdToken.getPicture());
+                        }
                     }
 /*
                     claims.put("auth", context.getAuthorities().stream()

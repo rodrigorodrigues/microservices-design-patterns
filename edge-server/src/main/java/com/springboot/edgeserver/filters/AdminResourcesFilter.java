@@ -14,9 +14,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.session.ReactiveSessionRepository;
-import org.springframework.session.Session;
-import org.springframework.session.SessionRepository;
 import org.springframework.session.web.server.session.SpringSessionWebSessionStore;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -58,18 +55,25 @@ public class AdminResourcesFilter implements GatewayFilter {
                         if (!exchange.getRequest().getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)) {
                             return exchange.getSession()
                                     .flatMap(session -> {
-                                        log.info("adminResourcesFilter:Set authorization header from redis session");
+                                        log.info("adminResourcesFilter:Set authorization header from redis session: {}", session.getId());
                                         return springSessionWebSessionStore.retrieveSession(session.getId())
                                                 .flatMap(s -> {
                                                     WebSession webSession = (WebSession) s;
                                                     OAuth2AccessToken accessToken = webSession.getAttribute("token");
-                                                    ServerHttpRequest builder = exchange.getRequest().mutate()
-                                                            .header("X-WEBAUTH-USER", "admin")
-                                                            .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType().getValue(), accessToken.getTokenValue()))
-                                                            .build();
-                                                    return chain.filter(exchange.mutate()
-                                                            .request(builder).build());
-                                                });
+                                                    log.debug("accessToken: {}", accessToken);
+                                                    if (accessToken != null) {
+                                                        log.debug("Set token from session: {}={}", session.getId(), accessToken.getTokenValue());
+                                                        ServerHttpRequest builder = exchange.getRequest().mutate()
+                                                                .header("X-WEBAUTH-USER", "admin")
+                                                                .header(HttpHeaders.AUTHORIZATION, String.format("%s %s", accessToken.getTokenType()
+                                                                        .getValue(), accessToken.getTokenValue()))
+                                                                .build();
+                                                        return chain.filter(exchange.mutate()
+                                                                .request(builder).build());
+                                                    } else {
+                                                        return chain.filter(exchange);
+                                                    }
+                                                }).switchIfEmpty(springSessionWebSessionStore.createWebSession().then().doOnSuccess(c -> log.debug("Created new session: {}", session.getId())));
                             });
                         }
                         return chain.filter(exchange);

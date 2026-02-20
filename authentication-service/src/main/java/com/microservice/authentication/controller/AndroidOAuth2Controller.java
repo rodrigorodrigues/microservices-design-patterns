@@ -12,6 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.token.DefaultOAuth2TokenContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -20,10 +25,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class AndroidOAuth2Controller {
     private final AuthenticationCommonRepository authenticationCommonRepository;
     private final GenerateToken generateToken;
+    private final OAuth2TokenGenerator<?> oauth2TokenGenerator;
 
-    public AndroidOAuth2Controller(AuthenticationCommonRepository authenticationCommonRepository, GenerateToken generateToken) {
+    public AndroidOAuth2Controller(AuthenticationCommonRepository authenticationCommonRepository,
+                                   GenerateToken generateToken,
+                                   OAuth2TokenGenerator<?> oauth2TokenGenerator) {
         this.authenticationCommonRepository = authenticationCommonRepository;
         this.generateToken = generateToken;
+        this.oauth2TokenGenerator = oauth2TokenGenerator;
     }
 
     @GetMapping(value = "/api/android/oauth2/callback")
@@ -40,8 +49,30 @@ public class AndroidOAuth2Controller {
             log.info("Android OAuth2 callback - User authenticated: {}", username);
         }
 
-        // Generate JWT token
-        OAuth2AccessToken accessToken = generateToken.generateToken(authentication);
+        // Generate JWT token using OAuth2TokenGenerator to apply customizations
+        OAuth2AccessToken accessToken;
+        try {
+            log.info("Generating token for Android OAuth2 callback using OAuth2TokenGenerator");
+            DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
+                .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                .authorizationGrantType(org.springframework.security.oauth2.core.AuthorizationGrantType.AUTHORIZATION_CODE)
+                .principal(authentication);
+
+            OAuth2TokenContext tokenContext = tokenContextBuilder.build();
+            OAuth2Token generatedToken = oauth2TokenGenerator.generate(tokenContext);
+
+            if (generatedToken instanceof OAuth2AccessToken) {
+                accessToken = (OAuth2AccessToken) generatedToken;
+                log.info("Successfully generated OAuth2AccessToken with customizations");
+            } else {
+                log.warn("Generated token is not OAuth2AccessToken, falling back to GenerateToken");
+                accessToken = generateToken.generateToken(authentication);
+            }
+        } catch (Exception e) {
+            log.error("Failed to generate token using OAuth2TokenGenerator, falling back to GenerateToken", e);
+            accessToken = generateToken.generateToken(authentication);
+        }
+
         String jwtToken = accessToken.getTokenValue();
 
         // URL encode the token and username for safe passing via URL

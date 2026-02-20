@@ -1,0 +1,1 @@
+["^ ","~$load-resource",["^ ","~:row",44,"~:col",1,"~:fixed-arities",["~#set",[1]],"~:name","^0","~:ns","~$monger.js","~:top-ns","^7","~:arities",["^ ","~i1",["^ ","~:ret","~:nilable/string","~:args",["~#list",["^;"]]]],"~:type","~:fn"],"~:filename","monger/js.clj"]

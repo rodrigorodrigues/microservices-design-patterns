@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -17,6 +18,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
+import org.springframework.security.web.server.savedrequest.NoOpServerRequestCache;
+import org.springframework.security.web.server.savedrequest.ServerRequestCache;
 import org.springframework.session.ReactiveSessionRepository;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -111,6 +114,16 @@ public class EdgeServerWebSecurityConfiguration {
         return webClientBuilder.build();
     }
 
+    /**
+     * Disable the saved request cache to avoid ClassCastException with Redis session serialization.
+     * The default WebSessionServerRequestCache tries to retrieve saved requests from session,
+     * which causes a ClassCastException when Redis deserializes the DefaultSavedRequest object.
+     */
+    @Bean
+    public ServerRequestCache serverRequestCache() {
+        return NoOpServerRequestCache.getInstance();
+    }
+
     /*@Bean
     public OAuth2AuthorizationRequestResolver pkceResolver(ClientRegistrationRepository repo) {
         var resolver = new DefaultOAuth2AuthorizationRequestResolver(repo, "/oauth2/authorization");
@@ -128,11 +141,14 @@ public class EdgeServerWebSecurityConfiguration {
     }*/
 
     @Bean
-    public SecurityWebFilterChain configure(ServerHttpSecurity http, @Value("${TOKEN_HOST:http://localhost:8081}") String tokenHost
+    public SecurityWebFilterChain configure(ServerHttpSecurity http, @Value("${TOKEN_HOST:http://localhost:8081}") String tokenHost,
+            ServerRequestCache serverRequestCache
             //ServerOAuth2AuthorizationRequestResolver resolver
     ) {
         return http
                 .csrf(c -> c.disable().headers(h -> h.frameOptions(f -> f.disable().cache(ServerHttpSecurity.HeaderSpec.CacheSpec::disable))))
+                .securityContextRepository(new org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository())
+                .requestCache(cache -> cache.requestCache(serverRequestCache))
                 .authorizeExchange(a -> a.pathMatchers(WHITELIST).permitAll()
                         .pathMatchers("/actuator/**").hasRole("ADMIN")
                         .anyExchange().authenticated())
@@ -163,10 +179,7 @@ public class EdgeServerWebSecurityConfiguration {
                         .rpName("Bootiful Passkeys")
                 )
 */
-                .formLogin(c -> c.authenticationSuccessHandler((webFilterExchange, authentication) -> webFilterExchange.getChain()
-                                .filter(webFilterExchange.getExchange())
-                                .contextWrite(context -> ReactiveSecurityContextHolder.withAuthentication(authentication)))
-                        .authenticationFailureHandler((webFilterExchange, exception) -> handleResponseError.handle(webFilterExchange.getExchange(), exception, true)))
+                .formLogin(Customizer.withDefaults())
 
                 .logout(l -> l.logoutSuccessHandler(new RedirectServerLogoutSuccessHandler() {
                     @Override

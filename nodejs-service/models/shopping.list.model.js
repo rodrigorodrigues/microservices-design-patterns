@@ -19,6 +19,6 @@ const shoppingListSchema = new mongoose.Schema({
         default: 'default@admin.com'
     }
 });
-shoppingListSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+shoppingListSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_shopping_lists'});
 const ShoppingList = mongoose.model('ShoppingList', shoppingListSchema);
 module.exports = {ShoppingList};

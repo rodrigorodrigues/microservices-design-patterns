@@ -55,7 +55,7 @@ class ModalPopup extends Component {
           const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
           this.setState({displayAlert: true, isLoading: false, displayError: errorMessage(JSON.stringify(jsonError))});
         } else {
-          await this.getGrafanaPage();
+          this.setState({ modal: true });
         }
       }
     } finally {
@@ -102,13 +102,8 @@ class ModalPopup extends Component {
         <div>
           <Modal isOpen={modal} toggle={this.toggle} style={{maxWidth: '90%', maxHeight: '80%'}}>
             <ModalHeader toggle={this.toggle}>Admin Access</ModalHeader>
-            <ModalBody>
-              <iframe srcDoc={htmlText} title="my-iframe" width="100%" height="100%"></iframe>
-              {/*<Iframe src={htmlText}
-                      className=""
-                      display="block"
-                      width="100%"
-                height="100%" />*/}
+            <ModalBody style={{height: '70vh'}}>
+              <iframe src={link} title="admin-iframe" width="100%" height="100%" frameBorder="0"></iframe>
             </ModalBody>
             <ModalFooter>
               <Button color="secondary" onClick={this.toggle}>Close</Button>

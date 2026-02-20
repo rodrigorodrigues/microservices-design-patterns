@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import tools.jackson.databind.json.JsonMapper;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -43,11 +44,26 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.oauth2.server.authorization.token.DefaultOAuth2TokenContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -92,6 +108,8 @@ public class SpringSecurityConfiguration {
     private final JavaMailSender javaMailSender;
 
     private final GenerateToken generateToken;
+
+    private OAuth2TokenGenerator<?> oauth2TokenGenerator;
 
     static final String[] WHITELIST = {
         // -- swagger ui
@@ -253,6 +271,25 @@ public class SpringSecurityConfiguration {
     }
 
     @Bean
+    public OAuth2TokenGenerator<?> tokenGenerator(JWKSource<SecurityContext> jwkSource, OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer, ObjectProvider<SpringSecurityConfiguration> configProvider) {
+        // Set the token generator on the config after bean creation to avoid circular dependency
+        SpringSecurityConfiguration config = configProvider.getIfAvailable();
+
+        JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource);
+        JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
+        jwtGenerator.setJwtCustomizer(jwtTokenCustomizer);
+        OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
+        OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
+        OAuth2TokenGenerator<?> tokenGenerator = new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator, refreshTokenGenerator);
+
+        if (config != null) {
+            config.oauth2TokenGenerator = tokenGenerator;
+        }
+
+        return tokenGenerator;
+    }
+
+    @Bean
     public RegisteredClientRepository registeredClientRepository(RegistrationProperties props) {
         RegisteredClient registrarClient = RegisteredClient.withId(UUID.randomUUID().toString())
             .clientId(props.registrarClientId())
@@ -329,7 +366,41 @@ public class SpringSecurityConfiguration {
 
     private AuthenticationSuccessHandler successHandler() {
         return (request, response, authentication) -> {
-            OAuth2AccessToken token = generateToken.generateToken(authentication);
+            log.info("successHandler called with authentication: {}", authentication.getClass().getName());
+            OAuth2AccessToken token;
+
+            // Generate token using OAuth2TokenGenerator to apply customizations
+            try {
+                if (oauth2TokenGenerator == null) {
+                    log.warn("oauth2TokenGenerator is null, falling back to GenerateToken");
+                    token = generateToken.generateToken(authentication);
+                } else {
+                    log.info("Using oauth2TokenGenerator to generate token");
+                    log.info("Authentication type: {}, principal: {}", authentication.getClass().getName(), authentication.getPrincipal().getClass().getName());
+
+                    DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
+                        .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                        .principal(authentication);
+
+                    OAuth2TokenContext tokenContext = tokenContextBuilder.build();
+                    log.info("Token context created, calling generate...");
+                    OAuth2Token generatedToken = oauth2TokenGenerator.generate(tokenContext);
+                    log.info("Generated token: {}, type: {}", generatedToken, generatedToken != null ? generatedToken.getClass().getName() : "null");
+
+                    if (generatedToken instanceof OAuth2AccessToken) {
+                        token = (OAuth2AccessToken) generatedToken;
+                        log.info("Successfully generated OAuth2AccessToken");
+                    } else {
+                        log.warn("Generated token is not OAuth2AccessToken, falling back");
+                        token = generateToken.generateToken(authentication);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to generate token using OAuth2TokenGenerator, falling back to GenerateToken", e);
+                token = generateToken.generateToken(authentication);
+            }
+
             String sessionId = request.getSession().getId();
             Session session = sessionRepository.findById(sessionId);
             if (session == null) {
@@ -354,10 +425,7 @@ public class SpringSecurityConfiguration {
                 log.debug("Success handler - User-Agent: {}, Referer: {}, isOAuth2: {}", userAgent, referer, isOAuth2);
 
                 // If coming from Android, OAuth2 login, or explicitly requesting Android callback
-                if ((userAgent != null && userAgent.toLowerCase().contains("android")) ||
-                    (referer != null && referer.contains("android")) ||
-                    request.getParameter("android") != null ||
-                    isOAuth2) {
+                if (userAgent != null && userAgent.toLowerCase().contains("android")) {
                     log.info("Redirecting to Android OAuth2 callback (isOAuth2: {}, userAgent: {})", isOAuth2, userAgent);
                     response.sendRedirect("/api/android/oauth2/callback");
                 } else {

@@ -60,7 +60,7 @@
             transientAttribute = value;
         });
 
-    ingredientSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+    ingredientSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_ingredients'});
     const Ingredient = mongoose.model('Ingredient',ingredientSchema);
 
     module.exports = {Ingredient};

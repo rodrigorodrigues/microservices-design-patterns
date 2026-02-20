@@ -24,6 +24,8 @@ import com.springboot.android.api.TaskService;
 import com.springboot.android.model.Task;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,8 @@ public class TaskListActivity extends AppCompatActivity {
     private TaskService taskService;
     private TaskAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private String searchQuery = "";
 
@@ -49,6 +53,8 @@ public class TaskListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         taskService = ApiClient.getClient().create(TaskService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,16 +83,25 @@ public class TaskListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new TaskAdapter(new ArrayList<>(), this::onEditTask, this::onDeleteTask);
+        adapter.setPermissions(
+            PermissionHelper.hasTaskSaveAccess(authorities),
+            PermissionHelper.hasTaskDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadTasks);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, TaskFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasTaskCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, TaskFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -133,6 +148,10 @@ public class TaskListActivity extends AppCompatActivity {
     }
 
     private void onEditTask(Task task) {
+        if (!PermissionHelper.hasTaskSaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit tasks", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, TaskFormActivity.class);
         intent.putExtra("task_id", task.getId());
         intent.putExtra("task_name", task.getName());
@@ -141,6 +160,10 @@ public class TaskListActivity extends AppCompatActivity {
     }
 
     private void onDeleteTask(Task task) {
+        if (!PermissionHelper.hasTaskDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete tasks", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete Task")
             .setMessage("Are you sure you want to delete " + task.getName() + "?")

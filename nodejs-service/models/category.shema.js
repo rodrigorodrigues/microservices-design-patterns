@@ -19,5 +19,5 @@ const category = new Schema(
         }
     });
 
-category.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+category.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_category_schema'});
 module.exports =  category;    

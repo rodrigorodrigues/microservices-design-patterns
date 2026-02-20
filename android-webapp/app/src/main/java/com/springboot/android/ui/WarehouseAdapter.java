@@ -19,6 +19,8 @@ public class WarehouseAdapter extends RecyclerView.Adapter<WarehouseAdapter.View
     private List<Warehouse> warehouses;
     private final OnItemClickListener<Warehouse> editListener;
     private final OnItemClickListener<Warehouse> deleteListener;
+    private boolean hasSaveAccess = true;
+    private boolean hasDeleteAccess = true;
 
     public interface OnItemClickListener<T> {
         void onClick(T item);
@@ -28,6 +30,11 @@ public class WarehouseAdapter extends RecyclerView.Adapter<WarehouseAdapter.View
         this.warehouses = warehouses;
         this.editListener = editListener;
         this.deleteListener = deleteListener;
+    }
+
+    public void setPermissions(boolean hasSaveAccess, boolean hasDeleteAccess) {
+        this.hasSaveAccess = hasSaveAccess;
+        this.hasDeleteAccess = hasDeleteAccess;
     }
 
     @NonNull
@@ -49,8 +56,20 @@ public class WarehouseAdapter extends RecyclerView.Adapter<WarehouseAdapter.View
         String priceText = String.format(Locale.getDefault(), "%.2f %s", warehouse.getPrice(), currency);
         holder.tvPrice.setText(priceText);
 
-        holder.btnEdit.setOnClickListener(v -> editListener.onClick(warehouse));
-        holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(warehouse));
+        // Hide/show buttons based on permissions
+        if (hasSaveAccess) {
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnEdit.setOnClickListener(v -> editListener.onClick(warehouse));
+        } else {
+            holder.btnEdit.setVisibility(View.GONE);
+        }
+
+        if (hasDeleteAccess) {
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> deleteListener.onClick(warehouse));
+        } else {
+            holder.btnDelete.setVisibility(View.GONE);
+        }
     }
 
     @Override

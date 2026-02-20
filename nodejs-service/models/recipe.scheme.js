@@ -24,5 +24,5 @@ const recipeSchema = new Schema({
         default: 'default@admin.com'
     }
 });
-recipeSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+recipeSchema.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_recipe_schema'});
 module.exports = recipeSchema;

@@ -28,7 +28,10 @@ import com.springboot.android.model.Product;
 import com.springboot.android.model.Stock;
 import com.springboot.android.model.User;
 import com.springboot.android.model.Warehouse;
+import com.springboot.android.util.PermissionHelper;
 import com.springboot.android.util.SessionManager;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -91,49 +94,72 @@ public class MainActivity extends AppCompatActivity {
         MaterialCardView cardIngredients = findViewById(R.id.cardIngredients);
         MaterialCardView cardRecipes = findViewById(R.id.cardRecipes);
 
+        // Configure card states based on permissions
+        List<String> authorities = sessionManager.getAuthorities();
+        configureCardPermissions(cardCompanies, cardPersons, cardProducts, cardUsers,
+                                cardWarehouses, cardStocks, cardCategories, cardIngredients, cardRecipes, authorities);
+
         cardCompanies.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, CompanyListActivity.class);
-            startActivity(intent);
+            if (cardCompanies.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, CompanyListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardPersons.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, PersonListActivity.class);
-            startActivity(intent);
+            if (cardPersons.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, PersonListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardProducts.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ProductListActivity.class);
-            startActivity(intent);
+            if (cardProducts.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, ProductListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardUsers.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, UserListActivity.class);
-            startActivity(intent);
+            if (cardUsers.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, UserListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardWarehouses.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, WarehouseListActivity.class);
-            startActivity(intent);
+            if (cardWarehouses.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, WarehouseListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardStocks.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, StockListActivity.class);
-            startActivity(intent);
+            if (cardStocks.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, StockListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardCategories.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, WeekMenuCategoryListActivity.class);
-            startActivity(intent);
+            if (cardCategories.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, WeekMenuCategoryListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardIngredients.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, IngredientListActivity.class);
-            startActivity(intent);
+            if (cardIngredients.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, IngredientListActivity.class);
+                startActivity(intent);
+            }
         });
 
         cardRecipes.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, RecipeListActivity.class);
-            startActivity(intent);
+            if (cardRecipes.isEnabled()) {
+                Intent intent = new Intent(MainActivity.this, RecipeListActivity.class);
+                startActivity(intent);
+            }
         });
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -144,6 +170,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // Configure menu items based on permissions
+        List<String> authorities = sessionManager.getAuthorities();
+        configureMenuItemsPermissions(menu, authorities);
+
         return true;
     }
 
@@ -170,6 +201,97 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void configureCardPermissions(MaterialCardView cardCompanies, MaterialCardView cardPersons,
+                                          MaterialCardView cardProducts, MaterialCardView cardUsers,
+                                          MaterialCardView cardWarehouses, MaterialCardView cardStocks,
+                                          MaterialCardView cardCategories, MaterialCardView cardIngredients,
+                                          MaterialCardView cardRecipes, List<String> authorities) {
+        if (authorities == null) {
+            return;
+        }
+
+        // Companies
+        boolean hasCompanyAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_COMPANY_READ", "ROLE_COMPANY_CREATE", "ROLE_COMPANY_SAVE", "ROLE_COMPANY_DELETE");
+        cardCompanies.setEnabled(hasCompanyAccess);
+        cardCompanies.setAlpha(hasCompanyAccess ? 1.0f : 0.5f);
+
+        // Persons
+        boolean hasPersonAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_PERSON_READ", "ROLE_PERSON_CREATE", "ROLE_PERSON_SAVE", "ROLE_PERSON_DELETE");
+        cardPersons.setEnabled(hasPersonAccess);
+        cardPersons.setAlpha(hasPersonAccess ? 1.0f : 0.5f);
+
+        // Products
+        boolean hasProductAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_PRODUCT_READ", "ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_SAVE", "ROLE_PRODUCT_DELETE");
+        cardProducts.setEnabled(hasProductAccess);
+        cardProducts.setAlpha(hasProductAccess ? 1.0f : 0.5f);
+
+        // Users - only for ROLE_ADMIN
+        boolean isAdmin = authorities.contains("ROLE_ADMIN");
+        cardUsers.setEnabled(isAdmin);
+        cardUsers.setAlpha(isAdmin ? 1.0f : 0.5f);
+
+        // Warehouses
+        boolean hasWarehouseAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_WAREHOUSE_READ", "ROLE_WAREHOUSE_CREATE", "ROLE_WAREHOUSE_SAVE", "ROLE_WAREHOUSE_DELETE");
+        cardWarehouses.setEnabled(hasWarehouseAccess);
+        cardWarehouses.setAlpha(hasWarehouseAccess ? 1.0f : 0.5f);
+
+        // Stocks
+        boolean hasStockAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_STOCK_READ", "ROLE_STOCK_CREATE", "ROLE_STOCK_SAVE", "ROLE_STOCK_DELETE");
+        cardStocks.setEnabled(hasStockAccess);
+        cardStocks.setAlpha(hasStockAccess ? 1.0f : 0.5f);
+
+        // Categories
+        boolean hasCategoryAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_CATEGORY_READ", "ROLE_CATEGORY_CREATE", "ROLE_CATEGORY_SAVE", "ROLE_CATEGORY_DELETE");
+        cardCategories.setEnabled(hasCategoryAccess);
+        cardCategories.setAlpha(hasCategoryAccess ? 1.0f : 0.5f);
+
+        // Ingredients
+        boolean hasIngredientAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_INGREDIENT_READ", "ROLE_INGREDIENT_CREATE", "ROLE_INGREDIENT_SAVE", "ROLE_INGREDIENT_DELETE");
+        cardIngredients.setEnabled(hasIngredientAccess);
+        cardIngredients.setAlpha(hasIngredientAccess ? 1.0f : 0.5f);
+
+        // Recipes
+        boolean hasRecipeAccess = PermissionHelper.hasAnyPermission(authorities,
+            "ROLE_RECIPE_READ", "ROLE_RECIPE_CREATE", "ROLE_RECIPE_SAVE", "ROLE_RECIPE_DELETE");
+        cardRecipes.setEnabled(hasRecipeAccess);
+        cardRecipes.setAlpha(hasRecipeAccess ? 1.0f : 0.5f);
+    }
+
+    private void configureMenuItemsPermissions(Menu menu, List<String> authorities) {
+        if (authorities == null || menu == null) {
+            return;
+        }
+
+        MenuItem actionCategories = menu.findItem(R.id.action_categories);
+        MenuItem actionIngredients = menu.findItem(R.id.action_ingredients);
+        MenuItem actionRecipes = menu.findItem(R.id.action_recipes);
+
+        if (actionCategories != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_CATEGORY_READ", "ROLE_CATEGORY_CREATE", "ROLE_CATEGORY_SAVE", "ROLE_CATEGORY_DELETE");
+            actionCategories.setEnabled(hasAccess);
+        }
+
+        if (actionIngredients != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_INGREDIENT_READ", "ROLE_INGREDIENT_CREATE", "ROLE_INGREDIENT_SAVE", "ROLE_INGREDIENT_DELETE");
+            actionIngredients.setEnabled(hasAccess);
+        }
+
+        if (actionRecipes != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_RECIPE_READ", "ROLE_RECIPE_CREATE", "ROLE_RECIPE_SAVE", "ROLE_RECIPE_DELETE");
+            actionRecipes.setEnabled(hasAccess);
+        }
     }
 
     private void loadData() {

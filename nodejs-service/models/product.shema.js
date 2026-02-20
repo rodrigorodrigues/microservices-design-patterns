@@ -25,5 +25,5 @@ const product = new Schema(
             default: 'default@admin.com'
         }
     });
-product.plugin(require('mongoose-audit'), {connection: mongoose.connection});
+product.plugin(require('mongoose-audit'), {connection: mongoose.connection, logCollection: 'audit_products'});
 module.exports =  product;    

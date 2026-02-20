@@ -20,7 +20,10 @@ import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.AuthService;
 import com.springboot.android.model.AccountInfo;
+import com.springboot.android.util.PermissionHelper;
 import com.springboot.android.util.SessionManager;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -81,8 +84,13 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     AccountInfo account = response.body();
+                    // Save authorities to session
+                    if (account.getAuthorities() != null) {
+                        sessionManager.saveAuthorities(account.getAuthorities());
+                    }
                     displayAccountInfo(account);
                     updateNavHeader(account);
+                    configureMenuItemsVisibility(account.getAuthorities());
                 } else {
                     Toast.makeText(DashboardActivity.this, "Failed to load account info", Toast.LENGTH_SHORT).show();
                 }
@@ -118,6 +126,91 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         tvHeaderName.setText(account.getFullName() != null ? account.getFullName() : account.getLogin());
         tvHeaderEmail.setText(account.getEmail() != null ? account.getEmail() : "");
+    }
+
+    private void configureMenuItemsVisibility(List<String> authorities) {
+        if (authorities == null || navigationView == null) {
+            return;
+        }
+
+        MenuItem navCompanies = navigationView.getMenu().findItem(R.id.nav_companies);
+        MenuItem navPersons = navigationView.getMenu().findItem(R.id.nav_persons);
+        MenuItem navProducts = navigationView.getMenu().findItem(R.id.nav_products);
+        MenuItem navUsers = navigationView.getMenu().findItem(R.id.nav_users);
+        MenuItem navWarehouses = navigationView.getMenu().findItem(R.id.nav_warehouses);
+        MenuItem navStocks = navigationView.getMenu().findItem(R.id.nav_stocks);
+        MenuItem navPosts = navigationView.getMenu().findItem(R.id.nav_posts);
+        MenuItem navTasks = navigationView.getMenu().findItem(R.id.nav_tasks);
+        MenuItem navCategories = navigationView.getMenu().findItem(R.id.nav_categories);
+        MenuItem navIngredients = navigationView.getMenu().findItem(R.id.nav_ingredients);
+        MenuItem navRecipes = navigationView.getMenu().findItem(R.id.nav_recipes);
+
+        // Check permissions and disable menu items accordingly
+        if (navCompanies != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_COMPANY_READ", "ROLE_COMPANY_CREATE", "ROLE_COMPANY_SAVE", "ROLE_COMPANY_DELETE");
+            navCompanies.setEnabled(hasAccess);
+        }
+
+        if (navPersons != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_PERSON_READ", "ROLE_PERSON_CREATE", "ROLE_PERSON_SAVE", "ROLE_PERSON_DELETE");
+            navPersons.setEnabled(hasAccess);
+        }
+
+        if (navProducts != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_PRODUCT_READ", "ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_SAVE", "ROLE_PRODUCT_DELETE");
+            navProducts.setEnabled(hasAccess);
+        }
+
+        // Users menu is only enabled for ROLE_ADMIN
+        if (navUsers != null) {
+            boolean isAdmin = authorities.contains("ROLE_ADMIN");
+            navUsers.setEnabled(isAdmin);
+        }
+
+        if (navWarehouses != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_WAREHOUSE_READ", "ROLE_WAREHOUSE_CREATE", "ROLE_WAREHOUSE_SAVE", "ROLE_WAREHOUSE_DELETE");
+            navWarehouses.setEnabled(hasAccess);
+        }
+
+        if (navStocks != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_STOCK_READ", "ROLE_STOCK_CREATE", "ROLE_STOCK_SAVE", "ROLE_STOCK_DELETE");
+            navStocks.setEnabled(hasAccess);
+        }
+
+        if (navPosts != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_POST_READ", "ROLE_POST_CREATE", "ROLE_POST_SAVE", "ROLE_POST_DELETE");
+            navPosts.setEnabled(hasAccess);
+        }
+
+        if (navTasks != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_TASK_READ", "ROLE_TASK_CREATE", "ROLE_TASK_SAVE", "ROLE_TASK_DELETE");
+            navTasks.setEnabled(hasAccess);
+        }
+
+        if (navCategories != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_CATEGORY_READ", "ROLE_CATEGORY_CREATE", "ROLE_CATEGORY_SAVE", "ROLE_CATEGORY_DELETE");
+            navCategories.setEnabled(hasAccess);
+        }
+
+        if (navIngredients != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_INGREDIENT_READ", "ROLE_INGREDIENT_CREATE", "ROLE_INGREDIENT_SAVE", "ROLE_INGREDIENT_DELETE");
+            navIngredients.setEnabled(hasAccess);
+        }
+
+        if (navRecipes != null) {
+            boolean hasAccess = PermissionHelper.hasAnyPermission(authorities,
+                "ROLE_RECIPE_READ", "ROLE_RECIPE_CREATE", "ROLE_RECIPE_SAVE", "ROLE_RECIPE_DELETE");
+            navRecipes.setEnabled(hasAccess);
+        }
     }
 
     @Override

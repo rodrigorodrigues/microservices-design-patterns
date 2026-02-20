@@ -3,6 +3,13 @@ package com.springboot.android.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 public class SessionManager {
     private static final String PREF_NAME = "SpringBootSession";
     private static final String KEY_TOKEN = "auth_token";
@@ -10,6 +17,7 @@ public class SessionManager {
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_CSRF_TOKEN = "csrf_token";
     private static final String KEY_CSRF_HEADER = "csrf_header";
+    private static final String KEY_AUTHORITIES = "authorities";
 
     private final SharedPreferences prefs;
     private final SharedPreferences.Editor editor;
@@ -54,6 +62,23 @@ public class SessionManager {
 
     public String getCsrfHeader() {
         return prefs.getString(KEY_CSRF_HEADER, "X-CSRF-TOKEN");
+    }
+
+    public void saveAuthorities(List<String> authorities) {
+        Gson gson = new Gson();
+        String json = gson.toJson(authorities);
+        editor.putString(KEY_AUTHORITIES, json);
+        editor.apply();
+    }
+
+    public List<String> getAuthorities() {
+        String json = prefs.getString(KEY_AUTHORITIES, null);
+        if (json == null) {
+            return new ArrayList<>();
+        }
+        Gson gson = new Gson();
+        Type type = new TypeToken<List<String>>(){}.getType();
+        return gson.fromJson(json, type);
     }
 
     public void clearAuthToken() {

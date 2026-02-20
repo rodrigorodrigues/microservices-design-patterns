@@ -24,6 +24,8 @@ import com.springboot.android.api.StockService;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.model.Stock;
 import com.springboot.android.util.PaginationHelper;
+import com.springboot.android.util.PermissionHelper;
+import com.springboot.android.util.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,8 @@ public class StockListActivity extends AppCompatActivity {
     private StockService stockService;
     private StockAdapter adapter;
     private PaginationHelper paginationHelper;
+    private SessionManager sessionManager;
+    private List<String> authorities;
     private int currentPage = 0;
     private TextInputEditText etSearch;
     private MaterialButton btnSearch;
@@ -49,6 +53,8 @@ public class StockListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_list);
 
+        sessionManager = new SessionManager(this);
+        authorities = sessionManager.getAuthorities();
         stockService = ApiClient.getClient().create(StockService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,16 +83,25 @@ public class StockListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new StockAdapter(new ArrayList<>(), this::onEditStock, this::onDeleteStock);
+        adapter.setPermissions(
+            PermissionHelper.hasStockSaveAccess(authorities),
+            PermissionHelper.hasStockDeleteAccess(authorities)
+        );
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::loadStocks);
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, StockFormActivity.class);
-            startActivity(intent);
-        });
+        if (PermissionHelper.hasStockCreateAccess(authorities)) {
+            fabAdd.setVisibility(View.VISIBLE);
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, StockFormActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            fabAdd.setVisibility(View.GONE);
+        }
 
         View paginationView = findViewById(R.id.pagination);
         paginationHelper = new PaginationHelper(paginationView, this::onPageChange);
@@ -133,6 +148,10 @@ public class StockListActivity extends AppCompatActivity {
     }
 
     private void onEditStock(Stock stock) {
+        if (!PermissionHelper.hasStockSaveAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to edit stocks", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent intent = new Intent(this, StockFormActivity.class);
         intent.putExtra("stock_id", stock.getId());
         intent.putExtra("stock_name", stock.getName());
@@ -144,6 +163,10 @@ public class StockListActivity extends AppCompatActivity {
     }
 
     private void onDeleteStock(Stock stock) {
+        if (!PermissionHelper.hasStockDeleteAccess(authorities)) {
+            Toast.makeText(this, "You don't have permission to delete stocks", Toast.LENGTH_SHORT).show();
+            return;
+        }
         new AlertDialog.Builder(this)
             .setTitle("Delete Stock")
             .setMessage("Are you sure you want to delete " + stock.getName() + "?")
