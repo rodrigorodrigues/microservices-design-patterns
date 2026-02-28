@@ -22,6 +22,26 @@ public class RedisConfiguration {
     @ConditionalOnMissingBean
     @Bean
     public LettuceConnectionFactory redisConnectionFactory(DataRedisProperties dataRedisProperties) {
-        return new LettuceConnectionFactory(dataRedisProperties.getHost(), dataRedisProperties.getPort());
+        log.info("Creating LettuceConnectionFactory with host: {}, port: {}, password set: {}",
+                dataRedisProperties.getHost(),
+                dataRedisProperties.getPort(),
+                dataRedisProperties.getPassword() != null && !dataRedisProperties.getPassword().isEmpty());
+
+        org.springframework.data.redis.connection.RedisStandaloneConfiguration config =
+                new org.springframework.data.redis.connection.RedisStandaloneConfiguration();
+        config.setHostName(dataRedisProperties.getHost());
+        config.setPort(dataRedisProperties.getPort());
+
+        // Set password if provided
+        if (dataRedisProperties.getPassword() != null && !dataRedisProperties.getPassword().isEmpty()) {
+            config.setPassword(dataRedisProperties.getPassword());
+        }
+
+        // Set username if provided (for Redis 6+ ACL)
+        if (dataRedisProperties.getUsername() != null && !dataRedisProperties.getUsername().isEmpty()) {
+            config.setUsername(dataRedisProperties.getUsername());
+        }
+
+        return new LettuceConnectionFactory(config);
     }
 }
