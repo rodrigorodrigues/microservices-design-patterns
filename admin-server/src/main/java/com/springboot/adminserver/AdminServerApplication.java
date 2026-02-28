@@ -25,10 +25,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+@Slf4j
 @SpringBootApplication
 @EnableAdminServer
 public class AdminServerApplication {
-    @Slf4j
     @ConditionalOnProperty(value = "com.microservice.authentication.redis.enabled", havingValue = "true")
     @Configuration
     @EnableRedisHttpSession
