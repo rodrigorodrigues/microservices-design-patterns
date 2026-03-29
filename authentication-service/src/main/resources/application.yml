@@ -20,7 +20,6 @@ spring:
                   auth: true
                   starttls:
                       required: true
-    jackson:
 
 management:
     endpoints:

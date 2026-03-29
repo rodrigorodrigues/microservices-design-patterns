@@ -5,11 +5,11 @@
 
 The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Most of the services are in `Java + Spring Boot 2 + MongoDB` but there are others using `NodeJS, Kotlin, Python and Go`.
+Most of the services are in `Java + Spring Boot 4 (JDK 25) + MongoDB` but there are others using `NodeJS, Kotlin, Python, Go, Rust, C#, and Clojure`.
 
 The web application is using `React` 
 
-Android App using `React Native` working in progress.
+Android App using `React Native` is available.
 
 Docker images are built in multiple platforms(`linux/amd64,linux/arm64`).
 
@@ -17,7 +17,7 @@ Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter
 
 ![Raspberry Pi Cluster](docs/raspberrypi_cluster.jpeg "Raspberry Pi Cluster")
 
-Feel free to create a new microservice using a different language(`Ruby?, C#?`), just please following the minimal requirements:
+Feel free to create a new microservice using a different language(`Ruby?, PHP?, Scala?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
  * Add a minimal documentation
  * Add a Rest API
@@ -78,10 +78,10 @@ The following list of `Microservice Patterns` was applied so far.
 To know more about each pattern look at [Microservice Architecture](https://microservices.io/patterns/microservices.html)
 
 ### Prerequisites
- * JDK 1.8
- * Maven 3
+ * JDK 25
+ * Maven 3.9+
  * Docker 17.05.0-ce+ - `Not necessary but recommended otherwise the services should run by command`
- * Docker Compose 1.23.2 - `Not necessary but recommended otherwise the services should run by command`
+ * Docker Compose 1.23.2+ - `Not necessary but recommended otherwise the services should run by command`
 
 ### Microservice Diagram
  
@@ -346,8 +346,9 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Kotlin - Add Service using Kotlin Language
 * [X] Quarkus - Add Service using Quarkus framework
 * [ ] Scala - Add Service using Scala Language
-* [ ] C# - Add Service using C# Language
+* [X] C# - Add Service using C#/.NET Framework - `Used Claude Agent`
 * [X] Go - Add Service using Go Language
+* [X] Clojure - Add Service using Clojure Language
 * [X] React - Create User List
 * [X] React - Create User Page
 * [X] React - Create User Edit
@@ -386,8 +387,9 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Quarkus/JDK 25
 * [X] Java - Add TestContainers
 * [ ] Add Open Telemetry
-* [X] Rust – Add Service using Rust/Actix-web - `Used Claude Agent`
-* [X] C# – Add Service using C#/.NET Framework - `Used Claude Agent`
+* [X] Rust - Add Service using Rust/Actix-web - `Used Claude Agent`
+* [X] C# - Add Service using C#/.NET Framework - `Used Claude Agent`
+* [X] Clojure - Add Service using Clojure - `Used Claude Agent`
 * [X] Add Android Client - `Used Claude Agent`
 
 ### References
