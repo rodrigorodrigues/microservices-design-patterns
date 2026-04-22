@@ -77,3 +77,7 @@ docker/kafka-values.yaml
 docker/schema.yml
 qodana.yaml
 closure-service/
+docker/nextcloud*
+docker/traefik-values.yaml
+.github/.aws/scala-address-service-task-definition.json
+.junie

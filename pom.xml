@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.1</version>
+		<version>4.0.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.springboot</groupId>
@@ -20,7 +20,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>25</java.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
-		<spring-cloud.version>2025.1.0</spring-cloud.version>
+		<spring-cloud.version>2025.1.1</spring-cloud.version>
 		<docker.image.name>${project.artifactId}</docker.image.name>
 		<docker.image.from>eclipse-temurin:25.0.1_8-jdk-alpine-3.23</docker.image.from>
 		<!-- Not working on mac m1 -->
@@ -42,9 +42,10 @@
 		<module>user-service</module>
 		<module>admin-server</module>
 		<module>authentication-common</module>
-		<module>kotlin-service</module>
+  		<module>kotlin-service</module>
 		<module>quarkus-service</module>
 		<module>redis-jackson-security-webauthn-otp</module>
+		<module>scala-address-service</module>
 	</modules>
 
 	<dependencyManagement>
@@ -175,7 +176,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.8</version>
+					<version>0.8.12</version>
 					<configuration>
 						<excludes>
 							<exclude>**/model/**/*</exclude>
@@ -263,6 +264,12 @@
 			<id>spring-releases</id>
 			<name>Spring Releases</name>
 			<url>https://repo.spring.io/release</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 
 		<repository>

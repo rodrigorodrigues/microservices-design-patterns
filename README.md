@@ -5,7 +5,7 @@
 
 The idea for this project is to show a case for applying `Microservice Architecture` using multiple languages.
 
-Most of the services are in `Java + Spring Boot 4 (JDK 25) + MongoDB` but there are others using `NodeJS, Kotlin, Python, Go, Rust, C#, and Clojure`.
+Most of the services are in `Java + Spring Boot 4 (JDK 25) + MongoDB` but there are others using `NodeJS, Kotlin, Python, Go, Rust, C#, Clojure, and Scala`.
 
 The web application is using `React` 
 
@@ -49,7 +49,8 @@ Inspired by the book [Microservices Patterns](https://www.manning.com/books/micr
   12. [OS Native App - GRAALVM](#graalvm)
   13. [TODO List](#todo-list)
   14. [References](#references)
-  15. [Postman Collection](docs/postman_collection.json?raw=true)
+  15. [Superpowers SDD Workflow](#superpowers-sdd-workflow)
+  16. [Postman Collection](docs/postman_collection.json?raw=true)
 
 ### Microservice Patterns
 
@@ -309,7 +310,7 @@ To run an app native using Spring Native
 mvn spring-boot:build-image -pl authentication-service
 `
 
-PS: Valid modules are `authentication-service, person-service, user-service, kotlin-service, edge-server and edge-server`.
+PS: Valid modules are `authentication-service, person-service, user-service, kotlin-service, edge-server, and scala-address-service`.
 
 Or to run with GraalVM Plugin.
 `
@@ -345,7 +346,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Fix Zuul/Edge Server for working with NodeJS Service
 * [X] Kotlin - Add Service using Kotlin Language
 * [X] Quarkus - Add Service using Quarkus framework
-* [ ] Scala - Add Service using Scala Language
+* [X] Scala - Add Service using Scala Language
 * [X] C# - Add Service using C#/.NET Framework - `Used Claude Agent`
 * [X] Go - Add Service using Go Language
 * [X] Clojure - Add Service using Clojure Language
@@ -391,6 +392,30 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] C# - Add Service using C#/.NET Framework - `Used Claude Agent`
 * [X] Clojure - Add Service using Clojure - `Used Claude Agent`
 * [X] Add Android Client - `Used Claude Agent`
+
+### Superpowers SDD Workflow
+
+This project uses the [Superpowers](https://github.com/obra/superpowers) agentic skills framework with **Subagent-Driven Development (SDD)**. This framework is located in the `.junie` folder and provides structured workflows for development tasks.
+
+#### How to execute the steps
+
+When working with an AI agent (like Junie), the workflow follows these mandatory steps:
+
+1.  **Brainstorming**: Refine the idea, explore design options, and produce a design doc.
+2.  **Using Git Worktrees**: Create an isolated branch and workspace for the task.
+3.  **Writing Plans**: Create a detailed, step-by-step task plan with exact file paths.
+4.  **Subagent-Driven Development**: Execute each task in the plan using a fresh subagent with a two-stage review process.
+5.  **Test-Driven Development (TDD)**: Always write tests first (RED), implement the minimal code (GREEN), and then REFACTOR.
+6.  **Requesting Code Review**: Perform reviews between tasks to ensure quality and plan compliance.
+7.  **Finishing a Development Branch**: Verify all tests, perform final checks, and merge/PR the work.
+
+#### The `.junie` folder
+
+The `.junie` folder contains:
+- `skills/`: A library of specific instructions (SKILL.md) for different development activities (e.g., `test-driven-development`, `systematic-debugging`).
+- `guidelines.md`: Project-specific rules and the mandatory SDD workflow order.
+
+AI agents are instructed to check these skills before any action to ensure consistency and high-quality output.
 
 ### References
 [Pattern Microservice Architecture](https://microservices.io/patterns/microservices.html)

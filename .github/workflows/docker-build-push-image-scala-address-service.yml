@@ -1,0 +1,106 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI - Build and push Docker images - Scala Address Service
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  GKE_KEY: ${{ secrets.GKE_KEY }}
+  IMAGE: scala-address-service
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_SERVICE: "scala-address-service"
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_TASK_DEFINITION: ".github/.aws/scala-address-service-task-definition.json"
+  CONTAINER_NAME: "scala-address-service"
+  SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
+  COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE: ${{ secrets.COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE }}
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    if: contains(toJson(github), 'build scala-address-service')
+    name: Build Jar/Docker Image and Publish to DockerHub
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Set up JDK
+      - name: JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Login to Dockerhub
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create Custom settings.xml
+        uses: s4u/maven-settings-action@v3.0.0
+        with:
+          servers: |
+            [{
+                "id": "github",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            },{
+                "id": "github-sba",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            }]
+
+      # Build Docker image using docker:build
+      - name: Build Service using docker:build
+        run: |
+          SPRING_CLOUD_CONSUL_CONFIG_ENABLED=false mvn clean package -Ddocker.image-tag=${{ env.GITHUB_SHA }} -DskipTests -q -pl scala-address-service -am -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn docker:build
+
+      - name: Push Image(amd64/arm64)
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./scala-address-service/target/docker/scala-address-service/build
+          file: ./scala-address-service/target/docker/scala-address-service/build/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            fielcapao/microservices-design-patterns-scala-address-service:latest
+            ${{ secrets.ECR_REPOSITORY }}/scala-address-service:latest
+            ${{ secrets.ECR_REPOSITORY }}/scala-address-service:${{ env.GITHUB_SHA }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}

@@ -403,6 +403,36 @@ services:
         aliases:
           - task-api
 
+  address-api:
+    build:
+      context: ../
+      dockerfile: scala-address-service/Dockerfile
+    container_name: address-api
+    environment:
+      - SPRING_PROFILES_ACTIVE=consul,dev
+      - CONSUL_URL=service-discovery:8500
+      - SPRING_CONFIG_IMPORT=consul:service-discovery:8500
+      - SERVER_PORT=8085
+      - SPRING_CLOUD_KUBERNETES_ENABLED=false
+      - SPRING_MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - SPRING_MONGODB_DATABASE=docker
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOW_CREDENTIALS=false
+      - DEBUG=true
+      - JAVA_OPTS=--enable-preview
+      - SPRING_CLOUD_CONSUL_HOST=service-discovery
+    depends_on:
+      - service-discovery
+      - mongodb-datasource
+      - service-discovery-load-configuration
+    ports:
+      - 8085:8085
+    volumes:
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+    networks:
+      net:
+        aliases:
+          - address-api
+
   user-api:
     image: user-service:0.0.1-SNAPSHOT
     container_name: user-api

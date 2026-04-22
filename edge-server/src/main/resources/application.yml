@@ -235,6 +235,10 @@ spring:
                     uri: lb://kotlin-service
                     predicates:
                         - Path=/api/tasks/**
+                  - id: scala-address-service
+                    uri: lb://scala-address-service
+                    predicates:
+                        - Path=/api/addresses/**
                   - id: kotlin-service-swagger
                     uri: lb://kotlin-service
                     predicates:
