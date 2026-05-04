@@ -45,38 +45,44 @@ public class PersonServiceImpl implements PersonService {
 
     private final Environment environment;
 
+    private final org.springframework.core.task.AsyncTaskExecutor asyncTaskExecutor;
+
     private final ParameterizedTypeReference<CustomPageImpl<PersonDto.Post>> parameterizedTypeReference = new ParameterizedTypeReference<>() { };
 
     private void processPost(Page<PersonDto> page, String authorization) {
         if (environment.acceptsProfiles(Profiles.of("callPostApi")) && !page.isEmpty()) {
-            try {
-                for (PersonDto person : page.getContent()) {
-                    HttpHeaders httpHeaders = new HttpHeaders();
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    HttpEntity httpEntity = new HttpEntity(httpHeaders);
-                    ResponseEntity<CustomPageImpl<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi() + "?personId="+person.getId(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
-                    person.setPosts(entity.getBody().getContent());
-                }
-            }
-            catch (Exception e) {
-                log.warn("Could not process post api", e);
-            }
+            List<java.util.concurrent.CompletableFuture<Void>> futures = page.getContent().stream()
+                .map(person -> java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        HttpHeaders httpHeaders = new HttpHeaders();
+                        httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
+                        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                        ResponseEntity<CustomPageImpl<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi() + "?personId=" + person.getId(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
+                        person.setPosts(entity.getBody().getContent());
+                    } catch (Exception e) {
+                        log.warn("Could not process post api for person {}", person.getId(), e);
+                    }
+                }, asyncTaskExecutor))
+                .toList();
+            java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         }
     }
 
     private void processUser(Page<PersonDto> page) {
         if (environment.acceptsProfiles(Profiles.of("callUserApi")) && !page.isEmpty()) {
-            try {
-                for (PersonDto person : page.getContent()) {
-                    HttpHeaders httpHeaders = new HttpHeaders();
-                    HttpEntity httpEntity = new HttpEntity(httpHeaders);
-                    ResponseEntity<PersonDto.User> entity = restTemplate.exchange(configProperties.getUserApi() + "?personId="+person.getId(), HttpMethod.GET, httpEntity, PersonDto.User.class);
-                    person.setUser(entity.getBody());
-                }
-            }
-            catch (Exception e) {
-                log.warn("Could not process user api", e);
-            }
+            List<java.util.concurrent.CompletableFuture<Void>> futures = page.getContent().stream()
+                .map(person -> java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        HttpHeaders httpHeaders = new HttpHeaders();
+                        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                        ResponseEntity<PersonDto.User> entity = restTemplate.exchange(configProperties.getUserApi() + "?personId=" + person.getId(), HttpMethod.GET, httpEntity, PersonDto.User.class);
+                        person.setUser(entity.getBody());
+                    } catch (Exception e) {
+                        log.warn("Could not process user api for person {}", person.getId(), e);
+                    }
+                }, asyncTaskExecutor))
+                .toList();
+            java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         }
     }
 

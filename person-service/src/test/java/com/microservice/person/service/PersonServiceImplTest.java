@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,11 +57,20 @@ public class PersonServiceImplTest {
     @Mock
     Environment environment;
 
+    @Mock
+    AsyncTaskExecutor asyncTaskExecutor;
+
     PersonMapper personMapper = new PersonMapperImpl();
 
     @BeforeEach
     public void setup() {
-        personService = new PersonServiceImpl(personRepository, personMapper, restTemplate, configProperties, environment);
+        lenient().doAnswer(invocation -> {
+            Runnable runnable = invocation.getArgument(0);
+            runnable.run();
+            return null;
+        }).when(asyncTaskExecutor).execute(any(Runnable.class));
+
+        personService = new PersonServiceImpl(personRepository, personMapper, restTemplate, configProperties, environment, asyncTaskExecutor);
     }
 
     @Test
