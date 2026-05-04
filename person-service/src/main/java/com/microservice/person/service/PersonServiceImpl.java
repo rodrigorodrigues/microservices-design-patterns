@@ -93,7 +93,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Page<PersonDto> findAll(Pageable pageable, Predicate predicate, String authorization) {
-        Page<PersonDto> people = personMapper.entityToDto(personRepository.findAll(predicate, pageable), personRepository.count(predicate));
+        Page<PersonDto> people = personRepository.findAll(predicate, pageable).map(personMapper::entityToDto);
         processPost(people, authorization);
         processUser(people);
         return people;
@@ -101,7 +101,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate, String authorization) {
-        Page<PersonDto> people = personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser, pageable, predicate), personRepository.count(predicate));
+        Page<PersonDto> people = personRepository.findAllByCreatedByUser(createdByUser, pageable, predicate).map(personMapper::entityToDto);
         processPost(people, authorization);
         processUser(people);
         return people;
@@ -109,12 +109,12 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable, Predicate predicate) {
-        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable, predicate), personRepository.count(predicate));
+        return personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable, predicate).map(personMapper::entityToDto);
     }
 
     @Override
     public Page<PersonDto> findByChildrenExists(Pageable pageable, Predicate predicate) {
-        return personMapper.entityToDto(personRepository.findByChildrenExists(true, pageable, predicate), personRepository.count(predicate));
+        return personRepository.findByChildrenExists(true, pageable, predicate).map(personMapper::entityToDto);
     }
 
     @Override
