@@ -22,7 +22,7 @@
         "express-actuator": "1.1.0",
         "express-jwt-permissions": "1.2.3",
         "express-prom-bundle": "5.0.2",
-        "jsonwebtoken": "8.4.0",
+        "jsonwebtoken": "9.0.0",
         "lodash": "^4.17.10",
         "mongodb": "^3.1.6",
         "mongoose": "^5.2.15",
