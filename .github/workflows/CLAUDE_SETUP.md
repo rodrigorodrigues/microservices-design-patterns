@@ -1,21 +1,20 @@
 # Claude AI GitHub Integration for microservices-design-patterns
 
-This integration adds Claude AI-powered code reviews and issue assistance to your repository.
+This integration adds Claude-powered code review and an `@claude` assistant to this repository, via the official [`anthropics/claude-code-action`](https://github.com/anthropics/claude-code-action).
 
 ## 🚀 Features
 
-### PR Reviews (`claude-pr-review.yml`)
-- **Automatic reviews** on every PR
-- **Architecture analysis** aligned with microservice patterns
-- **Multi-language support** (Java, Kotlin, Node.js, Python, Go)
-- **Security checks** with automatic labeling
-- **Interactive Q&A** - mention `@claude` in PR comments to ask questions
+### Automatic PR Review (`claude-code-review.yml`)
+- Runs on every PR open, sync, reopen, and "ready for review"
+- Uses the official `code-review` plugin (`/code-review:code-review`), not a hand-rolled prompt
+- Read-only permissions — it reviews, it doesn't push commits or edit anything
 
-### Issue Assistant (`claude-issue-assistant.yml`)
-- **Auto-responds** to issues labeled `help-wanted` or `question`
-- **Context-aware** - understands your microservices architecture
-- **Smart labeling** - automatically suggests relevant labels
-- **Interactive help** - mention `@claude` in issue comments for follow-up
+### `@claude` Assistant (`claude.yml`)
+- Responds anywhere you mention `@claude`: PR comments, inline PR review comments, submitted PR reviews, and issue comments
+- Also picks up newly opened/assigned issues whose title or body mentions `@claude`
+- Can read CI results on PRs (`additional_permissions: actions: read`) when asked about them
+
+Both workflows were installed via `claude /install-github-app` and call the same official action — this repo doesn't call the Anthropic API directly anymore (an earlier hand-rolled `curl`-based setup was replaced; see git history on `claude-pr-review.yml`/`claude-issue-assistant.yml` if you need the old version for reference).
 
 ## 📋 Setup Instructions
 
@@ -35,23 +34,18 @@ This integration adds Claude AI-powered code reviews and issue assistance to you
 5. Value: Paste your API key
 6. Click **Add secret**
 
-### 3. Add Workflow Files
+Both `claude.yml` and `claude-code-review.yml` read this same secret via `anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}`. If the key is missing, expired, or revoked, the action fails with an API error surfaced in the Actions log (and sometimes as a posted comment) rather than silently doing nothing.
 
-Copy the workflow files to your repository:
+### 3. Workflow Files
 
-```bash
-# Create workflows directory if it doesn't exist
-mkdir -p .github/workflows
+Already present in this repo at:
 
-# Copy the workflow files
-cp claude-pr-review.yml .github/workflows/
-cp claude-issue-assistant.yml .github/workflows/
-
-# Commit and push
-git add .github/workflows/claude-*.yml
-git commit -m "Add Claude AI integration for PR reviews and issue assistance"
-git push
 ```
+.github/workflows/claude.yml
+.github/workflows/claude-code-review.yml
+```
+
+If you ever need to reinstall or reconfigure them, run `claude /install-github-app` from a Claude Code session with access to this repo — it installs the official Claude GitHub App and can rewrite these files for you.
 
 ### 4. Enable Workflow Permissions
 
@@ -65,180 +59,52 @@ git push
 
 ### For Pull Requests
 
-**Automatic Review**: Every PR gets automatically reviewed by Claude
+**Automatic Review**: every PR gets reviewed by the `code-review` plugin automatically — no `@claude` needed.
 
-**Ask Questions**: Mention `@claude` in any PR comment:
+**Ask Questions**: mention `@claude` in a PR comment, an inline review comment, or a submitted review:
 ```
 @claude what's the security impact of this change?
 ```
 
-**What Claude Checks**:
-- ✅ Architecture alignment with microservice patterns
-- ✅ Code quality and best practices
-- ✅ Security concerns (auth, secrets, injections)
-- ✅ Test coverage
-- ✅ Documentation needs
-- ✅ Cross-language integration issues
+**What the automatic review checks**: whatever the `code-review` plugin covers (see [its docs](https://github.com/anthropics/claude-code)) — correctness, simplification/reuse opportunities, and efficiency, tuned by the prompt in `claude-code-review.yml`.
 
 ### For Issues
 
-**Automatic Help**: Add `help-wanted` or `question` label to trigger Claude
+**Mention on open**: put `@claude` in the issue title or body when creating it.
 
-**Ask Questions**: Mention `@claude` in any issue comment:
+**Ask Questions**: mention `@claude` in any issue comment:
 ```
 @claude how do I add a new microservice in Python?
 ```
 
-**What Claude Helps With**:
-- 🔍 Understanding the issue
-- 📂 Identifying relevant services/files
-- 💡 Suggesting solutions
-- 📚 Providing resources and docs
+There is currently no label-based auto-trigger (e.g. `help-wanted`/`question`) — only `@claude` mentions trigger the assistant on issues. If you want that back, add an `issues: [opened, labeled]` condition to `claude.yml`'s `if:` block.
 
 ## 🔧 Customization
 
-### Adjust Review Depth
+### Change what the automatic review does
 
-Edit `.github/workflows/claude-pr-review.yml`:
+Edit the `prompt`, `plugins`, or `plugin_marketplaces` inputs in `.github/workflows/claude-code-review.yml`. You can also restrict it to specific file paths (see the commented-out `paths:` block) or specific PR authors (see the commented-out author filter).
 
-```yaml
-# For more detailed reviews, increase max_tokens
-"max_tokens": 4000,  # Change from 2000 to 4000
-```
+### Change what `@claude` can do
 
-### Change Trigger Conditions
+Edit `.github/workflows/claude.yml`:
+- `prompt`: override with a fixed instruction instead of following whatever the comment that tagged it said
+- `claude_args`: pass CLI flags, e.g. restrict tool access with `--allowed-tools Bash(gh pr *)`
 
-Edit when Claude responds:
-
-```yaml
-# Only review PRs with specific labels
-on:
-  pull_request:
-    types: [opened, labeled]
-    
-jobs:
-  claude-review:
-    if: contains(github.event.pull_request.labels.*.name, 'needs-review')
-```
-
-### Add Custom Instructions
-
-Modify the prompt in the workflow to focus on specific aspects:
-
-```yaml
-PROMPT="Please review this PR focusing on:
-1. Spring Boot best practices
-2. MongoDB query optimization
-3. Docker image size
-..."
-```
-
-## 📊 Cost Estimation
-
-Claude Sonnet 4 pricing (as of Jan 2025):
-- Input: $3 per million tokens
-- Output: $15 per million tokens
-
-Typical usage per PR:
-- ~5,000 input tokens (diff + context)
-- ~1,000 output tokens (review)
-- Cost: ~$0.03 per PR
-
-For 100 PRs/month: ~$3/month
+See the [claude-code-action usage docs](https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md) for the full set of options.
 
 ## 🔒 Security Notes
 
 - ✅ API key is stored securely in GitHub Secrets
-- ✅ Claude only receives PR diffs, not full repository access
-- ✅ No code is stored or trained on by Claude
+- ✅ Both workflows default to read-only `contents`/`pull-requests`/`issues` permissions plus `id-token: write` (required by the action) — they don't push code unless you explicitly grant write access and ask them to
 - ✅ All analysis happens in your GitHub Actions runners
 
 ## 🐛 Troubleshooting
 
-### "ANTHROPIC_API_KEY not found"
-- Make sure you added the secret exactly as `ANTHROPIC_API_KEY`
-- Check spelling and case sensitivity
-
-### Claude isn't responding
-- Check workflow runs in **Actions** tab
-- Verify workflow permissions are set correctly
-- Ensure the PR/issue meets trigger conditions
-
-### Review is too generic
-- Reduce diff size by making smaller PRs
-- Add more context in PR description
-- Customize the prompt for your needs
+See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
 
 ## 🆘 Need Help?
 
 - Check [GitHub Actions logs](https://github.com/rodrigorodrigues/microservices-design-patterns/actions)
-- Review [Anthropic API docs](https://docs.anthropic.com)
-- Open an issue with the `question` label and mention `@claude`
-
-## 📝 Example Interactions
-
-### PR Review Example
-
-**PR**: Add new authentication method
-**Claude's Response**:
-```markdown
-## 🤖 Claude AI Review
-
-### Architecture Review
-✅ Good: Follows OAuth2 pattern consistent with existing auth-service
-⚠️  Consider: Should this be in authentication-service or a separate endpoint?
-
-### Code Quality  
-✅ Clean separation of concerns
-⚠️  Missing input validation on line 45
-
-### Security
-🔴 CRITICAL: Hardcoded JWT secret on line 67 - use environment variable
-✅ Proper password hashing with BCrypt
-
-### Testing
-⚠️  Add integration tests for the new auth flow
-
-### Documentation
-📝 Update README with new authentication method
-```
-
-### Issue Assistant Example
-
-**Issue**: How do I add a new microservice in Ruby?
-**Claude's Response**:
-```markdown
-## 🤖 Claude AI Assistant
-
-### Understanding
-You want to add a Ruby microservice to this polyglot architecture.
-
-### Relevant Files
-- Check `/go-service` and `/nodejs-service` as examples
-- Review `/docker/docker-compose.yml` for service registration
-- See main `/README.md` for architecture patterns
-
-### Solution Steps
-1. Create new folder: `/ruby-service`
-2. Implement REST API with JWT validation
-3. Add MongoDB connection
-4. Register with Consul
-5. Create Dockerfile
-6. Update docker-compose.yml
-
-### Resources
-- [Ruby Sinatra + MongoDB](https://docs.mongodb.com/ruby-driver/)
-- [Consul Ruby Client](https://github.com/WeAreFarmGeek/diplomat)
-```
-
-## 🎉 Benefits
-
-- 🚀 **Faster reviews** - Get instant feedback on every PR
-- 🎯 **Consistent quality** - Apply architectural patterns uniformly
-- 🔍 **Catch issues early** - Security and code quality checks
-- 📚 **Learning tool** - Understand microservice best practices
-- 🤝 **Team support** - Help with issues and questions 24/7
-
----
-
-**Ready to try it?** Open a test PR or issue with the `question` label! 🎈
+- Review the [claude-code-action repo](https://github.com/anthropics/claude-code-action) and [Anthropic API docs](https://docs.anthropic.com)
+- Open an issue and mention `@claude`
