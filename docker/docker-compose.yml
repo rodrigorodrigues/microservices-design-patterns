@@ -420,6 +420,7 @@ services:
       - DEBUG=true
       - JAVA_OPTS=--enable-preview
       - SPRING_CLOUD_CONSUL_HOST=service-discovery
+      - COM_MICROSERVICE_AUTHENTICATION_JWK_KEY_SET_URI=http://authentication-service:9999/.well-known/jwks.json
     depends_on:
       - service-discovery
       - mongodb-datasource

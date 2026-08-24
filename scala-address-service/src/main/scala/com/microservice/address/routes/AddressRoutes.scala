@@ -39,7 +39,8 @@ trait JsonSupport {
     )
 }
 
-class AddressRoutes(repository: AddressRepository)(implicit ec: ExecutionContext) extends JwtDirectives with JsonSupport {
+class AddressRoutes(repository: AddressRepository, jwtDirectives: JwtDirectives)(implicit ec: ExecutionContext) extends JsonSupport {
+  import jwtDirectives._
 
   private def toFuture[T](mono: Mono[T]): Future[Option[T]] = 
     mono.toFuture().asScala.map(Option.apply)
