@@ -1,0 +1,64 @@
+name: Gemini PR Review
+
+"on":
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gemini-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          git diff "$BASE_SHA".."$HEAD_SHA" > pr_diff.txt
+          git diff --name-only "$BASE_SHA".."$HEAD_SHA" > changed_files.txt
+
+      - name: Call Gemini API
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          DIFF_CONTENT=$(head -c 30000 pr_diff.txt 2>/dev/null || echo "No diff available")
+          CHANGED_FILES=$(cat changed_files.txt 2>/dev/null || echo "No files")
+
+          PROMPT="Review this PR for microservices-design-patterns, a polyglot microservices repo (Java/Spring Boot, Kotlin, Scala, Node.js, Python, Go, Rust, .NET, MongoDB, Consul, Docker/Kubernetes, React, OAuth2/JWT). Title: ${PR_TITLE}. Changed files: ${CHANGED_FILES}. Diff: ${DIFF_CONTENT}. Check: 1) architecture alignment, 2) code quality, 3) security concerns (auth, secrets, injection), 4) test coverage, 5) documentation needs. Be concise and actionable."
+
+          # Build the JSON payload with jq so untrusted PR title/diff content
+          # can't break out of the JSON string (no manual quote-escaping).
+          jq -n --arg prompt "$PROMPT" '{contents: [{parts: [{text: $prompt}]}]}' > gemini_request.json
+
+          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" \
+            -H "Content-Type: application/json" \
+            -H "x-goog-api-key: $GEMINI_API_KEY" \
+            -d @gemini_request.json)
+
+          echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // .error.message // "Error: could not generate review"' > gemini_review.txt
+
+      - name: Post review comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('gemini_review.txt', 'utf8');
+
+            const comment = `## 🔷 Gemini AI Review\n\n${review}\n\n---\n*Review powered by Gemini 2.0 Flash (free tier)*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: comment
+            });
