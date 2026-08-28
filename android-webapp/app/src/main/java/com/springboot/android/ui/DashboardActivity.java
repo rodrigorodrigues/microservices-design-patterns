@@ -260,6 +260,19 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void logout() {
+        // Best-effort - invalidates the server-side session too (importCookiesFromWebView's
+        // SESSIONID otherwise keeps authenticating requests after local state is cleared).
+        authService.logout().enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+            }
+        });
+
+        ApiClient.clearCookies();
         sessionManager.logout();
         startLoginActivity();
     }

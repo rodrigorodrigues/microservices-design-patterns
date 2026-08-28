@@ -35,6 +35,15 @@ public class ApiClient {
     }
 
     /**
+     * Drops all stored cookies (e.g. SESSIONID). Must be called on logout - otherwise a
+     * session imported via importCookiesFromWebView keeps authenticating requests like
+     * /api/authenticatedUser server-side even after the local JWT/CSRF state is cleared.
+     */
+    public static void clearCookies() {
+        cookieStore.clear();
+    }
+
+    /**
      * Copies cookies (SESSIONID, XSRF-TOKEN) set on a WebView-hosted OAuth2 flow into this
      * client's cookie jar. Needed because webauthn/** endpoints require a session-authenticated
      * principal (not just the JWT Authorization header), and android.webkit.CookieManager's
