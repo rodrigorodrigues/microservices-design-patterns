@@ -48,6 +48,7 @@ jobs:
             ([.steps[]? | select(.type == "model_output") | .content[]? | select(.type == "text") | .text] | join("\n"))
             as $text
             | if ($text // "") != "" then $text
+              elif (.error.message) then .error.message
               elif (.errors[0].message) then .errors[0].message
               else "Error: could not generate review"
               end
