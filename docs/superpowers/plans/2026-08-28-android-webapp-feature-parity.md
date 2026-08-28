@@ -476,7 +476,7 @@ git commit -m "feat: assign products to weekmenu category from android app" --tr
 - Modify: `android-webapp/app/src/main/java/com/springboot/android/ui/DashboardActivity.java`
 - Modify: `android-webapp/app/src/main/AndroidManifest.xml`
 
-- [ ] **Step 1: Add a strict admin-only check to PermissionHelper**
+- [x] **Step 1: Add a strict admin-only check to PermissionHelper**
 
 ```java
     // Admin-only check (unlike hasAnyPermission, does NOT pass for SCOPE_openid alone)
@@ -487,7 +487,7 @@ git commit -m "feat: assign products to weekmenu category from android app" --tr
 
 (Add this method to `PermissionHelper.java`, near `hasAnyPermission`.)
 
-- [ ] **Step 2: Create activity_create_all.xml**
+- [x] **Step 2: Create activity_create_all.xml**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -625,7 +625,7 @@ git commit -m "feat: assign products to weekmenu category from android app" --tr
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 ```
 
-- [ ] **Step 3: Create CreateAllActivity.java**
+- [x] **Step 3: Create CreateAllActivity.java**
 
 ```java
 package com.springboot.android.ui;
@@ -767,7 +767,7 @@ public class CreateAllActivity extends AppCompatActivity {
 }
 ```
 
-- [ ] **Step 4: Register the activity in AndroidManifest.xml**
+- [x] **Step 4: Register the activity in AndroidManifest.xml**
 
 ```xml
         <activity
@@ -779,7 +779,7 @@ public class CreateAllActivity extends AppCompatActivity {
 
 (Add alongside the other `.ui.*FormActivity` entries.)
 
-- [ ] **Step 5: Add nav_create_all to drawer_menu.xml**
+- [x] **Step 5: Add nav_create_all to drawer_menu.xml**
 
 ```xml
     <item android:title="Admin">
@@ -794,7 +794,7 @@ public class CreateAllActivity extends AppCompatActivity {
 
 (Insert this group before the existing `<item android:title="Account">` group.)
 
-- [ ] **Step 6: Wire up navigation + ROLE_ADMIN gating in DashboardActivity**
+- [x] **Step 6: Wire up navigation + ROLE_ADMIN gating in DashboardActivity**
 
 In `configureMenuItemsVisibility(List<String> authorities)`:
 
@@ -812,12 +812,12 @@ In `onNavigationItemSelected(MenuItem item)`:
             startActivity(new Intent(this, CreateAllActivity.class));
 ```
 
-- [ ] **Step 7: Build to verify**
+- [x] **Step 7: Build to verify**
 
 Run: `./gradlew :app:assembleDebug`
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 8: Commit changes**
+- [x] **Step 8: Commit changes**
 
 ```bash
 git add android-webapp/app/src/main/java/com/springboot/android/util/PermissionHelper.java android-webapp/app/src/main/res/layout/activity_create_all.xml android-webapp/app/src/main/java/com/springboot/android/ui/CreateAllActivity.java android-webapp/app/src/main/res/menu/drawer_menu.xml android-webapp/app/src/main/java/com/springboot/android/ui/DashboardActivity.java android-webapp/app/src/main/AndroidManifest.xml
