@@ -842,7 +842,7 @@ git commit -m "feat: add admin Create All (person + task) wizard" --trailer "Co-
 - Modify: `android-webapp/app/src/main/java/com/springboot/android/ui/DashboardActivity.java`
 - Modify: `android-webapp/app/src/main/AndroidManifest.xml`
 
-- [ ] **Step 1: Add Credential Manager dependencies**
+- [x] **Step 1: Add Credential Manager dependencies**
 
 ```groovy
     // Passkeys / WebAuthn
@@ -852,7 +852,7 @@ git commit -m "feat: add admin Create All (person + task) wizard" --trailer "Co-
 
 (Add to the `dependencies` block in `android-webapp/app/build.gradle`, near the other `androidx.*` entries.)
 
-- [ ] **Step 2: Add the Passkey model**
+- [x] **Step 2: Add the Passkey model**
 
 ```java
 package com.springboot.android.model;
@@ -893,7 +893,7 @@ public class Passkey {
 }
 ```
 
-- [ ] **Step 3: Add PasskeyService**
+- [x] **Step 3: Add PasskeyService**
 
 ```java
 package com.springboot.android.api;
@@ -932,7 +932,7 @@ public interface PasskeyService {
 }
 ```
 
-- [ ] **Step 4: List + delete screen (activity_passkey_list.xml, item_passkey.xml, PasskeyAdapter.java, PasskeyListActivity.java)**
+- [x] **Step 4: List + delete screen (activity_passkey_list.xml, item_passkey.xml, PasskeyAdapter.java, PasskeyListActivity.java)**
 
 `activity_passkey_list.xml` (same structure as `activity_person_list.xml`, minus search):
 
@@ -1198,7 +1198,7 @@ public class PasskeyListActivity extends AppCompatActivity {
 }
 ```
 
-- [ ] **Step 5: Registration screen (activity_passkey_form.xml, PasskeyFormActivity.java)**
+- [x] **Step 5: Registration screen (activity_passkey_form.xml, PasskeyFormActivity.java)**
 
 `activity_passkey_form.xml` (same shape as `activity_category_form.xml`, one label field):
 
@@ -1408,7 +1408,7 @@ public class PasskeyFormActivity extends AppCompatActivity {
 }
 ```
 
-- [ ] **Step 6: Passkey sign-in on the login screen**
+- [x] **Step 6: Passkey sign-in on the login screen**
 
 Add to `activity_login.xml` (near the existing `btnGoogleLogin`):
 
@@ -1515,7 +1515,7 @@ Add to `LoginActivity.java` — a `CredentialManager.getCredentialAsync` call us
     }
 ```
 
-- [ ] **Step 7: Add nav_passkeys to drawer_menu.xml and DashboardActivity**
+- [x] **Step 7: Add nav_passkeys to drawer_menu.xml and DashboardActivity**
 
 In `drawer_menu.xml`, add under the existing "Account" group (self-service, no role gate — same as react-webapp):
 
@@ -1533,7 +1533,7 @@ In `DashboardActivity.onNavigationItemSelected`:
             startActivity(new Intent(this, PasskeyListActivity.class));
 ```
 
-- [ ] **Step 8: Register new activities in AndroidManifest.xml**
+- [x] **Step 8: Register new activities in AndroidManifest.xml**
 
 ```xml
         <activity
@@ -1548,12 +1548,12 @@ In `DashboardActivity.onNavigationItemSelected`:
             android:parentActivityName=".ui.PasskeyListActivity" />
 ```
 
-- [ ] **Step 9: Build to verify**
+- [x] **Step 9: Build to verify**
 
 Run: `./gradlew :app:assembleDebug`
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 10: Commit changes**
+- [x] **Step 10: Commit changes**
 
 ```bash
 git add android-webapp/app/build.gradle android-webapp/app/src/main/java/com/springboot/android/model/Passkey.java android-webapp/app/src/main/java/com/springboot/android/api/PasskeyService.java android-webapp/app/src/main/res/layout/activity_passkey_list.xml android-webapp/app/src/main/res/layout/item_passkey.xml android-webapp/app/src/main/java/com/springboot/android/ui/PasskeyAdapter.java android-webapp/app/src/main/java/com/springboot/android/ui/PasskeyListActivity.java android-webapp/app/src/main/res/layout/activity_passkey_form.xml android-webapp/app/src/main/java/com/springboot/android/ui/PasskeyFormActivity.java android-webapp/app/src/main/res/layout/activity_login.xml android-webapp/app/src/main/java/com/springboot/android/ui/LoginActivity.java android-webapp/app/src/main/res/menu/drawer_menu.xml android-webapp/app/src/main/java/com/springboot/android/ui/DashboardActivity.java android-webapp/app/src/main/AndroidManifest.xml
