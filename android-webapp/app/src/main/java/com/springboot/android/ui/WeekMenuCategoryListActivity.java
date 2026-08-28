@@ -17,6 +17,7 @@ import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.WeekMenuCategoryService;
 import com.springboot.android.model.Category;
+import com.springboot.android.model.CategoryProduct;
 import com.springboot.android.model.PageResponse;
 import com.springboot.android.util.PermissionHelper;
 import com.springboot.android.util.SessionManager;
@@ -117,6 +118,13 @@ public class WeekMenuCategoryListActivity extends AppCompatActivity {
         Intent intent = new Intent(this, CategoryFormActivity.class);
         intent.putExtra("category_id", category.getId());
         intent.putExtra("category_name", category.getName());
+        ArrayList<String> productNames = new ArrayList<>();
+        if (category.getProducts() != null) {
+            for (CategoryProduct product : category.getProducts()) {
+                productNames.add(product.getName());
+            }
+        }
+        intent.putStringArrayListExtra("category_product_names", productNames);
         startActivity(intent);
     }
 
