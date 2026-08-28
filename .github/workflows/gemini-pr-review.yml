@@ -37,14 +37,21 @@ jobs:
 
           # Build the JSON payload with jq so untrusted PR title/diff content
           # can't break out of the JSON string (no manual quote-escaping).
-          jq -n --arg prompt "$PROMPT" '{contents: [{parts: [{text: $prompt}]}]}' > gemini_request.json
+          jq -n --arg prompt "$PROMPT" '{model: "gemini-3.6-flash", input: $prompt}' > gemini_request.json
 
-          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" \
+          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/interactions" \
             -H "Content-Type: application/json" \
             -H "x-goog-api-key: $GEMINI_API_KEY" \
             -d @gemini_request.json)
 
-          echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // .error.message // "Error: could not generate review"' > gemini_review.txt
+          echo "$RESPONSE" | jq -r '
+            ([.steps[]? | select(.type == "model_output") | .content[]? | select(.type == "text") | .text] | join("\n"))
+            as $text
+            | if ($text // "") != "" then $text
+              elif (.errors[0].message) then .errors[0].message
+              else "Error: could not generate review"
+              end
+          ' > gemini_review.txt
 
       - name: Post review comment
         uses: actions/github-script@v7
@@ -54,7 +61,7 @@ jobs:
             const fs = require('fs');
             const review = fs.readFileSync('gemini_review.txt', 'utf8');
 
-            const comment = `## 🔷 Gemini AI Review\n\n${review}\n\n---\n*Review powered by Gemini 2.0 Flash (free tier)*`;
+            const comment = `## 🔷 Gemini AI Review\n\n${review}\n\n---\n*Review powered by Gemini 3.6 Flash (free tier)*`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
