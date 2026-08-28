@@ -262,16 +262,26 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     private void logout() {
         // Best-effort - invalidates the server-side session too (importCookiesFromWebView's
         // SESSIONID otherwise keeps authenticating requests after local state is cleared).
+        // GET, matching SpringSecurityConfiguration's logoutRequestMatcher - not
+        // CSRF-protected (Spring's CsrfFilter skips GET by default). Local cleanup +
+        // navigation happens afterward regardless of outcome - clearing cookies before this
+        // call would send it without the session cookie at all, and navigating to
+        // LoginActivity before clearing would risk it seeing the still-valid session and
+        // bouncing straight back to Dashboard.
         authService.logout().enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
+                finishLogout();
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
+                finishLogout();
             }
         });
+    }
 
+    private void finishLogout() {
         ApiClient.clearCookies();
         sessionManager.logout();
         startLoginActivity();
