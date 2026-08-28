@@ -39,10 +39,15 @@ jobs:
           # can't break out of the JSON string (no manual quote-escaping).
           jq -n --arg prompt "$PROMPT" '{model: "gemini-3.6-flash", input: $prompt}' > gemini_request.json
 
-          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/interactions" \
+          HTTP_STATUS=$(curl -s -o response_body.json -w "%{http_code}" "https://generativelanguage.googleapis.com/v1beta/interactions" \
             -H "Content-Type: application/json" \
             -H "x-goog-api-key: $GEMINI_API_KEY" \
             -d @gemini_request.json)
+          echo "DEBUG: HTTP status $HTTP_STATUS"
+          echo "DEBUG: response body (first 2000 chars):"
+          head -c 2000 response_body.json
+          echo ""
+          RESPONSE=$(cat response_body.json)
 
           echo "$RESPONSE" | jq -r '
             ([.steps[]? | select(.type == "model_output") | .content[]? | select(.type == "text") | .text] | join("\n"))
