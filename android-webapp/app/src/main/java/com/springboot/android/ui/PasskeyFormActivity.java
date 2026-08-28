@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
+import com.springboot.android.api.AuthService;
 import com.springboot.android.api.PasskeyService;
 
 import retrofit2.Call;
@@ -31,6 +32,7 @@ public class PasskeyFormActivity extends AppCompatActivity {
     private MaterialButton btnRegister;
     private ProgressBar progressBar;
     private PasskeyService passkeyService;
+    private AuthService authService;
     private CredentialManager credentialManager;
 
     @Override
@@ -45,6 +47,7 @@ public class PasskeyFormActivity extends AppCompatActivity {
         }
 
         passkeyService = ApiClient.getClient().create(PasskeyService.class);
+        authService = ApiClient.getClient().create(AuthService.class);
         credentialManager = CredentialManager.create(this);
 
         etLabel = findViewById(R.id.etLabel);
@@ -64,6 +67,22 @@ public class PasskeyFormActivity extends AppCompatActivity {
         btnRegister.setEnabled(false);
         progressBar.setVisibility(View.VISIBLE);
 
+        // Fetch a fresh CSRF token first, matching react-webapp's PasskeyEdit.js - the
+        // webauthn/** endpoints are CSRF-protected and a stale/missing token 403s.
+        authService.getCsrfToken().enqueue(new Callback<com.springboot.android.model.CsrfToken>() {
+            @Override
+            public void onResponse(Call<com.springboot.android.model.CsrfToken> call, Response<com.springboot.android.model.CsrfToken> response) {
+                fetchRegisterOptions(label);
+            }
+
+            @Override
+            public void onFailure(Call<com.springboot.android.model.CsrfToken> call, Throwable t) {
+                finishWithError("Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void fetchRegisterOptions(String label) {
         passkeyService.getRegisterOptions().enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {

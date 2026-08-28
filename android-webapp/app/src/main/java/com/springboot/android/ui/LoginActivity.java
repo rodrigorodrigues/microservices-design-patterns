@@ -1,14 +1,12 @@
 package com.springboot.android.ui;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.GetCredentialRequest;
@@ -214,6 +212,22 @@ public class LoginActivity extends AppCompatActivity {
         btnGoogleLogin.setEnabled(false);
         btnPasskeyLogin.setEnabled(false);
 
+        // Fetch a fresh CSRF token first, matching react-webapp's Login.js handlePasskey() -
+        // the webauthn/** endpoints are CSRF-protected and a stale/missing token 403s.
+        authService.getCsrfToken().enqueue(new Callback<com.springboot.android.model.CsrfToken>() {
+            @Override
+            public void onResponse(Call<com.springboot.android.model.CsrfToken> call, Response<com.springboot.android.model.CsrfToken> response) {
+                fetchAuthenticateOptions();
+            }
+
+            @Override
+            public void onFailure(Call<com.springboot.android.model.CsrfToken> call, Throwable t) {
+                finishPasskeyLoginWithError("Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void fetchAuthenticateOptions() {
         passkeyService.getAuthenticateOptions().enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -284,12 +298,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void performGoogleLogin() {
-        // Open OAuth2 authorization URL in Chrome Custom Tab
-        String oauth2Url = BuildConfig.BASE_URL + "oauth2/authorization/google";
-
-        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-        CustomTabsIntent customTabsIntent = builder.build();
-        customTabsIntent.launchUrl(this, Uri.parse(oauth2Url));
+        // Runs the flow in an in-app WebView (not a Chrome Custom Tab) so the resulting
+        // session cookie can be imported into ApiClient - webauthn/** endpoints need it.
+        startActivity(new Intent(this, GoogleLoginWebViewActivity.class));
     }
 
     @Override

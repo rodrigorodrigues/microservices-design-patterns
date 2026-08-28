@@ -112,6 +112,13 @@
             android:parentActivityName=".ui.PasskeyListActivity" />
 
         <activity
+            android:name=".ui.GoogleLoginWebViewActivity"
+            android:exported="false"
+            android:label="Sign in with Google"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.LoginActivity" />
+
+        <activity
             android:name=".ui.ProductListActivity"
             android:exported="false"
             android:label="Products"

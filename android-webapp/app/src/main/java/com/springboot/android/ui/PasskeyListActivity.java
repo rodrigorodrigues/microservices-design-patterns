@@ -68,6 +68,15 @@ public class PasskeyListActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Passkey>> call, Throwable t) {
+                // The backend returns 200 with a genuinely empty (0-byte) body when the
+                // user has no passkeys yet, instead of "[]" - Gson can't parse that as a
+                // List, so Retrofit surfaces it here rather than onResponse. Treat it as
+                // an empty list rather than an error.
+                if (t instanceof java.io.EOFException) {
+                    passkeys.clear();
+                    adapter.updateData(passkeys);
+                    return;
+                }
                 Toast.makeText(PasskeyListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
