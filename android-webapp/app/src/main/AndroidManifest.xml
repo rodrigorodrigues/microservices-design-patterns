@@ -91,6 +91,13 @@
             android:parentActivityName=".ui.PersonListActivity" />
 
         <activity
+            android:name=".ui.CreateAllActivity"
+            android:exported="false"
+            android:label="Add Person + Task"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
             android:name=".ui.ProductListActivity"
             android:exported="false"
             android:label="Products"

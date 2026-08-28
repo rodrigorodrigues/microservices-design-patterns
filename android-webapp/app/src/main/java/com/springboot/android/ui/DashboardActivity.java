@@ -144,6 +144,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         MenuItem navCategories = navigationView.getMenu().findItem(R.id.nav_categories);
         MenuItem navIngredients = navigationView.getMenu().findItem(R.id.nav_ingredients);
         MenuItem navRecipes = navigationView.getMenu().findItem(R.id.nav_recipes);
+        MenuItem navCreateAll = navigationView.getMenu().findItem(R.id.nav_create_all);
 
         // Check permissions and disable menu items accordingly
         if (navCompanies != null) {
@@ -211,6 +212,11 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                 "ROLE_RECIPE_READ", "ROLE_RECIPE_CREATE", "ROLE_RECIPE_SAVE", "ROLE_RECIPE_DELETE");
             navRecipes.setEnabled(hasAccess);
         }
+
+        // Create All is admin-only, unlike the other menu items which also allow SCOPE_openid
+        if (navCreateAll != null) {
+            navCreateAll.setEnabled(PermissionHelper.isAdmin(authorities));
+        }
     }
 
     @Override
@@ -241,6 +247,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             startActivity(new Intent(this, IngredientListActivity.class));
         } else if (id == R.id.nav_recipes) {
             startActivity(new Intent(this, RecipeListActivity.class));
+        } else if (id == R.id.nav_create_all) {
+            startActivity(new Intent(this, CreateAllActivity.class));
         } else if (id == R.id.nav_logout) {
             logout();
         }

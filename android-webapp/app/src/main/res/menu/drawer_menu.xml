@@ -54,6 +54,14 @@
                 android:title="Recipes" />
         </menu>
     </item>
+    <item android:title="Admin">
+        <menu>
+            <item
+                android:id="@+id/nav_create_all"
+                android:icon="@android:drawable/ic_menu_add"
+                android:title="Add Person + Task" />
+        </menu>
+    </item>
     <item android:title="Account">
         <menu>
             <item
