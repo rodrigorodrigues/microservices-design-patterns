@@ -249,6 +249,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             startActivity(new Intent(this, RecipeListActivity.class));
         } else if (id == R.id.nav_create_all) {
             startActivity(new Intent(this, CreateAllActivity.class));
+        } else if (id == R.id.nav_passkeys) {
+            startActivity(new Intent(this, PasskeyListActivity.class));
         } else if (id == R.id.nav_logout) {
             logout();
         }
