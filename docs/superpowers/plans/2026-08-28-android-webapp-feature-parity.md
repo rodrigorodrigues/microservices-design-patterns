@@ -24,7 +24,7 @@
 - Modify: `android-webapp/app/src/main/res/layout/item_person.xml`
 - Modify: `android-webapp/app/src/main/java/com/springboot/android/ui/PersonAdapter.java`
 
-- [ ] **Step 1: Add a "Show Children" button to item_person.xml**
+- [x] **Step 1: Add a "Show Children" button to item_person.xml**
 
 ```xml
     <LinearLayout
@@ -60,7 +60,7 @@
 
 (Replace the existing button `LinearLayout` in `item_person.xml` with the block above — same two buttons, plus `btnChildren` prepended.)
 
-- [ ] **Step 2: Show the children dialog from PersonAdapter**
+- [x] **Step 2: Show the children dialog from PersonAdapter**
 
 ```java
 package com.springboot.android.ui;
@@ -189,12 +189,12 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.ViewHolder
 }
 ```
 
-- [ ] **Step 3: Build to verify**
+- [x] **Step 3: Build to verify**
 
 Run: `./gradlew :app:assembleDebug`
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 4: Commit changes**
+- [x] **Step 4: Commit changes**
 
 ```bash
 git add android-webapp/app/src/main/res/layout/item_person.xml android-webapp/app/src/main/java/com/springboot/android/ui/PersonAdapter.java
@@ -207,7 +207,7 @@ git commit -m "feat: add read-only children view to person list" --trailer "Co-a
 - Modify: `android-webapp/app/src/main/res/layout/activity_category_form.xml`
 - Modify: `android-webapp/app/src/main/java/com/springboot/android/ui/CategoryFormActivity.java`
 
-- [ ] **Step 1: Add a products checkbox container to activity_category_form.xml**
+- [x] **Step 1: Add a products checkbox container to activity_category_form.xml**
 
 ```xml
             <com.google.android.material.textfield.TextInputLayout
@@ -245,7 +245,7 @@ git commit -m "feat: add read-only children view to person list" --trailer "Co-a
 
 (Replace the `TextInputLayout`-through-`btnSave` block in the existing file with the above — same `etName` field, plus a new `productsContainer` before `btnSave`.)
 
-- [ ] **Step 2: Load products and pre-check existing category products in CategoryFormActivity**
+- [x] **Step 2: Load products and pre-check existing category products in CategoryFormActivity**
 
 ```java
 package com.springboot.android.ui;
@@ -440,9 +440,9 @@ public class CategoryFormActivity extends AppCompatActivity {
 }
 ```
 
-- [ ] **Step 3: Pass existing product names when launching edit mode**
+- [x] **Step 3: Pass existing product names when launching edit mode**
 
-In `WeekMenuCategoryAdapter.java` (or wherever `CategoryFormActivity` is launched for edit), add when building the edit `Intent`:
+Correction: the edit `Intent` is built in `WeekMenuCategoryListActivity.onEditCategory()`, not `WeekMenuCategoryAdapter.java` (the adapter only invokes a callback). Added there:
 
 ```java
 ArrayList<String> productNames = new ArrayList<>();
@@ -454,12 +454,12 @@ if (category.getProducts() != null) {
 intent.putStringArrayListExtra("category_product_names", productNames);
 ```
 
-- [ ] **Step 4: Build to verify**
+- [x] **Step 4: Build to verify**
 
 Run: `./gradlew :app:assembleDebug`
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add android-webapp/app/src/main/res/layout/activity_category_form.xml android-webapp/app/src/main/java/com/springboot/android/ui/CategoryFormActivity.java android-webapp/app/src/main/java/com/springboot/android/ui/WeekMenuCategoryAdapter.java
