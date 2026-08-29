@@ -30,6 +30,11 @@ public class PermissionHelper {
         return false;
     }
 
+    // Admin-only check (unlike hasAnyPermission, does NOT pass for SCOPE_openid alone)
+    public static boolean isAdmin(List<String> authorities) {
+        return authorities != null && authorities.contains("ROLE_ADMIN");
+    }
+
     // Permission check methods for specific resources
 
     // Company permissions

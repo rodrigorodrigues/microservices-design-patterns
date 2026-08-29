@@ -91,6 +91,34 @@
             android:parentActivityName=".ui.PersonListActivity" />
 
         <activity
+            android:name=".ui.CreateAllActivity"
+            android:exported="false"
+            android:label="Add Person + Task"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
+            android:name=".ui.PasskeyListActivity"
+            android:exported="false"
+            android:label="Passkeys"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.DashboardActivity" />
+
+        <activity
+            android:name=".ui.PasskeyFormActivity"
+            android:exported="false"
+            android:label="Add Passkey"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.PasskeyListActivity" />
+
+        <activity
+            android:name=".ui.GoogleLoginWebViewActivity"
+            android:exported="false"
+            android:label="Sign in with Google"
+            android:theme="@style/Theme.AndroidWebapp.NoActionBar"
+            android:parentActivityName=".ui.LoginActivity" />
+
+        <activity
             android:name=".ui.ProductListActivity"
             android:exported="false"
             android:label="Products"

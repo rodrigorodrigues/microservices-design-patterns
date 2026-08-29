@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.get_login_creds"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.springboot.android",
+      "sha256_cert_fingerprints": [
+        "75:2D:05:B2:C2:30:14:4F:DF:DD:D6:B8:DC:21:65:CE:86:7E:45:7C:9A:5B:85:6E:AD:1F:1D:72:A2:3C:92:32"
+      ]
+    }
+  }
+]

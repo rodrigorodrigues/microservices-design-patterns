@@ -3,9 +3,11 @@ package com.microservice.address.routes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
+import org.apache.pekko.http.scaladsl.server.Route
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 import com.microservice.address.repository.AddressRepository
+import com.microservice.address.auth.JwtDirectives
 import com.microservice.address.models.Address
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
@@ -33,8 +35,10 @@ class AddressRoutesSpec extends AnyFlatSpec with Matchers with ScalatestRouteTes
     }
 
   val mockRepository = mock(classOf[AddressRepository])
-  val addressRoutes = new AddressRoutes(mockRepository)
-  val route = addressRoutes.routes
+  val secret = "test-secret-key-test-secret-key-test-secret-key"
+  val jwtDirectives = new JwtDirectives(None, Some(secret))
+  val addressRoutes = new AddressRoutes(mockRepository, jwtDirectives)
+  val route = Route.seal(addressRoutes.routes)
 
   def createToken(roles: Seq[String]): String = {
     val claims = new JwtClaims()
@@ -43,7 +47,7 @@ class AddressRoutesSpec extends AnyFlatSpec with Matchers with ScalatestRouteTes
     val jws = new JsonWebSignature()
     jws.setPayload(claims.toJson)
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256)
-    jws.setKey(new HmacKey("secretsecretsecretsecretsecretsecretsecret".getBytes))
+    jws.setKey(new HmacKey(secret.getBytes("UTF-8")))
     jws.getCompactSerialization
   }
 
@@ -62,7 +66,13 @@ class AddressRoutesSpec extends AnyFlatSpec with Matchers with ScalatestRouteTes
 
   it should "return 403 for GET all as non-admin" in {
     Get("/api/addresses") ~> addHeader("Authorization", s"Bearer $personToken") ~> route ~> check {
-      rejections should not be empty
+      status shouldBe StatusCodes.Forbidden
+    }
+  }
+
+  it should "return 401 without a token" in {
+    Get("/api/addresses") ~> route ~> check {
+      status shouldBe StatusCodes.Unauthorized
     }
   }
 
