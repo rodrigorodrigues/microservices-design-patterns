@@ -44,7 +44,7 @@ class UserEdit extends Component {
   }
 
   async componentDidMount() {
-    const { jwt, authorities, gatewayUrl } = this.state.jwt;
+    const { jwt, authorities, gatewayUrl } = this.state;
     if (jwt && authorities) {
       if (!authorities.some(item => item === 'ROLE_ADMIN')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };

@@ -17,8 +17,8 @@ COPY package*.json ./
 
 RUN apt-get update && apt-get install npm nodejs -y && apt-get install netcat-openbsd -y
 
-RUN npm install --legacy-peer-dep
-RUN npm install react-scripts -g --legacy-peer-dep
+RUN npm install --legacy-peer-deps
+RUN npm install react-scripts -g --legacy-peer-deps
 
 # Bundle app source
 
