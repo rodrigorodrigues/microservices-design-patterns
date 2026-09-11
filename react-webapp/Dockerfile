@@ -1,12 +1,18 @@
 FROM node:22-slim as builder
 ARG PORT
 ARG NODE_ENV
+ARG GITHUB_SHA
 
 # Create app directory
 WORKDIR /usr/src/app
 
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 ENV NODE_ENV=${NODE_ENV}
+# .git isn't present in this build context (context: ./react-webapp), so the
+# commit can't be read via `git rev-parse` here - use the SHA the CI workflow
+# already passes in as a build-arg instead. REACT_APP_VERSION picks this up
+# via ${GIT_INFO} in .env/.env.production.
+ENV GIT_INFO=${GITHUB_SHA}
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
