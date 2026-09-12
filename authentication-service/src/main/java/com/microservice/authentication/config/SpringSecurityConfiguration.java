@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.microservice.authentication.service.TokenResponse;
+
 import com.microservice.authentication.common.model.Authentication;
 import com.microservice.authentication.repository.WebauthnRegistrationRepository;
 import com.microservice.authentication.service.CustomOidcUserService;
@@ -41,6 +43,10 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.ser
 import org.springframework.security.config.annotation.web.configurers.ott.OneTimeTokenLoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -218,7 +224,8 @@ public class SpringSecurityConfiguration {
     @Order(3)
     public SecurityFilterChain loginSecurityFilterChain(HttpSecurity http,
         @Value("${TOKEN_HOST:http://localhost:9998}") String tokenHost,
-        WebAuthnProperties webAuthnProperties)
+        WebAuthnProperties webAuthnProperties,
+        ClientRegistrationRepository clientRegistrationRepository)
         throws Exception {
         log.info("loginSecurityFilterChain");
         return http
@@ -233,7 +240,8 @@ public class SpringSecurityConfiguration {
             .oneTimeTokenLogin(oneTimeTokenLogin(tokenHost))
             .webAuthn(webAuthnConfigurer(webAuthnProperties))
             .oauth2Login(o -> o.successHandler(successHandler())
-                .userInfoEndpoint(u -> u.oidcUserService(customOidcUserService)))
+                .userInfoEndpoint(u -> u.oidcUserService(customOidcUserService))
+                .authorizationEndpoint(a -> a.authorizationRequestResolver(offlineAccessRequestResolver(clientRegistrationRepository))))
             // Form login handles the redirect to the login page from the
             // authorization server filter chain
             .formLogin(c -> c.successHandler(successHandler())
@@ -244,6 +252,23 @@ public class SpringSecurityConfiguration {
                 .logoutRequestMatcher(PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/logout"))
                 .invalidateHttpSession(true))
             .build();
+    }
+
+    /**
+     * Google only issues a refresh_token on the *first* consent for a given user
+     * (subsequent authorization_code exchanges without these params come back with
+     * no refresh_token at all) - access_type=offline requests one, prompt=consent
+     * forces the consent screen so it's actually reissued if the user already
+     * granted access before this change shipped.
+     */
+    private OAuth2AuthorizationRequestResolver offlineAccessRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
+        DefaultOAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
+            clientRegistrationRepository, OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+        resolver.setAuthorizationRequestCustomizer(customizer -> customizer.additionalParameters(params -> {
+            params.put("access_type", "offline");
+            params.put("prompt", "consent");
+        }));
+        return resolver;
     }
 
     private Customizer<WebAuthnConfigurer<HttpSecurity>> webAuthnConfigurer(WebAuthnProperties webAuthnProperties) {
@@ -408,14 +433,20 @@ public class SpringSecurityConfiguration {
                 sessionId = session.getId();
             }
             log.debug("sessionId: {}", sessionId);
+            // Refresh token is opaque and self-issued (not Google's) - it's only
+            // ever validated against what's stored in this same Redis-backed
+            // session (see AuthenticatedUserController#refreshToken), so a random
+            // UUID is sufficient; rotated on every refresh.
+            String refreshToken = UUID.randomUUID().toString();
             session.setAttribute("token", token);
+            session.setAttribute("refreshToken", refreshToken);
             sessionRepository.save(session);
             if (validateApiPath(request)) {
                 response.addHeader(HttpHeaders.AUTHORIZATION, String.format("%s %s", token.getTokenType().getValue(), token.getTokenValue()));
                 response.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 response.addHeader("sessionId", sessionId);
                 response.setStatus(HttpStatus.OK.value());
-                response.getWriter().append(jsonMapper.writeValueAsString(token));
+                response.getWriter().append(jsonMapper.writeValueAsString(TokenResponse.from(token, refreshToken)));
             } else {
                 // Check if this is from Android OAuth2 flow or OAuth2 authentication
                 String referer = request.getHeader("Referer");

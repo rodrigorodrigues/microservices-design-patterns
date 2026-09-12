@@ -45,38 +45,44 @@ public class PersonServiceImpl implements PersonService {
 
     private final Environment environment;
 
+    private final org.springframework.core.task.AsyncTaskExecutor asyncTaskExecutor;
+
     private final ParameterizedTypeReference<CustomPageImpl<PersonDto.Post>> parameterizedTypeReference = new ParameterizedTypeReference<>() { };
 
     private void processPost(Page<PersonDto> page, String authorization) {
         if (environment.acceptsProfiles(Profiles.of("callPostApi")) && !page.isEmpty()) {
-            try {
-                for (PersonDto person : page.getContent()) {
-                    HttpHeaders httpHeaders = new HttpHeaders();
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    HttpEntity httpEntity = new HttpEntity(httpHeaders);
-                    ResponseEntity<CustomPageImpl<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi() + "?personId="+person.getId(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
-                    person.setPosts(entity.getBody().getContent());
-                }
-            }
-            catch (Exception e) {
-                log.warn("Could not process post api", e);
-            }
+            List<java.util.concurrent.CompletableFuture<Void>> futures = page.getContent().stream()
+                .map(person -> java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        HttpHeaders httpHeaders = new HttpHeaders();
+                        httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
+                        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                        ResponseEntity<CustomPageImpl<PersonDto.Post>> entity = restTemplate.exchange(configProperties.getPostApi() + "?personId=" + person.getId(), HttpMethod.GET, httpEntity, parameterizedTypeReference);
+                        person.setPosts(entity.getBody().getContent());
+                    } catch (Exception e) {
+                        log.warn("Could not process post api for person {}", person.getId(), e);
+                    }
+                }, asyncTaskExecutor))
+                .toList();
+            java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         }
     }
 
     private void processUser(Page<PersonDto> page) {
         if (environment.acceptsProfiles(Profiles.of("callUserApi")) && !page.isEmpty()) {
-            try {
-                for (PersonDto person : page.getContent()) {
-                    HttpHeaders httpHeaders = new HttpHeaders();
-                    HttpEntity httpEntity = new HttpEntity(httpHeaders);
-                    ResponseEntity<PersonDto.User> entity = restTemplate.exchange(configProperties.getUserApi() + "?personId="+person.getId(), HttpMethod.GET, httpEntity, PersonDto.User.class);
-                    person.setUser(entity.getBody());
-                }
-            }
-            catch (Exception e) {
-                log.warn("Could not process user api", e);
-            }
+            List<java.util.concurrent.CompletableFuture<Void>> futures = page.getContent().stream()
+                .map(person -> java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        HttpHeaders httpHeaders = new HttpHeaders();
+                        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+                        ResponseEntity<PersonDto.User> entity = restTemplate.exchange(configProperties.getUserApi() + "?personId=" + person.getId(), HttpMethod.GET, httpEntity, PersonDto.User.class);
+                        person.setUser(entity.getBody());
+                    } catch (Exception e) {
+                        log.warn("Could not process user api for person {}", person.getId(), e);
+                    }
+                }, asyncTaskExecutor))
+                .toList();
+            java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         }
     }
 
@@ -93,7 +99,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Page<PersonDto> findAll(Pageable pageable, Predicate predicate, String authorization) {
-        Page<PersonDto> people = personMapper.entityToDto(personRepository.findAll(predicate, pageable), personRepository.count(predicate));
+        Page<PersonDto> people = personRepository.findAll(predicate, pageable).map(personMapper::entityToDto);
         processPost(people, authorization);
         processUser(people);
         return people;
@@ -101,7 +107,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Page<PersonDto> findAllByCreatedByUser(String createdByUser, Pageable pageable, Predicate predicate, String authorization) {
-        Page<PersonDto> people = personMapper.entityToDto(personRepository.findAllByCreatedByUser(createdByUser, pageable, predicate), personRepository.count(predicate));
+        Page<PersonDto> people = personRepository.findAllByCreatedByUser(createdByUser, pageable, predicate).map(personMapper::entityToDto);
         processPost(people, authorization);
         processUser(people);
         return people;
@@ -109,12 +115,12 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public Page<PersonDto> findAllByNameStartingWith(String name, Pageable pageable, Predicate predicate) {
-        return personMapper.entityToDto(personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable, predicate), personRepository.count(predicate));
+        return personRepository.findAllByFullNameIgnoreCaseStartingWith(name, pageable, predicate).map(personMapper::entityToDto);
     }
 
     @Override
     public Page<PersonDto> findByChildrenExists(Pageable pageable, Predicate predicate) {
-        return personMapper.entityToDto(personRepository.findByChildrenExists(true, pageable, predicate), personRepository.count(predicate));
+        return personRepository.findByChildrenExists(true, pageable, predicate).map(personMapper::entityToDto);
     }
 
     @Override

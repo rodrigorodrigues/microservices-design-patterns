@@ -144,6 +144,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         MenuItem navCategories = navigationView.getMenu().findItem(R.id.nav_categories);
         MenuItem navIngredients = navigationView.getMenu().findItem(R.id.nav_ingredients);
         MenuItem navRecipes = navigationView.getMenu().findItem(R.id.nav_recipes);
+        MenuItem navCreateAll = navigationView.getMenu().findItem(R.id.nav_create_all);
 
         // Check permissions and disable menu items accordingly
         if (navCompanies != null) {
@@ -211,6 +212,11 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                 "ROLE_RECIPE_READ", "ROLE_RECIPE_CREATE", "ROLE_RECIPE_SAVE", "ROLE_RECIPE_DELETE");
             navRecipes.setEnabled(hasAccess);
         }
+
+        // Create All is admin-only, unlike the other menu items which also allow SCOPE_openid
+        if (navCreateAll != null) {
+            navCreateAll.setEnabled(PermissionHelper.isAdmin(authorities));
+        }
     }
 
     @Override
@@ -241,6 +247,10 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             startActivity(new Intent(this, IngredientListActivity.class));
         } else if (id == R.id.nav_recipes) {
             startActivity(new Intent(this, RecipeListActivity.class));
+        } else if (id == R.id.nav_create_all) {
+            startActivity(new Intent(this, CreateAllActivity.class));
+        } else if (id == R.id.nav_passkeys) {
+            startActivity(new Intent(this, PasskeyListActivity.class));
         } else if (id == R.id.nav_logout) {
             logout();
         }
@@ -250,6 +260,29 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void logout() {
+        // Best-effort - invalidates the server-side session too (importCookiesFromWebView's
+        // SESSIONID otherwise keeps authenticating requests after local state is cleared).
+        // GET, matching SpringSecurityConfiguration's logoutRequestMatcher - not
+        // CSRF-protected (Spring's CsrfFilter skips GET by default). Local cleanup +
+        // navigation happens afterward regardless of outcome - clearing cookies before this
+        // call would send it without the session cookie at all, and navigating to
+        // LoginActivity before clearing would risk it seeing the still-valid session and
+        // bouncing straight back to Dashboard.
+        authService.logout().enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                finishLogout();
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                finishLogout();
+            }
+        });
+    }
+
+    private void finishLogout() {
+        ApiClient.clearCookies();
         sessionManager.logout();
         startLoginActivity();
     }

@@ -1,21 +1,29 @@
 package com.springboot.android.ui;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.GetPublicKeyCredentialOption;
+import androidx.credentials.PublicKeyCredential;
+import androidx.credentials.exceptions.GetCredentialException;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.springboot.android.BuildConfig;
 import com.springboot.android.R;
 import com.springboot.android.api.ApiClient;
 import com.springboot.android.api.AuthService;
+import com.springboot.android.api.PasskeyService;
 import com.springboot.android.model.AccountInfo;
 import com.springboot.android.model.LoginRequest;
 import com.springboot.android.model.LoginResponse;
@@ -34,9 +42,12 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etPassword;
     private MaterialButton btnLogin;
     private MaterialButton btnGoogleLogin;
+    private MaterialButton btnPasskeyLogin;
     private ProgressBar progressBar;
     private SessionManager sessionManager;
     private AuthService authService;
+    private PasskeyService passkeyService;
+    private CredentialManager credentialManager;
     private boolean isCheckingAuth = false;
 
     @Override
@@ -46,15 +57,19 @@ public class LoginActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
         authService = ApiClient.getClient().create(AuthService.class);
+        passkeyService = ApiClient.getClient().create(PasskeyService.class);
+        credentialManager = CredentialManager.create(this);
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
+        btnPasskeyLogin = findViewById(R.id.btnPasskeyLogin);
         progressBar = findViewById(R.id.progressBar);
 
         btnLogin.setOnClickListener(v -> performLogin());
         btnGoogleLogin.setOnClickListener(v -> performGoogleLogin());
+        btnPasskeyLogin.setOnClickListener(v -> performPasskeyLogin());
 
         // Check if user is already authenticated when login page loads
         checkIfAlreadyAuthenticated();
@@ -66,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         btnLogin.setEnabled(false);
         btnGoogleLogin.setEnabled(false);
+        btnPasskeyLogin.setEnabled(false);
 
         android.util.Log.d("LoginActivity", "Checking if user is already authenticated");
 
@@ -78,6 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 btnLogin.setEnabled(true);
                 btnGoogleLogin.setEnabled(true);
+                btnPasskeyLogin.setEnabled(true);
 
                 if (response.isSuccessful()) {
                     // Extract JWT token from Authorization header
@@ -108,6 +125,7 @@ public class LoginActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 btnLogin.setEnabled(true);
                 btnGoogleLogin.setEnabled(true);
+                btnPasskeyLogin.setEnabled(true);
 
                 // Network error or not authenticated, clear token and show login form
                 android.util.Log.d("LoginActivity", "Auth check failed: " + t.getMessage() + ", showing login form");
@@ -188,13 +206,101 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void performGoogleLogin() {
-        // Open OAuth2 authorization URL in Chrome Custom Tab
-        String oauth2Url = BuildConfig.BASE_URL + "oauth2/authorization/google";
+    private void performPasskeyLogin() {
+        progressBar.setVisibility(View.VISIBLE);
+        btnLogin.setEnabled(false);
+        btnGoogleLogin.setEnabled(false);
+        btnPasskeyLogin.setEnabled(false);
 
-        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-        CustomTabsIntent customTabsIntent = builder.build();
-        customTabsIntent.launchUrl(this, Uri.parse(oauth2Url));
+        // Fetch a fresh CSRF token first, matching react-webapp's Login.js handlePasskey() -
+        // the webauthn/** endpoints are CSRF-protected and a stale/missing token 403s.
+        authService.getCsrfToken().enqueue(new Callback<com.springboot.android.model.CsrfToken>() {
+            @Override
+            public void onResponse(Call<com.springboot.android.model.CsrfToken> call, Response<com.springboot.android.model.CsrfToken> response) {
+                fetchAuthenticateOptions();
+            }
+
+            @Override
+            public void onFailure(Call<com.springboot.android.model.CsrfToken> call, Throwable t) {
+                finishPasskeyLoginWithError("Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void fetchAuthenticateOptions() {
+        passkeyService.getAuthenticateOptions().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    getPasskeyAssertion(response.body());
+                } else {
+                    finishPasskeyLoginWithError("Failed to get passkey challenge");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                finishPasskeyLoginWithError("Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void getPasskeyAssertion(JsonObject challengeOptions) {
+        GetPublicKeyCredentialOption option = new GetPublicKeyCredentialOption(challengeOptions.toString());
+        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                .addCredentialOption(option)
+                .build();
+
+        credentialManager.getCredentialAsync(
+                this,
+                request,
+                null,
+                getMainExecutor(),
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse result) {
+                        PublicKeyCredential credential = (PublicKeyCredential) result.getCredential();
+                        JsonObject assertion = JsonParser.parseString(credential.getAuthenticationResponseJson()).getAsJsonObject();
+                        sendPasskeyAssertion(assertion);
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException e) {
+                        finishPasskeyLoginWithError("Passkey sign-in failed: " + e.getMessage());
+                    }
+                });
+    }
+
+    private void sendPasskeyAssertion(JsonObject assertion) {
+        passkeyService.loginWithPasskey(assertion).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    checkIfAlreadyAuthenticated();
+                } else {
+                    finishPasskeyLoginWithError("Passkey sign-in failed");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                finishPasskeyLoginWithError("Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void finishPasskeyLoginWithError(String message) {
+        progressBar.setVisibility(View.GONE);
+        btnLogin.setEnabled(true);
+        btnGoogleLogin.setEnabled(true);
+        btnPasskeyLogin.setEnabled(true);
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void performGoogleLogin() {
+        // Runs the flow in an in-app WebView (not a Chrome Custom Tab) so the resulting
+        // session cookie can be imported into ApiClient - webauthn/** endpoints need it.
+        startActivity(new Intent(this, GoogleLoginWebViewActivity.class));
     }
 
     @Override
