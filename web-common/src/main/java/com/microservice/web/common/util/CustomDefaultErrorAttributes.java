@@ -12,6 +12,7 @@ import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.webmvc.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -41,14 +42,14 @@ public class CustomDefaultErrorAttributes extends DefaultErrorAttributes {
      * @return httpStatus
      */
     public HttpStatusCode getHttpStatusError(Throwable ex) {
-        HttpStatusCode httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
+        HttpStatusCode httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         if (ex instanceof HttpStatusCodeException e) {
             httpStatus = e.getStatusCode();
         } else if (ex instanceof ResponseStatusException e) {
             httpStatus = e.getStatusCode();
         } else if (ex instanceof AuthenticationException) {
             httpStatus = HttpStatus.UNAUTHORIZED;
-        } else if (ex instanceof ConstraintViolationException) {
+        } else if (ex instanceof ConstraintViolationException || ex instanceof HttpMessageNotReadableException) {
             httpStatus = HttpStatus.BAD_REQUEST;
         } else if (ex instanceof AccessDeniedException) {
             httpStatus = HttpStatus.FORBIDDEN;
