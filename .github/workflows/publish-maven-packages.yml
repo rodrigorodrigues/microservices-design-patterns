@@ -1,0 +1,73 @@
+# Publishes authentication-common and redis-jackson-security-webauthn-otp (plus
+# the parent pom they inherit from, which consumers need to resolve them) to
+# this repo's GitHub Packages Maven registry.
+#
+# These two modules are consumed as 0.0.1-SNAPSHOT jars by the private
+# daniel_inventario repo and are not on Maven Central, so without this workflow
+# every consumer has to clone and build this repo from source.
+
+name: CI - Publish Maven packages - authentication-common + redis-jackson
+
+# Runs on master whenever the published modules (or the parent pom that carries
+# their dependency/plugin management) change, and on demand.
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'pom.xml'
+      - 'authentication-common/**'
+      - 'redis-jackson-security-webauthn-otp/**'
+      - '.github/workflows/publish-maven-packages.yml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Deploy SNAPSHOT jars to GitHub Packages
+    runs-on: ubuntu-latest
+
+    # packages:write lets the built-in GITHUB_TOKEN publish to this repo's own
+    # registry - no PAT needed on the deploy side.
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      # The "github"/"github-sba" servers are needed to *read* the
+      # spring-data-commons and spring-boot-admin snapshots this build depends
+      # on (see <repositories> in pom.xml); "github-microservices" is where we
+      # deploy to (see <distributionManagement>).
+      - name: Create Custom settings.xml
+        uses: s4u/maven-settings-action@v3.0.0
+        with:
+          servers: |
+            [{
+                "id": "github",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            },{
+                "id": "github-sba",
+                "username": "${{ secrets.USERNAME_MAVEN_PKG }}",
+                "password": "${{ secrets.PASSWORD_MAVEN_PKG }}"
+            },{
+                "id": "github-microservices",
+                "username": "${{ github.actor }}",
+                "password": "${{ secrets.GITHUB_TOKEN }}"
+            }]
+
+      # -am also builds/deploys the parent pom (com.springboot:microservice):
+      # consumers need it on the registry too, otherwise Maven cannot resolve
+      # the transitive dependencies of these two jars.
+      - name: Deploy
+        run: >
+          mvn -B deploy -am
+          -pl authentication-common,redis-jackson-security-webauthn-otp
+          -Dmaven.test.skip=true -Djacoco.skip=true

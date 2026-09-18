@@ -10,6 +10,10 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PersonMapper {
+    default Page<PersonDto> entityToDto(Page<Person> people) {
+        return people.map(this::entityToDto);
+    }
+
     default Page<PersonDto> entityToDto(Page<Person> people, long count) {
         return PageableExecutionUtils.getPage(entityToDto(people.getContent()), people.getPageable(), () -> count);
     }

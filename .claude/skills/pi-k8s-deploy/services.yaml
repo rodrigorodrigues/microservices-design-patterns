@@ -1,0 +1,15 @@
+# Services this skill is allowed to check and deploy. Add one entry per service
+# that should be watched for new Docker Hub images.
+#
+# - repo: Docker Hub repository (namespace/name). The :latest tag is assumed.
+# - deployment: the Kubernetes Deployment name AND the `app` label/container
+#   name used to select its pods (this repo's convention: all three match).
+# - container: container name inside the pod to read the running image digest
+#   from (defaults to the same value as `deployment` if omitted - every
+#   manifest in ~/k8s-files on the Pi names its app container after the
+#   service, e.g. the authentication-service pod has an
+#   "authentication-service" container plus an istio-proxy sidecar).
+
+services:
+  - repo: fielcapao/microservices-design-patterns-authentication-service
+    deployment: authentication-service
