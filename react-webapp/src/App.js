@@ -26,6 +26,8 @@ import PostList from './posts/PostList';
 import PostEdit from './posts/PostEdit';
 import CompanyList from "./company/CompanyList";
 import CompanyEdit from "./company/CompanyEdit";
+import BookList from "./book/BookList";
+import BookEdit from "./book/BookEdit";
 import ModalPopup from './common/Modal';
 import CreateAll from "./admin/CreateAll";
 import ActivityDetector from 'react-activity-detector';
@@ -229,6 +231,10 @@ class App extends Component {
                    component={() => <ProductList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/products/:id'
                    component={() => <ProductEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/books' exact={true}
+                   component={() => <BookList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/books/:id'
+                   component={() => <BookEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/posts' exact={true}
                    component={() => <PostList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/posts/:id'
