@@ -139,6 +139,19 @@ class HomeContent extends Component {
         </NavItem>);
     }
 
+    displayBooksButton(authorities) {
+        const hasBookPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_BOOKS_READ' 
+        || item === 'ROLE_BOOKS_CREATE' || item === 'ROLE_BOOKS_SAVE' || item === 'ROLE_BOOKS_DELETE' || item === 'SCOPE_openid'));
+        return (<NavItem eventKey="books" disabled={(!hasBookPermission)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-book" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="php service - books" />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Books">
+                Books
+            </NavText>
+        </NavItem>);
+    }
+
     displayAdminButtons(authorities) {
         const isAdmin = this.hasAdminAccess(authorities);
         return (<NavItem eventKey="admin" disabled={(!isAdmin)}>
@@ -320,6 +333,10 @@ class HomeContent extends Component {
                 <Breadcrumbs.Item>
                     <Anchor href="./posts">Manage Posts</Anchor>
                 </Breadcrumbs.Item>}
+                {isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="./books">Manage Books</Anchor>
+                </Breadcrumbs.Item>}
                 {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
                     <Anchor href="./admin/createAll">Admin - Create All</Anchor>
@@ -393,6 +410,7 @@ class HomeContent extends Component {
                         {this.displayCompaniesButton(authorities)}
                         {this.displayPostsButton(authorities)}
                         {this.displayProductsButton(authorities)}
+                        {this.displayBooksButton(authorities)}
                         {this.displayWeekMenuButtons(authorities)}
                         <Separator />
                         {this.displayLogoutButton()}

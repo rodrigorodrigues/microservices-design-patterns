@@ -31,6 +31,7 @@ public interface AuthService {
     @GET("api/authenticatedUser")
     Call<AccountInfo> getAuthenticatedUser();
 
-    @POST("api/logout")
+    // SpringSecurityConfiguration matches this logout route as GET, not POST.
+    @GET("api/logout")
     Call<Void> logout();
 }

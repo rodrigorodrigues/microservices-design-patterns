@@ -44,7 +44,7 @@ class UserEdit extends Component {
   }
 
   async componentDidMount() {
-    const { jwt, authorities, gatewayUrl } = this.state.jwt;
+    const { jwt, authorities, gatewayUrl } = this.state;
     if (jwt && authorities) {
       if (!authorities.some(item => item === 'ROLE_ADMIN')) {
         const jsonError = { 'error': 'You do not have sufficient permission to access this page!' };
@@ -157,13 +157,14 @@ class UserEdit extends Component {
           enableReinitialize={true}
           initialValues={{
             fullName: user?.fullName || '',
+            currentPassword: user?.currentPassword || '',
             password: user?.password || '',
             confirmPassword: user?.confirmPassword || '',
             email: user?.email || ''
           }}
           validationSchema={yup.object().shape({
             fullName: yup.string().trim().required('This field is required.'),
-            currentPassword: yup.string().trim().required('This field is required.'),
+            currentPassword: user.id ? yup.string().trim().required('This field is required.') : yup.string(),
             password: yup.string().trim().required('This field is required.'),
             confirmPassword: yup.string().trim().required('This field is required.'),
             email: yup.string().trim().email().required('This field is required.')

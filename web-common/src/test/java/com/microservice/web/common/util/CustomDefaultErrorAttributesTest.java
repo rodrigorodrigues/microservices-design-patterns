@@ -9,7 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.webmvc.error.DefaultErrorAttributes;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -27,7 +29,7 @@ class CustomDefaultErrorAttributesTest {
         request.setAttribute(name, new RuntimeException("Connection refused!"));
         Map<String, Object> errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
 
-        Assertions.assertThat(errorAttributes.get("status")).isEqualTo(503);
+        Assertions.assertThat(errorAttributes.get("status")).isEqualTo(500);
         Assertions.assertThat(errorAttributes.get("timestamp")).isNotNull();
         Assertions.assertThat(errorAttributes.get("error")).isNotNull();
         Assertions.assertThat(errorAttributes.get("message").toString()).contains("Connection refused!");
@@ -39,5 +41,9 @@ class CustomDefaultErrorAttributesTest {
         request.setAttribute(name, new ResponseStatusException(HttpStatus.NOT_FOUND));
         errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
         Assertions.assertThat(errorAttributes.get("status")).isEqualTo(404);
+
+        request.setAttribute(name, new HttpMessageNotReadableException("JSON parse error", (HttpInputMessage) null));
+        errorAttributes = customDefaultErrorAttributes.getErrorAttributes(new ServletWebRequest(request), ErrorAttributeOptions.defaults());
+        Assertions.assertThat(errorAttributes.get("status")).isEqualTo(400);
     }
 }

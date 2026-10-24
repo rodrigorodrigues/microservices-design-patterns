@@ -1,11 +1,14 @@
-# 🔧 Troubleshooting: Claude Not Responding to @claude
+# 🔧 Troubleshooting: Claude Not Responding
+
+Covers both workflows: **Claude Code Review** (`claude-code-review.yml`, automatic PR review) and **Claude Code** (`claude.yml`, `@claude` mentions).
 
 ## Quick Checklist
 
-### ✅ 1. Verify API Key is Set
+### ✅ 1. Verify API Key is Set and Valid
 Go to: `Settings → Secrets and variables → Actions`
 - Check that `ANTHROPIC_API_KEY` exists
 - Name must be **exactly** `ANTHROPIC_API_KEY` (case-sensitive)
+- If the Actions log or a posted comment says something like "API key is invalid", the key itself is expired/revoked — regenerate one at https://console.anthropic.com/ (Settings → API Keys) and update the secret
 
 ### ✅ 2. Check Workflow Permissions
 Go to: `Settings → Actions → General → Workflow permissions`
@@ -19,37 +22,33 @@ Go to: `Actions` tab
 - If you see a yellow banner saying "Workflows aren't being run on this repository", click **Enable workflows**
 
 ### ✅ 4. Check Workflow Files Are in Correct Location
-Files must be in: `.github/workflows/` directory
+Files must be in: `.github/workflows/`
 
-```bash
-# Correct structure:
+```
 .github/
   workflows/
-    claude-pr-review.yml
-    claude-issue-assistant.yml
+    claude.yml
+    claude-code-review.yml
 ```
 
-### ✅ 5. For Issues - How to Trigger Claude
+### ✅ 5. How to Trigger Claude
 
-**Option 1: Mention @claude in issue body when creating**
-```
-Title: How do I add a new service?
-Body: @claude Can you help me understand the architecture?
-```
+**Automatic PR review** — no mention needed. Fires on PR opened, synchronize, reopened, or marked ready-for-review (`claude-code-review.yml`).
 
-**Option 2: Add a label**
-Create issue with label: `help-wanted` or `question`
+**`@claude` assistant** (`claude.yml`) fires on:
+- A PR comment containing `@claude`
+- An inline PR review comment containing `@claude`
+- A submitted PR review whose body contains `@claude`
+- A newly opened or assigned issue whose **title or body** contains `@claude`
+- An issue comment containing `@claude`
 
-**Option 3: Comment with @claude**
-```
-@claude What's the best way to do this?
-```
+There is **no** label-based trigger (e.g. `help-wanted`/`question`) — that existed in an earlier hand-rolled version of these workflows and was dropped when they were replaced by the official ones. If you want it back, add an `issues: [opened, labeled]` condition to `claude.yml`'s `if:` block.
 
 ## 🔍 Debug Steps
 
 ### Step 1: Check Workflow Runs
 1. Go to **Actions** tab in your repo
-2. Look for workflow runs named "Claude Issue Assistant"
+2. Look for workflow runs named **"Claude Code Review"** or **"Claude Code"**
 3. Click on a run to see details
 
 **What to look for:**
@@ -58,27 +57,24 @@ Create issue with label: `help-wanted` or `question`
 - ✅ Green check = Success
 
 ### Step 2: Check the "if" Condition
-If workflow shows as "skipped", the `if` condition didn't pass.
-
-**For Issues**, check if ANY of these are true:
-- Issue has `help-wanted` label
-- Issue has `question` label  
-- Issue body contains `@claude`
-- Comment contains `@claude`
+If a run of `claude.yml` shows as skipped, its `if:` condition didn't match — the triggering comment/issue/review body didn't contain `@claude`, or the event type wasn't one of the ones it listens for. `claude-code-review.yml` has no `if:` gate — it should run on every matching `pull_request` event.
 
 ### Step 3: View Workflow Logs
 1. Click on a workflow run
-2. Click on the job "claude-issue-help"
-3. Expand each step to see detailed logs
+2. Click on the job (`claude-review` or `claude`)
+3. Expand the **"Run Claude Code"** / **"Run Claude Code Review"** step
 4. Look for errors in red
 
 **Common errors:**
 ```
-Error: ANTHROPIC_API_KEY not found
+Error: ANTHROPIC_API_KEY not found / Process completed with exit code 1
 → Solution: Add the secret in Settings
 
+API Error: "invalid x-api-key" / "API key is invalid"
+→ Solution: The key was revoked/rotated — generate a new one and update the secret
+
 Error: Resource not accessible by integration
-→ Solution: Enable workflow permissions
+→ Solution: Enable "Read and write permissions" under workflow permissions
 
 Error: 401 Unauthorized
 → Solution: API key is invalid, regenerate it
@@ -86,23 +82,19 @@ Error: 401 Unauthorized
 
 ## 🧪 Test the Workflow
 
-### Test 1: Simple Issue with @claude
-1. Create a new issue
-2. Title: "Test Claude Integration"
-3. Body: "@claude Hello, are you working?"
-4. Submit
-5. Go to Actions tab and watch for workflow run
+### Test 1: PR Comment
+1. Open any PR
+2. Add a comment: `@claude are you working?`
+3. Check the Actions tab for a "Claude Code" run
 
-### Test 2: Issue Comment
-1. Open any existing issue
-2. Add a comment: "@claude Can you help?"
-3. Submit
-4. Check Actions tab
+### Test 2: New Issue
+1. Create an issue
+2. Title or body: `@claude hello, are you working?`
+3. Check the Actions tab for a "Claude Code" run
 
-### Test 3: Issue with Label
-1. Create issue without @claude
-2. Add label `question`
-3. Check Actions tab
+### Test 3: Automatic PR Review
+1. Open (or push a new commit to) any PR
+2. Check the Actions tab for a "Claude Code Review" run — should start without any `@claude` mention
 
 ## 🐛 Still Not Working?
 
@@ -115,67 +107,46 @@ Add these secrets to get more detailed logs:
 - `ACTIONS_STEP_DEBUG` = `true`
 
 ### Validate YAML Syntax
-Copy your workflow file and check at: https://www.yamllint.com/
+```
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/claude.yml'))"
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/claude-code-review.yml'))"
+```
 
 ### Check Repository Settings
 Go to `Settings → Actions → General`
 - "Actions permissions" should be: **Allow all actions and reusable workflows**
-- "Fork pull request workflows" settings may affect behavior
+- "Fork pull request workflows" settings may affect behavior on PRs from forks
 
 ## 📋 Manual Verification Checklist
-
-Copy this checklist and verify each item:
 
 ```
 Repository: rodrigorodrigues/microservices-design-patterns
 
-□ ANTHROPIC_API_KEY exists in Secrets
+□ ANTHROPIC_API_KEY exists in Secrets and is a currently-valid key
 □ Workflow permissions set to "Read and write"
 □ "Allow GitHub Actions to create and approve pull requests" enabled
-□ Workflows are in .github/workflows/ directory
-□ Files are named exactly: claude-issue-assistant.yml
+□ Workflows are in .github/workflows/ as claude.yml and claude-code-review.yml
 □ GitHub Actions are enabled for the repository
-□ Issue contains @claude OR has help-wanted/question label
+□ Comment/issue/review actually contains the literal text @claude (case-sensitive)
 □ No syntax errors in YAML files
-□ API key is valid (test at console.anthropic.com)
 ```
 
 ## 💡 Common Gotchas
 
-1. **@claude vs @Claude**: Matching is case-sensitive, use lowercase `@claude`
-
-2. **Label names**: Must be exactly `help-wanted` or `question` (with dash, not space)
-
-3. **First time setup**: First workflow run may take 1-2 minutes to start
-
-4. **Workflow file changes**: After updating .yml files, it may take 30 seconds to reflect
-
-5. **Multiple workflows**: If you have multiple workflow files, make sure you're looking at the right one
-
-## 🎯 Expected Behavior
-
-**When working correctly:**
-
-1. You mention @claude in an issue or comment
-2. Within 30-60 seconds, workflow appears in Actions tab
-3. Workflow runs (shows as yellow/in progress)
-4. After 30-90 seconds, Claude posts a comment on the issue
-5. Comment starts with "🤖 Claude AI Assistant"
-
-**Timing:**
-- Workflow trigger: ~10-30 seconds
-- Workflow execution: ~30-60 seconds  
-- Total: ~1-2 minutes from @claude to response
+1. **`@claude` vs `@Claude`**: matching is case-sensitive, use lowercase `@claude`
+2. **First time setup**: the first workflow run after installing may take 1-2 minutes to start
+3. **Workflow file changes**: after updating `.yml` files, it may take ~30 seconds to reflect
+4. **Two workflows, two purposes**: `claude-code-review.yml` never needs `@claude` — if you're expecting a response to a mention and nothing happens, check `claude.yml`'s run instead
 
 ## 🆘 Get Help
 
-If still stuck, create an issue with:
-1. Screenshot of Actions tab showing workflow runs
+If still stuck, open an issue with:
+1. Screenshot of the Actions tab showing the workflow run (or its absence)
 2. Screenshot of Settings → Actions → General
-3. Copy of error logs from failed workflow run
-4. Confirm you completed all checklist items above
+3. Copy of error logs from the failed run
+4. Confirmation you completed all checklist items above
 
 ---
 
 **Quick Test Command:**
-Create issue titled "Test" with body "@claude hello" and wait 2 minutes. If no response, check Actions tab for errors.
+Comment `@claude hello` on any open PR or issue and wait 1-2 minutes. If no response, check the Actions tab for the "Claude Code" run and its logs.

@@ -1,0 +1,10 @@
+vendor
+tests
+storage/logs/*
+storage/framework/cache/data/*
+bootstrap/cache/*.php
+.env
+.phpunit.cache
+.phpunit.result.cache
+*.iml
+.idea

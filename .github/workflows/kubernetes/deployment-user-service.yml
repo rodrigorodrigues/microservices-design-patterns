@@ -37,12 +37,12 @@ spec:
           imagePullPolicy: Never
           resources:
             requests:
-              memory: "256Mi"
+              memory: "400Mi"
             limits:
-              memory: "512Mi"
+              memory: "800Mi"
           env:
             - name: JAVA_OPTS
-              value: -Xss256K -Xms1M -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
+              value: -Xss256K -Xms1M -Xmx512m -XX:+UseSerialGC -Djava.compiler=none -XX:ReservedCodeCacheSize=2496k -XX:MaxDirectMemorySize=1M
             - name: SERVER_PORT
               value: "8083"
             - name: SPRING_PROFILES_ACTIVE
@@ -65,17 +65,23 @@ spec:
               value: "true"
           ports:
             - containerPort: 8083
+          startupProbe:
+            httpGet:
+              scheme: HTTP
+              path: /actuator/health/readiness
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health/liveness
               port: 8083
-            initialDelaySeconds: 1000
             periodSeconds: 5
           readinessProbe:
             httpGet:
               scheme: HTTP
               path: /actuator/health/readiness
               port: 8083
-            initialDelaySeconds: 1000
             periodSeconds: 5

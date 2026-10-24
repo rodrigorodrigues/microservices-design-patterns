@@ -13,7 +13,7 @@ import CategoryList from "./WeekMenu/CategoryList";
 import CategoryEdit from "./WeekMenu/CategoryEdit";
 import RecipeList from "./WeekMenu/RecipeList";
 import jwt_decode from 'jwt-decode';
-import {getWithCredentials, post} from "./services/ApiService";
+import {getWithCredentials} from "./services/ApiService";
 import MessageAlert from './MessageAlert';
 import {errorMessage} from './common/Util';
 import Cookies from 'js-cookie'
@@ -26,6 +26,8 @@ import PostList from './posts/PostList';
 import PostEdit from './posts/PostEdit';
 import CompanyList from "./company/CompanyList";
 import CompanyEdit from "./company/CompanyEdit";
+import BookList from "./book/BookList";
+import BookEdit from "./book/BookEdit";
 import ModalPopup from './common/Modal';
 import CreateAll from "./admin/CreateAll";
 import ActivityDetector from 'react-activity-detector';
@@ -78,7 +80,9 @@ class App extends Component {
             if (data.status === 401 && this.state.refreshToken && moment().isAfter(this.state.expiresIn)) {
               console.log(`Token is expired trying to refresh_token:`);
               const body = "refresh_token=" + encodeURIComponent(this.state.refreshToken);
-              data = await post('refreshToken', body);
+              data = await postWithHeaders('refreshToken', body, {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+              });
               if (data.tokenValue) {
                 window.localStorage.removeItem('redirectToPreviousPage');
                 this.setAuthentication(data);
@@ -170,9 +174,8 @@ class App extends Component {
   async refreshTokenCall(refreshToken, jwt) {
     const loginSubmit = "refresh_token=" + encodeURIComponent(refreshToken);
     try {
-      const data = await postWithHeaders('authenticate', loginSubmit, { 
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 
-        'Authorization': jwt
+      const data = await postWithHeaders('refreshToken', loginSubmit, {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
       });
       if (data.tokenValue) {
         this.setAuthentication(data);
@@ -228,6 +231,10 @@ class App extends Component {
                    component={() => <ProductList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/products/:id'
                    component={() => <ProductEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/books' exact={true}
+                   component={() => <BookList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/books/:id'
+                   component={() => <BookEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/posts' exact={true}
                    component={() => <PostList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/posts/:id'

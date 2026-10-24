@@ -47,8 +47,8 @@ jobs:
           push: true
           tags: fielcapao/microservices-design-patterns-react-webapp-service:latest
           build-args: |
-            GITHUB_SHA=$GITHUB_SHA
-            GITHUB_REF=$GITHUB_REF
+            GITHUB_SHA=${{ github.sha }}
+            GITHUB_REF=${{ github.ref }}
             PORT=3003
 
       - name: Image digest

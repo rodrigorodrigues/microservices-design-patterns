@@ -34,6 +34,50 @@ public class ApiClient {
         appContext = context.getApplicationContext();
     }
 
+    /**
+     * Drops all stored cookies (e.g. SESSIONID). Must be called on logout - otherwise a
+     * session imported via importCookiesFromWebView keeps authenticating requests like
+     * /api/authenticatedUser server-side even after the local JWT/CSRF state is cleared.
+     */
+    public static void clearCookies() {
+        cookieStore.clear();
+    }
+
+    /**
+     * Copies cookies (SESSIONID, XSRF-TOKEN) set on a WebView-hosted OAuth2 flow into this
+     * client's cookie jar. Needed because webauthn/** endpoints require a session-authenticated
+     * principal (not just the JWT Authorization header), and android.webkit.CookieManager's
+     * store is otherwise invisible to OkHttp.
+     */
+    public static void importCookiesFromWebView(Context context, String url) {
+        String cookieHeader = android.webkit.CookieManager.getInstance().getCookie(url);
+        HttpUrl httpUrl = HttpUrl.parse(url);
+        if (cookieHeader == null || cookieHeader.isEmpty() || httpUrl == null) {
+            return;
+        }
+
+        List<Cookie> cookies = new ArrayList<>();
+        for (String pair : cookieHeader.split(";")) {
+            String trimmed = pair.trim();
+            int idx = trimmed.indexOf('=');
+            if (idx <= 0) {
+                continue;
+            }
+            String name = trimmed.substring(0, idx);
+            String value = trimmed.substring(idx + 1);
+            Cookie cookie = Cookie.parse(httpUrl, name + "=" + value);
+            if (cookie != null) {
+                cookies.add(cookie);
+                if ("XSRF-TOKEN".equals(name) && context != null) {
+                    new SessionManager(context.getApplicationContext()).saveCsrfToken(value, "X-XSRF-TOKEN");
+                }
+            }
+        }
+        if (!cookies.isEmpty()) {
+            cookieStore.put(httpUrl.host(), cookies);
+        }
+    }
+
     public static Retrofit getClient() {
         if (retrofit == null) {
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
@@ -46,7 +90,24 @@ public class ApiClient {
                     .cookieJar(new CookieJar() {
                         @Override
                         public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-                            cookieStore.put(url.host(), cookies);
+                            if (!cookies.isEmpty()) {
+                                // Merge by name instead of overwriting: OkHttp calls this on
+                                // every response, including ones with no Set-Cookie headers at
+                                // all (empty list), which would otherwise wipe out cookies
+                                // (e.g. SESSIONID imported from a WebView flow) that this
+                                // particular response simply didn't mention.
+                                java.util.Map<String, Cookie> merged = new java.util.LinkedHashMap<>();
+                                List<Cookie> existing = cookieStore.get(url.host());
+                                if (existing != null) {
+                                    for (Cookie cookie : existing) {
+                                        merged.put(cookie.name(), cookie);
+                                    }
+                                }
+                                for (Cookie cookie : cookies) {
+                                    merged.put(cookie.name(), cookie);
+                                }
+                                cookieStore.put(url.host(), new ArrayList<>(merged.values()));
+                            }
 
                             // Extract CSRF token from cookies and save to SessionManager
                             if (appContext != null) {

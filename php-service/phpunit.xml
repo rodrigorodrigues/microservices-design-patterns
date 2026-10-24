@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <!-- Needs the mongodb extension and MONGODB_TEST_URI; skipped otherwise. -->
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="LOG_CHANNEL" value="null"/>
+        <env name="CONSUL_ENABLED" value="false"/>
+        <env name="COM_MICROSERVICE_AUTHENTICATION_JWK_KEY_SET_URI" value=""/>
+        <env name="COM_MICROSERVICE_AUTHENTICATION_JWT_KEY_VALUE" value="test-secret-that-is-long-enough-for-hs256-validation"/>
+        <env name="COM_MICROSERVICE_AUTHENTICATION_JWT_ALLOW_UNVERIFIED" value="false"/>
+    </php>
+</phpunit>
