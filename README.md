@@ -19,7 +19,7 @@ Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter
 
 ![Raspberry Pi Cluster](docs/raspberrypi_cluster.jpeg "Raspberry Pi Cluster")
 
-Feel free to create a new microservice using a different language(`Ruby?, PHP?, Scala?`), just please following the minimal requirements:
+Feel free to create a new microservice using a different language(`Ruby?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
  * Add a minimal documentation
  * Add a Rest API
@@ -376,7 +376,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Migrate Zuul to Spring Cloud Gateway
 * [ ] React - Need to fix new layout
 * [X] Go - Fix call to another service
-* [ ] PHP - Add Service using PHP/Laravel
+* [X] PHP - Add Service using PHP/Laravel - `Used Claude Agent`
 * [X] Java - Migrate JDK 21 - Spring Boot 3
 * [X] Java - Migrate JDK 21 - Quarkus 3
 * [X] Java - Add Passkeys - Spring Boot 3

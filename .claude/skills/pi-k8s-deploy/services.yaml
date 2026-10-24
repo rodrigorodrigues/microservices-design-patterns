@@ -13,3 +13,5 @@
 services:
   - repo: fielcapao/microservices-design-patterns-authentication-service
     deployment: authentication-service
+  - repo: fielcapao/microservices-design-patterns-php-service
+    deployment: php-service

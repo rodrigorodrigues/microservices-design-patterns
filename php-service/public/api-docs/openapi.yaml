@@ -1,0 +1,207 @@
+openapi: 3.0.3
+info:
+  title: PHP Service (Books API)
+  version: 1.0.0
+  description: Manages books. Written in PHP with Laravel and MongoDB.
+servers:
+  - url: /
+tags:
+  - name: books
+  - name: actuator
+security:
+  - bearerAuth: []
+paths:
+  /api/books:
+    get:
+      tags: [books]
+      summary: List books one page at a time
+      description: "Authorities: ROLE_ADMIN, ROLE_BOOKS_READ, ROLE_BOOKS_CREATE, ROLE_BOOKS_SAVE, ROLE_BOOKS_DELETE or SCOPE_openid"
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 10 } }
+      responses:
+        '200':
+          description: A page of books
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [books]
+      summary: Create a book
+      description: "Authorities: ROLE_ADMIN, ROLE_BOOKS_CREATE or SCOPE_openid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookRequest' }
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Book' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/books/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [books]
+      summary: Get a book
+      description: "Authorities: ROLE_ADMIN, ROLE_BOOKS_READ, ROLE_BOOKS_SAVE or SCOPE_openid"
+      responses:
+        '200':
+          description: The book
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Book' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [books]
+      summary: Replace a book
+      description: "Authorities: ROLE_ADMIN, ROLE_BOOKS_SAVE or SCOPE_openid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookRequest' }
+      responses:
+        '200':
+          description: The updated book
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Book' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [books]
+      summary: Delete a book
+      description: "Authorities: ROLE_ADMIN, ROLE_BOOKS_DELETE or SCOPE_openid"
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { message: { type: string } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /actuator/health:
+    get:
+      tags: [actuator]
+      security: []
+      summary: Health, including MongoDB
+      responses:
+        '200': { description: UP }
+        '503': { description: DOWN }
+  /actuator/info:
+    get:
+      tags: [actuator]
+      security: []
+      summary: Service name, version, PHP and Laravel versions
+      responses:
+        '200': { description: Info }
+  /actuator/prometheus:
+    get:
+      tags: [actuator]
+      security: []
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: Metrics in the Prometheus text format
+          content:
+            text/plain: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    BookRequest:
+      type: object
+      required: [title, author, isbn, publishedYear, price, currency]
+      properties:
+        title: { type: string, maxLength: 255, example: Domain-Driven Design }
+        author: { type: string, maxLength: 255, example: Eric Evans }
+        isbn: { type: string, description: 'ISBN-10 or ISBN-13, hyphens allowed; unique', example: 978-0321125217 }
+        publishedYear: { type: integer, example: 2003 }
+        price: { type: number, minimum: 0, example: 54.99 }
+        currency: { type: string, minLength: 3, maxLength: 3, example: USD }
+    Book:
+      allOf:
+        - type: object
+          properties:
+            id: { type: string, example: 6adcce61418f71b2ae00e072 }
+        - $ref: '#/components/schemas/BookRequest'
+        - type: object
+          properties:
+            createdByUser: { type: string }
+            createdDate: { type: string, format: date-time }
+            lastModifiedByUser: { type: string }
+            lastModifiedDate: { type: string, format: date-time }
+    BookPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Book' }
+        number: { type: integer }
+        size: { type: integer }
+        totalPages: { type: integer }
+        totalElements: { type: integer }
+        first: { type: boolean }
+        last: { type: boolean }
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: The token has none of the required authorities
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: No book with this id
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Another book already has this ISBN
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { type: string }

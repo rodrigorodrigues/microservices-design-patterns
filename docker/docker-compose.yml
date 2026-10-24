@@ -250,6 +250,36 @@ services:
         aliases:
           - stock-api
 
+  book-api:
+    build:
+      args:
+        - PORT=8088
+      context: ../php-service
+      dockerfile: Dockerfile
+    container_name: book-api
+    environment:
+      - APP_NAME=php-service
+      - HOST_NAME=book-api
+      - SERVER_PORT=8088
+      - MONGODB_URI=mongodb://mongodb-datasource:27017/docker
+      - CONSUL_ENABLED=true
+      - CONSUL_URL=service-discovery:8500
+      - SPRING_PROFILES_ACTIVE=dev
+      - LOG_LEVEL=debug
+      # The HS256 key value is read from Consul (config/application,dev/data).
+      # To validate against authentication-service's keys instead:
+      # - COM_MICROSERVICE_AUTHENTICATION_JWK_KEY_SET_URI=http://authentication-service:9999/.well-known/jwks.json
+    depends_on:
+      - service-discovery
+      - service-discovery-load-configuration
+      - mongodb-datasource
+    ports:
+      - 8088:8088
+    networks:
+      net:
+        aliases:
+          - book-api
+
   post-api:
     build:
       args:
