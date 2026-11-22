@@ -174,8 +174,11 @@ public class AuthenticationServiceApplication implements ApplicationContextAware
         } else {
             KeyPair keyPair = applicationContext.getBean(KeyPair.class);
 
+            // Same kid as /.well-known/jwks.json (JwksController); NimbusJwtEncoder copies it into the token header.
+            // Without it tokens carry no kid, and clients that look keys up by kid (e.g. Grafana's JWT login) find none.
             JWK jwk = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
                 .privateKey(keyPair.getPrivate())
+                .keyID(properties.getKid())
                 .build();
             JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
             return new NimbusJwtEncoder(jwks);
