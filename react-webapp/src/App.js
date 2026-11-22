@@ -28,6 +28,8 @@ import CompanyList from "./company/CompanyList";
 import CompanyEdit from "./company/CompanyEdit";
 import BookList from "./book/BookList";
 import BookEdit from "./book/BookEdit";
+import StockList from "./stock/StockList";
+import StockEdit from "./stock/StockEdit";
 import ModalPopup from './common/Modal';
 import CreateAll from "./admin/CreateAll";
 import ActivityDetector from 'react-activity-detector';
@@ -235,6 +237,10 @@ class App extends Component {
                    component={() => <BookList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/books/:id'
                    component={() => <BookEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/stocks' exact={true}
+                   component={() => <StockList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
+            <Route path='/stocks/:id'
+                   component={() => <StockEdit {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/posts' exact={true}
                    component={() => <PostList {...this.state} onRemoveAuthentication={this.removeAuthentication} />} />
             <Route path='/posts/:id'

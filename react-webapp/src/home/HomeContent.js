@@ -152,6 +152,19 @@ class HomeContent extends Component {
         </NavItem>);
     }
 
+    displayStocksButton(authorities) {
+        const hasStockPermission = ((authorities !== undefined) && authorities.some(item => item === 'ROLE_ADMIN' || item === 'ROLE_STOCKS_READ'
+        || item === 'ROLE_STOCKS_CREATE' || item === 'ROLE_STOCKS_SAVE' || item === 'ROLE_STOCKS_DELETE' || item === 'SCOPE_openid'));
+        return (<NavItem eventKey="stocks" disabled={(!hasStockPermission)}>
+            <NavIcon>
+                <i className="fa fa-fw fa-cubes" style={{ fontSize: '1.75em', verticalAlign: 'middle' }} title="dotnet service - stocks" />
+            </NavIcon>
+            <NavText style={{ paddingRight: 32 }} title="Stocks">
+                Stocks
+            </NavText>
+        </NavItem>);
+    }
+
     displayAdminButtons(authorities) {
         const isAdmin = this.hasAdminAccess(authorities);
         return (<NavItem eventKey="admin" disabled={(!isAdmin)}>
@@ -337,6 +350,10 @@ class HomeContent extends Component {
                 <Breadcrumbs.Item>
                     <Anchor href="./books">Manage Books</Anchor>
                 </Breadcrumbs.Item>}
+                {isAuthenticated &&
+                <Breadcrumbs.Item>
+                    <Anchor href="./stocks">Manage Stocks</Anchor>
+                </Breadcrumbs.Item>}
                 {this.hasAdminAccess(authorities) &&
                 <Breadcrumbs.Item>
                     <Anchor href="./admin/createAll">Admin - Create All</Anchor>
@@ -411,6 +428,7 @@ class HomeContent extends Component {
                         {this.displayPostsButton(authorities)}
                         {this.displayProductsButton(authorities)}
                         {this.displayBooksButton(authorities)}
+                        {this.displayStocksButton(authorities)}
                         {this.displayWeekMenuButtons(authorities)}
                         <Separator />
                         {this.displayLogoutButton()}
