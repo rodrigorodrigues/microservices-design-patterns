@@ -1,5 +1,6 @@
 package com.microservice.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.microservice.authentication.common.model.UserType;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,11 @@ public class UserDto {
     @AllArgsConstructor
     public static class AuthorityDto {
         private String role;
+
+        @JsonCreator
+        public static AuthorityDto fromRole(String role) {
+            return new AuthorityDto(role);
+        }
     }
 
 }

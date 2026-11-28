@@ -54,8 +54,20 @@
                 android:title="Recipes" />
         </menu>
     </item>
+    <item android:title="Admin">
+        <menu>
+            <item
+                android:id="@+id/nav_create_all"
+                android:icon="@android:drawable/ic_menu_add"
+                android:title="Add Person + Task" />
+        </menu>
+    </item>
     <item android:title="Account">
         <menu>
+            <item
+                android:id="@+id/nav_passkeys"
+                android:icon="@android:drawable/ic_lock_lock"
+                android:title="Passkeys" />
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@android:drawable/ic_menu_close_clear_cancel"

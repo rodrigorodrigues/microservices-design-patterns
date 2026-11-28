@@ -1,5 +1,7 @@
 package com.springboot.android.ui;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,6 +62,13 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.ViewHolder
         }
         holder.tvPhone.setText(addressText);
 
+        if (person.getChildren() != null && !person.getChildren().isEmpty()) {
+            holder.btnChildren.setVisibility(View.VISIBLE);
+            holder.btnChildren.setOnClickListener(v -> showChildrenDialog(holder.itemView.getContext(), person));
+        } else {
+            holder.btnChildren.setVisibility(View.GONE);
+        }
+
         // Hide/show buttons based on permissions
         if (hasSaveAccess) {
             holder.btnEdit.setVisibility(View.VISIBLE);
@@ -76,6 +85,21 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.ViewHolder
         }
     }
 
+    private void showChildrenDialog(Context context, Person person) {
+        StringBuilder message = new StringBuilder();
+        for (Person.Children child : person.getChildren()) {
+            message.append(child.getName() != null ? child.getName() : "")
+                   .append(" — ")
+                   .append(child.getDateOfBirth() != null ? child.getDateOfBirth() : "")
+                   .append("\n");
+        }
+        new AlertDialog.Builder(context)
+            .setTitle("Children")
+            .setMessage(message.toString().trim())
+            .setPositiveButton("Close", (dialog, which) -> dialog.dismiss())
+            .show();
+    }
+
     @Override
     public int getItemCount() {
         return persons.size();
@@ -88,13 +112,14 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.ViewHolder
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvEmail, tvPhone;
-        MaterialButton btnEdit, btnDelete;
+        MaterialButton btnChildren, btnEdit, btnDelete;
 
         ViewHolder(View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvName);
             tvEmail = itemView.findViewById(R.id.tvEmail);
             tvPhone = itemView.findViewById(R.id.tvPhone);
+            btnChildren = itemView.findViewById(R.id.btnChildren);
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }

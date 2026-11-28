@@ -3,6 +3,7 @@ package com.microservice.authentication.controller;
 import java.util.Collections;
 
 import com.microservice.authentication.service.GenerateToken;
+import com.microservice.authentication.service.TokenResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,9 +59,10 @@ class AuthenticatedUserControllerTest {
         request.setSession(mockSession);
         Session session = mock(Session.class);
         when(sessionRepository.findById(anyString())).thenReturn(session);
-        when(session.getAttribute(anyString())).thenReturn(accessToken);
+        when(session.getAttribute("token")).thenReturn(accessToken);
+        when(session.getAttribute("refreshToken")).thenReturn("mock-refresh-token");
 
-        ResponseEntity<OAuth2AccessToken> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(new UsernamePasswordAuthenticationToken("user", "password"), request);
+        ResponseEntity<TokenResponse> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(new UsernamePasswordAuthenticationToken("user", "password"), request);
 
         assertThat(jwtTokenDtoResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(jwtTokenDtoResponseEntity.getHeaders().containsHeader(HttpHeaders.CONTENT_TYPE)).isTrue();
@@ -85,9 +87,10 @@ class AuthenticatedUserControllerTest {
         request.setSession(mockSession);
         Session session = mock(Session.class);
         when(sessionRepository.findById(anyString())).thenReturn(session);
-        when(session.getAttribute(anyString())).thenReturn(accessToken);
+        when(session.getAttribute("token")).thenReturn(accessToken);
+        when(session.getAttribute("refreshToken")).thenReturn("mock-refresh-token");
 
-        ResponseEntity<OAuth2AccessToken> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(oAuth2AuthenticationToken, request);
+        ResponseEntity<TokenResponse> jwtTokenDtoResponseEntity = authenticatedUserController.authenticatedUser(oAuth2AuthenticationToken, request);
 
         assertThat(jwtTokenDtoResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(jwtTokenDtoResponseEntity.getHeaders().containsHeader(HttpHeaders.CONTENT_TYPE)).isTrue();

@@ -11,13 +11,15 @@ The web application is using `React`
 
 Android App using `React Native` is available.
 
+A native Android App (`android-webapp` folder, Kotlin/Java) with feature parity to the React Web App - including Passkey/WebAuthn support - is also available.
+
 Docker images are built in multiple platforms(`linux/amd64,linux/arm64`).
 
-Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter.com and create a user.
+Services are deployed in a Raspberry Pi Cluster to access https://spendingbetter.com and create a user. Deploying a new image to the cluster follows the `.claude/skills/pi-k8s-deploy` skill (SSH + `kubectl rollout restart/status`, comparing the running pod's image digest against Docker Hub's `:latest`).
 
 ![Raspberry Pi Cluster](docs/raspberrypi_cluster.jpeg "Raspberry Pi Cluster")
 
-Feel free to create a new microservice using a different language(`Ruby?, PHP?, Scala?`), just please following the minimal requirements:
+Feel free to create a new microservice using a different language(`Ruby?`), just please following the minimal requirements:
  * Create a new folder on root and put your code
  * Add a minimal documentation
  * Add a Rest API
@@ -374,7 +376,7 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] Java - Migrate Zuul to Spring Cloud Gateway
 * [ ] React - Need to fix new layout
 * [X] Go - Fix call to another service
-* [ ] PHP - Add Service using PHP/Laravel
+* [X] PHP - Add Service using PHP/Laravel - `Used Claude Agent`
 * [X] Java - Migrate JDK 21 - Spring Boot 3
 * [X] Java - Migrate JDK 21 - Quarkus 3
 * [X] Java - Add Passkeys - Spring Boot 3
@@ -392,6 +394,10 @@ Access it [Swagger UI](http://localhost:{SERVICE_PORT}/swagger-ui.html) - `http:
 * [X] C# - Add Service using C#/.NET Framework - `Used Claude Agent`
 * [X] Clojure - Add Service using Clojure - `Used Claude Agent`
 * [X] Add Android Client - `Used Claude Agent`
+* [X] Android - Feature parity with React Web App: Person children view, WeekMenu Category products, Admin Create All wizard, Passkey/WebAuthn registration+login - `Used Claude Agent`
+* [X] CI - Add Gemini AI PR Review GitHub Action - `Used Claude Agent`
+* [X] Rust - Parallelize count/find pagination queries - `Used Claude Agent`
+* [X] Kubernetes - Fix slow-startup liveness/readiness probes with a `startupProbe`, add `pi-k8s-deploy` Claude skill for Docker Hub -> Pi cluster deploys - `Used Claude Agent`
 
 ### Superpowers SDD Workflow
 

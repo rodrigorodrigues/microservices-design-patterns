@@ -1,0 +1,62 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "microservices-design-patterns/php-service",
+    "type": "project",
+    "description": "Books API written in PHP with Laravel and MongoDB",
+    "keywords": [
+        "laravel",
+        "mongodb",
+        "microservice",
+        "jwt"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "firebase/php-jwt": "^7.2",
+        "laravel/framework": "^13.17",
+        "mongodb/laravel-mongodb": "^5.11",
+        "promphp/prometheus_client_php": "^2.15",
+        "symfony/yaml": "^8.1"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.27",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^12.5.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "@php vendor/bin/phpunit"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        },
+        "platform-check": false
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

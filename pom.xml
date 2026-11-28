@@ -253,6 +253,24 @@
 		</pluginManagement>
 	</build>
 
+	<!-- Publishes the modules to this repo's GitHub Packages Maven registry, so
+	     external consumers (e.g. the daniel_inventario repo, which depends on
+	     authentication-common and redis-jackson-security-webauthn-otp) can
+	     resolve them without building this repo from source. Deployed by
+	     .github/workflows/publish-maven-packages.yml. -->
+	<distributionManagement>
+		<repository>
+			<id>github-microservices</id>
+			<name>GitHub Packages - microservices-design-patterns</name>
+			<url>https://maven.pkg.github.com/rodrigorodrigues/microservices-design-patterns</url>
+		</repository>
+		<snapshotRepository>
+			<id>github-microservices</id>
+			<name>GitHub Packages - microservices-design-patterns</name>
+			<url>https://maven.pkg.github.com/rodrigorodrigues/microservices-design-patterns</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<repositories>
 		<repository>
 			<id>spring-milestones</id>

@@ -118,11 +118,19 @@ async fn get_warehouses(
 
     debug!("Get all warehouses - page: {}\t size: {}", page, size);
 
-    // Get total count
-    let total_elements = match collection.count_documents(None, None).await {
-        Ok(count) => count,
+    // Fetch paginated data and total count in parallel
+    let find_options = mongodb::options::FindOptions::builder()
+        .skip(skip)
+        .limit(size as i64)
+        .build();
+
+    let (total_elements, cursor) = match futures::try_join!(
+        collection.count_documents(None, None),
+        collection.find(None, find_options)
+    ) {
+        Ok((count, cursor)) => (count, cursor),
         Err(e) => {
-            error!("Error counting warehouses: {}", e);
+            error!("Error fetching warehouses: {}", e);
             return HttpResponse::InternalServerError().json(ErrorResponse {
                 error: format!("Database error: {}", e),
             });
@@ -136,44 +144,29 @@ async fn get_warehouses(
         0
     };
 
-    // Fetch paginated data
-    let find_options = mongodb::options::FindOptions::builder()
-        .skip(skip)
-        .limit(size as i64)
-        .build();
+    use futures::stream::StreamExt;
+    let mut cursor = cursor;
+    let mut warehouses = Vec::new();
 
-    match collection.find(None, find_options).await {
-        Ok(mut cursor) => {
-            use futures::stream::StreamExt;
-            let mut warehouses = Vec::new();
-
-            while let Some(result) = cursor.next().await {
-                if let Ok(warehouse) = result {
-                    warehouses.push(warehouse);
-                }
-            }
-
-            let content: Vec<WarehouseResponse> = warehouses.into_iter().map(|w| w.into()).collect();
-
-            let page_response = PageResponse {
-                content,
-                number: page,
-                size,
-                total_pages,
-                total_elements,
-                first: page == 0,
-                last: page >= total_pages.saturating_sub(1),
-            };
-
-            HttpResponse::Ok().json(page_response)
-        }
-        Err(e) => {
-            error!("Error fetching warehouses: {}", e);
-            HttpResponse::InternalServerError().json(ErrorResponse {
-                error: format!("Database error: {}", e),
-            })
+    while let Some(result) = cursor.next().await {
+        if let Ok(warehouse) = result {
+            warehouses.push(warehouse);
         }
     }
+
+    let content: Vec<WarehouseResponse> = warehouses.into_iter().map(|w| w.into()).collect();
+
+    let page_response = PageResponse {
+        content,
+        number: page,
+        size,
+        total_pages,
+        total_elements,
+        first: page == 0,
+        last: page >= total_pages.saturating_sub(1),
+    };
+
+    HttpResponse::Ok().json(page_response)
 }
 
 #[utoipa::path(

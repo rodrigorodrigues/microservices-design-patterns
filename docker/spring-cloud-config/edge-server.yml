@@ -105,6 +105,10 @@ spring:
                       - Path=/swagger/dotnet-service/**
                     filters:
                       - RewritePath=/dotnet-service/(?<segment>.*), /$\{segment}
+                  - id: php-service
+                    uri: lb://php-service
+                    predicates:
+                      - Path=/api/books/**
 
 com:
     microservice:

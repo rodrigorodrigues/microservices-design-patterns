@@ -117,7 +117,8 @@ public class AuthenticationServiceApplicationIntegrationTest {
     @BeforeEach
     void setup() {
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAKey key = new RSAKey.Builder(publicKey).build();
+        // Like JwksController: published with the kid that tokens carry.
+        RSAKey key = new RSAKey.Builder(publicKey).keyID("test").build();
 
         stubFor(WireMock.get(urlEqualTo("/.well-known/jwks.json"))
             .willReturn(aResponse()
@@ -339,6 +340,8 @@ public class AuthenticationServiceApplicationIntegrationTest {
 
         assertThat(accessToken).isNotEmpty();
         assertThat(accessToken.get("tokenValue")).isNotNull();
+        // Same kid as the JWKS endpoint publishes, so clients that select keys by kid can verify the token.
+        assertThat(SignedJWT.parse(accessToken.get("tokenValue").toString()).getHeader().getKeyID()).isEqualTo("test");
 
         String authorization = "Bearer " + accessToken.get("tokenValue").toString();
         mockMvc.perform(get("/api/authenticatedUser")
