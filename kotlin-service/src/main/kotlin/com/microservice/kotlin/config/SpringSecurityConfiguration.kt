@@ -38,6 +38,7 @@ class SpringSecurityConfiguration(@Autowired val customDefaultErrorAttributes: C
         "/configuration/ui",
         "/configuration/security",
         "/swagger-ui.html",
+        "/swagger-ui/**",
         "/webjars/**",
         "/*.js",
         "/*.css",
